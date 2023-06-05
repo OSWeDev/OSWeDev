@@ -63,6 +63,7 @@ import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryT
 import DataExportServerController from './DataExportServerController';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
+import FieldFiltersVO from '../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -221,7 +222,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns: TableColumnDescVO[],
         fields: { [datatable_field_uid: string]: DatatableField<any, any> },
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -284,7 +285,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns: TableColumnDescVO[] = null,
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -363,7 +364,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns: TableColumnDescVO[] = null,
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -705,11 +706,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * create_active_filters_xlsx_sheet
      *  - Make the Xlsx sheet of Active field filters
      *
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @returns {IExportableSheet}
      */
     private async create_active_filters_xlsx_sheet(
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
     ): Promise<IExportableSheet> {
 
         if ((!active_field_filters)) {
@@ -754,14 +755,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      *  - Make the Xlsx sheet of the given Vars Indicator
      *
      * @param vars_indicator {ExportVarIndicator}
-     * @param active_field_filters {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @param active_field_filters {FieldFiltersVO}
      * @param active_api_type_ids {string[]}
      * @param discarded_field_paths {{ [vo_type: string]: { [field_id: string]: boolean } }}
      * @returns {IExportableSheet}
      */
     private async create_vars_indicator_xlsx_sheet(
         vars_indicator: ExportVarIndicator,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
     ): Promise<IExportableSheet> {
@@ -777,7 +778,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             column_labels: { name: 'Nom', value: 'Valeur' },
         };
 
-        const current_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
+        const current_active_field_filters: FieldFiltersVO = cloneDeep(active_field_filters);
         const limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         const promise_pipeline = new PromisePipeline(limit);
         let debug_uid: number = 0;
@@ -1376,7 +1377,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         columns: TableColumnDescVO[],
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -1414,7 +1415,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     do_not_user_filter_by_datatable_field_uid[row_field_name] :
                     null;
 
-                let current_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
+                let current_active_field_filters: FieldFiltersVO = cloneDeep(active_field_filters);
 
                 for (let vo_type in do_not_user_filter) {
                     for (let field_id in do_not_user_filter[vo_type]) {

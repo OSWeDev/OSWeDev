@@ -3,6 +3,7 @@ import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import ExportVarIndicator from "../../DataExport/vos/ExportVarIndicator";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import VarWidgetOptionsVO from "../vos/VarWidgetOptionsVO";
+import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
 
 /**
  * @class VarWidgetManager
@@ -18,7 +19,7 @@ export default class VarWidgetManager {
      */
     public static get_var_custom_filters(
         var_custom_filters: { [var_param_field_name: string]: string },
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        get_active_field_filters: FieldFiltersVO
     ): { [var_param_field_name: string]: ContextFilterVO } {
 
         /**

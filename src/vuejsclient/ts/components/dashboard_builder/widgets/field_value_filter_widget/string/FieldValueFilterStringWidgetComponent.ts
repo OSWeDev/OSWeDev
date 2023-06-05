@@ -33,7 +33,8 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
@@ -48,7 +49,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -831,10 +832,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         let field_sort: VOFieldRefVO = this.vo_field_sort ? this.vo_field_sort : this.vo_field_ref;
 
-        let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+        let active_field_filters_query: FieldFiltersVO = null;
 
         if (!this.no_inter_filter) {
-            active_field_filters_query = FieldFilterManager.clean_field_filters_for_request(
+            active_field_filters_query = FieldFiltersVOManager.clean_field_filters_for_request(
                 this.get_active_field_filters,
                 { should_restrict_to_api_type_id: true }
             );
@@ -1002,7 +1003,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 let opt: DataFilterOption = tmp[i];
 
                 promises.push((async () => {
-                    let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+                    let active_field_filters: FieldFiltersVO = {};
 
                     if (!active_field_filters[this.vo_field_ref.api_type_id]) {
                         active_field_filters[this.vo_field_ref.api_type_id] = {};

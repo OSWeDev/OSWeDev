@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -67,7 +68,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     private throttle_init_param = debounce(this.throttled_init_param.bind(this), 500);
     private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 500);
@@ -160,16 +161,16 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
         this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
 
-        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
+        let active_field_filters: FieldFiltersVO = cloneDeep(this.get_active_field_filters);
 
         // On supprime les filtres à ne pas prendre en compte pour créer le bon param
         if (this.do_not_user_filter_active_ids && this.do_not_user_filter_active_ids.length) {
-            let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+            let all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
 
             for (let i in this.do_not_user_filter_active_ids) {
                 let page_filter_id = this.do_not_user_filter_active_ids[i];
 
-                let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                let page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
                 if (!page_widget) {
                     continue;
                 }

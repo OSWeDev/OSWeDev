@@ -25,7 +25,8 @@ import FavoritesFiltersVOManager from '../../../../../../shared/modules/Dashboar
 import MonthFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
 import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagerts';
 import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
-import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import './SaveFavoritesFiltersWidgetComponent.scss';
 
 @Component({
@@ -38,7 +39,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -188,7 +189,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      *
      * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
      */
-    private get_selectionnable_active_field_filters(): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    private get_selectionnable_active_field_filters(): FieldFiltersVO {
 
         const field_value_filters_widgets_options = FieldValueFilterWidgetManager.get_field_value_filters_widgets_options();
         const month_filters_widgets_options = MonthFilterWidgetManager.get_month_filters_widgets_options();
@@ -211,7 +212,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             widgets_options.push(widget_options);
         }
 
-        const field_filters = FieldFilterManager.filter_visible_field_filters(
+        const field_filters = FieldFiltersVOManager.filter_visible_field_filters(
             widgets_options,
             this.get_active_field_filters,
         );
@@ -274,7 +275,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * Get All Page Widget By Id
      * @return {{ [id: number]: DashboardPageWidgetVO }}
      */
-    get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 }

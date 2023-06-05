@@ -29,7 +29,8 @@ import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOpti
 import AdvancedNumberFilter from './AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
@@ -44,9 +45,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
+
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -374,10 +377,10 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
         }
 
-        let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+        let active_field_filters_query: FieldFiltersVO = null;
 
         if (!this.no_inter_filter) {
-            active_field_filters_query = FieldFilterManager.clean_field_filters_for_request(
+            active_field_filters_query = FieldFiltersVOManager.clean_field_filters_for_request(
                 this.get_active_field_filters
             );
         }

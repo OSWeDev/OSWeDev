@@ -1,21 +1,20 @@
 import { cloneDeep } from "lodash";
-import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
-import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
-import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import IReadableActiveFieldFilters from "../interfaces/IReadableActiveFieldFilters";
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
+import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
+import ContextFilterVOManager from "./ContextFilterVOManager";
+import IReadableActiveFieldFilters from "../../DashboardBuilder/interfaces/IReadableActiveFieldFilters";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
-import VOFieldRefVOManager from "./VOFieldRefVOManager";
+import VOFieldRefVOManager from "../../DashboardBuilder/manager/VOFieldRefVOManager";
 import ModuleTableField from "../../ModuleTableField";
 import ModuleTable from "../../ModuleTable";
-
+import ContextFilterVO from "../vos/ContextFilterVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 
 /**
- * @class FieldFilterManager
- *  - Must likely alter and return field filters like { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+ * FieldFiltersVOManager
+ *  - Must likely alter and return field filters like FieldFiltersVO
  */
-export default class FieldFilterManager {
+export default class FieldFiltersVOManager {
 
     /**
      * Create Readable Filters Text From Field Filters
@@ -24,7 +23,7 @@ export default class FieldFilterManager {
      * @return {{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }}
      */
     public static create_readable_filters_text_from_field_filters(
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
     ): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
 
         let human_readable_field_filters: { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } = {};
@@ -66,14 +65,14 @@ export default class FieldFilterManager {
      * clean_field_filters_for_request
      *  - Clone and remove custom_filters
      *
-     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @returns {FieldFiltersVO}
      */
     public static clean_field_filters_for_request(
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
         options?: { should_restrict_to_api_type_id: boolean },
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    ): FieldFiltersVO {
 
-        let field_filter: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
+        let field_filter: FieldFiltersVO = cloneDeep(active_field_filters);
 
         if (field_filter) {
             delete field_filter[ContextFilterVO.CUSTOM_FILTERS_TYPE];
@@ -82,7 +81,7 @@ export default class FieldFilterManager {
         if (options?.should_restrict_to_api_type_id) {
             // On ajoute un filtrage des filtres incompatibles avec la requête classique
             // Avoid to have context_filter query on other api_type_id
-            field_filter = FieldFilterManager.filter_field_filters_by_it_own_api_type_id(field_filter);
+            field_filter = FieldFiltersVOManager.filter_field_filters_by_it_own_api_type_id(field_filter);
         }
 
         return field_filter;
@@ -91,18 +90,18 @@ export default class FieldFilterManager {
     /**
      * Merge Field Filters With Context Filters
      *
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} from_field_filters
+     * @param {FieldFiltersVO} from_field_filters
      * @param {{ field_id: string, api_type_id: string }} vo_field_ref
      * @param {ContextFilterVO} context_filter
-     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @returns {FieldFiltersVO}
      */
     public static merge_field_filters_with_context_filter(
-        from_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        from_field_filters: FieldFiltersVO,
         vo_field_ref: { field_id: string, api_type_id: string },
         context_filter: ContextFilterVO,
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    ): FieldFiltersVO {
 
-        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(from_field_filters);
+        let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
 
         if (field_filters[vo_field_ref.api_type_id]) {
             if (field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
@@ -128,16 +127,16 @@ export default class FieldFilterManager {
      * Merge Field Filters
      * - Merge field filters with each other
      *
-     * @param { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } from_field_filters
-     * @param { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } with_field_filters
-     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @param {FieldFiltersVO} from_field_filters
+     * @param {FieldFiltersVO} with_field_filters
+     * @returns {FieldFiltersVO}
      */
     public static merge_field_filters(
-        from_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        with_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        from_field_filters: FieldFiltersVO,
+        with_field_filters: FieldFiltersVO,
     ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO; }; } {
 
-        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(from_field_filters);
+        let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
 
         for (const api_type_id in with_field_filters) {
             const filters = with_field_filters[api_type_id];
@@ -150,7 +149,7 @@ export default class FieldFilterManager {
                 }
 
                 // Add default context filters
-                field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
                     field_filters,
                     { api_type_id, field_id },
                     context_filter,
@@ -165,18 +164,18 @@ export default class FieldFilterManager {
      * Overwrite Filters With Context Filters
      * - Overwrite or add context_filter of the given field_filters with the given context_filter
      *
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} from_field_filters
+     * @param {FieldFiltersVO} from_field_filters
      * @param {{ field_id: string, api_type_id: string }} vo_field_ref
      * @param {ContextFilterVO} context_filter
-     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @returns {FieldFiltersVO}
      */
     public static overwrite_field_filters_with_context_filter(
-        from_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        from_field_filters: FieldFiltersVO,
         vo_field_ref: { field_id: string, api_type_id: string },
         context_filter: ContextFilterVO
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    ): FieldFiltersVO {
 
-        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(from_field_filters);
+        let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
 
         field_filters[vo_field_ref.api_type_id] = field_filters[vo_field_ref.api_type_id] ?? {};
         field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
@@ -190,29 +189,29 @@ export default class FieldFilterManager {
      * - /!\ Updating is not filtering, in this way we are actually updating the context_filter.vo_type with the required api_type_id
      *
      * @param {any} widget_options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @param {string[]} required_api_type_ids - The api_type_ids that are required for the current widget
      * @param {string[]} all_possible_api_type_ids  - The api_type_ids that are possible to update for the current widget
-     * @returns {{ [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } }}
+     * @returns {{ [api_type_id: string]: FieldFiltersVO}
      */
     public static update_field_filters_for_required_api_type_ids(
         widget_options: any,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
         required_api_type_ids: string[],
         all_possible_api_type_ids: string[],
         options?: {},
-    ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
+    ): { [api_type_id: string]: FieldFiltersVO } {
 
         active_field_filters = cloneDeep(active_field_filters);
 
         let field_filters_by_api_type_ids: {
-            [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+            [api_type_id: string]: FieldFiltersVO
         } = {};
 
         // Remove unwanted field_filters (e.g. "__custom_filters__")
         const field_filters_for_request: {
             [api_type_id: string]: { [field_id: string]: ContextFilterVO }
-        } = FieldFilterManager.clean_field_filters_for_request(
+        } = FieldFiltersVOManager.clean_field_filters_for_request(
             active_field_filters,
             { should_restrict_to_api_type_id: !widget_options.no_inter_filter }
         );
@@ -277,7 +276,7 @@ export default class FieldFilterManager {
                     if (field_filters_by_api_type_ids[api_type_id][api_type_id]) {
                         // In this case the field_filters are already set for this api_type_id
                         // We must merge the two field_filters
-                        field_filters_by_api_type_ids[api_type_id] = FieldFilterManager.merge_field_filters_with_context_filter(
+                        field_filters_by_api_type_ids[api_type_id] = FieldFiltersVOManager.merge_field_filters_with_context_filter(
                             field_filters_by_api_type_ids[api_type_id],
                             { api_type_id, field_id },
                             context_filter
@@ -297,24 +296,24 @@ export default class FieldFilterManager {
      * - The aim of this function is to filter_field_filters by excluding the given api_type_ids_to_exclude (or vo_type)
      *
      * @param {any} widget_options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @param {string[]} api_type_ids_to_exclude  - The api_type_ids to exclude from the active_field_filters
-     * @returns { { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @returns { FieldFiltersVO}
      */
     public static filter_field_filters_by_api_type_ids_to_exlude(
         widget_options: any,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
         api_type_ids_to_exclude: string[],
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    ): FieldFiltersVO {
 
         active_field_filters = cloneDeep(active_field_filters);
 
-        let excluded_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+        let excluded_field_filters: FieldFiltersVO = {};
 
         // Remove unwanted field_filters (e.g. "__custom_filters__")
         const field_filters_for_request: {
             [api_type_id: string]: { [field_id: string]: ContextFilterVO }
-        } = FieldFilterManager.clean_field_filters_for_request(
+        } = FieldFiltersVOManager.clean_field_filters_for_request(
             active_field_filters,
             { should_restrict_to_api_type_id: !widget_options.no_inter_filter }
         );
@@ -337,12 +336,12 @@ export default class FieldFilterManager {
      * filter_field_filter_by_type$
      *  - The aim of this function is to filter the given field_filters to only keep context_filters related to each api_type_id
      *
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
-     * @returns { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+     * @param {FieldFiltersVO} active_field_filters
+     * @returns FieldFiltersVO
      */
     public static filter_field_filters_by_it_own_api_type_id(
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+        active_field_filters: FieldFiltersVO
+    ): FieldFiltersVO {
 
         for (let api_type_id in active_field_filters) {
 
@@ -367,16 +366,16 @@ export default class FieldFilterManager {
      * - The aim of this function is to filter_field_filters by api_type_id (or vo_type)
      * - We should olso only keep all context_filters that actually filter on the given api_type_id (or vo_type)
      *
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @param {string[]} available_api_type_ids all available api type ids
      * @param {string} api_type_id API type id (or vo_type)
-     * @returns { { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @returns { FieldFiltersVO}
      */
     public static filter_field_filters_by_api_type_id(
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
         available_api_type_ids: string[],
         api_type_id: string
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    ): FieldFiltersVO {
 
         if (!active_field_filters) {
             return;
@@ -425,13 +424,13 @@ export default class FieldFilterManager {
      *  - The aim of this function is to filter the given field_filters to only keep visible context_filters
      *
      * @param {any} widgets_options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
-     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @param {FieldFiltersVO} active_field_filters
+     * @returns {FieldFiltersVO}
      */
     public static filter_visible_field_filters(
         widgets_options: any[],
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+        active_field_filters: FieldFiltersVO,
+    ): FieldFiltersVO {
 
         active_field_filters = cloneDeep(active_field_filters);
 
@@ -445,7 +444,7 @@ export default class FieldFilterManager {
             }
 
             if (options.hide_filter) {
-                if (!FieldFilterManager.is_field_filters_empty(options, active_field_filters)) {
+                if (!FieldFiltersVOManager.is_field_filters_empty(options, active_field_filters)) {
                     delete active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
                 }
             }
@@ -457,14 +456,18 @@ export default class FieldFilterManager {
     /**
      * Is field_filters empty
      *  - The aim of this function is to check if the given field_filters is empty
+     *  TODO: checking have to in the FieldFiltersVOHandler
+     *        but create_vo_field_ref_vo_from_widget_options have to be in the VOFieldRefVOManager
+     *        It may have a circular dependency between FieldFiltersVOHandler and VOFieldRefVOManager
+     *        So we have to find a way to avoid this circular dependency
      *
      * @param {any} widget_options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @returns boolean
      */
     public static is_field_filters_empty(
         widget_options: any,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        active_field_filters: FieldFiltersVO
     ): boolean {
 
         const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(widget_options);

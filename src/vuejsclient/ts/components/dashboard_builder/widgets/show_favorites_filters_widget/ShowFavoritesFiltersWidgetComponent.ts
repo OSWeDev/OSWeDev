@@ -20,7 +20,7 @@ import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
-import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
 import SaveFavoritesFiltersModalComponent from '../save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import MonthFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
@@ -28,6 +28,7 @@ import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardB
 import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import FavoritesFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -39,13 +40,13 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
     @ModuleDashboardPageAction
-    private set_active_field_filters: (active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) => void;
+    private set_active_field_filters: (active_field_filters: FieldFiltersVO) => void;
 
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
@@ -65,7 +66,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
     private old_tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
 
-    private old_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+    private old_active_field_filters: FieldFiltersVO = null;
 
     private favorites_filters_visible_options: FavoritesFiltersVO[] = [];
 
@@ -197,7 +198,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         }
 
         // Init context filter of the current filter
-        let whole_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+        let whole_active_field_filters: FieldFiltersVO = null;
 
         // Get whole active field filters from context
         whole_active_field_filters = this.get_active_field_filters ?? null;
@@ -251,11 +252,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * Try Apply Actual Active Favorites Filters
      *  - Make the showable favorite active filter options by the given filter
      *
-     * @param { { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} [favorites_filters]
+     * @param { FieldFiltersVO} [favorites_filters]
      * @returns {boolean}
      */
     private try_apply_actual_active_favorites_filters(
-        favorites_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        favorites_filters: FieldFiltersVO
     ): boolean {
 
         const favorites_filters_option = this.favorites_filters_visible_options.find(
@@ -302,21 +303,21 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         const favorites_filters: FavoritesFiltersVO = this.tmp_active_favorites_filters_option;
         const old_active_field_filters = this.old_active_field_filters;
 
-        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+        let field_filters: FieldFiltersVO = {};
 
         if (!favorites_filters?.options?.overwrite_active_field_filters) {
-            field_filters = FieldFilterManager.merge_field_filters(field_filters, old_active_field_filters);
+            field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, old_active_field_filters);
         }
 
         if (favorites_filters?.field_filters) {
-            field_filters = FieldFilterManager.merge_field_filters(field_filters, favorites_filters?.field_filters);
+            field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, favorites_filters?.field_filters);
         }
 
         // Case when is_updating is true,
         // We may want to overwrite favorites_filters with selected one
         // We must do it to have the possible non-selected options in the modal
         if (this.is_updating) {
-            field_filters = FieldFilterManager.merge_field_filters(field_filters, this.get_active_field_filters);
+            field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, this.get_active_field_filters);
         }
 
         this.set_active_field_filters(field_filters);
@@ -416,7 +417,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      *
      * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
      */
-    private get_selectionnable_active_field_filters(): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    private get_selectionnable_active_field_filters(): FieldFiltersVO {
 
         const field_value_filters_widgets_options = FieldValueFilterWidgetManager.get_field_value_filters_widgets_options();
         const month_filters_widgets_options = MonthFilterWidgetManager.get_month_filters_widgets_options();
@@ -439,7 +440,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             widgets_options.push(widget_options);
         }
 
-        const field_filters = FieldFilterManager.filter_visible_field_filters(
+        const field_filters = FieldFiltersVOManager.filter_visible_field_filters(
             widgets_options,
             this.get_active_field_filters,
         );

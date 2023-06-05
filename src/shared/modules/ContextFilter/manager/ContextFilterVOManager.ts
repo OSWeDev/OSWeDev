@@ -17,6 +17,7 @@ import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
 import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
 import ObjectHandler from "../../../tools/ObjectHandler";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 
 /**
  * ContextFilterVOManager
@@ -705,11 +706,11 @@ export default class ContextFilterVOManager {
     /**
      * Get Filters From Active Field Filters
      *
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @returns {ContextFilterVO[]}
      */
     public static get_context_filters_from_active_field_filters(
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        active_field_filters: FieldFiltersVO
     ): ContextFilterVO[] {
         const context_filters: ContextFilterVO[] = [];
 

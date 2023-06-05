@@ -10,6 +10,7 @@ import { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
+import FieldFiltersVO from '../ContextFilter/vos/FieldFiltersVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import MatroidController from '../Matroid/MatroidController';
 import Module from '../Module';
@@ -116,14 +117,14 @@ export default class ModuleVar extends Module {
 
     public getVarParamFromContextFilters: (
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         accept_max_ranges?: boolean,
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters, null, (
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },

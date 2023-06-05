@@ -3,9 +3,10 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -39,7 +40,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -347,7 +348,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.max_dimension_values)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.

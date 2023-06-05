@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
@@ -32,9 +33,11 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
+
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 

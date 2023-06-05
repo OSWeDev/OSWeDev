@@ -78,7 +78,8 @@ import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
-import FieldFilterManager from '../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -1496,7 +1497,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     private async getVarParamFromContextFilters(
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
@@ -1570,7 +1571,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];
 
-        let cleaned_active_field_filters = FieldFilterManager.clean_field_filters_for_request(get_active_field_filters);
+        let cleaned_active_field_filters = FieldFiltersVOManager.clean_field_filters_for_request(get_active_field_filters);
         let refuse_param: boolean = false;
 
         for (let i in matroid_fields) {

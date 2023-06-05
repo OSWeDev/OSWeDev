@@ -76,6 +76,7 @@ export default class DashboardPageWidgetVOManager {
     /**
      * Find all sorted page widgets options
      * - Return all page widgets options sorted by widget name
+     *
      * @param options
      * @returns {{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }}
      */
@@ -135,7 +136,8 @@ export default class DashboardPageWidgetVOManager {
      * - Return all page widgets options corresponding to vo_field_ref
      *
      * @param {VOFieldRefVO} vo_field_ref
-     * @param options
+     * @param {DashboardPageWidgetVO[]} options.all_page_widgets - all_page_widgets from dashboard
+     * @param {DashboardWidgetVO[]} options.sorted_widgets_types - sorted_widgets_types the actual widgets types from dashboard
      * @returns {{ widget_options: any, widget_name: string, page_widget_id: number }[]}
      */
     public static async find_all_page_wigdets_options_by_vo_field_ref(
@@ -147,7 +149,10 @@ export default class DashboardPageWidgetVOManager {
     ): Promise<Array<{ widget_options: any, widget_name: string, page_widget_id: number }>> {
 
         // Get sorted_page_widgets_options from dashboard
-        const sorted_page_widgets_options = await DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options(options);
+        const sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options({
+            sorted_widgets_types: options?.sorted_widgets_types,
+            all_page_widgets: options?.all_page_widgets,
+        });
 
         let res: Array<{ widget_options: any, widget_name: string, page_widget_id: number }> = [];
 
@@ -164,7 +169,6 @@ export default class DashboardPageWidgetVOManager {
 
         return res;
     }
-
 
     /**
      * find_page_widgets_by_page_id
@@ -195,6 +199,7 @@ export default class DashboardPageWidgetVOManager {
         if (!DashboardPageWidgetVOManager.instance) {
             DashboardPageWidgetVOManager.instance = new DashboardPageWidgetVOManager();
         }
+
         return DashboardPageWidgetVOManager.instance;
     }
 

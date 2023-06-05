@@ -2,6 +2,7 @@ import { RouteConfig } from 'vue-router';
 import ContextFilterVO, { filter } from '../ContextFilter/vos/ContextFilterVO';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import FieldFiltersVO from '../ContextFilter/vos/FieldFiltersVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 
 export default class DashboardBuilderController {
@@ -68,10 +69,10 @@ export default class DashboardBuilderController {
     }
 
     public add_table_row_context(
-        context: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        context: FieldFiltersVO,
         columns: TableColumnDescVO[],
         row_value: any
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    ): FieldFiltersVO {
 
         /**
          * Si on a des colonnes qui sont des colonnes de données sur la row, on doit amender les filtres pour ajouter le "contexte" de la ligne

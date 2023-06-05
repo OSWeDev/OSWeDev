@@ -2,7 +2,6 @@ import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -27,6 +26,7 @@ import SupervisionWidgetOptions from './options/SupervisionWidgetOptions';
 import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import './SupervisionWidgetComponent.scss';
 
 @Component({
@@ -46,10 +46,13 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
+
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
+
     @ModuleDashboardPageGetter
     private get_Supervisionitemmodal: SupervisionItemModalComponent;
+
     @ModuleDashboardPageGetter
     private get_active_api_type_ids: string[];
 
@@ -218,9 +221,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private filter_field_filter_by_supervision_type(
-        api_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        api_field_filters: FieldFiltersVO,
         supervision_type: string
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+    ): FieldFiltersVO {
 
         let available_api_type_ids: string[] = [];
 

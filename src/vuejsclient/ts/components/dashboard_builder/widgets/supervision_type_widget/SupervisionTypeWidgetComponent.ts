@@ -4,7 +4,6 @@ import SupervisionTypeWidgetManager from '../../../../../../shared/modules/Dashb
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -12,6 +11,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -23,10 +23,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private get_flat_locale_translations: { [code_text: string]: string };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
-    private set_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private set_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
     private set_active_api_type_ids: (active_api_type_ids: string[]) => void;

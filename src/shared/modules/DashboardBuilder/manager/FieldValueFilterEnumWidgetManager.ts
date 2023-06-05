@@ -11,10 +11,11 @@ import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
 import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
-import FieldFilterManager from "./FieldFilterManager";
+import FieldFiltersVOManager from "../../ContextFilter/manager/FieldFiltersVOManager";
 import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ModuleDAO from "../../DAO/ModuleDAO";
+import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
 
 /**
  * FieldValueFilterEnumWidgetManager
@@ -27,7 +28,7 @@ export default class FieldValueFilterEnumWidgetManager {
      *
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {FieldFiltersVO} active_field_filters Active field filters (from the user selection) from the actual dashboard
      * @param {options.active_api_type_ids} options.active_api_type_ids - Setted on user selection (select option) to specify query on specified vos api ids
      * @param {options.query_api_type_ids} options.query_api_type_ids - Setted from widget options to have custom|default query on specified vos api ids
      * @param {options.with_count} options.with_count - Setted from widget options to have count on each data_filter
@@ -36,7 +37,7 @@ export default class FieldValueFilterEnumWidgetManager {
     public static async find_enum_data_filters_from_widget_options(
         dashboard: DashboardVO,
         widget_options: FieldValueFilterWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }, // Active field filters from the actual dashboard
+        active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
@@ -91,8 +92,8 @@ export default class FieldValueFilterEnumWidgetManager {
         // In some case we may need to only filter on required_api_type_ids
         // (each api_type_id will have its own filter or vo_type)
         const field_filters_by_api_type_id: {
-            [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+            [api_type_id: string]: FieldFiltersVO
+        } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
             allowed_api_type_ids,
@@ -101,7 +102,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         // In some case we may need to filter on other api_type_ids than required_api_type_ids
         // (each api_type_id will filter on other api_type_ids or vo_type)
-        const other_field_filter = FieldFilterManager.filter_field_filters_by_api_type_ids_to_exlude(
+        const other_field_filter = FieldFiltersVOManager.filter_field_filters_by_api_type_ids_to_exlude(
             widget_options,
             active_field_filters,
             options.query_api_type_ids ?? []
@@ -243,7 +244,7 @@ export default class FieldValueFilterEnumWidgetManager {
      *
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {FieldFiltersVO} active_field_filters Active field filters (from the user selection) from the actual dashboard
      * @param {options.active_api_type_ids} options.active_api_type_ids - Setted on user selection (select option) to specify query on specified vos api ids
      * @param {options.query_api_type_ids} options.query_api_type_ids - Setted from widget options to have custom|default query on specified vos api ids
      * @param {options.with_count} options.with_count - Setted from widget options to have count on each data_filter
@@ -252,7 +253,7 @@ export default class FieldValueFilterEnumWidgetManager {
     public static async find_enum_data_filters_count_from_widget_options(
         dashboard: DashboardVO,
         widget_options: FieldValueFilterWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }, // Active field filters from the actual dashboard
+        active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
         enum_data_filters: DataFilterOption[], // Enum data filters from the actual dashboard
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
@@ -321,8 +322,8 @@ export default class FieldValueFilterEnumWidgetManager {
         // In some case we may need to only filter on required_api_type_ids
         // (each api_type_id will have its own filter or vo_type)
         const field_filters_by_api_type_id: {
-            [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+            [api_type_id: string]: FieldFiltersVO
+        } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
             allowed_api_type_ids,
@@ -331,7 +332,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         // In some case we may need to filter on other api_type_ids than required_api_type_ids
         // (each api_type_id will filter on other api_type_ids or vo_type)
-        const other_field_filter = FieldFilterManager.filter_field_filters_by_api_type_ids_to_exlude(
+        const other_field_filter = FieldFiltersVOManager.filter_field_filters_by_api_type_ids_to_exlude(
             widget_options,
             active_field_filters,
             options.query_api_type_ids ?? []

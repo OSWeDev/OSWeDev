@@ -3,8 +3,8 @@
 import IFavoritesFiltersOptions from '../interfaces/IFavoritesFiltersOptions';
 import IExportParamsProps from '../interfaces/IExportParamsProps';
 import DashboardBuilderController from "../DashboardBuilderController";
-import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import IDistantVOBase from "../../IDistantVOBase";
+import FieldFiltersVO from '../../ContextFilter/vos/FieldFiltersVO';
 
 /**
  * FavoritesFiltersVO
@@ -23,11 +23,11 @@ export default class FavoritesFiltersVO implements IDistantVOBase {
     // User id of saved active filters
     public owner_id: number;
 
-    // Name which the owner gave to the current backup
+    // Name which the owner gave to the current favorites field_filters
     public name: string;
 
     // JSON object of favorites active field filters
-    public field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    public field_filters: FieldFiltersVO;
 
     // JSON object of export configurations
     public export_params: IExportParamsProps;

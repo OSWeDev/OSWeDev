@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import AdvancedDateFilterOptDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -31,7 +32,7 @@ import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetO
 export default class AdvancedDateFilterWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction

@@ -19,6 +19,7 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ShowFavoritesFiltersWidgetOptions from './ShowFavoritesFiltersWidgetOptions';
+import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetOptionsComponent.pug'),
@@ -36,7 +37,7 @@ export default class ShowFavoritesFiltersWidgetOptionsComponent extends VueCompo
     private dashboard: DashboardVO;
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;

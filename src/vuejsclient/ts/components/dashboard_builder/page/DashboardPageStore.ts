@@ -14,6 +14,7 @@ import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
 import SaveFavoritesFiltersModalComponent from "../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent";
+import FieldFiltersVO from "../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -28,7 +29,7 @@ export interface IDashboardPageState {
      */
     page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
 
-    active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    active_field_filters: FieldFiltersVO;
 
     Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
@@ -150,7 +151,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.page_widgets;
             },
 
-            get_active_field_filters(state: IDashboardPageState): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+            get_active_field_filters(state: IDashboardPageState): FieldFiltersVO {
                 return state.active_field_filters;
             },
         };
@@ -233,7 +234,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
 
-            set_active_field_filters(state: IDashboardPageState, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
+            set_active_field_filters(state: IDashboardPageState, active_field_filters: FieldFiltersVO) {
                 state.active_field_filters = active_field_filters;
             },
 
@@ -368,7 +369,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 commit_set_Dashboardcopywidgetcomponent(context, Dashboardcopywidgetcomponent);
             },
 
-            set_active_field_filters(context: DashboardPageContext, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
+            set_active_field_filters(context: DashboardPageContext, active_field_filters: FieldFiltersVO) {
                 commit_set_active_field_filters(context, active_field_filters);
             },
 

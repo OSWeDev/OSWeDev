@@ -2,6 +2,7 @@ import { debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -12,7 +13,6 @@ import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseV
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
@@ -32,7 +32,7 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     public static get_var_custom_filters(
         var_custom_filters: { [var_param_field_name: string]: string },
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        get_active_field_filters: FieldFiltersVO
     ): { [var_param_field_name: string]: ContextFilterVO } {
 
         /**
@@ -63,7 +63,7 @@ export default class VarWidgetComponent extends VueComponentBase {
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -206,14 +206,14 @@ export default class VarWidgetComponent extends VueComponentBase {
         // query.base_api_type_id = this.vo_field_ref.api_type_id;
         // query.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
         // query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-        //     FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters));
+        //     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters));
         // query.limit = this.widget_options.max_visible_options;
         // query.offset = 0;
         // query.active_api_type_ids = this.dashboard.api_type_ids;
         // let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
         //     this.vo_field_ref.api_type_id,
         //     this.vo_field_ref.field_id,
-        //     FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters),
+        //     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters),
         //     this.actual_query,
         //     this.widget_options.max_visible_options,
         //     0);

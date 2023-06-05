@@ -10,7 +10,7 @@ import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import DashboardVO from '../vos/DashboardVO';
 import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from './FieldFilterManager';
+import FieldFiltersVOManager from '../../ContextFilter/manager/FieldFiltersVOManager';
 import DatatableField from '../../DAO/vos/datatable/DatatableField';
 import VarConfVO from '../../Var/vos/VarConfVO';
 import ContextQueryFieldVO from '../../ContextFilter/vos/ContextQueryFieldVO';
@@ -31,6 +31,9 @@ import { cloneDeep } from 'lodash';
 import VarWidgetManager from './VarWidgetManager';
 import IExportOptions from '../../DataExport/interfaces/IExportOptions';
 import DashboardPageVO from '../vos/DashboardPageVO';
+import VOFieldRefVOManager from './VOFieldRefVOManager';
+import FieldFiltersVOHandler from '../../ContextFilter/handler/FieldFiltersVOHandler';
+import FieldFiltersVO from '../../ContextFilter/vos/FieldFiltersVO';
 
 /**
  * @class TableWidgetManager
@@ -45,13 +48,13 @@ export default class TableWidgetManager {
      * @param {DashboardVO} dashboard
      * @param {DashboardPageWidgetVO} dashboard_page
      * @param {{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, page_widget_id: number } }} valuetables_widgets_options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @returns {{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }}
      */
     public static async create_exportable_valuetables_xlsx_params(
         dashboard: DashboardVO,
         dashboard_page: DashboardPageVO,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
     ): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
 
         const res: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = {};
@@ -186,7 +189,7 @@ export default class TableWidgetManager {
         }
 
         const context_filter = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-            FieldFilterManager.clean_field_filters_for_request(active_field_filters)
+            FieldFiltersVOManager.clean_field_filters_for_request(active_field_filters)
         );
 
         const context_query: ContextQueryVO = query(crud_api_type_id)
@@ -308,10 +311,10 @@ export default class TableWidgetManager {
             return null;
         }
 
-        let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = {};
+        let all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = {};
 
         if (options?.all_page_widget?.length > 0) {
-            all_page_widget_by_id = VOsTypesManager.vosArray_to_vosByIds(options.all_page_widget);
+            all_page_widgets_by_id = VOsTypesManager.vosArray_to_vosByIds(options.all_page_widget);
         } else {
             // TODO - may be find all page widgets by the given widget_options
         }
@@ -346,15 +349,24 @@ export default class TableWidgetManager {
 
                 for (const j in column.show_if_any_filter_active) {
                     const page_filter_id = column.show_if_any_filter_active[j];
-
-                    const page_widget = all_page_widget_by_id[page_filter_id];
+                    const page_widget = all_page_widgets_by_id[page_filter_id];
 
                     if (!page_widget) {
                         column.show_if_any_filter_active = [];
                         continue;
                     }
 
-                    if (!FieldFilterManager.is_field_filters_empty(widget_options, options.active_field_filters)) {
+                    const page_widget_options = JSON.parse(page_widget.json_options);
+
+                    const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                        page_widget_options,
+                    );
+
+                    const is_active_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
+                        vo_field_ref, options.active_field_filters
+                    );
+
+                    if (!is_active_field_filters_empty) {
                         continue;
                     }
 
@@ -517,7 +529,7 @@ export default class TableWidgetManager {
      */
     public static get_table_columns_custom_filters_by_widget_options(
         widget_options: TableWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
     ): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
 
         // Get page_widgets (or all_page_widgets from dashboard)

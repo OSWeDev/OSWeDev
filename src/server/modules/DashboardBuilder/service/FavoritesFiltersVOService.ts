@@ -1,6 +1,6 @@
 import ContextFilterVOManager from "../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager";
 import VOFieldRefVOManager from '../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
-import FieldFilterManager from "../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager";
+import FieldFiltersVOManager from "../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager";
 import ContextFilterVO from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
@@ -10,6 +10,7 @@ import IExportParamsProps from "../../../../shared/modules/DashboardBuilder/inte
 import DashboardPageWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO";
 import DashboardWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO";
+import FieldFiltersVO from "../../../../shared/modules/ContextFilter/vos/FieldFiltersVO";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ModuleDataExportServer from "../../DataExport/ModuleDataExportServer";
 
@@ -117,9 +118,9 @@ export default class FavoritesFiltersVOService {
             }
 
             // Default field_filters from each page widget_options
-            let default_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+            let default_field_filters: FieldFiltersVO = {};
             // Actual context field filters to be used for the export
-            let context_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+            let context_field_filters: FieldFiltersVO = {};
 
             // Get widgets of the given favorites filters page
             const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
@@ -157,9 +158,9 @@ export default class FavoritesFiltersVOService {
 
                     context_filter = ContextFilterVOManager.create_context_filter_from_widget_options(widget.name, widget_options);
 
-                    // We must transform this ContextFilterVO into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+                    // We must transform this ContextFilterVO into FieldFiltersVO
                     if (vo_field_ref && context_filter) {
-                        default_field_filters = FieldFilterManager.merge_field_filters_with_context_filter(default_field_filters, vo_field_ref, context_filter);
+                        default_field_filters = FieldFiltersVOManager.merge_field_filters_with_context_filter(default_field_filters, vo_field_ref, context_filter);
                     }
                 });
             }
@@ -170,7 +171,7 @@ export default class FavoritesFiltersVOService {
 
                 for (const field_id in filters) {
                     // Add default context filters
-                    context_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                    context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
                         context_field_filters,
                         { api_type_id, field_id },
                         filters[field_id]
@@ -184,7 +185,7 @@ export default class FavoritesFiltersVOService {
 
                 for (const field_id in filters) {
                     // Add default context filters
-                    context_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                    context_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
                         context_field_filters,
                         { api_type_id, field_id },
                         filters[field_id]

@@ -8,6 +8,7 @@ import ManyToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToM
 import ManyToOneReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import FieldFiltersVO from '../vos/FieldFiltersVO';
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../DataRender/vos/DataFilterOption';
@@ -450,8 +451,8 @@ export default class ContextFilterVOHandler {
         }
     }
 
-    public get_active_field_filters(filters: ContextFilterVO[]): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+    public get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {
+        let res: FieldFiltersVO = {};
 
         for (let i in filters) {
             let filter = filters[i];

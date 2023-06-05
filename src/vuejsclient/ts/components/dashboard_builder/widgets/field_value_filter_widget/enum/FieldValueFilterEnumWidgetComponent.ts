@@ -2,8 +2,11 @@ import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -23,8 +26,6 @@ import ValidationFiltersCallUpdaters from '../../validation_filters_widget/Valid
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
-import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 
 @Component({
     template: require('./FieldValueFilterEnumWidgetComponent.pug'),
@@ -37,13 +38,17 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
+
     @ModuleDashboardPageGetter
     private get_active_api_type_ids: string[];
+
     @ModuleDashboardPageGetter
     private get_query_api_type_ids: string[];
+
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -406,21 +411,21 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      *
      * @param {string[]} available_api_type_ids
      * @param {boolean} switch_current_field
-     * @returns {{ [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } }}
+     * @returns {{ [api_type_id: string]: FieldFiltersVO }}
      */
     private get_field_filters_by_api_type_ids(
         available_api_type_ids: string[],
         switch_current_field: boolean,
-    ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
-        let field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
+    ): { [api_type_id: string]: FieldFiltersVO } {
+        let field_filters_by_api_type_id: { [api_type_id: string]: FieldFiltersVO } = {};
 
-        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+        let active_field_filters: FieldFiltersVO = null;
 
         if (!this.no_inter_filter) {
             active_field_filters = this.get_active_field_filters;
         }
 
-        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = FieldFilterManager.clean_field_filters_for_request(
+        const field_filters_for_request: FieldFiltersVO = FieldFiltersVOManager.clean_field_filters_for_request(
             active_field_filters
         );
 

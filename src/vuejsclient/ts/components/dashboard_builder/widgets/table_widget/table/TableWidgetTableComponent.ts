@@ -4,7 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -57,6 +57,7 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
+import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TableWidgetOptions from './../options/TableWidgetOptions';
@@ -82,13 +83,17 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
+
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+
     @ModuleDashboardPageAction
     private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
+
     @ModuleDashboardPageAction
     private clear_active_field_filters: () => void;
 
@@ -163,7 +168,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private table_columns: TableColumnDescVO[] = [];
 
-    get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 
@@ -873,7 +878,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 for (let j in column.show_if_any_filter_active) {
                     let page_filter_id = column.show_if_any_filter_active[j];
 
-                    let page_widget = this.all_page_widget_by_id[page_filter_id];
+                    let page_widget = this.all_page_widgets_by_id[page_filter_id];
                     if (!page_widget) {
                         column.show_if_any_filter_active = [];
                         continue;
@@ -1434,7 +1439,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             .set_limit(this.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.
@@ -1972,16 +1977,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
-            let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
+            let active_field_filters: FieldFiltersVO = cloneDeep(this.get_active_field_filters);
 
             // On supprime les filtres à ne pas prendre en compte pour créer le bon param
             if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
-                let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+                let all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
 
                 for (let j in column.do_not_user_filter_active_ids) {
                     let page_filter_id = column.do_not_user_filter_active_ids[j];
 
-                    let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                    let page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
                     if (!page_widget) {
                         continue;
                     }
@@ -2019,12 +2024,12 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
             // On supprime les filtres à ne pas prendre en compte pour créer le bon param
             if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
-                let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+                let all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
 
                 for (let j in column.do_not_user_filter_active_ids) {
                     let page_filter_id = column.do_not_user_filter_active_ids[j];
 
-                    let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                    let page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
                     if (!page_widget) {
                         continue;
                     }
@@ -2419,7 +2424,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             let query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                    FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
+                    FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));

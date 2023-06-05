@@ -18,12 +18,13 @@ import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
-import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
+import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import DashboardPageVO from './vos/DashboardPageVO';
+import SharedFiltersVO from './vos/SharedFiltersVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
 import DashboardVO from './vos/DashboardVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -77,6 +78,7 @@ export default class ModuleDashboardBuilder extends Module {
         let db_page = this.init_DashboardPageVO(db_table);
 
         this.init_FavoritesFiltersVO(db_page);
+        this.init_shared_filters_vo(db_page);
 
         this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
@@ -205,7 +207,16 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('background', ModuleTableField.FIELD_TYPE_string, 'background', true),
         ];
 
-        this.datatables.push(new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                DashboardPageWidgetVO.API_TYPE_ID,
+                () => new DashboardPageWidgetVO(),
+                datatable_fields,
+                null,
+                "Pages de Dashboard"
+            )
+        );
 
         widget_id.addManyToOneRelation(db_widget);
         page_id.addManyToOneRelation(db_page);
@@ -236,6 +247,37 @@ export default class ModuleDashboardBuilder extends Module {
                 this,
                 FavoritesFiltersVO.API_TYPE_ID,
                 () => new FavoritesFiltersVO(),
+                datatable_fields,
+                null,
+                "Filtres Favoris"
+            )
+        );
+
+        page_id.addManyToOneRelation(db_page);
+    }
+
+    /**
+     * Init Dashboard Page Shared Filters
+     *  - Database table to stock sharable_filters of active dashboard page
+     *  - May be useful when switching between dashboard pages
+     */
+    private init_shared_filters_vo(db_page: ModuleTable<any>) {
+
+        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard Page', true);
+
+        let datatable_fields = [
+            page_id,
+
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
+            new ModuleTableField('field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters', false),
+            new ModuleTableField('shared_with_dashboard_page_ids', ModuleTableField.FIELD_TYPE_int_array, 'Filtre partagé avec les pages', false),
+        ];
+
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                SharedFiltersVO.API_TYPE_ID,
+                () => new SharedFiltersVO(),
                 datatable_fields,
                 null,
                 "Filtres Favoris"
@@ -523,7 +565,16 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('_dest_field_id', ModuleTableField.FIELD_TYPE_string, '_dest_field_id'),
         ];
 
-        this.datatables.push(new ModuleTable(this, OneToManyReferenceDatatableFieldVO.API_TYPE_ID, () => new OneToManyReferenceDatatableFieldVO(), datatable_fields, null, "OneToManyReferenceDatatableFieldVO"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                OneToManyReferenceDatatableFieldVO.API_TYPE_ID,
+                () => new OneToManyReferenceDatatableFieldVO(),
+                datatable_fields,
+                null,
+                "OneToManyReferenceDatatableFieldVO"
+            )
+        );
     }
 
     private initialize_RefRangesReferenceDatatableFieldVO() {

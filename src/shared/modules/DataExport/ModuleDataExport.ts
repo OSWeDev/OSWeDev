@@ -6,6 +6,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
 import DatatableField from '../DAO/vos/datatable/DatatableField';
+import FieldFiltersVO from '../ContextFilter/vos/FieldFiltersVO';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
@@ -51,7 +52,7 @@ export default class ModuleDataExport extends Module {
         columns?: TableColumnDescVO[],
         fields?: { [datatable_field_uid: string]: DatatableField<any, any> },
         varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
-        active_field_filters?: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters?: FieldFiltersVO,
         custom_filters?: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
         active_api_type_ids?: string[],
         discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },

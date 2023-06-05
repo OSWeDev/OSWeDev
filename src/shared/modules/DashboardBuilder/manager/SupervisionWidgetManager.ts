@@ -1,6 +1,6 @@
 import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
 import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
-import FieldFilterManager from './FieldFilterManager';
+import FieldFiltersVOManager from '../../ContextFilter/manager/FieldFiltersVOManager';
 import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -97,7 +97,7 @@ export default class SupervisionWidgetManager {
         // We must update|standardize|normalize the active_field_filters for the given available_api_type_ids
         const active_field_filter_by_api_type_id: {
             [api_type_id: string]: { [api_type_id: string]: { [field_name: string]: ContextFilterVO } }
-        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+        } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
             allowed_api_type_ids,
@@ -105,7 +105,7 @@ export default class SupervisionWidgetManager {
         );
 
         // We may need to filter on other api_type_ids (or vo_type) than the supervision_api_type_ids
-        const other_field_filter = FieldFilterManager.filter_field_filters_by_api_type_ids_to_exlude(
+        const other_field_filter = FieldFiltersVOManager.filter_field_filters_by_api_type_ids_to_exlude(
             widget_options,
             active_field_filters,
             widget_options.supervision_api_type_ids ?? []
@@ -129,7 +129,7 @@ export default class SupervisionWidgetManager {
             const api_type_id: string = allowed_api_type_ids[key_i];
 
             // Get the field_filters for the given api_type_id
-            const field_filters = FieldFilterManager.filter_field_filters_by_api_type_id(
+            const field_filters = FieldFiltersVOManager.filter_field_filters_by_api_type_id(
                 active_field_filter_by_api_type_id[api_type_id],
                 allowed_api_type_ids,
                 api_type_id

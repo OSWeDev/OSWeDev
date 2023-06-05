@@ -4,10 +4,12 @@ import { Watch } from 'vue-property-decorator';
 import IReadableActiveFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableActiveFieldFilters';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
-import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import IExportFrequency from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
-import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
 import './SaveFavoritesFiltersModalComponent.scss';
@@ -55,10 +57,10 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         label?: string, value: 'day' | 'month' | 'year'
     } = { label: null, value: null }; // e.g. day, month, year
 
-    private selected_favorite_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+    private selected_favorite_field_filters: FieldFiltersVO = null;
     private selected_exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
 
-    private selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+    private selectionnable_active_field_filters: FieldFiltersVO = null;
 
     private on_validation_callback: (props: Partial<FavoritesFiltersVO>) => Promise<void> = null;
     private on_close_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
@@ -74,7 +76,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      */
     public open_modal_for_creation(
         props: {
-            selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+            selectionnable_active_field_filters: FieldFiltersVO,
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
         } = null,
         validation_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
@@ -110,7 +112,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      */
     public open_modal_for_update(
         props: {
-            selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+            selectionnable_active_field_filters: FieldFiltersVO,
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
             favorites_filters: FavoritesFiltersVO,
         } = null,
@@ -382,14 +384,16 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @returns {boolean}
      */
     private is_field_filter_selected(props: IReadableActiveFieldFilters): boolean {
-        const vo_field_ref = props.vo_field_ref;
+        const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+            { vo_field_ref: props.vo_field_ref }
+        );
 
         if (!this.selected_favorite_field_filters) {
             return false;
         }
 
-        return !FieldFilterManager.is_field_filters_empty(
-            { vo_field_ref },
+        return !FieldFiltersVOHandler.is_field_filters_empty(
+            vo_field_ref,
             this.selected_favorite_field_filters
         );
     }
@@ -415,10 +419,10 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
             delete tmp_selected_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
 
         } else {
-            if (!FieldFilterManager.is_field_filters_empty(props, active_field_filters)) {
+            if (!FieldFiltersVOManager.is_field_filters_empty(props, active_field_filters)) {
                 const context_filter = active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
 
-                tmp_selected_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                tmp_selected_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
                     tmp_selected_field_filters,
                     vo_field_ref,
                     context_filter
@@ -534,7 +538,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     get readable_active_field_filters(): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
         const active_field_filters = cloneDeep(this.selectionnable_active_field_filters);
 
-        const readable_field_filters = FieldFilterManager.create_readable_filters_text_from_field_filters(active_field_filters);
+        const readable_field_filters = FieldFiltersVOManager.create_readable_filters_text_from_field_filters(active_field_filters);
 
         return readable_field_filters;
     }

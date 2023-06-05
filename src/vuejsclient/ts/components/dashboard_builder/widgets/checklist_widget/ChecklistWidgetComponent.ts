@@ -9,7 +9,7 @@ import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/Modu
 import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckListVO';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -38,6 +38,7 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
+import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -59,7 +60,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };

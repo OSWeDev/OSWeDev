@@ -64,7 +64,10 @@ export default class VOFieldRefVOManager {
      */
     public static create_vo_field_ref_vo_from_widget_options(
         widget_options: {
-            vo_field_ref: { api_type_id: string, field_id: string }
+            vo_field_ref: {
+                api_type_id: string,
+                field_id: string
+            }
             custom_filter_name?: string,
             is_vo_field_ref?: boolean,
         }
