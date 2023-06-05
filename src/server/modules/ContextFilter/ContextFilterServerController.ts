@@ -2091,7 +2091,14 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " && ARRAY[" + active_field_filter.param_numeric_array.join(',') + ']');
+
+                            let force_cast: string = '';
+
+                            if ((field_type == ModuleTableField.FIELD_TYPE_int_array) || (field_type == ModuleTableField.FIELD_TYPE_tstz_array)) {
+                                force_cast = '::bigint[]';
+                            }
+
+                            where_conditions.push(field_id + " && ARRAY[" + active_field_filter.param_numeric_array.join(',') + ']' + force_cast);
                             break;
                         }
                         throw new Error('Not Implemented');
