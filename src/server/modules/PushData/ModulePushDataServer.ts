@@ -5,7 +5,6 @@ import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
@@ -17,8 +16,6 @@ import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
 import PushDataServerController from './PushDataServerController';
 
 export default class ModulePushDataServer extends ModuleServerBase {
-
-    public static NOTIF_INTERVAL_MS: number = 1000;
 
     public static getInstance(): ModulePushDataServer {
         if (!ModulePushDataServer.instance) {

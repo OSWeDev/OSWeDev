@@ -953,7 +953,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.sleep(1000, 'ModuleVarServer.wait_for_computation_hole');
+                await ThreadHandler.sleep(50, 'ModuleVarServer.wait_for_computation_hole');
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + 60)) {
@@ -1002,7 +1002,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      * Fonction ayant pour but d'être appelée sur le thread de computation des vars
      * FIXME : POURQUOI ? await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve
      */
-    public async exec_in_computation_hole(cb: () => {}, interval_sleep_ms: number = 1000, timeout_ms: number = 60000): Promise<boolean> {
+    public async exec_in_computation_hole(cb: () => {}, interval_sleep_ms: number = 50, timeout_ms: number = 60000): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
 

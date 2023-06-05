@@ -1,20 +1,19 @@
 import { Express, Request, Response } from 'express';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
+import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import AjaxCacheController from '../../../shared/modules/AjaxCache/AjaxCacheController';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 const zlib = require('zlib');
 
@@ -76,6 +75,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             if (!!api.access_policy_name) {
                 if (!AccessPolicyServerController.checkAccessSync(api.access_policy_name)) {
                     ConsoleHandler.error('Access denied to API:' + api.api_name + ': sessionID' + req.sessionID + ":");
+                    StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'access_denied_api', api.api_name);
                     this.respond_on_error(api, res);
                     return;
                 }
@@ -119,6 +119,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     has_params = ObjectHandler.hasAtLeastOneAttribute(req.params);
                     param = api.param_translator.fromREQ(req);
                 } catch (error) {
+                    StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'createApiRequestHandler', 'param_translator.fromREQ');
                     ConsoleHandler.error(error);
                     this.respond_on_error(api, res);
                     return;
@@ -133,11 +134,15 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 } else if (res) {
                     params = [res];
                 }
+                StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name);
+                let date_in_ms = Dates.now_ms();
                 returnvalue = await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => await api.SERVER_HANDLER(...params, req));
+                StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name, Dates.now_ms() - date_in_ms);
             } catch (error) {
                 ConsoleHandler.error(error);
+                StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER.ERROR', api.api_name);
                 this.respond_on_error(api, res);
                 return;
             }
