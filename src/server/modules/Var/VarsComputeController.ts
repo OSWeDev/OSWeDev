@@ -1111,7 +1111,7 @@ export default class VarsComputeController {
     // }
 
     // private pop_var_to_deploy(vars_datas_to_deploy: { [index: string]: VarDataBaseVO }) {
-    //     let index = ObjectHandler.getInstance().getFirstAttributeName(vars_datas_to_deploy);
+    //     let index = ObjectHandler.getFirstAttributeName(vars_datas_to_deploy);
 
     //     if (!index) {
     //         return null;

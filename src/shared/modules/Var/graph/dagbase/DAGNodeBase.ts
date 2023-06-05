@@ -17,14 +17,14 @@ export default abstract class DAGNodeBase {
      * @returns true si le noeuds à des deps descendantes, false sinon => dans ce cas on parle de noeud feuille/leaf
      */
     get hasOutgoing(): boolean {
-        return !!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.outgoing_deps);
+        return !!ObjectHandler.hasAtLeastOneAttribute(this.outgoing_deps);
     }
 
     /**
      * @returns false si le noeuds à des deps ascendantes, false sinon => dans ce cas on parle de noeud racine/root
      */
     get hasIncoming(): boolean {
-        return !!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.incoming_deps);
+        return !!ObjectHandler.hasAtLeastOneAttribute(this.incoming_deps);
     }
 
     /**

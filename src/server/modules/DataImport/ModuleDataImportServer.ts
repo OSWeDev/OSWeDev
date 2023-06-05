@@ -418,7 +418,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 is_update = true;
-                updated_item = vos_by_type_and_initial_id[import_on_vo._type][ObjectHandler.getInstance().getFirstAttributeName(vos_by_type_and_initial_id[import_on_vo._type])];
+                updated_item = vos_by_type_and_initial_id[import_on_vo._type][ObjectHandler.getFirstAttributeName(vos_by_type_and_initial_id[import_on_vo._type])];
             }
 
             /**

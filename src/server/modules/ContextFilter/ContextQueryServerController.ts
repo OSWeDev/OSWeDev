@@ -641,7 +641,7 @@ export default class ContextQueryServerController {
          * FIXME Faudra creuser comment on peut faire du FASTTRACK pour pas faire les updates 1 par 1 si on a pas besoin
          */
 
-        if (ObjectHandler.getInstance().hasAtLeastOneAttribute(fields_by_id)) {
+        if (ObjectHandler.hasAtLeastOneAttribute(fields_by_id)) {
             while (might_have_more) {
 
                 let while_time_in = Dates.now_ms();
@@ -2271,7 +2271,7 @@ export default class ContextQueryServerController {
                 uid = StackContext.get('UID');
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
                 user_roles_by_role_id = AccessPolicyServerController.getUsersRoles(true, uid);
-                user_roles = ObjectHandler.getInstance().hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
+                user_roles = ObjectHandler.hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
             }
 
             let promises = [];

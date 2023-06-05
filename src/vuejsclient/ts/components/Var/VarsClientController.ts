@@ -106,7 +106,7 @@ export default class VarsClientController {
             }
         }
 
-        if (needs_registration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_registration)) {
+        if (needs_registration && ObjectHandler.hasAtLeastOneAttribute(needs_registration)) {
             this.throttled_server_registration(needs_registration);
         }
     }
@@ -129,7 +129,7 @@ export default class VarsClientController {
             needs_registration[var_param_wrapper.var_param.index] = var_param_wrapper.var_param;
         }
 
-        if (needs_registration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_registration)) {
+        if (needs_registration && ObjectHandler.hasAtLeastOneAttribute(needs_registration)) {
             this.throttled_server_registration(needs_registration);
         }
     }
@@ -240,7 +240,7 @@ export default class VarsClientController {
             }
         }
 
-        if (needs_unregistration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_unregistration)) {
+        if (needs_unregistration && ObjectHandler.hasAtLeastOneAttribute(needs_unregistration)) {
             this.throttled_server_unregistration(needs_unregistration);
         }
     }
@@ -329,7 +329,7 @@ export default class VarsClientController {
                 check_params[registered_var_param.var_param.index] = registered_var_param.var_param;
             }
 
-            if (check_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(check_params)) {
+            if (check_params && ObjectHandler.hasAtLeastOneAttribute(check_params)) {
                 this.throttled_server_registration(check_params);
             }
         } catch (error) {

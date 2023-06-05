@@ -73,7 +73,7 @@ export default class ModuleRequest extends Module {
     public get_params_url(params: { [i: string]: string }) {
         let res: string = null;
 
-        if ((!params) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(params))) {
+        if ((!params) || (!ObjectHandler.hasAtLeastOneAttribute(params))) {
             return "";
         }
 

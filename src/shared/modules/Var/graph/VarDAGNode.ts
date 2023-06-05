@@ -78,8 +78,8 @@ export default class VarDAGNode extends DAGNodeBase {
                         let node = var_dag.roots[i];
                         if (node instanceof VarDAGNode) {
                             if (node.has_started_deployment ||
-                                (node.incoming_deps && ObjectHandler.getInstance().hasAtLeastOneAttribute(node.incoming_deps)) ||
-                                (node.outgoing_deps && ObjectHandler.getInstance().hasAtLeastOneAttribute(node.outgoing_deps))) {
+                                (node.incoming_deps && ObjectHandler.hasAtLeastOneAttribute(node.incoming_deps)) ||
+                                (node.outgoing_deps && ObjectHandler.hasAtLeastOneAttribute(node.outgoing_deps))) {
                                 continue;
                             }
 
@@ -259,7 +259,7 @@ export default class VarDAGNode extends DAGNodeBase {
             let incoming_dep = this.incoming_deps[i];
             delete incoming_dep.incoming_node.outgoing_deps[incoming_dep.dep_name];
 
-            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(incoming_dep.incoming_node.outgoing_deps)) {
+            if (!ObjectHandler.hasAtLeastOneAttribute(incoming_dep.incoming_node.outgoing_deps)) {
                 dag.leafs[(incoming_dep.incoming_node as VarDAGNode).var_data.index] = incoming_dep.incoming_node as VarDAGNode;
             }
         }
@@ -268,7 +268,7 @@ export default class VarDAGNode extends DAGNodeBase {
             let outgoing_dep = this.outgoing_deps[i];
             delete outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
 
-            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(outgoing_dep.outgoing_node.outgoing_deps)) {
+            if (!ObjectHandler.hasAtLeastOneAttribute(outgoing_dep.outgoing_node.outgoing_deps)) {
                 dag.roots[(outgoing_dep.outgoing_node as VarDAGNode).var_data.index] = outgoing_dep.outgoing_node as VarDAGNode;
             }
         }

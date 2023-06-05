@@ -78,6 +78,7 @@ import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import DAOCacheHandler from './DAOCacheHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -562,7 +563,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async configure() {
 
-        await this.create_or_replace_function_ref_get_user();
+        // await this.create_or_replace_function_ref_get_user();
 
         DAOServerController.getInstance().pre_update_trigger_hook = new DAOPreUpdateTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_update_trigger_hook);
@@ -2395,23 +2396,43 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Cas très spécifique de la connexion où l'on a évidemment pas le droit de lister les comptes, mais il faut tout de même pouvoir se connecter...
      */
     public async selectOneUser(login: string, password: string, check_pwd: boolean = true): Promise<UserVO> {
-        let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        // let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
 
+            // NEW method with query
+            let filters = [
+                ContextFilterVO.or([
+                    filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(login, true),
+                    filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(login, true),
+                    filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(login, true),
+                ]),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq(password),
+            ];
 
-            let query_string = "select * from ref.get_user('" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', PWD, " + (check_pwd ? 'true' : 'false') + ");";
-            let query_uid = this.log_db_query_perf_start('selectOneUser', query_string);
-            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
-                "select * from ref.get_user($1, $1, $1, $2, $3);", [login.toLowerCase().trim(), password, check_pwd]) as UserVO;
-            this.log_db_query_perf_end(query_uid, 'selectOneUser', query_string);
-
-            vo = (vo && vo.id) ? vo : null;
-            if (!!vo) {
-                vo['_type'] = UserVO.API_TYPE_ID;
-                vo = datatable.forceNumeric(vo);
+            if (check_pwd) {
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq(password));
             }
-            return vo;
+
+            return await query(UserVO.API_TYPE_ID)
+                .exec_as_server()
+
+                .add_filters(filters)
+
+                .select_vo();
+
+            // let query_string = "select * from ref.get_user('" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', PWD, " + (check_pwd ? 'true' : 'false') + ");";
+            // let query_uid = this.log_db_query_perf_start('selectOneUser', query_string);
+            // let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
+            //     "select * from ref.get_user($1, $1, $1, $2, $3);", [login.toLowerCase().trim(), password, check_pwd]) as UserVO;
+            // this.log_db_query_perf_end(query_uid, 'selectOneUser', query_string);
+
+            // vo = (vo && vo.id) ? vo : null;
+            // if (!!vo) {
+            //     vo['_type'] = UserVO.API_TYPE_ID;
+            //     vo = datatable.forceNumeric(vo);
+            // }
+            // return vo;
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -2423,27 +2444,49 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @returns true if uniq
      */
     public async selectUsersForCheckUnicity(name: string, email: string, phone: string, user_id: number): Promise<boolean> {
-        let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        // let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
 
-            let query_string = "select * from ref.get_user(" + name.toLowerCase().trim() + ", " + email.toLowerCase().trim() + ", " + (phone ? phone.toLowerCase().trim() : null) + ", $2, $3);";
-            let query_uid = this.log_db_query_perf_start('selectUsersForCheckUnicity', query_string);
-            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
-                "select * from ref.get_user($1, $2, $3, null, false);", [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO;
-            this.log_db_query_perf_end(query_uid, 'selectUsersForCheckUnicity', query_string);
+            // NEW method with query
+            return await query(UserVO.API_TYPE_ID)
+                .exec_as_server()
 
-            vo = (vo && vo.id) ? vo : null;
-            if (!!vo) {
-                vo['_type'] = UserVO.API_TYPE_ID;
-                vo = datatable.forceNumeric(vo);
-            }
+                .add_filters([
+                    ContextFilterVO.or([
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(name, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(name, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(name, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(email, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(email, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(email, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(phone, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(phone, true),
+                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(phone, true)
+                    ]),
+                    filter(UserVO.API_TYPE_ID, field_names<UserVO>().id).by_num_not_eq(user_id),
+                ])
 
-            if (!vo) {
-                return true;
-            }
+                .select_count() == 0;
 
-            return vo.id == user_id;
+            //     // OLD
+            //     let query_string = "select * from ref.get_user(" + name.toLowerCase().trim() + ", " + email.toLowerCase().trim() + ", " + (phone ? phone.toLowerCase().trim() : null) + ", $2, $3);";
+            // let query_uid = this.log_db_query_perf_start('selectUsersForCheckUnicity', query_string);
+            // let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
+            //     "select * from ref.get_user($1, $2, $3, null, false);", [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO;
+            // this.log_db_query_perf_end(query_uid, 'selectUsersForCheckUnicity', query_string);
+
+            // vo = (vo && vo.id) ? vo : null;
+            // if (!!vo) {
+            //     vo['_type'] = UserVO.API_TYPE_ID;
+            //     vo = datatable.forceNumeric(vo);
+            // }
+
+            // if (!vo) {
+            //     return true;
+            // }
+
+            // return vo.id == user_id;
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -5331,31 +5374,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ConsoleHandler.warn("global_update_blocker actif");
     }
 
-    private async create_or_replace_function_ref_get_user() {
-        await this.query(
-            ' CREATE OR REPLACE FUNCTION ref.get_user(IN user_name text, IN user_email text, IN user_phone text, user_pwd text, check_pwd bool) RETURNS ref.user' +
-            ' AS $$' +
-            ' DECLARE' +
-            ' user_found ref."user"%rowtype;' +
-            ' BEGIN' +
-            ' ' +
-            ' for user_found IN (select * FROM ref."user" x WHERE ' +
-            ' LOWER(x.name) = user_name OR LOWER(x.email) = user_name OR LOWER(x.phone) = user_name OR' +
-            ' LOWER(x.name) = user_email OR LOWER(x.email) = user_email OR LOWER(x.phone) = user_email OR' +
-            ' LOWER(x.name) = user_phone OR LOWER(x.email) = user_phone OR LOWER(x.phone) = user_phone' +
-            ' )' +
-            ' LOOP' +
-            ' IF check_pwd = FALSE THEN' +
-            ' return user_found;' +
-            ' ELSEIF user_found.password = crypt(user_pwd, user_found.password) THEN' +
-            ' return user_found;' +
-            ' END IF;' +
-            ' END LOOP;' +
-            ' RETURN NULL;' +
-            ' END;' +
-            ' $$' +
-            ' LANGUAGE plpgsql;');
-    }
+    // private async create_or_replace_function_ref_get_user() {
+    //     await this.query(
+    //         ' CREATE OR REPLACE FUNCTION ref.get_user(IN user_name text, IN user_email text, IN user_phone text, user_pwd text, check_pwd bool) RETURNS ref.user' +
+    //         ' AS $$' +
+    //         ' DECLARE' +
+    //         ' user_found ref."user"%rowtype;' +
+    //         ' BEGIN' +
+    //         ' ' +
+    //         ' for user_found IN (select * FROM ref."user" x WHERE ' +
+    //         ' LOWER(x.name) = user_name OR LOWER(x.email) = user_name OR LOWER(x.phone) = user_name OR' +
+    //         ' LOWER(x.name) = user_email OR LOWER(x.email) = user_email OR LOWER(x.phone) = user_email OR' +
+    //         ' LOWER(x.name) = user_phone OR LOWER(x.email) = user_phone OR LOWER(x.phone) = user_phone' +
+    //         ' )' +
+    //         ' LOOP' +
+    //         ' IF check_pwd = FALSE THEN' +
+    //         ' return user_found;' +
+    //         ' ELSEIF user_found.password = crypt(user_pwd, user_found.password) THEN' +
+    //         ' return user_found;' +
+    //         ' END IF;' +
+    //         ' END LOOP;' +
+    //         ' RETURN NULL;' +
+    //         ' END;' +
+    //         ' $$' +
+    //         ' LANGUAGE plpgsql;');
+    // }
 
     private async check_throttled_select_query_size_ms() {
         if ((!this.throttled_select_query_size_ms_param_last_update) || ((this.throttled_select_query_size_ms_param_last_update) + 120 < Dates.now())) {

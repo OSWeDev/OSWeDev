@@ -113,10 +113,10 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
 
                 param = APIControllerWrapper.try_translate_vo_from_api(req_body);
-                has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req_body);
+                has_params = ObjectHandler.hasAtLeastOneAttribute(req_body);
             } else if (api.param_translator && api.param_translator.fromREQ) {
                 try {
-                    has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req.params);
+                    has_params = ObjectHandler.hasAtLeastOneAttribute(req.params);
                     param = api.param_translator.fromREQ(req);
                 } catch (error) {
                     ConsoleHandler.error(error);

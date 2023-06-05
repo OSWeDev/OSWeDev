@@ -234,7 +234,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return;
         }
 
-        if (ObjectHandler.getInstance().are_equal(this.object_column.filter_custom_field_filters, this.custom_filter_names)) {
+        if (ObjectHandler.are_equal(this.object_column.filter_custom_field_filters, this.custom_filter_names)) {
             return;
         }
 

@@ -80,7 +80,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
+        return ObjectHandler.hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
     }
 
     @Watch('dashboard_id', { immediate: true })

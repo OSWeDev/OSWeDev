@@ -198,7 +198,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                     if (this.widget_options &&
                         (this.widget_options.var_id == options.var_id) &&
                         (this.widget_options.filter_type == options.filter_type) &&
-                        (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters, options.filter_custom_field_filters)) &&
+                        (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters, options.filter_custom_field_filters)) &&
                         (this.widget_options.filter_additional_params == options.filter_additional_params) &&
                         (this.widget_options.bg_color == options.bg_color) &&
                         (this.widget_options.fg_color_value == options.fg_color_value) &&
@@ -220,7 +220,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             }
 
             if ((!!options) && (!!this.page_widget.json_options)) {
-                if (!ObjectHandler.getInstance().are_equal(this.widget_options, options)) {
+                if (!ObjectHandler.are_equal(this.widget_options, options)) {
                     this.widget_options = options;
                 }
             } else if ((!!this.widget_options) && !this.page_widget.json_options) {

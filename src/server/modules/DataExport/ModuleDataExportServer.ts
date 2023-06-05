@@ -992,7 +992,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file_access_policy_name: string = null
     ): Promise<string> {
 
-        if ((!filename) || (!sheets) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(sheets))) {
+        if ((!filename) || (!sheets) || (!ObjectHandler.hasAtLeastOneAttribute(sheets))) {
             return null;
         }
 

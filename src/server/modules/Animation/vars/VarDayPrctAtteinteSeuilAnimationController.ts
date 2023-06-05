@@ -126,7 +126,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
                 cpt_modules++;
 
                 let users_answered_module = uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id];
-                let module_has_qr = ObjectHandler.getInstance().hasAtLeastOneAttribute(qrs_by_theme_module[theme_id][module_id]);
+                let module_has_qr = ObjectHandler.hasAtLeastOneAttribute(qrs_by_theme_module[theme_id][module_id]);
                 // si on a pas de qr ou aucune réponse des utilisateur pour le module on passe au suivant
                 if (!module_has_qr || !users_answered_module) {
                     continue;

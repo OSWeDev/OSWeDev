@@ -572,7 +572,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 }
             }
 
-            if (custom_filters && ObjectHandler.getInstance().hasAtLeastOneAttribute(custom_filters)) {
+            if (custom_filters && ObjectHandler.hasAtLeastOneAttribute(custom_filters)) {
                 this.set_custom_filters(Object.keys(custom_filters));
             }
         }

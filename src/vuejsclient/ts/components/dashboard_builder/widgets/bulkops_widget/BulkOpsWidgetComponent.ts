@@ -328,7 +328,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if ((!this.fields) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.fields))) {
+        if ((!this.fields) || (!ObjectHandler.hasAtLeastOneAttribute(this.fields))) {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;

@@ -1097,7 +1097,7 @@ export default class PushDataServerController {
                 delete sessionSockets[toclose[j]];
             }
 
-            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(sessionSockets)) {
+            if (!ObjectHandler.hasAtLeastOneAttribute(sessionSockets)) {
                 toclose_tabs.push(client_tab_id);
             }
         }

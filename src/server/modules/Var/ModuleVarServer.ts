@@ -949,7 +949,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let real_start_time = start_time;
             while (
                 VarsdatasComputerBGThread.getInstance().semaphore ||
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
+                ObjectHandler.hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
@@ -1025,7 +1025,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let real_start_time = start_time;
             while (
                 VarsdatasComputerBGThread.getInstance().semaphore ||
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
+                ObjectHandler.hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {

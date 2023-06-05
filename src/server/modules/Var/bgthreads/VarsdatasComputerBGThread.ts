@@ -214,7 +214,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         this.semaphore = true;
         this.run_asap = false;
 
-        if ((!VarsController.getInstance().var_conf_by_id) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsController.getInstance().var_conf_by_id))) {
+        if ((!VarsController.getInstance().var_conf_by_id) || (!ObjectHandler.hasAtLeastOneAttribute(VarsController.getInstance().var_conf_by_id))) {
             this.semaphore = false;
             this.run_asap = true;
             return;

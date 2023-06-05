@@ -109,7 +109,7 @@ export default class VarWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
+        return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
     }
 
     // @Watch('get_custom_filters', { deep: true })

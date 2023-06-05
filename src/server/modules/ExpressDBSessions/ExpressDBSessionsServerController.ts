@@ -93,7 +93,7 @@ export default class ExpressDBSessionsServerController extends Store {
 
         let do_update = (!ExpressDBSessionsServerController.session_cache[sid]) ||
             (!ExpressDBSessionsServerController.session_cache[sid].expire) ||
-            !ObjectHandler.getInstance().are_equal(sess_obj, cache_sess_obj);
+            !ObjectHandler.are_equal(sess_obj, cache_sess_obj);
         if (!do_update) {
             do_update = (Math.abs(expireTime - ExpressDBSessionsServerController.session_cache[sid].expire) > 7 * 24 * 60 * 60);
         }

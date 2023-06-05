@@ -389,7 +389,7 @@ export default class VarsDatasProxy {
                 }
             }
 
-            if (ObjectHandler.getInstance().hasAtLeastOneAttribute(to_insert_by_type)) {
+            if (ObjectHandler.hasAtLeastOneAttribute(to_insert_by_type)) {
 
                 let promises = [];
                 let result = true;
@@ -719,7 +719,7 @@ export default class VarsDatasProxy {
          * - ni demandée par le serveur ni par un client
          * - qui n'ont pas besoin d'être mise en bdd
          */
-        if (unregistered_var_datas_wrappers_map && ObjectHandler.getInstance().hasAtLeastOneAttribute(unregistered_var_datas_wrappers_map)) {
+        if (unregistered_var_datas_wrappers_map && ObjectHandler.hasAtLeastOneAttribute(unregistered_var_datas_wrappers_map)) {
 
             let removed_vars: number = 0;
             for (let i in unregistered_var_datas_wrappers_map) {

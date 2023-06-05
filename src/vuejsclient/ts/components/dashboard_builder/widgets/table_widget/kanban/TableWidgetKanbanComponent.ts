@@ -2407,7 +2407,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
 
             res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
+                ObjectHandler.hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
                 this.get_active_field_filters);
         }
 

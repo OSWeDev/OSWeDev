@@ -93,7 +93,7 @@ export default class ModuleTableDBService {
 
                 let segments_by_segmented_value: { [segmented_value: number]: string } = await this.get_existing_segmentations_tables_of_moduletable(moduleTable);
 
-                if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(segments_by_segmented_value)) {
+                if (!ObjectHandler.hasAtLeastOneAttribute(segments_by_segmented_value)) {
                     // Aucune table => on tente une migration des datas
 
                     // On récupère les datas de la colonne de segmentation pour construire par la suite les requetes de migration des datas

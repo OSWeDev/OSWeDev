@@ -243,7 +243,7 @@ export default class VarsDatasVoUpdateHandler {
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
         let solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
 
-        if ((!intersectors_by_index) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index))) {
+        if ((!intersectors_by_index) || (!ObjectHandler.hasAtLeastOneAttribute(intersectors_by_index))) {
             return false;
         }
 
@@ -343,7 +343,7 @@ export default class VarsDatasVoUpdateHandler {
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
-        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
+        while (ObjectHandler.hasAtLeastOneAttribute(intersectors_by_index)) {
             let promise_pipeline = new PromisePipeline(max);
 
             for (let i in intersectors_by_index) {
@@ -1112,7 +1112,7 @@ export default class VarsDatasVoUpdateHandler {
             return null;
         }
 
-        let query_ = query(invalidators[ObjectHandler.getInstance().getFirstAttributeName(invalidators)].var_data._type);
+        let query_ = query(invalidators[ObjectHandler.getFirstAttributeName(invalidators)].var_data._type);
         let filters = [];
 
         for (let i in invalidators) {
@@ -1238,7 +1238,7 @@ export default class VarsDatasVoUpdateHandler {
         let original_markers = Object.assign({}, markers);
         let original_ctrls_to_update_1st_stage = Object.assign({}, ctrls_to_update_1st_stage);
 
-        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
+        while (ObjectHandler.hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
 
             let actual_time = Dates.now();
 
@@ -1419,10 +1419,10 @@ export default class VarsDatasVoUpdateHandler {
             return;
         }
 
-        intersectors = ObjectHandler.getInstance().mapByStringFieldFromArray(
+        intersectors = ObjectHandler.mapByStringFieldFromArray(
             MatroidController.getInstance().union(Object.values(intersectors)), 'index');
 
-        if ((!intersectors) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors))) {
+        if ((!intersectors) || (!ObjectHandler.hasAtLeastOneAttribute(intersectors))) {
             return;
         }
         intersectors_by_var_id[Nx.var_controller.varConf.id] = intersectors;

@@ -323,7 +323,7 @@ export default class OnPageTranslation extends VueComponentBase {
                 lang_id,
                 text_id
             }
-        } = ObjectHandler.getInstance().mapByStringFieldFromArray(
+        } = ObjectHandler.mapByStringFieldFromArray(
             await query(TranslationVO.API_TYPE_ID)
                 .field('code_text', null, TranslatableTextVO.API_TYPE_ID)
                 .field('id')

@@ -152,10 +152,10 @@ export default class DocumentHandlerComponent extends VueComponentBase {
     }
 
     get hasMoreThanOneGroup(): boolean {
-        return !ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(this.dtg_by_ids);
+        return !ObjectHandler.hasOneAndOnlyOneAttribute(this.dtg_by_ids);
     }
 
     get hasMoreThanOneTag(): boolean {
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.dt_by_ids) && !ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(this.dt_by_ids);
+        return ObjectHandler.hasAtLeastOneAttribute(this.dt_by_ids) && !ObjectHandler.hasOneAndOnlyOneAttribute(this.dt_by_ids);
     }
 }

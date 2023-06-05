@@ -438,7 +438,7 @@ export default class PushDataVueModule extends VueModuleBase {
             }
         }
 
-        if (var_by_indexes && ObjectHandler.getInstance().hasAtLeastOneAttribute(var_by_indexes)) {
+        if (var_by_indexes && ObjectHandler.hasAtLeastOneAttribute(var_by_indexes)) {
 
             let vos = Object.values(var_by_indexes);
 

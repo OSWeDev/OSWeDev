@@ -55,8 +55,8 @@ export default class DocumentHandlerController {
 
         let dt_dtgs: DocumentTagDocumentTagGroupVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentTagDocumentTagGroupVO>(
             DocumentTagDocumentTagGroupVO.API_TYPE_ID,
-            'dt_id', ObjectHandler.getInstance().getIdsList(res.all_dt_by_ids),
-            'dtg_id', ObjectHandler.getInstance().getIdsList(tmp_dtg_by_ids)
+            'dt_id', ObjectHandler.getIdsList(res.all_dt_by_ids),
+            'dtg_id', ObjectHandler.getIdsList(tmp_dtg_by_ids)
         );
 
         tmp_dts_by_dtg_ids = {};
@@ -76,8 +76,8 @@ export default class DocumentHandlerController {
 
         res.d_dts = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentDocumentTagVO>(
             DocumentDocumentTagVO.API_TYPE_ID,
-            'd_id', ObjectHandler.getInstance().getIdsList(res.all_d_by_ids),
-            'dt_id', ObjectHandler.getInstance().getIdsList(valid_dt_by_ids)
+            'd_id', ObjectHandler.getIdsList(res.all_d_by_ids),
+            'dt_id', ObjectHandler.getIdsList(valid_dt_by_ids)
         );
 
         WeightHandler.getInstance().sortByWeight(tmp_dtgs_by_weight);

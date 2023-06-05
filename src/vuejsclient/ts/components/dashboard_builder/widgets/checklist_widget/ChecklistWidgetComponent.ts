@@ -162,7 +162,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     get ordered_checkpoints(): ICheckPoint[] {
 
-        if ((!this.checkpoints) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checkpoints))) {
+        if ((!this.checkpoints) || (!ObjectHandler.hasAtLeastOneAttribute(this.checkpoints))) {
             return null;
         }
 
@@ -196,7 +196,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (this.checklistitems[vo.id].archived) {
             delete this.checklistitems[vo.id];
         }
-        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
         await this.throttled_update_visible_options();
@@ -275,7 +275,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems);
+        return ObjectHandler.hasAtLeastOneAttribute(this.checklistitems);
     }
 
     private async createNew() {
@@ -298,7 +298,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return;
         }
         delete this.checklistitems[item.id];
-        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
         this.get_Checklistitemmodalcomponent.closemodal();
