@@ -17,11 +17,32 @@ ul.multi-input {
     min-width: 100%;
 }
 
-@media print
-{
-    .d-print-none, .d-print-none *,
-    .VueTables__sort-icon, .VueTables__sort-icon *
-    {
+.VueTables__sort-icon {
+    font-family: 'Font Awesome 6 Pro';
+    font-weight: 100;
+
+    &.glyphicon-sort:before {
+        margin-left: 3px;
+        content: "\f0dc";
+    }
+
+    &.glyphicon-chevron-up:before {
+        margin-left: 3px;
+        content: "\f077";
+    }
+
+    &.glyphicon-chevron-down:before {
+        margin-left: 3px;
+        content: "\f078";
+    }
+}
+
+@media print {
+
+    .d-print-none,
+    .d-print-none *,
+    .VueTables__sort-icon,
+    .VueTables__sort-icon * {
         display: none !important;
     }
 }
