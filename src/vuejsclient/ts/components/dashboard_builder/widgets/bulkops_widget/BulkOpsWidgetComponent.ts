@@ -488,9 +488,9 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                                     let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
 
                                     await ModuleContextFilter.getInstance().update_vos(
-                                        context_query,
-                                        new_value
-                                    );
+                                        context_query, {
+                                        [self.field_id_selected]: new_value
+                                    });
 
                                     ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
 

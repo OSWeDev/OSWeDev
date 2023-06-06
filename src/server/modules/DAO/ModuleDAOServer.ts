@@ -5702,14 +5702,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (updates && updates.length) {
 
+            let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+
             for (let i in updates) {
                 let vo = updates[i];
 
-                let update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(ModuleTable.default_get_api_version(vo));
-                if (update_res && update_res.length) {
-                    res.push(...update_res);
-                }
+                await promises_pipeline.push(async () => {
+                    /**
+                     * On doit traduire les valeurs des champs mais pas les field_ids au format api
+                     */
+                    let table = VOsTypesManager.moduleTables_by_voType[vo._type];
+                    let fields = table.get_fields();
+                    for (let j in fields) {
+                        let field = fields[j];
+
+                        vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
+                    }
+
+                    let update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
+                    if (update_res && update_res.length) {
+                        res.push(...update_res);
+                    }
+                });
             }
+
+            await promises_pipeline.end();
         }
 
         return res;
@@ -5728,7 +5745,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         } else {
 
-            let res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(ModuleTable.default_get_api_version(vo));
+            /**
+             * On doit traduire les valeurs des champs mais pas les field_ids au format api
+             */
+            let table = VOsTypesManager.moduleTables_by_voType[vo._type];
+            let fields = table.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
+            }
+            let res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
             if (res && res.length) {
                 return res[0];
             }

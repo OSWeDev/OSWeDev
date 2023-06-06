@@ -1022,9 +1022,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
-     * Faire la requête en mode delete_vos
+     * Faire la requête en mode update_vos
      * ATTENTION : les access_hooks sont ignorés, il faut passer par un trigger pre-delete pour refuser le delete
      *  ou modifier le comportement comme expliqué sur "context_access_hooks" dans le ModuleDAOServer
+     * @param new_api_translated_values les valeurs à mettre à jour => les champs (field_id) doivent être les champs de l'objet et non les champs API, mais par contre la valeur du champs doit être la valeur API
      * @returns les vos issus de la requête
      */
     public async update_vos<T extends IDistantVOBase>(new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
