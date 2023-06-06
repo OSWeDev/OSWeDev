@@ -5705,7 +5705,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let i in updates) {
                 let vo = updates[i];
 
-                let update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
+                let update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(ModuleTable.default_get_api_version(vo));
                 if (update_res && update_res.length) {
                     res.push(...update_res);
                 }
@@ -5728,7 +5728,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         } else {
 
-            let res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
+            let res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(ModuleTable.default_get_api_version(vo));
             if (res && res.length) {
                 return res[0];
             }

@@ -31,7 +31,7 @@ export default class ForkedTasksController {
      * Local thread cache -----
      */
     public registered_task_result_wrappers: { [result_task_uid: number]: ForkMessageCallbackWrapper } = {};
-    private registered_tasks: { [task_uid: string]: (...task_params) => Promise<boolean> } = {};
+    private registered_tasks: { [task_uid: string]: (...task_params) => boolean | Promise<boolean> } = {};
 
     private result_task_prefix_thread_uid: number = process.pid;
     private result_task_uid: number = 1;
@@ -43,7 +43,7 @@ export default class ForkedTasksController {
         this.handle_fork_message_callback_timeout();
     }
 
-    get process_registered_tasks(): { [task_uid: string]: (...task_params) => Promise<boolean> } {
+    get process_registered_tasks(): { [task_uid: string]: (...task_params) => boolean | Promise<boolean> } {
         return this.registered_tasks;
     }
 
@@ -51,7 +51,7 @@ export default class ForkedTasksController {
         return this.result_task_prefix_thread_uid + '_' + (this.result_task_uid++);
     }
 
-    public register_task(task_uid: string, handler: (...task_params) => Promise<boolean>) {
+    public register_task(task_uid: string, handler: (...task_params) => boolean | Promise<boolean>) {
         this.registered_tasks[task_uid] = handler;
     }
 

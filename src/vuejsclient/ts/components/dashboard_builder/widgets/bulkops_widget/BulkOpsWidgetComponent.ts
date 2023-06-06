@@ -489,7 +489,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     await ModuleContextFilter.getInstance().update_vos(
                                         context_query,
-                                        self.field_id_selected,
                                         new_value
                                     );
 

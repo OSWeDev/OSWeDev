@@ -15,7 +15,6 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
@@ -23,7 +22,6 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
-import ModuleAccessPolicyServer from './ModuleAccessPolicyServer';
 
 export default class AccessPolicyServerController {
 
@@ -66,6 +64,24 @@ export default class AccessPolicyServerController {
 
     public static hook_user_login: (email: string, password: string) => Promise<UserVO> = null;
 
+    public static init_tasks() {
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, AccessPolicyServerController.set_registered_user_role);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, AccessPolicyServerController.delete_registered_user_role);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, AccessPolicyServerController.set_registered_policy);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, AccessPolicyServerController.set_policy_dependency);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, AccessPolicyServerController.set_role_policy);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, AccessPolicyServerController.reload_access_matrix);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, AccessPolicyServerController.update_registered_policy);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, AccessPolicyServerController.update_policy_dependency);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, AccessPolicyServerController.update_role_policy);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role, AccessPolicyServerController.update_role);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_user_role, AccessPolicyServerController.update_user_role);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, AccessPolicyServerController.delete_registered_policy);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, AccessPolicyServerController.delete_registered_policy_dependency);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, AccessPolicyServerController.delete_registered_role_policy);
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, AccessPolicyServerController.delete_registered_role);
+    }
 
     public static getInstance() {
         if (!AccessPolicyServerController.instance) {
@@ -222,10 +238,11 @@ export default class AccessPolicyServerController {
     /**
      * On commence par invalider la matrice pour indiquer qu'on ne doit plus l'utiliser, et on prévoit une refonte de la matrice rapidement
      */
-    public static async reload_access_matrix() {
+    public static async reload_access_matrix(): Promise<boolean> {
         AccessPolicyServerController.access_matrix_validity = false;
         AccessPolicyServerController.access_matrix_heritance_only_validity = false;
         AccessPolicyServerController.throttled_reload_access_matrix_computation();
+        return true;
     }
 
     public static reload_access_matrix_computation() {
@@ -356,52 +373,56 @@ export default class AccessPolicyServerController {
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static set_registered_role(object: RoleVO) {
+    public static set_registered_role(object: RoleVO): boolean {
         AccessPolicyServerController.registered_roles[object.translatable_name.toLowerCase()] = object;
         AccessPolicyServerController.registered_roles_by_ids[object.id] = object;
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static set_registered_user_role(vo: UserRoleVO) {
+    public static set_registered_user_role(vo: UserRoleVO): boolean {
         if (!vo) {
-            return;
+            return true;
         }
 
         if (!AccessPolicyServerController.registered_users_roles[vo.user_id]) {
             AccessPolicyServerController.registered_users_roles[vo.user_id] = [];
         }
         AccessPolicyServerController.registered_users_roles[vo.user_id].push(AccessPolicyServerController.registered_roles_by_ids[vo.role_id]);
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static set_registered_policy_group(object: AccessPolicyGroupVO) {
+    public static set_registered_policy_group(object: AccessPolicyGroupVO): boolean {
         if (!object) {
-            return;
+            return true;
         }
         AccessPolicyServerController.registered_policy_groups[object.translatable_name.toLowerCase()] = object;
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static set_registered_policy(object: AccessPolicyVO) {
+    public static set_registered_policy(object: AccessPolicyVO): boolean {
         if (!object) {
-            return;
+            return true;
         }
         AccessPolicyServerController.registered_policies[object.translatable_name.toLowerCase()] = object;
         AccessPolicyServerController.registered_policies_by_ids[object.id] = object;
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static update_registered_policy(vo_update_holder: DAOUpdateVOHolder<AccessPolicyVO>) {
+    public static update_registered_policy(vo_update_holder: DAOUpdateVOHolder<AccessPolicyVO>): boolean {
         if ((!vo_update_holder) || (!vo_update_holder.post_update_vo)) {
-            return;
+            return true;
         }
         if ((!AccessPolicyServerController.registered_policies_by_ids[vo_update_holder.post_update_vo.id]) || (!AccessPolicyServerController.get_registered_policy(AccessPolicyServerController.registered_policies_by_ids[vo_update_holder.post_update_vo.id].translatable_name))) {
             return true;
@@ -411,28 +432,30 @@ export default class AccessPolicyServerController {
             AccessPolicyServerController.delete_registered_policy(AccessPolicyServerController.registered_policies_by_ids[vo_update_holder.post_update_vo.id]);
         }
         AccessPolicyServerController.set_registered_policy(vo_update_holder.post_update_vo);
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static set_policy_dependency(object: PolicyDependencyVO) {
+    public static set_policy_dependency(object: PolicyDependencyVO): boolean {
         if (!object) {
-            return;
+            return true;
         }
 
         if (!AccessPolicyServerController.registered_dependencies[object.src_pol_id]) {
             AccessPolicyServerController.registered_dependencies[object.src_pol_id] = [];
         }
         AccessPolicyServerController.registered_dependencies[object.src_pol_id].push(object);
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static update_policy_dependency(vo_update_holder: DAOUpdateVOHolder<PolicyDependencyVO>) {
+    public static update_policy_dependency(vo_update_holder: DAOUpdateVOHolder<PolicyDependencyVO>): boolean {
         if ((!vo_update_holder) || (!vo_update_holder.post_update_vo)) {
-            return;
+            return true;
         }
 
         delete AccessPolicyServerController.registered_dependencies_for_loading_process[vo_update_holder.pre_update_vo.src_pol_id][vo_update_holder.pre_update_vo.depends_on_pol_id];
@@ -454,34 +477,37 @@ export default class AccessPolicyServerController {
                 }
             }
         }
+
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static set_role_policy(object: RolePolicyVO) {
+    public static set_role_policy(object: RolePolicyVO): boolean {
         if (!object) {
-            return;
+            return true;
         }
 
         if (!AccessPolicyServerController.registered_roles_policies[object.role_id]) {
             AccessPolicyServerController.registered_roles_policies[object.role_id] = {};
         }
         AccessPolicyServerController.registered_roles_policies[object.role_id][object.accpol_id] = object;
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static update_role_policy(vo_update_holder: DAOUpdateVOHolder<RolePolicyVO>) {
+    public static update_role_policy(vo_update_holder: DAOUpdateVOHolder<RolePolicyVO>): boolean {
         if ((!vo_update_holder) || (!vo_update_holder.post_update_vo)) {
-            return;
+            return true;
         }
 
         if (AccessPolicyServerController.registered_roles_policies[vo_update_holder.post_update_vo.role_id] && AccessPolicyServerController.registered_roles_policies[vo_update_holder.post_update_vo.role_id][vo_update_holder.post_update_vo.accpol_id] &&
             (AccessPolicyServerController.registered_roles_policies[vo_update_holder.post_update_vo.role_id][vo_update_holder.post_update_vo.accpol_id].id == vo_update_holder.post_update_vo.id)) {
             AccessPolicyServerController.registered_roles_policies[vo_update_holder.post_update_vo.role_id][vo_update_holder.post_update_vo.accpol_id] = vo_update_holder.post_update_vo;
-            return;
+            return true;
         }
 
         // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
@@ -489,36 +515,38 @@ export default class AccessPolicyServerController {
             for (let i in AccessPolicyServerController.registered_roles_policies[j]) {
                 if (AccessPolicyServerController.registered_roles_policies[j][i].id == vo_update_holder.post_update_vo.id) {
                     AccessPolicyServerController.registered_roles_policies[j][i] = vo_update_holder.post_update_vo;
-                    return;
+                    return true;
                 }
             }
         }
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static update_role(vo_update_holder: DAOUpdateVOHolder<RoleVO>) {
+    public static update_role(vo_update_holder: DAOUpdateVOHolder<RoleVO>): boolean {
         if ((!vo_update_holder) || (!vo_update_holder.post_update_vo)) {
-            return;
+            return true;
         }
 
         if ((!AccessPolicyServerController.registered_roles_by_ids[vo_update_holder.post_update_vo.id]) || (!AccessPolicyServerController.get_registered_role(AccessPolicyServerController.registered_roles_by_ids[vo_update_holder.post_update_vo.id].translatable_name))) {
-            return;
+            return true;
         }
 
         if (AccessPolicyServerController.registered_roles_by_ids[vo_update_holder.post_update_vo.id].translatable_name != vo_update_holder.post_update_vo.translatable_name) {
             AccessPolicyServerController.delete_registered_role(AccessPolicyServerController.registered_roles_by_ids[vo_update_holder.post_update_vo.id]);
         }
         AccessPolicyServerController.set_registered_role(vo_update_holder.post_update_vo);
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static update_user_role(vo_update_holder: DAOUpdateVOHolder<UserRoleVO>) {
+    public static update_user_role(vo_update_holder: DAOUpdateVOHolder<UserRoleVO>): boolean {
         if ((!vo_update_holder) || (!vo_update_holder.post_update_vo)) {
-            return;
+            return true;
         }
 
         let role: RoleVO = AccessPolicyServerController.registered_roles_by_ids[vo_update_holder.post_update_vo.role_id];
@@ -539,25 +567,27 @@ export default class AccessPolicyServerController {
                 }
             }
         }
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static delete_registered_role(role: RoleVO) {
+    public static delete_registered_role(role: RoleVO): boolean {
         if (!role) {
-            return;
+            return true;
         }
         delete AccessPolicyServerController.registered_roles[role.translatable_name.toLowerCase()];
         delete AccessPolicyServerController.registered_roles_by_ids[role.id];
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static delete_registered_user_role(vo: UserRoleVO) {
+    public static delete_registered_user_role(vo: UserRoleVO): boolean {
         if (!vo) {
-            return;
+            return true;
         }
 
         let role: RoleVO = AccessPolicyServerController.registered_roles_by_ids[vo.role_id];
@@ -565,7 +595,7 @@ export default class AccessPolicyServerController {
         for (let i in AccessPolicyServerController.registered_users_roles[vo.user_id]) {
             if (AccessPolicyServerController.registered_users_roles[vo.user_id][i].id == role.id) {
                 AccessPolicyServerController.registered_users_roles[vo.user_id].splice(parseInt(i), 1);
-                return;
+                return true;
             }
         }
 
@@ -574,44 +604,48 @@ export default class AccessPolicyServerController {
             for (let i in AccessPolicyServerController.registered_users_roles[j]) {
                 if (AccessPolicyServerController.registered_users_roles[j][i].id == role.id) {
                     AccessPolicyServerController.registered_users_roles[j].splice(parseInt(i), 1);
-                    return;
+                    return true;
                 }
             }
         }
+
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static delete_registered_policy_group(name: string) {
+    public static delete_registered_policy_group(name: string): boolean {
         if (!name) {
-            return;
+            return true;
         }
         delete AccessPolicyServerController.registered_policy_groups[name.toLowerCase()];
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static delete_registered_policy(object: AccessPolicyVO) {
+    public static delete_registered_policy(object: AccessPolicyVO): boolean {
         if (!object) {
-            return;
+            return true;
         }
         delete AccessPolicyServerController.registered_policies[object.translatable_name.toLowerCase()];
         delete AccessPolicyServerController.registered_policies_by_ids[object.id];
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static delete_registered_policy_dependency(object: PolicyDependencyVO) {
+    public static delete_registered_policy_dependency(object: PolicyDependencyVO): boolean {
 
         delete AccessPolicyServerController.registered_dependencies_for_loading_process[object.src_pol_id][object.depends_on_pol_id];
 
         for (let i in AccessPolicyServerController.registered_dependencies[object.src_pol_id]) {
             if (AccessPolicyServerController.registered_dependencies[object.src_pol_id][i].id == object.id) {
                 AccessPolicyServerController.registered_dependencies[object.src_pol_id].splice(parseInt(i), 1);
-                return;
+                return true;
             }
         }
 
@@ -620,21 +654,23 @@ export default class AccessPolicyServerController {
             for (let i in AccessPolicyServerController.registered_dependencies[j]) {
                 if (AccessPolicyServerController.registered_dependencies[j][i].id == object.id) {
                     AccessPolicyServerController.registered_dependencies[j].splice(parseInt(i), 1);
-                    return;
+                    return true;
                 }
             }
         }
+
+        return true;
     }
 
     /**
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
-    public static delete_registered_role_policy(object: RolePolicyVO) {
+    public static delete_registered_role_policy(object: RolePolicyVO): boolean {
 
         if (AccessPolicyServerController.registered_roles_policies[object.role_id] && AccessPolicyServerController.registered_roles_policies[object.role_id][object.accpol_id] &&
             (AccessPolicyServerController.registered_roles_policies[object.role_id][object.accpol_id].id == object.id)) {
             delete AccessPolicyServerController.registered_roles_policies[object.role_id][object.accpol_id];
-            return;
+            return true;
         }
 
         // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
@@ -642,10 +678,12 @@ export default class AccessPolicyServerController {
             for (let i in AccessPolicyServerController.registered_roles_policies[j]) {
                 if (AccessPolicyServerController.registered_roles_policies[j][i].id == object.id) {
                     delete AccessPolicyServerController.registered_roles_policies[j][i];
-                    return;
+                    return true;
                 }
             }
         }
+
+        return true;
     }
 
     /**
@@ -1228,22 +1266,5 @@ export default class AccessPolicyServerController {
         return true;
     }
 
-    public constructor() {
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, AccessPolicyServerController.set_registered_user_role.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, AccessPolicyServerController.delete_registered_user_role.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, AccessPolicyServerController.set_registered_policy.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, AccessPolicyServerController.set_policy_dependency.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, AccessPolicyServerController.set_role_policy.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, AccessPolicyServerController.reload_access_matrix.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, AccessPolicyServerController.update_registered_policy.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, AccessPolicyServerController.update_policy_dependency.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, AccessPolicyServerController.update_role_policy.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role, AccessPolicyServerController.update_role.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_user_role, AccessPolicyServerController.update_user_role.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, AccessPolicyServerController.delete_registered_policy.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, AccessPolicyServerController.delete_registered_policy_dependency.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, AccessPolicyServerController.delete_registered_role_policy.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, AccessPolicyServerController.delete_registered_role.bind(this));
-    }
+    private constructor() { }
 }

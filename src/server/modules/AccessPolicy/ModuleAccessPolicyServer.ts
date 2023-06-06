@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -11,13 +11,12 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
-import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -28,12 +27,14 @@ import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO'
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import SendInBlueSmsFormatVO from '../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -54,13 +55,11 @@ import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServer
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
-import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
-import StatsController from '../../../shared/modules/Stats/StatsController';
-import { all_promises } from '../../../shared/tools/PromiseTools';
+import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -84,6 +83,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         super(ModuleAccessPolicy.getInstance().name);
 
         ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
+        AccessPolicyServerController.init_tasks();
     }
 
     /**
