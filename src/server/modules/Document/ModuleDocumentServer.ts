@@ -237,7 +237,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
         let main_query = query(DocumentVO.API_TYPE_ID);
         return await main_query
-            .filter_by_num_eq('lang_id', StackContext.get('user').lang_id, DocumentLangVO.API_TYPE_ID)
+            .filter_by_num_eq('lang_id', StackContext.get('user_vo').lang_id, DocumentLangVO.API_TYPE_ID)
             .add_filters([
                 ContextFilterVO.or([
                     filter(DocumentRoleVO.API_TYPE_ID, 'role_id').by_num_in(query(UserRoleVO.API_TYPE_ID).field('role_id').exec_as_server().filter_by_num_eq('user_id', StackContext.get('UID')), main_query),
@@ -248,10 +248,10 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq('lang_id', StackContext.get('user').lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
+        return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq('lang_id', StackContext.get('user_vo').lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq('lang_id', StackContext.get('user').lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
+        return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq('lang_id', StackContext.get('user_vo').lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 }
