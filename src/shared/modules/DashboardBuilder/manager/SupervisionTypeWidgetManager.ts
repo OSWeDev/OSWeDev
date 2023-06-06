@@ -6,7 +6,7 @@ import SupervisionTypeWidgetOptionsVO from '../vos/SupervisionTypeWidgetOptionsV
 import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
 import SupervisionController from '../../Supervision/SupervisionController';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
-import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import DashboardVO from "../vos/DashboardVO";
 import ModuleDAO from '../../DAO/ModuleDAO';
@@ -43,7 +43,7 @@ export default class SupervisionTypeWidgetManager {
      *
      * @param {DashboardVO} dashboard
      * @param {SupervisionWidgetOptionsVO} widget_options
-     * @param {{ [api_type_id: string]: { [field_name: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @param {string[]} active_supervision_api_type_ids API type ids that have been selected by the user
      * @param {{ offset: number, limit?: number, sort_by_field_id?: string }} pagination Pagination options
      * @returns {Promise<ISupervisedItem[]>}
@@ -51,7 +51,7 @@ export default class SupervisionTypeWidgetManager {
     public static async find_available_supervision_type_ids(
         dashboard: DashboardVO,
         widget_options: SupervisionTypeWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_name: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
         options?: {
             categories_by_name?: { [name: string]: SupervisedCategoryVO },
             refresh?: boolean,
