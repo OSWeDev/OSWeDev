@@ -296,7 +296,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
             set_filter_user_active_options: (context: AnimationReportingContext, filter_user_active_options: DataFilterOption[]) => commit_set_filter_user_active_options(context, filter_user_active_options),
             set_user_id_ranges: (context: AnimationReportingContext) => commit_set_user_id_ranges(context, null),
 
-            asset_all_aum_by_theme_module_user: async (context: AnimationReportingContext, all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } }) => {
+            set_all_aum_by_theme_module_user: async (context: AnimationReportingContext, all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } }) => {
                 commit_set_all_aum_by_theme_module_user(context, all_aum_by_theme_module_user);
                 await set_all_datas_for_filter(context, null);
             },
