@@ -2401,6 +2401,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         try {
 
+            if (!login || !password) {
+                throw new Error('Login or password empty');
+            }
+
             // NEW method with query
             let filters = [
                 ContextFilterVO.or([
@@ -2449,22 +2453,29 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         try {
 
+            if (!name || !email) {
+                throw new Error('selectUsersForCheckUnicity: name and email must be defined');
+            }
+
+            let filters = [
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(name, true),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(name, true),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(name, true),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(email, true),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(email, true),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(email, true)
+            ];
+            if (!!phone) {
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(phone, true));
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(phone, true));
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(phone, true));
+            }
             // NEW method with query
             return await query(UserVO.API_TYPE_ID)
                 .exec_as_server()
 
                 .add_filters([
-                    ContextFilterVO.or([
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(name, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(name, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(name, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(email, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(email, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(email, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(phone, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(phone, true),
-                        filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(phone, true)
-                    ]),
+                    ContextFilterVO.or(filters),
                     filter(UserVO.API_TYPE_ID, field_names<UserVO>().id).by_num_not_eq(user_id),
                 ])
 
