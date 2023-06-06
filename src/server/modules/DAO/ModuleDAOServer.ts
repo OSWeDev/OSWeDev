@@ -4160,15 +4160,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * @deprecated use context queries - will be deleted soon
      */
-    private async getVos<T extends IDistantVOBase>(text: string, limit: number = 0, offset: number = 0): Promise<T[]> {
-
-        // On filtre les res suivant les droits d'accès
-        return await query(text).set_limit(limit, offset).select_vos<T>();
-    }
-
-    /**
-     * @deprecated use context queries - will be deleted soon
-     */
     private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
 
         return await query(API_TYPE_ID).filter_by_text_eq('name', name, API_TYPE_ID, true).select_vo<U>();

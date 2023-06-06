@@ -323,11 +323,6 @@ export default class ModuleDAO extends Module {
                 return true;
             });
 
-    /**
-     * @deprecated use context queries - will be deleted soon
-     */
-    public getVos: <T extends IDistantVOBase>(API_TYPE_ID: string, limit?: number, offset?: number) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS);
-
     private constructor() {
 
         super("dao", ModuleDAO.MODULE_NAME);

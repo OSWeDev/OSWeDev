@@ -3048,6 +3048,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableField.FIELD_TYPE_boolean:
                         where_conditions.push(field_id + " is null");
                         break;
 
