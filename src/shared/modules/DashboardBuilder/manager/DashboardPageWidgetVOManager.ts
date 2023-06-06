@@ -224,6 +224,30 @@ export default class DashboardPageWidgetVOManager {
     }
 
     /**
+     * find_all_wigdets_options_by_page_id
+     * - Return all page widgets_options of the given page_id
+     *
+     * @param {number} page_id
+     * @returns {{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     */
+    public static async find_all_wigdets_options_by_page_id(
+        page_id: number,
+    ): Promise<any[]> {
+
+        // Get widgets_options_metadata of the current dashboard_page
+        const widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_wigdets_options_metadata_by_page_id(
+            page_id
+        );
+
+        // Get widgets_options of the current dashboard_page
+        const widgets_options = Object.values(widgets_options_metadata).map(
+            (widget_options_metadata) => widget_options_metadata.widget_options
+        );
+
+        return widgets_options;
+    }
+
+    /**
      * Find all page widgets options by vo_field_ref
      * - Return all page widgets options corresponding to vo_field_ref
      *

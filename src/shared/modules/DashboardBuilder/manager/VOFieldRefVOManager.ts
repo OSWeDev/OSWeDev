@@ -11,15 +11,25 @@ export default class VOFieldRefVOManager {
 
     /**
      * Create Readable Label From VOFieldRefVO
+     * - This method is responsible for creating the readable label from a VOFieldRefVO
+     *
+     * TODO: Maybe we should move this method to WidgetOptionsVOManager
      *
      * @return {string}
      */
-    public static create_readable_vo_field_ref_label(
+    public static async create_readable_vo_field_ref_label(
         vo_field_ref: { api_type_id: string, field_id: string },
-    ): string {
+        page_id?: number
+    ): Promise<string> {
 
         // Get sorted_page_widgets_options from dashboard
-        const sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options();
+        let sorted_page_widgets_options = null;
+        if (page_id) {
+            sorted_page_widgets_options = await DashboardPageWidgetVOManager.find_all_wigdets_options_metadata_by_page_id(page_id);
+        } else {
+            sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options();
+        }
+
         let page_wigdet_options = null;
         // Label of filter to be displayed
         let label: string = null;
@@ -34,16 +44,18 @@ export default class VOFieldRefVOManager {
         if (!isEmpty(sorted_page_widgets_options)) {
             // Get the page_wigdet_options from sorted_page_widgets_options
             // - The page_wigdet_options is used to get the label of the filter
-            page_wigdet_options = Object.values(sorted_page_widgets_options)?.filter((sorted_page_widget_option) => {
+            page_wigdet_options = Object.values(sorted_page_widgets_options)?.filter((sorted_page_widget_option: any) => {
+                const widget_options = sorted_page_widget_option?.widget_options;
+                const _vo_field_ref = widget_options?.vo_field_ref;
 
-                const _vo_field_ref = sorted_page_widget_option?.widget_options?.vo_field_ref;
+                const has_api_type_id = _vo_field_ref?.api_type_id === vo_field_ref.api_type_id;
+                const has_field_id = _vo_field_ref?.field_id === vo_field_ref.field_id;
 
-                if (!_vo_field_ref?.api_type_id || !_vo_field_ref?.field_id) {
-                    return false;
+                if (widget_options?.is_vo_field_ref === false) {
+                    return widget_options?.custom_filter_name === vo_field_ref.field_id;
                 }
 
-                return _vo_field_ref?.api_type_id == vo_field_ref.api_type_id &&
-                    _vo_field_ref?.field_id == vo_field_ref.field_id;
+                return has_api_type_id && has_field_id;
             })?.shift();
         }
 

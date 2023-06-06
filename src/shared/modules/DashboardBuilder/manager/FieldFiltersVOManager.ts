@@ -111,16 +111,36 @@ export default class FieldFiltersVOManager {
      *
      * @return {{ [translatable_label_code: string]: IReadableFieldFilters }}
      */
-    public static create_readable_filters_text_from_field_filters(
+    public static async create_readable_filters_text_from_field_filters(
         field_filters: FieldFiltersVO,
-        widgets_options?: Array<{ vo_field_ref: { api_type_id: string, field_id: string } }>,
-    ): { [translatable_label_code: string]: IReadableFieldFilters } {
+        page_id?: number
+    ): Promise<{ [translatable_label_code: string]: IReadableFieldFilters }> {
+
+        let vo_field_ref_vos: VOFieldRefVO[] = [];
 
         let human_readable_field_filters: {
             [translatable_label_code: string]: IReadableFieldFilters
         } = {};
 
         field_filters = cloneDeep(field_filters);
+
+        if (page_id != null) {
+            // Get all widgets_options of the given dashboard_page id
+            const widgets_options = await DashboardPageWidgetVOManager.find_all_wigdets_options_by_page_id(
+                page_id
+            );
+
+            if (widgets_options?.length > 0) {
+                // Get all vo_field_ref_vos from widgets_options
+                vo_field_ref_vos = widgets_options.map((widget_options) => {
+                    const vo_field_ref: VOFieldRefVO = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                        widget_options,
+                    );
+
+                    return vo_field_ref;
+                });
+            }
+        }
 
         for (const api_type_id in field_filters) {
             const filters = field_filters[api_type_id];
@@ -129,35 +149,30 @@ export default class FieldFiltersVOManager {
                 // The actual context_filter
                 const context_filter = filters[field_id];
 
-                let widget_options: any = null;
+                let vo_field_ref: VOFieldRefVO = null;
 
-                if (widgets_options?.length > 0) {
-                    widget_options = widgets_options.find((elm) => {
-                        const has_api_type_id = elm.vo_field_ref?.api_type_id === api_type_id;
-                        const has_field_id = elm.vo_field_ref?.api_type_id === field_id;
+                // Path to find the actual filter
+                if (vo_field_ref_vos?.length > 0) {
+                    // Find vo_field_ref_vo from vo_field_ref_vos
+                    vo_field_ref = vo_field_ref_vos.find((_vo_field_ref) => {
+                        const has_api_type_id = _vo_field_ref?.api_type_id == api_type_id;
+                        const has_field_id = _vo_field_ref?.field_id == field_id;
 
                         return has_api_type_id && has_field_id;
                     });
                 }
 
-                if (!widget_options) {
-                    widget_options = {
-                        vo_field_ref: {
-                            api_type_id,
-                            field_id
-                        }
-                    };
+                if (!vo_field_ref) {
+                    // TODO: Whe should find a way to get get the actual widget_options for each field_filters
+                    vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                        { vo_field_ref: { api_type_id, field_id } }
+                    );
                 }
 
-                // Path to find the actual filter
-                // TODO: Whe should find a way to get get the actual widget_options for each field_filters
-                const vo_field_ref: VOFieldRefVO = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
-                    widget_options,
-                );
-
                 // The actual label of the filter
-                const label: string = VOFieldRefVOManager.create_readable_vo_field_ref_label(
-                    { field_id, api_type_id }
+                const label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    vo_field_ref,
+                    page_id
                 );
 
                 // Get HMI readable active field filters

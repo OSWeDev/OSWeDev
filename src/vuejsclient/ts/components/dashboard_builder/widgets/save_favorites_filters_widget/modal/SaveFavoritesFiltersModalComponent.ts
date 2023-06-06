@@ -13,6 +13,7 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
 import './SaveFavoritesFiltersModalComponent.scss';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 
 export enum ExportFrequencyGranularity {
     DAY = "day",
@@ -61,10 +62,17 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     private selected_exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
 
     private selectionnable_active_field_filters: FieldFiltersVO = null;
+    private readable_active_field_filters: { [label: string]: IReadableFieldFilters } = null;
 
     private on_validation_callback: (props: Partial<FavoritesFiltersVO>) => Promise<void> = null;
     private on_close_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
     private on_delete_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
+
+    private throttled_load_readable_active_field_filters = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.load_readable_active_field_filters.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
 
     /**
      * Open Modal For Creation
@@ -185,6 +193,17 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
                 });
             }
         });
+    }
+
+    /**
+     * Watch on selectionnable_active_field_filters
+     *  - Happen on component each time selectionnable_active_field_filters changes
+     *  - Load readable_active_field_filters
+     */
+    @Watch('selectionnable_active_field_filters', { immediate: true })
+    private async onchange_selectionnable_active_field_filters() {
+        // Throttle load_readable_active_field_filters
+        this.throttled_load_readable_active_field_filters();
     }
 
     /**
@@ -533,14 +552,16 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * Get Readable Active Field Filters HMI
      *  - For each selected active field filters get as Human readable filters
      *
-     * @return {{ [translatable_field_filters_code: string]: IReadableFieldFilters }}
+     * @return {Promise<{ [translatable_field_filters_code: string]: IReadableFieldFilters }>}
      */
-    get readable_active_field_filters(): { [translatable_field_filters_code: string]: IReadableFieldFilters } {
+    private async load_readable_active_field_filters(): Promise<{ [translatable_field_filters_code: string]: IReadableFieldFilters }> {
         const active_field_filters = cloneDeep(this.selectionnable_active_field_filters);
 
-        const readable_field_filters = FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
+        const readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
             active_field_filters
         );
+
+        this.readable_active_field_filters = readable_field_filters;
 
         return readable_field_filters;
     }

@@ -5,6 +5,7 @@ import DashboardPageWidgetVOManager from '../../../../../shared/modules/Dashboar
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import FieldFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
+import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -43,6 +44,8 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
             field_filters: FieldFiltersVO,
         }
     } = {};
+    // The shared_filters of dashboard pages (One page can have many shared_filters)
+    private shared_filters_by_page_ids: { [page_id: number]: SharedFiltersVO[] } = {};
 
     private throttled_load_dashboard_pages = ThrottleHelper.getInstance().declare_throttle_without_args(
         this.load_dashboard_pages.bind(this),
@@ -135,20 +138,10 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
                 }
             );
 
-            // Get widgets_options of the current dashboard_page
-            const widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_wigdets_options_metadata_by_page_id(
-                dashboard_page.id
-            );
-
-            // Get widgets_options of the current dashboard_page
-            const widgets_options = Object.values(widgets_options_metadata).map(
-                (widget_options_metadata) => widget_options_metadata.widget_options
-            );
-
             // Create readable field_filters of dashboard_page
-            const readable_field_filters = FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
+            const readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
                 default_page_field_filters,
-                widgets_options
+                dashboard_page.id,
             );
 
             // The actual field_filters of dashboard_page
@@ -161,6 +154,25 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         this.sharable_field_filters_by_page_ids = sharable_field_filters_by_page_ids;
 
         return sharable_field_filters_by_page_ids;
+    }
+
+    /**
+     * handle_update_shared_filters
+     * - Update shared_filters by using shared_filters edit Modal
+     *
+     * @param shared_filters
+     */
+    private handle_update_shared_filters(shared_filters: SharedFiltersVO) {
+
+    }
+
+    /**
+     * handle_delete_shared_filters
+     * - Delete shared_filters after confirmation
+     * @param shared_filters
+     */
+    private handle_delete_shared_filters(shared_filters: SharedFiltersVO) {
+
     }
 
     /**

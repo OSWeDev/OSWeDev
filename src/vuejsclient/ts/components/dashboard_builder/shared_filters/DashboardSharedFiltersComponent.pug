@@ -28,8 +28,13 @@
                             .page-sharable-filter-name {{ get_translation_by_vo_field_ref_name_code_text(translatable_label_code) }}
 
                     .col-md-3
-                        .share-with-pages-row
-                            //- All pages that are not the current page
+                        //- Load pages shared_filters
+                        .shared-filters-row(v-for="(shared_filters, key) in shared_filters_by_page_ids[dashboard_page.id]")
+                            .shared-filters {{ shared_filters.name }}
+                                button.update(v-on:click="handle_update_shared_filters(shared_filters)")
+                                button.delete(v-on:click="handle_delete_shared_filters(shared_filters)") 
+
+                        .create-shared-filters
 
                     .col-md-3
                         .custom-api-type-ids-row
