@@ -63,6 +63,7 @@ import TableWidgetOptions from './../options/TableWidgetOptions';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import TableWidgetController from './../TableWidgetController';
 import './TableWidgetTableComponent.scss';
+import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 

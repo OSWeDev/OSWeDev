@@ -19,6 +19,7 @@ import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWi
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import { findIndex } from 'lodash';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import DAOController from '../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),

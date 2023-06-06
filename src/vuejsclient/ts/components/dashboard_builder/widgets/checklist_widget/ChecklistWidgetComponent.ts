@@ -38,6 +38,7 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),

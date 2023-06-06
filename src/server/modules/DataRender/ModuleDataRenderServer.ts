@@ -155,6 +155,6 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {
-        return ModuleDAO.getInstance().getVos<DataRenderingLogVO>(DataRenderingLogVO.API_TYPE_ID);
+        return query(DataRenderingLogVO.API_TYPE_ID).select_vos<DataRenderingLogVO>();
     }
 }

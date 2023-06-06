@@ -33,6 +33,7 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
 import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),

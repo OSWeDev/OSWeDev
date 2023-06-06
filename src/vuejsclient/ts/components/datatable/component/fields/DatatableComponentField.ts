@@ -16,6 +16,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
 import './DatatableComponentField.scss';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
