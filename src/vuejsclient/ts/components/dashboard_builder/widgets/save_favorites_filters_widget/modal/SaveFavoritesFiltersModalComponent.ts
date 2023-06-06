@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
-import IReadableActiveFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableActiveFieldFilters';
+import IReadableFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableFieldFilters';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
@@ -9,7 +9,7 @@ import FieldFiltersVOManager from '../../../../../../../shared/modules/Dashboard
 import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import IExportFrequency from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
-import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
 import './SaveFavoritesFiltersModalComponent.scss';
@@ -380,10 +380,10 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     /**
      * Is Active Field Filter Selected
      *
-     * @param {IReadableActiveFieldFilters} [props]
+     * @param {IReadableFieldFilters} [props]
      * @returns {boolean}
      */
-    private is_field_filter_selected(props: IReadableActiveFieldFilters): boolean {
+    private is_field_filter_selected(props: IReadableFieldFilters): boolean {
         const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
             { vo_field_ref: props.vo_field_ref }
         );
@@ -402,10 +402,10 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * Handle Toggle Select Favorite Filter
      *  - Select or unselect from favorites the given active filter props
      *
-     * @param {IReadableActiveFieldFilters} [props]
+     * @param {IReadableFieldFilters} [props]
      * @returns {void}
      */
-    private handle_toggle_select_favorite_filter(props: IReadableActiveFieldFilters): void {
+    private handle_toggle_select_favorite_filter(props: IReadableFieldFilters): void {
         const vo_field_ref = props.vo_field_ref;
 
         let tmp_selected_field_filters = cloneDeep(this.selected_favorite_field_filters);
@@ -533,12 +533,14 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * Get Readable Active Field Filters HMI
      *  - For each selected active field filters get as Human readable filters
      *
-     * @return {{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }}
+     * @return {{ [translatable_field_filters_code: string]: IReadableFieldFilters }}
      */
-    get readable_active_field_filters(): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
+    get readable_active_field_filters(): { [translatable_field_filters_code: string]: IReadableFieldFilters } {
         const active_field_filters = cloneDeep(this.selectionnable_active_field_filters);
 
-        const readable_field_filters = FieldFiltersVOManager.create_readable_filters_text_from_field_filters(active_field_filters);
+        const readable_field_filters = FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
+            active_field_filters
+        );
 
         return readable_field_filters;
     }

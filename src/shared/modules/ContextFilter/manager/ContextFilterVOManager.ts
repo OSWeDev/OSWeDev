@@ -17,7 +17,7 @@ import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
 import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
 import ObjectHandler from "../../../tools/ObjectHandler";
-import FieldFiltersVO from "../vos/FieldFiltersVO";
+import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
 
 /**
  * ContextFilterVOManager
@@ -38,11 +38,17 @@ export default class ContextFilterVOManager {
     public static create_context_filter_from_widget_options(widget_name: string, widget_options: any): ContextFilterVO {
         switch (widget_name) {
             case DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter:
-                return ContextFilterVOManager.create_context_filter_from_field_value_filter_widget_options(widget_options);
+                return ContextFilterVOManager.create_context_filter_from_field_value_filter_widget_options(
+                    widget_options
+                );
             case DashboardWidgetVO.WIDGET_NAME_monthfilter:
-                return ContextFilterVOManager.create_context_filter_from_month_filter_widget_options(widget_options);
+                return ContextFilterVOManager.create_context_filter_from_month_filter_widget_options(
+                    widget_options
+                );
             case DashboardWidgetVO.WIDGET_NAME_yearfilter:
-                return ContextFilterVOManager.create_context_filter_from_year_filter_widget_options(widget_options);
+                return ContextFilterVOManager.create_context_filter_from_year_filter_widget_options(
+                    widget_options
+                );
             default:
                 throw new Error(
                     `ContextFilter for the given WidgetOptionsVO ` +
@@ -67,7 +73,10 @@ export default class ContextFilterVOManager {
 
         if (VOFieldRefVOTypeHandler.is_type_boolean(vo_field_ref)) {
             const default_filters_options = widget_options?.default_boolean_values;
-            context_filter = ContextFilterVOManager.create_context_filter_from_boolean_filter_types(vo_field_ref, default_filters_options);
+            context_filter = ContextFilterVOManager.create_context_filter_from_boolean_filter_types(
+                vo_field_ref,
+                default_filters_options
+            );
         }
 
         if (VOFieldRefVOTypeHandler.is_type_date(vo_field_ref)) {
@@ -76,7 +85,12 @@ export default class ContextFilterVOManager {
 
             const default_filters_options = widget_options?.default_ts_range_values;
 
-            context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(null, default_filters_options, field, vo_field_ref);
+            context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+                null,
+                default_filters_options,
+                field,
+                vo_field_ref
+            );
         }
 
         if (VOFieldRefVOTypeHandler.is_type_enum(vo_field_ref)) {
@@ -88,7 +102,10 @@ export default class ContextFilterVOManager {
                 default_filters_options.push(data_filter_option);
             }
 
-            context_filter = ContextFilterVOManager.create_context_filter_from_enum_filter_types(vo_field_ref, default_filters_options);
+            context_filter = ContextFilterVOManager.create_context_filter_from_enum_filter_types(
+                vo_field_ref,
+                default_filters_options
+            );
         }
 
         if (VOFieldRefVOTypeHandler.is_type_number(vo_field_ref)) {
@@ -100,7 +117,10 @@ export default class ContextFilterVOManager {
                 default_filters_options.push(data_filter_option);
             }
 
-            context_filter = ContextFilterVOManager.create_context_filter_from_number_filter_types(vo_field_ref, default_filters_options);
+            context_filter = ContextFilterVOManager.create_context_filter_from_number_filter_types(
+                vo_field_ref,
+                default_filters_options
+            );
         }
 
         if (VOFieldRefVOTypeHandler.is_type_string(vo_field_ref)) {
@@ -112,7 +132,11 @@ export default class ContextFilterVOManager {
                 default_filters_options.push(data_filter_option);
             }
 
-            context_filter = ContextFilterVOManager.create_context_filter_from_string_filter_options(vo_field_ref, default_filters_options, { vo_field_ref });
+            context_filter = ContextFilterVOManager.create_context_filter_from_string_filter_options(
+                vo_field_ref,
+                default_filters_options,
+                { vo_field_ref }
+            );
         }
 
         return context_filter;

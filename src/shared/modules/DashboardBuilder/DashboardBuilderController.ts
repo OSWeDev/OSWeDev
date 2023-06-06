@@ -1,9 +1,9 @@
 import { RouteConfig } from 'vue-router';
-import ContextFilterVO, { filter } from '../ContextFilter/vos/ContextFilterVO';
-import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
-import FieldFiltersVO from '../ContextFilter/vos/FieldFiltersVO';
+import ContextFilterVO, { filter } from '../ContextFilter/vos/ContextFilterVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
+import FieldFiltersVO from './vos/FieldFiltersVO';
+import ModuleTableField from '../ModuleTableField';
 
 export default class DashboardBuilderController {
 

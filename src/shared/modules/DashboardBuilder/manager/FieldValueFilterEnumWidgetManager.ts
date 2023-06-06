@@ -11,11 +11,11 @@ import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
 import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
-import FieldFiltersVOManager from "../../ContextFilter/manager/FieldFiltersVOManager";
+import FieldFiltersVOManager from "./FieldFiltersVOManager";
 import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ModuleDAO from "../../DAO/ModuleDAO";
-import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 
 /**
  * FieldValueFilterEnumWidgetManager

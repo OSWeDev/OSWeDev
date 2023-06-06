@@ -12,6 +12,13 @@ export default class DashboardBuilderVOFactory {
 
     }
 
+    /**
+     * @deprecated
+     *
+     * @param name
+     * @param props
+     * @returns
+     */
     public static create_widget_options_vo_by_name(name: string, props?: any) {
         switch (name) {
             case DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter:

@@ -6,7 +6,7 @@ import SupervisionTypeWidgetOptionsVO from '../vos/SupervisionTypeWidgetOptionsV
 import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
 import SupervisionController from '../../Supervision/SupervisionController';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
-import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import DashboardVO from "../vos/DashboardVO";
 import ModuleDAO from '../../DAO/ModuleDAO';

@@ -63,7 +63,7 @@ import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryT
 import DataExportServerController from './DataExportServerController';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
-import FieldFiltersVO from '../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 

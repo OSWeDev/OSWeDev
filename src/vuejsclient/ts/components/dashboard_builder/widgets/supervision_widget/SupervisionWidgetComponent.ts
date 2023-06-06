@@ -26,7 +26,7 @@ import SupervisionWidgetOptions from './options/SupervisionWidgetOptions';
 import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
-import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './SupervisionWidgetComponent.scss';
 
 @Component({

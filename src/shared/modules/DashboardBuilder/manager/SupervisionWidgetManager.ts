@@ -1,10 +1,11 @@
 import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
 import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
-import FieldFiltersVOManager from '../../ContextFilter/manager/FieldFiltersVOManager';
+import FieldFiltersVOManager from './FieldFiltersVOManager';
 import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
@@ -13,7 +14,6 @@ import DashboardVO from "../vos/DashboardVO";
 import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
 import SupervisionController from "../../Supervision/SupervisionController";
 import { cloneDeep } from "lodash";
-import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
 
 /**
  * SupervisionWidgetManager
@@ -145,7 +145,7 @@ export default class SupervisionWidgetManager {
     /**
      * filter_allowed_api_type_ids
      * - This method is responsible for filtering the allowed api type ids
-     * - We must check the access for each api_type_id
+     * - We must check the user access for each api_type_id
      * - We must check if the api_type_id is active
      *
      * @param {SupervisionWidgetOptionsVO} widget_options

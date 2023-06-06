@@ -3,7 +3,7 @@ import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import ExportVarIndicator from "../../DataExport/vos/ExportVarIndicator";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import VarWidgetOptionsVO from "../vos/VarWidgetOptionsVO";
-import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 
 /**
  * @class VarWidgetManager

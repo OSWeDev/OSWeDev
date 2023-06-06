@@ -1,4 +1,4 @@
-import ContextFilterVO from "./ContextFilterVO";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 
 /**
  * FieldFiltersVO

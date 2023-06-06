@@ -8,7 +8,7 @@ import IExportOptions from '../../interfaces/IExportOptions';
 import ExportVarIndicator from '../ExportVarIndicator';
 import ExportVarcolumnConf from '../ExportVarcolumnConf';
 import AbstractVO from '../../../VO/abstract/AbstractVO';
-import FieldFiltersVO from '../../../ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../DashboardBuilder/vos/FieldFiltersVO';
 
 /**
  * @class ExportContextQueryToXLSXParamVO

@@ -10,7 +10,7 @@ import { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
-import FieldFiltersVO from '../ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import MatroidController from '../Matroid/MatroidController';
 import Module from '../Module';

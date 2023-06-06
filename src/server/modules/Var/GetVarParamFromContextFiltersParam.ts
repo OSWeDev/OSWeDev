@@ -1,5 +1,5 @@
 import ContextFilterVO from "../../../shared/modules/ContextFilter/vos/ContextFilterVO";
-import FieldFiltersVO from "../../../shared/modules/ContextFilter/vos/FieldFiltersVO";
+import FieldFiltersVO from "../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
 
 export default class GetVarParamFromContextFiltersParam {
     public constructor(

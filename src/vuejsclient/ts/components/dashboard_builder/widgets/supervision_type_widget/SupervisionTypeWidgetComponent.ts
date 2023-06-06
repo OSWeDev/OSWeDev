@@ -11,7 +11,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
-import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),

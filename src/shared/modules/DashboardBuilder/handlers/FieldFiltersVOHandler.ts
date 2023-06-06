@@ -1,5 +1,5 @@
 import FieldFiltersVO from "../vos/FieldFiltersVO";
-import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
+import VOFieldRefVO from '../vos/VOFieldRefVO';
 
 /**
  * FieldFiltersVOHandler

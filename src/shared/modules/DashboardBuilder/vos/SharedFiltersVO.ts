@@ -1,5 +1,5 @@
 import AbstractVO from '../../VO/abstract/AbstractVO';
-import FieldFiltersVO from '../../ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from './FieldFiltersVO';
 
 /**
  * SharedFiltersVO

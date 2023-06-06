@@ -4,7 +4,7 @@ import IFavoritesFiltersOptions from '../interfaces/IFavoritesFiltersOptions';
 import IExportParamsProps from '../interfaces/IExportParamsProps';
 import DashboardBuilderController from "../DashboardBuilderController";
 import IDistantVOBase from "../../IDistantVOBase";
-import FieldFiltersVO from '../../ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from './FieldFiltersVO';
 
 /**
  * FavoritesFiltersVO

@@ -10,7 +10,7 @@ import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import DashboardVO from '../vos/DashboardVO';
 import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOManager';
-import FieldFiltersVOManager from '../../ContextFilter/manager/FieldFiltersVOManager';
+import FieldFiltersVOManager from './FieldFiltersVOManager';
 import DatatableField from '../../DAO/vos/datatable/DatatableField';
 import VarConfVO from '../../Var/vos/VarConfVO';
 import ContextQueryFieldVO from '../../ContextFilter/vos/ContextQueryFieldVO';
@@ -32,8 +32,8 @@ import VarWidgetManager from './VarWidgetManager';
 import IExportOptions from '../../DataExport/interfaces/IExportOptions';
 import DashboardPageVO from '../vos/DashboardPageVO';
 import VOFieldRefVOManager from './VOFieldRefVOManager';
-import FieldFiltersVOHandler from '../../ContextFilter/handler/FieldFiltersVOHandler';
-import FieldFiltersVO from '../../ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
+import FieldFiltersVO from '../vos/FieldFiltersVO';
 
 /**
  * @class TableWidgetManager

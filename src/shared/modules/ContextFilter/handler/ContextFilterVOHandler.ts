@@ -8,7 +8,7 @@ import ManyToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToM
 import ManyToOneReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
-import FieldFiltersVO from '../vos/FieldFiltersVO';
+import FieldFiltersVO from '../../DashboardBuilder/vos/FieldFiltersVO';
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../DataRender/vos/DataFilterOption';

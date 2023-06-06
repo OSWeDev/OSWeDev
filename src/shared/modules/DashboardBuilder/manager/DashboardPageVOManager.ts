@@ -1,4 +1,5 @@
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
+import FieldFiltersVO from '../vos/FieldFiltersVO';
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import DashboardPageVO from "../vos/DashboardPageVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
@@ -23,20 +24,23 @@ export default class DashboardPageVOManager {
     ): Promise<DashboardPageVO[]> {
         const self = DashboardPageVOManager.getInstance();
 
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
-            ModuleDAO.DAO_ACCESS_TYPE_READ,
-            DashboardPageVO.API_TYPE_ID
-        );
-        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
-
-        if (!has_access) {
-            return;
-        }
-
         // Return dashboard_pages if already loaded
         // - options.refresh = true to force reload
         if (!options?.refresh && self.dashboard_pages_by_dashboard_id[dashboard_id]) {
             return self.dashboard_pages_by_dashboard_id[dashboard_id];
+        }
+
+        // Check access
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
+            DashboardPageVO.API_TYPE_ID
+        );
+        const has_access = await ModuleAccessPolicy.getInstance().testAccess(
+            access_policy_name
+        );
+
+        if (!has_access) {
+            return;
         }
 
         // Initialize dashboard_pages (all_pages in dashboard) of DashboardPageVOManager instance
@@ -61,6 +65,7 @@ export default class DashboardPageVOManager {
 
     private static instance: DashboardPageVOManager = null;
 
+    public field_filters_by_dashboard_page_id: { [dashboard_page_id: number]: FieldFiltersVO } = {};
     public dashboard_pages_by_dashboard_id: { [dashboard_id: number]: DashboardPageVO[] } = {};
     public dashboard_pages: DashboardPageVO[] = null;
 

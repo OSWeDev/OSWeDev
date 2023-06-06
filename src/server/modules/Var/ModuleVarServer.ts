@@ -78,8 +78,8 @@ import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
-import FieldFiltersVOManager from '../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
-import FieldFiltersVO from '../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 

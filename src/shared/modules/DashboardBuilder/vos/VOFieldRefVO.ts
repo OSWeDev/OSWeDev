@@ -11,9 +11,11 @@ export default class VOFieldRefVO extends AbstractVO implements IDistantVOBase, 
     public static API_TYPE_ID: string = "vo_field_ref";
 
     public id: number;
+
     public _type: string = VOFieldRefVO.API_TYPE_ID;
 
     public api_type_id: string;
+
     public field_id: string;
 
     public weight: number;

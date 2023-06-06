@@ -20,7 +20,7 @@ import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
-import FieldFiltersVOManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import SaveFavoritesFiltersModalComponent from '../save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import MonthFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
@@ -28,7 +28,7 @@ import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardB
 import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import FavoritesFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
-import FieldFiltersVO from '../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),

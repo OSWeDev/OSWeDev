@@ -13,15 +13,23 @@
             .col-md-3
                 h3.title.custom-api-type-ids {{ label("dashboard_builder.shared_filters.custom_api_type_ids") }}
 
-        .row.body
-            //- Load dashboard pages columns
-            .columns.dashboard-pages(v-for="dashboard_page in dashboard_pages")
-                .col-md-3
-                    .dashboard-page
-                        .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.translatable_name_code_text) }}
-                
-                .col-md-3
-                    //- Load page sharable filters (all filters that are in the page and are sharable)
-                    .page-sharable-filters(v-for="page_sharable_filter in page_sharable_filters[dashboard_page.id]")
-                        .page-sharable-filter
-                            .page-sharable-filter-name {{ get_translation_by_vo_field_ref_name_code_text(page_sharable_filter.translatable_name_code_text) }}
+        .row.body.columns
+            //- Dashboard page as row
+            .col-md-12(v-for="dashboard_page in dashboard_pages")
+                .row 
+                    .col-md-3.dashboard-pages-row
+                        .dashboard-page
+                            .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.translatable_name_code_text) }}
+                    
+                    .col-md-3
+                        //- Load page sharable filters (all filters that are in the page and are sharable)
+                        .page-sharable-filters-row(v-for="(option, translatable_label_code) in sharable_field_filters_by_page_ids[dashboard_page.id]?.readable_field_filters")
+                            //- Get Human readable name of the filter
+                            .page-sharable-filter-name {{ get_translation_by_vo_field_ref_name_code_text(translatable_label_code) }}
+
+                    .col-md-3
+                        .share-with-pages-row
+                            //- All pages that are not the current page
+
+                    .col-md-3
+                        .custom-api-type-ids-row

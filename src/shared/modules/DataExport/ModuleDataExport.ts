@@ -6,7 +6,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
 import DatatableField from '../DAO/vos/datatable/DatatableField';
-import FieldFiltersVO from '../ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';

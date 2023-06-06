@@ -19,7 +19,7 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ShowFavoritesFiltersWidgetOptions from './ShowFavoritesFiltersWidgetOptions';
-import FieldFiltersVO from '../../../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetOptionsComponent.pug'),

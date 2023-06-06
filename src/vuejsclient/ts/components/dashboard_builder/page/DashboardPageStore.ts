@@ -14,7 +14,7 @@ import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
 import SaveFavoritesFiltersModalComponent from "../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent";
-import FieldFiltersVO from "../../../../../shared/modules/ContextFilter/vos/FieldFiltersVO";
+import FieldFiltersVO from "../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 

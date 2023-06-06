@@ -1,14 +1,17 @@
 import { cloneDeep } from "lodash";
-import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
-import ContextFilterVOManager from "./ContextFilterVOManager";
-import IReadableActiveFieldFilters from "../../DashboardBuilder/interfaces/IReadableActiveFieldFilters";
+import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
+import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
+import DashboardWidgetVOManager from "./DashboardWidgetVOManager";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
-import VOFieldRefVOManager from "../../DashboardBuilder/manager/VOFieldRefVOManager";
+import VOFieldRefVOManager from "./VOFieldRefVOManager";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
+import VOFieldRefVO from '../vos/VOFieldRefVO';
 import ModuleTableField from "../../ModuleTableField";
 import ModuleTable from "../../ModuleTable";
-import ContextFilterVO from "../vos/ContextFilterVO";
-import FieldFiltersVO from "../vos/FieldFiltersVO";
-import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 
 /**
  * FieldFiltersVOManager
@@ -17,43 +20,156 @@ import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 export default class FieldFiltersVOManager {
 
     /**
+     * find_default_field_filters_by_dashboard_page_id
+     * - This method is responsible for loading the default field_filters of the given dashboard_page
+     * - Default field_filters are the field_filters of each page_widget_options that have been preconfigured by the admin user
+     *
+     * @param {number} dashboard_page_id
+     * @param options
+     * @returns {Promise<FieldFiltersVO>}
+     */
+    public static async find_default_field_filters_by_dashboard_page_id(
+        dashboard_page_id: number,
+        options?: {
+            refresh?: boolean,
+            keep_empty_context_filter?: boolean,
+        }
+    ): Promise<FieldFiltersVO> {
+        // const self = DashboardPageVOManager.getInstance();
+
+        // Default field_filters from each page widget_options
+        let default_field_filters: FieldFiltersVO = {};
+
+        // Get widgets of the given favorites filters page
+        const page_widgets: DashboardPageWidgetVO[] = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
+            dashboard_page_id,
+        );
+
+        // Get all widgets_types
+        const widgets_types = await DashboardWidgetVOManager.find_all_sorted_widgets_types();
+
+        // Create Default FieldFilters from each page_widget
+        for (const key in widgets_types) {
+            const widget = widgets_types[key];
+
+            // Get Default fields filters
+            page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
+                // page_widget must have json_options to continue
+                const has_widget_id = page_widget.widget_id === widget.id;
+                const has_json_options = page_widget.json_options?.length > 0;
+
+                return has_widget_id && has_json_options;
+            }).map((page_widget: DashboardPageWidgetVO) => {
+                const json_options = JSON.parse(page_widget.json_options ?? '{}');
+
+                let widget_options: any = null;
+
+                try {
+                    widget_options = DashboardWidgetVOManager.create_widget_options_vo_by_name(
+                        widget.name, json_options
+                    );
+                } catch (e) {
+
+                }
+
+                // We must have widget_options to keep proceed
+                if (!widget_options) {
+                    return;
+                }
+
+                const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                    widget_options
+                );
+
+                // context_filter must be a ContextFilterVO
+                // context_filter will be null if the widget_options does not have prefilled default options
+                const context_filter: ContextFilterVO = ContextFilterVOManager.create_context_filter_from_widget_options(
+                    widget.name,
+                    widget_options
+                );
+
+                // We must transform this ContextFilterVO into FieldFiltersVO
+                if (
+                    vo_field_ref &&
+                    (context_filter || options?.keep_empty_context_filter)
+                ) {
+                    default_field_filters = FieldFiltersVOManager.merge_field_filters_with_context_filter(
+                        default_field_filters,
+                        vo_field_ref,
+                        context_filter
+                    );
+                }
+            });
+        }
+
+        return default_field_filters;
+    }
+
+    /**
      * Create Readable Filters Text From Field Filters
      *  - For each field filters get as Human readable filters
      *
-     * @return {{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }}
+     * @return {{ [translatable_label_code: string]: IReadableFieldFilters }}
      */
     public static create_readable_filters_text_from_field_filters(
-        active_field_filters: FieldFiltersVO,
-    ): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
+        field_filters: FieldFiltersVO,
+        widgets_options?: Array<{ vo_field_ref: { api_type_id: string, field_id: string } }>,
+    ): { [translatable_label_code: string]: IReadableFieldFilters } {
 
-        let human_readable_field_filters: { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } = {};
+        let human_readable_field_filters: {
+            [translatable_label_code: string]: IReadableFieldFilters
+        } = {};
 
-        active_field_filters = cloneDeep(active_field_filters);
+        field_filters = cloneDeep(field_filters);
 
-        for (const api_type_id in active_field_filters) {
-            const filters = active_field_filters[api_type_id];
+        for (const api_type_id in field_filters) {
+            const filters = field_filters[api_type_id];
 
             for (const field_id in filters) {
                 // The actual context_filter
                 const context_filter = filters[field_id];
 
+                let widget_options: any = null;
+
+                if (widgets_options?.length > 0) {
+                    widget_options = widgets_options.find((elm) => {
+                        const has_api_type_id = elm.vo_field_ref?.api_type_id === api_type_id;
+                        const has_field_id = elm.vo_field_ref?.api_type_id === field_id;
+
+                        return has_api_type_id && has_field_id;
+                    });
+                }
+
+                if (!widget_options) {
+                    widget_options = {
+                        vo_field_ref: {
+                            api_type_id,
+                            field_id
+                        }
+                    };
+                }
+
                 // Path to find the actual filter
+                // TODO: Whe should find a way to get get the actual widget_options for each field_filters
                 const vo_field_ref: VOFieldRefVO = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
-                    { vo_field_ref: { api_type_id, field_id } },
+                    widget_options,
                 );
 
-                // The actual label
+                // The actual label of the filter
                 const label: string = VOFieldRefVOManager.create_readable_vo_field_ref_label(
                     { field_id, api_type_id }
                 );
 
                 // Get HMI readable active field filters
-                const readable_field_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter);
+                const readable_context_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter);
+                const readable_field_filters = readable_context_filters;
 
                 human_readable_field_filters[label] = {
-                    readable_field_filters,
+                    readable_field_filters, // TODO: to be removed (deprecated)
+                    readable_context_filters,
                     context_filter,
                     vo_field_ref,
+                    label,
                 };
             }
         }
@@ -68,11 +184,11 @@ export default class FieldFiltersVOManager {
      * @returns {FieldFiltersVO}
      */
     public static clean_field_filters_for_request(
-        active_field_filters: FieldFiltersVO,
+        field_filters: FieldFiltersVO,
         options?: { should_restrict_to_api_type_id: boolean },
     ): FieldFiltersVO {
 
-        let field_filter: FieldFiltersVO = cloneDeep(active_field_filters);
+        let field_filter: FieldFiltersVO = cloneDeep(field_filters);
 
         if (field_filter) {
             delete field_filter[ContextFilterVO.CUSTOM_FILTERS_TYPE];
@@ -99,6 +215,9 @@ export default class FieldFiltersVOManager {
         from_field_filters: FieldFiltersVO,
         vo_field_ref: { field_id: string, api_type_id: string },
         context_filter: ContextFilterVO,
+        options?: {
+            keep_empty_context_filter?: boolean
+        }
     ): FieldFiltersVO {
 
         let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);

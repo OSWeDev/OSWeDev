@@ -1,7 +1,7 @@
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import FieldFiltersVO from "../../ContextFilter/vos/FieldFiltersVO";
+import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
 
 export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTranslator<GetVarParamFromContextFiltersParamVO> {
 

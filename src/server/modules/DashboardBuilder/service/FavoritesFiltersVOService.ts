@@ -1,16 +1,10 @@
-import ContextFilterVOManager from "../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager";
-import VOFieldRefVOManager from '../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
-import FieldFiltersVOManager from "../../../../shared/modules/ContextFilter/manager/FieldFiltersVOManager";
-import ContextFilterVO from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import FieldFiltersVOManager from "../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager";
+import ExportContextQueryToXLSXParamVO from "../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO";
+import IExportParamsProps from "../../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps";
+import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO";
+import FieldFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
-import ExportContextQueryToXLSXParamVO from "../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO";
-import DashboardBuilderVOFactory from "../../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory";
-import IExportParamsProps from "../../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps";
-import DashboardPageWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
-import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO";
-import DashboardWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO";
-import FieldFiltersVO from "../../../../shared/modules/ContextFilter/vos/FieldFiltersVO";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ModuleDataExportServer from "../../DataExport/ModuleDataExportServer";
 
@@ -19,10 +13,86 @@ import ModuleDataExportServer from "../../DataExport/ModuleDataExportServer";
  */
 export default class FavoritesFiltersVOService {
 
+    /**
+     * can_export_favorites_filters
+     * - This method is responsible for checking if the given favorites_filters can be exported
+     *
+     * @param {FavoritesFiltersVO} favorites_filters
+     * @returns {boolean}
+     */
+    public static can_export_favorites_filters(favorites_filters: FavoritesFiltersVO): boolean {
+        // Can I export ?
+        let can_export = false;
+
+        const export_params: IExportParamsProps = favorites_filters.export_params ?? null;
+
+        // There is no need to process export if there is no export_planned
+        // is_export_planned, export_frequency and exportable_data must be sets
+        if (
+            !export_params?.is_export_planned ||
+            !export_params?.export_frequency ||
+            !export_params?.exportable_data
+        ) {
+            return false;
+        }
+
+        const export_frequency = export_params.export_frequency;
+
+        // Can export the first time here
+        if (!export_params.last_export_at_ts) {
+            can_export = true;
+        }
+
+        // Define if the data have to be exported
+        if (!can_export) {
+            const last_export_at_ts: number = export_params.last_export_at_ts;
+            const now_ts = new Date().getTime();
+
+            const offset = parseInt(export_frequency.every?.toString()); // 1, 3, e.g. every 1 day, every 3 months
+            const granularity = export_frequency.granularity; // 'day' | 'month' | 'year'
+            const day_in_month = export_frequency.day_in_month ? parseInt(export_frequency.day_in_month.toString()) : null; // day in the month e.g. every 3 months at day 15
+
+            // Get date offset (by using "every", "granularity" and "day_in_month")
+            let last_export_at_date = new Date(last_export_at_ts);
+            let offset_day_ts = null; // (timestamp)
+            switch (granularity) {
+                case 'day':
+                    offset_day_ts = last_export_at_date.setDate(last_export_at_date.getDate() + offset);
+
+                    break;
+                case 'month':
+                    if (!(day_in_month)) {
+                        throw new Error(`Day in month must be given !`);
+                    }
+
+                    offset_day_ts = last_export_at_date.setMonth(last_export_at_date.getMonth() + offset);
+                    offset_day_ts = new Date(offset_day_ts).setDate(day_in_month);
+                    break;
+                case 'year':
+                    offset_day_ts = last_export_at_date.setFullYear(last_export_at_date.getFullYear() + offset);
+
+                    break;
+                default: throw new Error(`Invalid granularity given! :${granularity}`);
+            }
+
+            // To export, the actual_days_diff shall be greater or equal of "0"
+            // That mean the actual "now" day has been outdated
+            const one_day_ts = (24 * 60 * 60 * 1000); // hours * minutes * seconds * milliseconds (timestamp)
+            const actual_days_diff = Math.round((now_ts - offset_day_ts) / one_day_ts);
+
+            if (actual_days_diff >= 0) {
+                can_export = true;
+            }
+        }
+
+        return can_export;
+    }
+
     public static getInstance(): FavoritesFiltersVOService {
         if (!FavoritesFiltersVOService.instance) {
             FavoritesFiltersVOService.instance = new FavoritesFiltersVOService();
         }
+
         return FavoritesFiltersVOService.instance;
     }
 
@@ -41,129 +111,27 @@ export default class FavoritesFiltersVOService {
         const users_favorites_filters: FavoritesFiltersVO[] = await query(FavoritesFiltersVO.API_TYPE_ID)
             .select_vos<FavoritesFiltersVO>();
 
-        const widgets: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID)
-            .select_vos<DashboardWidgetVO>();
-
         for (const fav_i in users_favorites_filters) {
             const favorites_filters: FavoritesFiltersVO = users_favorites_filters[fav_i];
 
-            const export_params: IExportParamsProps = favorites_filters.export_params ?? null;
+            // Can I export ?
+            let can_export = FavoritesFiltersVOService.can_export_favorites_filters(favorites_filters);
 
-            // There is no need to process export if there is no export_planned
-            // is_export_planned, export_frequency and exportable_data must be sets
-            if (
-                !export_params?.is_export_planned ||
-                !export_params?.export_frequency ||
-                !export_params?.exportable_data
-            ) {
+            if (!can_export) {
                 continue;
             }
 
+            const export_params: IExportParamsProps = favorites_filters.export_params;
             const favorites_field_filters = favorites_filters.field_filters;
-            const export_frequency = export_params.export_frequency;
             const exportable_data = export_params.exportable_data;
 
-            // Do I have to export ?
-            let do_export = false;
-
-            // Shall export the first time here
-            if (!export_params.last_export_at_ts) {
-                do_export = true;
-            }
-
-            // Define if the data have to be exported
-            if (!do_export) {
-                const last_export_at_ts: number = export_params.last_export_at_ts;
-                const now_ts = new Date().getTime();
-
-                const offset = parseInt(export_frequency.every?.toString()); // 1, 3, e.g. every 1 day, every 3 months
-                const granularity = export_frequency.granularity; // 'day' | 'month' | 'year'
-                const day_in_month = export_frequency.day_in_month ? parseInt(export_frequency.day_in_month.toString()) : null; // day in the month e.g. every 3 months at day 15
-
-                // Get date offset (by using "every", "granularity" and "day_in_month")
-                let last_export_at_date = new Date(last_export_at_ts);
-                let offset_day_ts = null; // (timestamp)
-                switch (granularity) {
-                    case 'day':
-                        offset_day_ts = last_export_at_date.setDate(last_export_at_date.getDate() + offset);
-
-                        break;
-                    case 'month':
-                        if (!(day_in_month)) {
-                            throw new Error(`Day in month must be given !`);
-                        }
-
-                        offset_day_ts = last_export_at_date.setMonth(last_export_at_date.getMonth() + offset);
-                        offset_day_ts = new Date(offset_day_ts).setDate(day_in_month);
-                        break;
-                    case 'year':
-                        offset_day_ts = last_export_at_date.setFullYear(last_export_at_date.getFullYear() + offset);
-
-                        break;
-                    default: throw new Error(`Invalid granularity given! :${granularity}`);
-                }
-
-                // To export, the actual_days_diff shall be greater or equal of "0"
-                // That mean the actual "now" day has been outdated
-                const one_day_ts = (24 * 60 * 60 * 1000); // hours * minutes * seconds * milliseconds (timestamp)
-                const actual_days_diff = Math.round((now_ts - offset_day_ts) / one_day_ts);
-
-                if (actual_days_diff >= 0) {
-                    do_export = true;
-                }
-            }
-
-            if (!do_export) {
-                continue;
-            }
-
-            // Default field_filters from each page widget_options
-            let default_field_filters: FieldFiltersVO = {};
             // Actual context field filters to be used for the export
             let context_field_filters: FieldFiltersVO = {};
 
-            // Get widgets of the given favorites filters page
-            const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
-                .filter_by_num_eq('page_id', favorites_filters.page_id)
-                .select_vos<DashboardPageWidgetVO>();
-
-            // Process the export
-            // - Create context field filters and then export
-            for (const key in widgets) {
-                const widget = widgets[key];
-
-                // Get Default fields filters
-                page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
-                    // page_widget must have json_options to continue
-                    return page_widget.widget_id === widget.id &&
-                        page_widget.json_options?.length > 0;
-                }).map((page_widget: DashboardPageWidgetVO) => {
-                    const options = JSON.parse(page_widget.json_options ?? '{}');
-
-                    let context_filter: ContextFilterVO = null;
-                    let widget_options: any = null;
-
-                    try {
-                        widget_options = DashboardBuilderVOFactory.create_widget_options_vo_by_name(widget.name, options);
-                    } catch (e) {
-
-                    }
-
-                    // We must have widget_options to keep proceed
-                    if (!widget_options) {
-                        return;
-                    }
-
-                    let vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(widget_options);
-
-                    context_filter = ContextFilterVOManager.create_context_filter_from_widget_options(widget.name, widget_options);
-
-                    // We must transform this ContextFilterVO into FieldFiltersVO
-                    if (vo_field_ref && context_filter) {
-                        default_field_filters = FieldFiltersVOManager.merge_field_filters_with_context_filter(default_field_filters, vo_field_ref, context_filter);
-                    }
-                });
-            }
+            // Default field_filters from each page widget_options
+            const default_field_filters: FieldFiltersVO = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
+                favorites_filters.page_id
+            );
 
             // Create context_field_filters with the default one
             for (const api_type_id in default_field_filters) {

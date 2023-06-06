@@ -9,7 +9,7 @@ import VarConfAutoDepVO from "../../../../shared/modules/Var/vos/VarConfAutoDepV
 import VarConfVO from "../../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarParamFieldTransformStrategyVO from "../../../../shared/modules/Var/vos/VarParamFieldTransformStrategyVO";
-import FieldFiltersVO from '../../../../shared/modules/ContextFilter/vos/FieldFiltersVO';
+import FieldFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DAOUpdateVOHolder from "../../DAO/vos/DAOUpdateVOHolder";
 import DataSourceControllerBase from "../datasource/DataSourceControllerBase";
