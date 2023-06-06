@@ -2341,6 +2341,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                          * On ajoute la gestion du cache ici
                          */
                         if (param.context_query.max_age_ms && DAOCacheHandler.has_cache(param.parameterized_full_query, param.context_query.max_age_ms)) {
+                            delete throttled_select_query_params[j];
                             let res = DAOCacheHandler.get_cache(param.parameterized_full_query);
                             if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                                 ConsoleHandler.log('throttled_select_query:do_throttled_select_query:cache:' + param.parameterized_full_query);
