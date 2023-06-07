@@ -1,5 +1,5 @@
-.dashboard_menu_conf
-    .menus_switches(v-if='dashboard && dashboard.id && !is_loading')
+.dashboard-shared-filters-component
+    .menus-switches(v-if='dashboard && dashboard.id && !is_loading')
         .row.header
             .col-md-3
                 h3.title.dashboard-pages {{ label("dashboard_builder.shared_filters.dashboard_pages") }} 
@@ -16,8 +16,8 @@
         .row.body.columns
             //- Dashboard page as row
             .col-md-12(v-for="dashboard_page in dashboard_pages")
-                .row 
-                    .col-md-3.dashboard-pages-row
+                .row.dashboard-page-row 
+                    .col-md-3
                         .dashboard-page
                             .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.translatable_name_code_text) }}
                     
@@ -35,6 +35,7 @@
                                 button.delete(v-on:click="handle_delete_shared_filters(shared_filters)") 
 
                         .create-shared-filters
+                            button.create(v-on:click="handle_create_shared_filters(dashboard_page)") {{ label("dashboard_builder.shared_filters.create_shared_filters") }}
 
                     .col-md-3
                         .custom-api-type-ids-row

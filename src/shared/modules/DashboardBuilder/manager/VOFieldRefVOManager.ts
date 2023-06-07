@@ -10,12 +10,13 @@ import { isEmpty } from 'lodash';
 export default class VOFieldRefVOManager {
 
     /**
-     * Create Readable Label From VOFieldRefVO
+     * create_readable_vo_field_ref_label
+     * - Create Readable Label From VOFieldRefVO
      * - This method is responsible for creating the readable label from a VOFieldRefVO
      *
      * TODO: Maybe we should move this method to WidgetOptionsVOManager
      *
-     * @return {string}
+     * @return {Promise<string>}
      */
     public static async create_readable_vo_field_ref_label(
         vo_field_ref: { api_type_id: string, field_id: string },
@@ -27,6 +28,7 @@ export default class VOFieldRefVOManager {
         if (page_id) {
             sorted_page_widgets_options = await DashboardPageWidgetVOManager.find_all_wigdets_options_metadata_by_page_id(page_id);
         } else {
+            // TODO: To be removed
             sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options();
         }
 
@@ -59,8 +61,13 @@ export default class VOFieldRefVOManager {
             })?.shift();
         }
 
-        if (page_wigdet_options?.page_widget_id) {
-            label = (vo_field_ref as VOFieldRefVO).get_translatable_name_code_text(page_wigdet_options.page_widget_id);
+        if (page_wigdet_options?.widget_options?.is_vo_field_ref === false) {
+            label = page_wigdet_options?.widget_options?.custom_filter_name;
+
+        } else if (page_wigdet_options?.page_widget_id) {
+            label = (vo_field_ref as VOFieldRefVO).get_translatable_name_code_text(
+                page_wigdet_options.page_widget_id
+            );
         }
 
         label = (label?.length > 0) ? label : `${vo_field_ref.api_type_id}.${vo_field_ref.field_id}`;

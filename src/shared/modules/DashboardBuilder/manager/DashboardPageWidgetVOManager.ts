@@ -12,7 +12,7 @@ import ModuleDAO from '../../DAO/ModuleDAO';
 export default class DashboardPageWidgetVOManager {
 
     /**
-     * check_page_widget_access
+     * check_page_widget_vo_access
      * - Check if user has access to page_widget vo
      *
      * TODO: to cache access rights we must use the actual user id
@@ -20,7 +20,7 @@ export default class DashboardPageWidgetVOManager {
      * @param {string} access_type
      * @returns {Promise<boolean>}
      */
-    public static async check_page_widget_access(access_type?: string): Promise<boolean> {
+    public static async check_page_widget_vo_access(access_type?: string): Promise<boolean> {
         access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
 
         // Check access
@@ -45,7 +45,7 @@ export default class DashboardPageWidgetVOManager {
      * - Return all page widgets options corresponding to widget_name
      *
      * @param {string} widget_name
-     * @returns {{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
      */
     public static filter_all_page_widgets_options_by_widget_name(
         widget_name: string,
@@ -53,7 +53,7 @@ export default class DashboardPageWidgetVOManager {
             all_page_widgets?: DashboardPageWidgetVO[],
             sorted_widgets_types?: DashboardWidgetVO[],
         }
-    ): { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } {
+    ): { [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } } {
 
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
         const { sorted_widgets } = DashboardWidgetVOManager.getInstance();
@@ -61,7 +61,7 @@ export default class DashboardPageWidgetVOManager {
         const { page_widgets } = DashboardPageWidgetVOManager.getInstance();
 
         const res: {
-            [page_widget_id: string]: {
+            [page_widget_id: number]: {
                 widget_options: any,
                 widget_name: string,
                 page_widget_id: number
@@ -115,14 +115,14 @@ export default class DashboardPageWidgetVOManager {
      * It's would be better to use find by page_id (There would be no need to load all page_widgets if already loaded)
      *
      * @param options
-     * @returns {{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
      */
     public static find_all_sorted_page_wigdets_options(
         options?: {
             all_page_widgets?: DashboardPageWidgetVO[],
             sorted_widgets_types?: DashboardWidgetVO[],
         }
-    ): { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } {
+    ): { [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } } {
 
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
         const { sorted_widgets } = DashboardWidgetVOManager.getInstance();
@@ -130,7 +130,7 @@ export default class DashboardPageWidgetVOManager {
         const { page_widgets } = DashboardPageWidgetVOManager.getInstance();
 
         const res: {
-            [page_widget_id: string]: {
+            [page_widget_id: number]: {
                 widget_options: any,
                 widget_name: string,
                 page_widget_id: number
@@ -177,11 +177,11 @@ export default class DashboardPageWidgetVOManager {
      * - Return all page widgets_options metadata of the given page_id
      *
      * @param {number} page_id
-     * @returns {{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
      */
     public static async find_all_wigdets_options_metadata_by_page_id(
         page_id: number,
-    ): Promise<{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }> {
+    ): Promise<{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }> {
 
         // All sorted_widgets_types (Should get all possible widgets_types)
         const sorted_widgets_types = await DashboardWidgetVOManager.find_all_sorted_widgets_types();
@@ -189,10 +189,11 @@ export default class DashboardPageWidgetVOManager {
         const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(page_id);
 
         const widgets_options_metadata: {
-            [page_widget_id: string]: {
+            [page_widget_id: number]: {
                 widget_options: any, // JSON widget_options of page_widget
                 widget_name: string, // Required to find widget_type for factory construction
                 page_widget_id: number // Required to find page_widget
+                page_id: number // Required to find dashboard_page
             }
         } = {};
 
@@ -216,6 +217,7 @@ export default class DashboardPageWidgetVOManager {
                     widget_options: page_widget_options,
                     page_widget_id: page_widget.id,
                     widget_name: widget_type?.name,
+                    page_id: page_widget.page_id,
                 };
             }
         }
@@ -228,7 +230,7 @@ export default class DashboardPageWidgetVOManager {
      * - Return all page widgets_options of the given page_id
      *
      * @param {number} page_id
-     * @returns {{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
      */
     public static async find_all_wigdets_options_by_page_id(
         page_id: number,
@@ -305,7 +307,7 @@ export default class DashboardPageWidgetVOManager {
         }
 
         // If already loaded, there is no need to check access
-        const has_access = await DashboardPageWidgetVOManager.check_page_widget_access();
+        const has_access = await DashboardPageWidgetVOManager.check_page_widget_vo_access();
 
         if (!has_access) {
             return;
@@ -321,6 +323,59 @@ export default class DashboardPageWidgetVOManager {
         self.page_widgets = page_widgets;
 
         return page_widgets;
+    }
+
+    /**
+     * find_page_widgets_by_page_ids
+     *
+     * @param {number[]} page_ids
+     * @param {boolean} options.refresh
+     * @returns {Promise<DashboardPageWidgetVO[]>}
+     */
+    public static async find_page_widgets_by_page_ids(
+        page_ids: number[],
+        options?: {
+            refresh?: boolean
+        }
+    ): Promise<DashboardPageWidgetVO[]> {
+        const self = DashboardPageWidgetVOManager.getInstance();
+
+        // Check has all page_wigets already loaded
+        const has_all_page_widgets_loaded = page_ids.every((page_id) => {
+            return self.page_widgets_by_page_id[page_id];
+        });
+
+        // Return page_widgets if already loaded
+        if (!options?.refresh && has_all_page_widgets_loaded) {
+            const _pages_widgets: DashboardPageWidgetVO[] = [];
+
+            page_ids.map((page_id) => {
+                const pwidgets = self.page_widgets_by_page_id[page_id];
+                _pages_widgets.push(...pwidgets);
+            });
+
+            return _pages_widgets;
+        }
+
+        // If already loaded, there is no need to check access
+        const has_access = await DashboardPageWidgetVOManager.check_page_widget_vo_access();
+
+        if (!has_access) {
+            return;
+        }
+
+        // Initialize pages_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
+        // its should be initialized each time the dashboard page is loaded
+        const pages_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_has('page_id', page_ids)
+            .select_vos<DashboardPageWidgetVO>();
+
+        page_ids.map((page_id) => {
+            const pwidgets = pages_widgets.filter((pwidget) => pwidget.page_id == page_id);
+            self.page_widgets_by_page_id[page_id] = pwidgets;
+        });
+
+        return pages_widgets;
     }
 
     public static getInstance(): DashboardPageWidgetVOManager {

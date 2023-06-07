@@ -1,9 +1,8 @@
-.dashboard_menu_conf {
-
+.dashboard-shared-filters-component {
     .menu_switch {
         padding: 1em;
 
-        >.label {
+        > .label {
             display: inline-block;
             font-weight: bold;
             margin-left: 0.5em;
@@ -17,6 +16,26 @@
 
         .menus_organizer_wrapper {
             padding: 1em;
+        }
+    }
+
+    .body {
+        .dashboard-page-row {
+            background: #f5f5f5;
+            padding: 1em;
+            margin: 5px;
+            box-shadow: 1px 1px 20px #e0e0e0;
+            border-radius: 4px;
+
+            &:hover {
+                box-shadow: 1px 1px 20px #888;
+            }
+        }
+
+        .create-shared-filters {
+            button.create {
+                width: 100%;
+            }
         }
     }
 }

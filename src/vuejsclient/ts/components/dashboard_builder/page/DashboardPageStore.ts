@@ -15,6 +15,7 @@ import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComp
 import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
 import SaveFavoritesFiltersModalComponent from "../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent";
 import FieldFiltersVO from "../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
+import SharedFiltersModalComponent from "../shared_filters/modal/SharedFiltersModalComponent";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -32,6 +33,7 @@ export interface IDashboardPageState {
     active_field_filters: FieldFiltersVO;
 
     Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
+    Sharedfiltersmodalcomponent: SharedFiltersModalComponent;
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
     Supervisionitemmodal: SupervisionItemModalComponent;
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
@@ -80,6 +82,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             Checklistitemmodalcomponent: null,
             Supervisionitemmodal: null,
             Savefavoritesfiltersmodalcomponent: null,
+            Sharedfiltersmodalcomponent: null,
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
             Dashboardcopywidgetcomponent: null,
@@ -132,6 +135,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_Savefavoritesfiltersmodalcomponent(state: IDashboardPageState): SaveFavoritesFiltersModalComponent {
                 return state.Savefavoritesfiltersmodalcomponent;
+            },
+
+            get_Sharedfiltersmodalcomponent(state: IDashboardPageState): SharedFiltersModalComponent {
+                return state.Sharedfiltersmodalcomponent;
             },
 
             get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
@@ -218,6 +225,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             set_Savefavoritesfiltersmodalcomponent(state: IDashboardPageState, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) {
                 state.Savefavoritesfiltersmodalcomponent = Savefavoritesfiltersmodalcomponent;
+            },
+
+            set_Sharedfiltersmodalcomponent(state: IDashboardPageState, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) {
+                state.Sharedfiltersmodalcomponent = Sharedfiltersmodalcomponent;
             },
 
             set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
@@ -351,6 +362,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_Savefavoritesfiltersmodalcomponent(context: DashboardPageContext, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) {
                 commit_set_Savefavoritesfiltersmodalcomponent(context, Savefavoritesfiltersmodalcomponent);
             },
+            set_Sharedfiltersmodalcomponent(context: DashboardPageContext, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) {
+                commit_set_Sharedfiltersmodalcomponent(context, Sharedfiltersmodalcomponent);
+            },
             set_Crudupdatemodalcomponent(context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
                 commit_set_Crudupdatemodalcomponent(context, Crudupdatemodalcomponent);
             },
@@ -423,6 +437,7 @@ export const commit_remove_active_field_filter = commit(DashboardPageStoreInstan
 export const commit_set_Checklistitemmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Checklistitemmodalcomponent);
 export const commit_set_Supervisionitemmodal = commit(DashboardPageStoreInstance.mutations.set_Supervisionitemmodal);
 export const commit_set_Savefavoritesfiltersmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Savefavoritesfiltersmodalcomponent);
+export const commit_set_Sharedfiltersmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Sharedfiltersmodalcomponent);
 export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
 export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);
 export const commit_set_Dashboardcopywidgetcomponent = commit(DashboardPageStoreInstance.mutations.set_Dashboardcopywidgetcomponent);

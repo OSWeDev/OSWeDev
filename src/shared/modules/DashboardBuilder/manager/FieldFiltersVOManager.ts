@@ -113,7 +113,7 @@ export default class FieldFiltersVOManager {
      */
     public static async create_readable_filters_text_from_field_filters(
         field_filters: FieldFiltersVO,
-        page_id?: number
+        page_id?: number // Case when we need to be specific to a page (TODO: should always be specific)
     ): Promise<{ [translatable_label_code: string]: IReadableFieldFilters }> {
 
         let vo_field_ref_vos: VOFieldRefVO[] = [];
@@ -163,7 +163,6 @@ export default class FieldFiltersVOManager {
                 }
 
                 if (!vo_field_ref) {
-                    // TODO: Whe should find a way to get get the actual widget_options for each field_filters
                     vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
                         { vo_field_ref: { api_type_id, field_id } }
                     );
@@ -590,6 +589,8 @@ export default class FieldFiltersVOManager {
     /**
      * Is field_filters empty
      *  - The aim of this function is to check if the given field_filters is empty
+     *
+     * @deprecated use FieldFiltersVOHandler.is_field_filters_empty instead
      *  TODO: checking have to in the FieldFiltersVOHandler
      *        but create_vo_field_ref_vo_from_widget_options have to be in the VOFieldRefVOManager
      *        It may have a circular dependency between FieldFiltersVOHandler and VOFieldRefVOManager
@@ -604,7 +605,9 @@ export default class FieldFiltersVOManager {
         active_field_filters: FieldFiltersVO
     ): boolean {
 
-        const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(widget_options);
+        const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+            widget_options
+        );
 
         if (!vo_field_ref) {
             return true;

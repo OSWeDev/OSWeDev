@@ -1,15 +1,18 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import IReadableFieldFilters from '../../../../../shared/modules/DashboardBuilder/interfaces/IReadableFieldFilters';
-import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
+import SharedFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/SharedFiltersVOManager';
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import FieldFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
+import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import ISelectionnableFieldFilters from './interface/ISelectionnableFieldFilters';
+import SharedFiltersModalComponent from './modal/SharedFiltersModalComponent';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
+import { ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import VueAppController from '../../../../VueAppController';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardSharedFiltersComponent.scss';
@@ -20,12 +23,14 @@ import './DashboardSharedFiltersComponent.scss';
  * - Create select multiple dashboard and dashboard_pages to share filters with
  * - Specify which field_filters to share (both dashboard shall have the same possible field_filters)
  */
-
 @Component({
     template: require('./DashboardSharedFiltersComponent.pug'),
     components: {}
 })
 export default class DashboardSharedFiltersComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_Sharedfiltersmodalcomponent: SharedFiltersModalComponent;
 
     @Prop()
     private dashboard: DashboardVO;
@@ -33,16 +38,17 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     @ModuleTranslatableTextAction
     private set_flat_locale_translation: (translation: { code_text: string, value: string }) => void;
 
+    @ModuleTranslatableTextGetter
+    private get_flat_locale_translations: { [code_text: string]: string };
+
+    private start_update: boolean = false;
     private is_loading: boolean = true;
 
     // The dashboard_pages of dashboard
     private dashboard_pages: DashboardPageVO[] = [];
     // Load all default field_filters of each dashboard_page
     private sharable_field_filters_by_page_ids: {
-        [page_id: number]: {
-            readable_field_filters: { [label: string]: IReadableFieldFilters },
-            field_filters: FieldFiltersVO,
-        }
+        [page_id: number]: ISelectionnableFieldFilters
     } = {};
     // The shared_filters of dashboard pages (One page can have many shared_filters)
     private shared_filters_by_page_ids: { [page_id: number]: SharedFiltersVO[] } = {};
@@ -121,14 +127,11 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         }
 
         const sharable_field_filters_by_page_ids: {
-            [page_id: number]: {
-                readable_field_filters: { [label: string]: IReadableFieldFilters },
-                field_filters: FieldFiltersVO,
-            }
+            [page_id: number]: ISelectionnableFieldFilters
         } = {};
 
-        for (let i in this.dashboard_pages) {
-            const dashboard_page = this.dashboard_pages[i];
+        for (const key in this.dashboard_pages) {
+            const dashboard_page = this.dashboard_pages[key];
 
             // Get default field_filters of dashboard_page
             const default_page_field_filters = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
@@ -157,6 +160,28 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     }
 
     /**
+     * handle_create_shared_filters
+     * - Create shared_filters by using shared_filters edit Modal
+     *
+     * @param {number} dashboard_page_id
+     */
+    private handle_create_shared_filters(dashboard_page_id: number) {
+
+        const selectionnable_field_filters_metadata = this.sharable_field_filters_by_page_ids[dashboard_page_id];
+
+        const readable_field_filters = selectionnable_field_filters_metadata.readable_field_filters;
+        const selectionnable_field_filters = selectionnable_field_filters_metadata.field_filters;
+
+        this.get_Sharedfiltersmodalcomponent.open_modal_for_creation(
+            {
+                selectionnable_field_filters,
+                readable_field_filters,
+            },
+            this.handle_save_shared_filters.bind(this)
+        );
+    }
+
+    /**
      * handle_update_shared_filters
      * - Update shared_filters by using shared_filters edit Modal
      *
@@ -169,10 +194,75 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     /**
      * handle_delete_shared_filters
      * - Delete shared_filters after confirmation
+     *
      * @param shared_filters
      */
     private handle_delete_shared_filters(shared_filters: SharedFiltersVO) {
 
+    }
+
+    /**
+     * Handle Save
+     *  - Save active dashboard filters for the current user
+     *
+     * @param {SharedFiltersVO} [shared_filters]
+     * @returns {Promise<void>}
+     */
+    private async handle_save_shared_filters(shared_filters: SharedFiltersVO): Promise<void> {
+        if (!shared_filters) {
+            return;
+        }
+
+        if (this.start_update) {
+            return;
+        }
+
+        this.start_update = true;
+
+        await this.save_shared_filters(shared_filters);
+
+        this.start_update = false;
+    }
+
+    /**
+     * Save Shared Filters
+     *
+     * @param {SharedFiltersVO} shared_filters
+     * @return {Promise<void>}
+     */
+    private async save_shared_filters(shared_filters: SharedFiltersVO): Promise<void> {
+        let self = this;
+
+        self.snotify.async(self.label('dashboard_builder.shared_filters.save_start'), () =>
+            new Promise(async (resolve, reject) => {
+                const success = await SharedFiltersVOManager.save_shared_filters(
+                    shared_filters
+                );
+
+                if (success) {
+                    // await self.reload_all_visible_active_filters();
+                    resolve({
+                        body: self.label('dashboard_builder.shared_filters.save_ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } else {
+                    reject({
+                        body: self.label('dashboard_builder.shared_filters.save_failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 
     /**
@@ -207,6 +297,10 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      */
     private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
         let translation: string = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+
+        if (!translation) {
+            translation = this.get_flat_locale_translations[name_code_text];
+        }
 
         if (!translation) {
             translation = name_code_text;

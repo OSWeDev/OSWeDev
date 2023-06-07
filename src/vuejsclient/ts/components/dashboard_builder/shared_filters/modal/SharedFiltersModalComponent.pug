@@ -1,0 +1,85 @@
+.shared_filters_modal_component_wrapper
+    #shared_filters_modal_component.modal.fade.in(
+            ref="shared_filters_modal_component",
+            tabindex='-1', 
+            role='dialog'
+        )
+        .modal-dialog.modal-lg(role='document')
+            .modal-content 
+                .modal-header
+                    h4.modal-title {{ label('dashboard_builder.shared_filters.modal_title') }}
+                    a.btn.close(
+                        data-dismiss="modal" 
+                        @click='handle_close_modal'
+                    ) &times;
+                .modal-body
+
+                    template
+                        
+                        p(v-if="form_errors?.length > 0")
+                            b {{ label('dashboard_builder.shared_filters.form_errors') }}
+                            ul.error-list
+                                li.error(v-for="error in form_errors")
+                                    div.alert.alert-danger {{ error }}
+
+                        ul.nav.nav-pills.nav-fill(role="tablist")
+                            li(:class="{'active': active_tab_view == 'field_filters_selection_tab'}")
+                                a#field_filters_selection_pill.nav-item.nav-link(
+                                    :class="{'active': active_tab_view == 'field_filters_selection_tab'}"
+                                    @click="set_active_tab_view('field_filters_selection_tab')"
+                                ) {{ label('dashboard_builder.shared_filters.field_filters_selection_tab') }}
+                            li(:class="{'active': active_tab_view == 'share_with_page_tab'}")
+                                a#export_pill.nav-item.nav-link(
+                                    :class="{'active': active_tab_view == 'share_with_page_tab'}"
+                                    @click="set_active_tab_view('share_with_page_tab')"
+                                )  {{ label('dashboard_builder.shared_filters.share_with_page_tab') }}
+
+                        .tab-content
+                            #field_filters_selection_tab(v-show="active_tab_view == 'field_filters_selection_tab'")
+                                template
+
+                                    div.shared_filters_name
+                                        h5.input_label {{ label('dashboard_builder.shared_filters.enter_name') }}
+                                        .input_wrapper
+                                            input(
+                                                type="text"
+                                                v-model="shared_filters_name"
+                                            )
+                                    
+                                    hr.my-12
+
+                                    div.select_field_filters
+                                        h5.input_label {{ label('dashboard_builder.shared_filters.select_field_filters') }}
+                                        .row.select_field_filters_options
+                                            template(v-for="(option, translatable_field_filters_code) in readable_field_filters")
+                                                div.option.col-md-12
+                                                    .input_wrapper  
+                                                        toggle-button(
+                                                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                                            @change="handle_toggle_select_sharable_field_filters(option)"  
+                                                            :name="base_filter + '_' + translatable_field_filters_code" 
+                                                            :id="base_filter + '_' + translatable_field_filters_code" 
+                                                            :value="is_field_filter_selected(option)" 
+                                                            :sync="true"
+                                                            :width="60"  
+                                                        )                            
+                                                    .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }}: {{ option.readable_field_filters }}
+
+                            #share_with_page_tab(v-show="active_tab_view == 'share_with_page_tab'")
+                                template 
+                                    div.shared_filters_options
+                                        h5.input_label {{ label('dashboard_builder.shared_filters.share_with_page_tab_title') }}
+
+                                        .select_pages_to_share_with
+                                            .input_label {{ label('dashboard_builder.shared_filters.select_pages_to_share_with') }}
+                                            .row.select_pages_to_share_with_options
+                                                //- Load dashboard pages with server side pagination
+
+                .modal-footer
+                    template(v-if="!shared_filters?.id")
+                        a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}
+                    template(v-if="shared_filters?.id")
+                        a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.update') }}
+                    template(v-if="shared_filters?.id")
+                        a.btn.btn-danger(@click='handle_delete') {{ label('crud.update.modal.delete') }}
+                    a.btn.btn-default(data-dismiss="modal" @click='handle_close_modal') {{ label('crud.update.modal.cancel') }}

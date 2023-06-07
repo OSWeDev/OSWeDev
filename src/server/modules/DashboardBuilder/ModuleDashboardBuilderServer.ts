@@ -250,6 +250,54 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.custom_api_type_ids.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Créer un filtre partagé'
+        }, 'dashboard_builder.shared_filters.create_shared_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreurs de saisie'
+        }, 'dashboard_builder.shared_filters.form_errors.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer les filtres à partagé'
+        }, 'dashboard_builder.shared_filters.field_filters_selection_tab.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer les pages avec lesquel partagé'
+        }, 'dashboard_builder.shared_filters.share_with_page_tab.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Entrer le nom du filtre partagé *:'
+        }, 'dashboard_builder.shared_filters.enter_name.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages avec lesquel partagé'
+        }, 'dashboard_builder.shared_filters.share_with_page.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages'
+        }, 'dashboard_builder.shared_filters.share_with_page_tab_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages'
+        }, 'dashboard_builder.shared_filters.select_pages_to_share_with.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les filtres à partagé'
+        }, 'dashboard_builder.shared_filters.select_field_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les filtres à partagé'
+        }, 'dashboard_builder.shared_filters.save_start.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les filtres à partagé'
+        }, 'dashboard_builder.shared_filters.save_ok.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les filtres à partagé'
+        }, 'dashboard_builder.shared_filters.save_failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Impossible de créer un nouveau Dashboard...'
         }, 'DashboardBuilderComponent.create_new_dashboard.ko.___LABEL___'));
 
@@ -2101,7 +2149,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
      * @return {Promise<void>}
      */
     public async start_export_datatable_using_favorites_filters(): Promise<void> {
-        FavoritesFiltersVOService.getInstance().export_favorites_filters_datatable();
+        FavoritesFiltersVOService.getInstance().export_all_favorites_filters_datatable();
     }
 
     public async registerAccessPolicies(): Promise<void> {
