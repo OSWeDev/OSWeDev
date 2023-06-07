@@ -5711,13 +5711,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     /**
                      * On doit traduire les valeurs des champs mais pas les field_ids au format api
                      */
-                    let table = VOsTypesManager.moduleTables_by_voType[vo._type];
-                    let fields = table.get_fields();
-                    for (let j in fields) {
-                        let field = fields[j];
+                    // let table = VOsTypesManager.moduleTables_by_voType[vo._type];
+                    // let fields = table.get_fields();
+                    // for (let j in fields) {
+                    //     let field = fields[j];
 
-                        vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
-                    }
+                    //     vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
+                    // }
+                    vo = ModuleTable.default_get_api_version(vo, false);
 
                     let update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
                     if (update_res && update_res.length) {
@@ -5748,13 +5749,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             /**
              * On doit traduire les valeurs des champs mais pas les field_ids au format api
              */
-            let table = VOsTypesManager.moduleTables_by_voType[vo._type];
-            let fields = table.get_fields();
-            for (let i in fields) {
-                let field = fields[i];
+            // let table = VOsTypesManager.moduleTables_by_voType[vo._type];
+            // let fields = table.get_fields();
+            // for (let i in fields) {
+            //     let field = fields[i];
 
-                vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
-            }
+            //     vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
+            // }
+            vo = ModuleTable.default_get_api_version(vo, false);
+
             let res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
             if (res && res.length) {
                 return res[0];
