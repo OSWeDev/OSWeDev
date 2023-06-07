@@ -12,6 +12,8 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -886,27 +888,36 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             .select_vos<TranslatableTextVO>();
 
         if ((!!something_longer) && (something_longer.length > 0)) {
+            ConsoleHandler.error('isCodeOk:' + code_text + ':Something longer already exists:' + something_longer[0].code_text + ': (total of ' + something_longer.length + ' existing conflicting codes)');
             return false;
         }
 
         let shorter_code: string = code_text;
         let segments: string[] = shorter_code.split('.');
 
+        let res = true;
+
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
         while ((!!segments) && (segments.length > 1)) {
 
             segments.pop();
             shorter_code = segments.join('.');
 
-            let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
-                .filter_by_text_eq('code_text', shorter_code)
-                .select_vos<TranslatableTextVO>();
+            await promises_pipeline.push(async () => {
+                let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
+                    .filter_by_text_eq('code_text', shorter_code)
+                    .select_vos<TranslatableTextVO>();
 
-            if ((!!something_shorter) && (something_shorter.length > 0)) {
-                return false;
-            }
+                if ((!!something_shorter) && (something_shorter.length > 0)) {
+                    ConsoleHandler.error('isCodeOk:' + code_text + ':Something shorter already exists:' + shorter_code);
+                    res = false;
+                }
+            });
         }
 
-        return true;
+        await promises_pipeline.end();
+
+        return res;
     }
 
     private async clear_flat_translations(any?) {

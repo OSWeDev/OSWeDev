@@ -244,8 +244,8 @@ export default abstract class GeneratorBase {
 
     private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>): Promise<boolean> {
 
-        let workers_to_execute = [];
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL - 1);
+        let workers_to_execute: { [id: number]: IGeneratorWorker } = {};
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
         for (let i in workers) {
             let worker = workers[i];
 
@@ -256,20 +256,23 @@ export default abstract class GeneratorBase {
                     return;
                 } catch (error) {
                     if ((!error) || ((error['message'] != "No data returned from the query.") && (error['code'] != '42P01'))) {
-
                         console.warn('Patch :' + worker.uid + ': Erreur... [' + error + '], on tente de lancer le patch.');
                     } else {
                         console.debug('Patch :' + worker.uid + ': aucune trace de lancement en base, lancement du patch...');
                     }
-                    workers_to_execute.push(worker);
+                    workers_to_execute[i] = worker;
                     // Pas d'info en base, le patch a pas été lancé, on le lance
                 }
             });
         }
         await promises_pipeline.end();
 
-        for (let i in workers_to_execute) {
+        // Pour garder l'ordre initial, on itère sur les workers qui sont ordonnés et on check si il est dans workers_to_execute
+        for (let i in workers) {
             let worker = workers_to_execute[i];
+            if (!worker) {
+                continue;
+            }
 
             // Sinon on le lance et on stocke l'info en base
             try {

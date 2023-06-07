@@ -6,8 +6,8 @@ import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueRe
 import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
-import TypesHandler from '../../../../shared/tools/TypesHandler';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
@@ -251,6 +251,7 @@ export default class VarsClientController {
      */
     public async notifyCallbacks(var_datas: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
 
+        let promises = [];
         for (let i in var_datas) {
             let var_data: VarDataValueResVO = var_datas[i];
             let registered_var = this.registered_var_params[var_data.index];
@@ -273,7 +274,7 @@ export default class VarsClientController {
                 }
 
                 if (!!callback.callback) {
-                    await callback.callback(var_data);
+                    promises.push(callback.callback(var_data));
                 }
 
                 if (callback.type == VarUpdateCallback.TYPE_ONCE) {
@@ -285,6 +286,8 @@ export default class VarsClientController {
                 delete registered_var.callbacks[uids_to_remove[j]];
             }
         }
+
+        await all_promises(promises);
     }
 
     private async check_invalid_valued_params_registration() {
