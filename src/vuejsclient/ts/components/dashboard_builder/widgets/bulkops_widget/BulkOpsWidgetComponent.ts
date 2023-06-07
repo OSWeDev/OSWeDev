@@ -483,7 +483,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                 try {
 
-                                    let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected));
+                                    let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected), false);
 
                                     let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
 

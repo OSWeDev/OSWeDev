@@ -89,7 +89,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
      */
-    public static default_get_api_version<T extends IDistantVOBase>(e: T): any {
+    public static default_get_api_version<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true): any {
         if (!e) {
             return null;
         }
@@ -137,7 +137,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
 
             let new_id = fieldIdToAPIMap[field.field_id];
-            res[new_id] = table.default_get_field_api_version(e[field.field_id], field);
+            res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_field_id);
         }
 
         return res;
@@ -793,7 +793,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     }
 
 
-    public default_get_field_api_version(e: any, field: ModuleTableField<any>): any {
+    public default_get_field_api_version(e: any, field: ModuleTableField<any>, translate_field_id: boolean = true): any {
         if ((!field) || (field.is_readonly)) {
             throw new Error('Should not ask for readonly fields');
         }
@@ -823,7 +823,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 if (e && e._type) {
 
-                    let trans_plain_vo_obj = e ? ModuleTable.default_get_api_version(e) : null;
+                    let trans_plain_vo_obj = e ? ModuleTable.default_get_api_version(e, translate_field_id) : null;
                     return trans_plain_vo_obj ? JSON.stringify(trans_plain_vo_obj) : null;
 
                 } else if ((!!e) && isArray(e)) {
@@ -834,7 +834,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let trans_array = [];
                     for (let i in e) {
                         let e_ = e[i];
-                        trans_array.push(this.default_get_field_api_version(e_, field));
+                        trans_array.push(this.default_get_field_api_version(e_, field, translate_field_id));
                     }
                     return JSON.stringify(trans_array);
 
