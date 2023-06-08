@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
-import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Bar } from 'vue-chartjs';
-import 'chart.js-plugin-labels-dv';
+import Chart from "chart.js/auto";
+import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsBarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarsBarDataSetDescriptor';
 import MainAggregateOperatorsHandlers from '../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
@@ -9,7 +9,6 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
@@ -58,6 +57,13 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             }
         }).bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    public async created() {
+        window['Chart'] = Chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
 
     private var_datas_updater() {
         let res: { [index: string]: VarDataValueResVO } = {};
