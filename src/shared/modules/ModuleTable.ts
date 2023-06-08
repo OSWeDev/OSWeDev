@@ -136,7 +136,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 continue;
             }
 
-            let new_id = fieldIdToAPIMap[field.field_id];
+            let new_id = translate_field_id ? fieldIdToAPIMap[field.field_id] : field.field_id;
             res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_field_id);
         }
 
