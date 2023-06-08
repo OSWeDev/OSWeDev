@@ -150,7 +150,7 @@ export default class PasswordReset {
 
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
         await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>(
-            ModuleTable.default_get_api_version(user)
+            ModuleTable.default_get_api_version(user, false)
         );
 
         return true;

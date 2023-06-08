@@ -119,7 +119,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
                 res.expire = expireTime;
                 await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>(
-                    ModuleTable.default_get_api_version(res)
+                    ModuleTable.default_get_api_version(res, false)
                 );
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
             }
@@ -235,9 +235,9 @@ export default class ExpressDBSessionsServerController extends Store {
 
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'update');
                 res.expire = expireTime;
-                await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>({
-                    [field_names<ExpressSessionVO>().expire]: ModuleTable.default_get_api_version(res)
-                });
+                await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>(
+                    ModuleTable.default_get_api_version(res, false)
+                );
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'update_out', Dates.now_ms() - db_session_time_in);
             }
 
