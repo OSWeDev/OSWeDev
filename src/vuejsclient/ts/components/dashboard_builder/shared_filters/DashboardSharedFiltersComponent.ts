@@ -5,6 +5,7 @@ import SharedFiltersVOManager from '../../../../../shared/modules/DashboardBuild
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import FieldFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
@@ -12,7 +13,6 @@ import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/Dash
 import ISelectionnableFieldFilters from './interface/ISelectionnableFieldFilters';
 import SharedFiltersModalComponent from './modal/SharedFiltersModalComponent';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
-import { ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import VueAppController from '../../../../VueAppController';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardSharedFiltersComponent.scss';
@@ -25,7 +25,9 @@ import './DashboardSharedFiltersComponent.scss';
  */
 @Component({
     template: require('./DashboardSharedFiltersComponent.pug'),
-    components: {}
+    components: {
+        Sharedfiltersmodalcomponent: SharedFiltersModalComponent,
+    }
 })
 export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
@@ -40,6 +42,9 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
+
+    @ModuleDashboardPageAction
+    private set_Sharedfiltersmodalcomponent: (Sharedfiltersmodalcomponent: SharedFiltersModalComponent) => void;
 
     private start_update: boolean = false;
     private is_loading: boolean = true;
@@ -64,6 +69,14 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         50,
         { leading: false, trailing: true }
     );
+
+    /**
+     * mounted
+     * - Vue lifecycle hook
+     */
+    private mounted() {
+        this.set_Sharedfiltersmodalcomponent(this.$refs['Sharedfiltersmodalcomponent'] as SharedFiltersModalComponent);
+    }
 
     @Watch('dashboard', { immediate: true })
     private async onchange_dashboard() {
@@ -122,7 +135,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
             field_filters: FieldFiltersVO,
         }
     }> {
-        if (!this.dashboard_pages?.length) {
+        if (!(this.dashboard_pages?.length > 0)) {
             return {};
         }
 

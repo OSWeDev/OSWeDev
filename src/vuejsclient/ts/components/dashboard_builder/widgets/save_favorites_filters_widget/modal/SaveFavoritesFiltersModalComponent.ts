@@ -9,11 +9,12 @@ import FieldFiltersVOManager from '../../../../../../../shared/modules/Dashboard
 import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import IExportFrequency from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
 import './SaveFavoritesFiltersModalComponent.scss';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 
 export enum ExportFrequencyGranularity {
     DAY = "day",
@@ -35,6 +36,8 @@ export const ExportFrequencyGranularityLabel: { [granularity in ExportFrequencyG
 export default class SaveFavoritesFiltersModalComponent extends VueComponentBase {
 
     private modal_initialized: boolean = false;
+
+    private dashboard_page: DashboardPageVO = null;
 
     private is_modal_open: boolean = false;
     private active_tab_view: string = 'selection_tab';
@@ -84,6 +87,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      */
     public open_modal_for_creation(
         props: {
+            dashboard_page: DashboardPageVO,
             selectionnable_active_field_filters: FieldFiltersVO,
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
         } = null,
@@ -91,6 +95,8 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>
     ): void {
         this.is_modal_open = true;
+
+        this.dashboard_page = props.dashboard_page;
 
         // Fields filters settings
         // Modal selectionnable filters
@@ -120,6 +126,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      */
     public open_modal_for_update(
         props: {
+            dashboard_page: DashboardPageVO,
             selectionnable_active_field_filters: FieldFiltersVO,
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
             favorites_filters: FavoritesFiltersVO,
@@ -128,6 +135,8 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
         delete_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
     ): void {
+
+        this.dashboard_page = props.dashboard_page;
 
         this.favorites_filters = props?.favorites_filters ?? null;
 
@@ -212,7 +221,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      *
      * @returns {void}
      */
-    @Watch('is_modal_open')
+    @Watch('is_modal_open', { immediate: true })
     private is_modal_open_watcher(): void {
         this.handle_modal_state();
     }
@@ -223,7 +232,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      *
      * @returns {void}
      */
-    @Watch('selected_export_frequency_granularity')
+    @Watch('selected_export_frequency_granularity', { immediate: true })
     private selected_export_frequency_granularity_watcher(): void {
         this.export_frequency.granularity = this.selected_export_frequency_granularity?.value ?? null;
 
@@ -558,7 +567,8 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         const active_field_filters = cloneDeep(this.selectionnable_active_field_filters);
 
         const readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
-            active_field_filters
+            active_field_filters,
+            this.dashboard_page?.id,
         );
 
         this.readable_active_field_filters = readable_field_filters;

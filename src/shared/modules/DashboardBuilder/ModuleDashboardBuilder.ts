@@ -269,7 +269,7 @@ export default class ModuleDashboardBuilder extends Module {
             page_id,
 
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
-            new ModuleTableField('field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters', false),
+            new ModuleTableField('field_filters_to_keep', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters To Keep', false),
             new ModuleTableField('shared_with_dashboard_page_ids', ModuleTableField.FIELD_TYPE_int_array, 'Filtre partagé avec les pages', false),
         ];
 

@@ -1,10 +1,10 @@
 @import "skin-variables.scss";
 
-.save_favorites_filters_modal_component_wrapper {
+.shared_filters_modal_component_wrapper {
     height: 100%;
     padding: 0.5em;
 
-    .favorites_filters_name {
+    .shared_filters_name {
         .input_wrapper {
             input {
                 width: 100%;
@@ -22,7 +22,7 @@
         }
     }
 
-    .favorites_filters_overwrite_active_field_filters {
+    .shared_filters_overwrite_active_field_filters {
         .input_wrapper {
             display: inline;
             margin-right: 10px;
@@ -34,7 +34,7 @@
         }
     }
 
-    .select_favorites_filters_options {
+    .select_field_filters_options {
         .option {
             .input_wrapper {
                 display: inline;
@@ -48,7 +48,7 @@
         }
     }
 
-    .favorites_filters_options {
+    .shared_filters_options {
         .plan_export {
             .input_wrapper {
                 display: inline;
@@ -76,7 +76,7 @@
         }
     }
 
-    .favorites_filters_name {
+    .shared_filters_name {
         .input_wrapper {
             input {
                 width: 100%;

@@ -7,23 +7,9 @@ import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBui
 import VOFieldRefVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import SharedFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../VueAppController';
 import VueComponentBase from '../../../VueComponentBase';
 import './SharedFiltersModalComponent.scss';
-
-export enum ExportFrequencyGranularity {
-    DAY = "day",
-    MONTH = "month",
-    YEAR = "year",
-}
-
-export const ExportFrequencyGranularityLabel: { [granularity in ExportFrequencyGranularity]: string } = {
-    [ExportFrequencyGranularity.DAY]: 'label.day',
-    [ExportFrequencyGranularity.MONTH]: 'label.month',
-    [ExportFrequencyGranularity.YEAR]: 'label.year',
-};
 
 @Component({
     template: require('./SharedFiltersModalComponent.pug'),
@@ -34,7 +20,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     private modal_initialized: boolean = false;
 
     private is_modal_open: boolean = false;
-    private active_tab_view: string = 'selection_tab';
+    private active_tab_view: string = 'field_filters_selection_tab';
 
     private form_errors: string[] = [];
 
@@ -49,17 +35,11 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     private readable_field_filters: { [label: string]: IReadableFieldFilters } = null;
     private selectionnable_field_filters: FieldFiltersVO = null;
 
-    private selected_field_filters: FieldFiltersVO = null;
+    private selected_field_filters_to_keep: { [api_type_id: string]: { [field_id: string]: boolean } } = null;
 
     private on_validation_callback: (props: Partial<SharedFiltersVO>) => Promise<void> = null;
     private on_close_callback: (props?: Partial<SharedFiltersVO>) => Promise<void> = null;
     private on_delete_callback: (props?: Partial<SharedFiltersVO>) => Promise<void> = null;
-
-    private throttled_load_readable_field_filters = ThrottleHelper.getInstance().declare_throttle_without_args(
-        this.load_readable_field_filters.bind(this),
-        50,
-        { leading: false, trailing: true }
-    );
 
     /**
      * Open Modal For Creation
@@ -85,7 +65,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
         // Modal selectionnable filters
         this.selectionnable_field_filters = props?.selectionnable_field_filters ?? null;
         // We must set all selected by default
-        this.selected_field_filters = props?.selectionnable_field_filters ?? null;
+        // this.selected_field_filters_to_keep = props?.selectionnable_field_filters ?? null;
 
         if (typeof validation_callback == 'function') {
             this.on_validation_callback = validation_callback;
@@ -126,7 +106,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
         // Fields filters settings
         // Modal selectionnable filters
         this.selectionnable_field_filters = props.selectionnable_field_filters ? cloneDeep(props.selectionnable_field_filters) : null;
-        this.selected_field_filters = shared_filters.field_filters;
+        this.selected_field_filters_to_keep = shared_filters.field_filters_to_keep;
 
         if (typeof validation_callback == 'function') {
             this.on_validation_callback = validation_callback;
@@ -165,8 +145,6 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     @Watch('selectionnable_field_filters', { immediate: true })
     private async onchange_selectionnable_field_filters() {
-        // Throttle load_readable_field_filters
-        this.throttled_load_readable_field_filters();
     }
 
     /**
@@ -175,7 +153,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      *
      * @returns {void}
      */
-    @Watch('is_modal_open')
+    @Watch('is_modal_open', { immediate: true, deep: true })
     private is_modal_open_watcher(): void {
         this.handle_modal_state();
     }
@@ -206,7 +184,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
 
         const shared_filters: SharedFiltersVO = new SharedFiltersVO().from({
             ...this.shared_filters,
-            field_filters: this.selected_field_filters,
+            field_filters: this.selected_field_filters_to_keep,
             name: this.shared_filters_name,
             // export_params: {
             //     ...this.shared_filters?.export_params,
@@ -290,9 +268,9 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     private reset_modal(): void {
         this.form_errors = [];
-        this.active_tab_view = 'selection_tab';
+        this.active_tab_view = 'field_filters_selection_tab';
 
-        this.selected_field_filters = null;
+        this.selected_field_filters_to_keep = null;
         this.shared_filters_name = null;
         this.shared_filters = null;
     }
@@ -301,57 +279,57 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      * is_field_filter_selected
      * - Check if active field filter selected
      *
-     * @param {VOFieldRefVO} [vo_field_ref]
+     * @param {IReadableFieldFilters} [readable_field_filters
      * @returns {boolean}
      */
-    private is_field_filter_selected(vo_field_ref: VOFieldRefVO): boolean {
-        vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
-            { vo_field_ref }
-        );
-
-        if (!this.selected_field_filters) {
+    private is_field_filter_selected(readable_field_filters: IReadableFieldFilters): boolean {
+        if (!readable_field_filters) {
             return false;
         }
 
-        return !FieldFiltersVOHandler.is_field_filters_empty(
-            vo_field_ref,
-            this.selected_field_filters
+        const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+            { vo_field_ref: readable_field_filters.vo_field_ref }
         );
+
+        if (!this.selected_field_filters_to_keep) {
+            return false;
+        }
+
+
+        const api_type_id_filters = this.selected_field_filters_to_keep[vo_field_ref.api_type_id];
+
+        if (!api_type_id_filters) {
+            return true;
+        }
+
+        return !!(api_type_id_filters[vo_field_ref.field_id]);
     }
 
     /**
      * Handle Toggle Select Sharable Filter
-     *  - Select or unselect from Shared the given active filter props
+     *  - Select or unselect from Shared the given active filter readable_field_filters
      *
-     * @param {IReadableFieldFilters} [props]
+     * @param {IReadableFieldFilters} [readable_field_filters]
      * @returns {void}
      */
-    private handle_toggle_select_sharable_field_filters(props: IReadableFieldFilters): void {
-        const vo_field_ref = props.vo_field_ref;
+    private handle_toggle_select_sharable_field_filters(readable_field_filters: IReadableFieldFilters): void {
+        const vo_field_ref = readable_field_filters.vo_field_ref;
 
-        let tmp_selected_field_filters = cloneDeep(this.selected_field_filters);
-        const sharable_field_filters = cloneDeep(this.selectionnable_field_filters);
+        const selectionnable_field_filters = cloneDeep(this.selectionnable_field_filters);
+        let tmp_selected_field_filters_to_keep = cloneDeep(this.selected_field_filters_to_keep);
 
-        if (!tmp_selected_field_filters) {
-            tmp_selected_field_filters = {};
+        if (!tmp_selected_field_filters_to_keep) {
+            tmp_selected_field_filters_to_keep = {};
         }
 
-        if (this.is_field_filter_selected(props.vo_field_ref)) {
-            delete tmp_selected_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
+        if (this.is_field_filter_selected(readable_field_filters)) {
+            delete tmp_selected_field_filters_to_keep[vo_field_ref.api_type_id][vo_field_ref.field_id];
 
         } else {
-            if (!FieldFiltersVOHandler.is_field_filters_empty(props.vo_field_ref, sharable_field_filters)) {
-                const context_filter = sharable_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
-
-                tmp_selected_field_filters = FieldFiltersVOManager.overwrite_field_filters_with_context_filter(
-                    tmp_selected_field_filters,
-                    vo_field_ref,
-                    context_filter
-                );
-            }
+            tmp_selected_field_filters_to_keep[vo_field_ref.api_type_id][vo_field_ref.field_id] = true;
         }
 
-        this.selected_field_filters = tmp_selected_field_filters;
+        this.selected_field_filters_to_keep = tmp_selected_field_filters_to_keep;
     }
 
     /**
@@ -377,24 +355,6 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
         }
 
         return translation;
-    }
-
-    /**
-     * Get Readable Field Filters HMI
-     *  - For each selected field filters get as Human readable filters
-     *
-     * @return {Promise<{ [translatable_field_filters_code: string]: IReadableFieldFilters }>}
-     */
-    private async load_readable_field_filters(): Promise<{ [translatable_field_filters_code: string]: IReadableFieldFilters }> {
-        const field_filters = cloneDeep(this.selectionnable_field_filters);
-
-        const readable_field_filters = await FieldFiltersVOManager.create_readable_filters_text_from_field_filters(
-            field_filters
-        );
-
-        this.readable_field_filters = readable_field_filters;
-
-        return readable_field_filters;
     }
 
     /**

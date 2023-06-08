@@ -67,6 +67,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
         this.get_Savefavoritesfiltersmodalcomponent.open_modal_for_creation(
             {
+                dashboard_page: this.dashboard_page,
                 selectionnable_active_field_filters,
                 exportable_data,
             },

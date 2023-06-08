@@ -23,7 +23,6 @@ import SaveFavoritesFiltersModalComponent from '../widgets/save_favorites_filter
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import SharedFiltersModalComponent from '../shared_filters/modal/SharedFiltersModalComponent';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
@@ -37,7 +36,6 @@ import './DashboardBuilderBoardComponent.scss';
         Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent,
-        Sharedfiltersmodalcomponent: SharedFiltersModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
         Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent,
         Checklistitemmodalcomponent: ChecklistItemModalComponent,
@@ -71,9 +69,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_Savefavoritesfiltersmodalcomponent: (Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) => void;
-
-    @ModuleDashboardPageAction
-    private set_Sharedfiltersmodalcomponent: (Sharedfiltersmodalcomponent: SharedFiltersModalComponent) => void;
 
     @ModuleDashboardPageAction
     private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
@@ -179,7 +174,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
         this.set_Savefavoritesfiltersmodalcomponent(this.$refs['Savefavoritesfiltersmodalcomponent'] as SaveFavoritesFiltersModalComponent);
-        this.set_Sharedfiltersmodalcomponent(this.$refs['Sharedfiltersmodalcomponent'] as SharedFiltersModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);

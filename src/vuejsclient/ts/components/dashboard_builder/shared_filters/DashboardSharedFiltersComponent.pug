@@ -1,4 +1,5 @@
 .dashboard-shared-filters-component
+    Sharedfiltersmodalcomponent(ref='Sharedfiltersmodalcomponent')
     .menus-switches(v-if='dashboard && dashboard.id && !is_loading')
         .row.header
             .col-md-3
@@ -35,7 +36,7 @@
                                 button.delete(v-on:click="handle_delete_shared_filters(shared_filters)") 
 
                         .create-shared-filters
-                            button.create(v-on:click="handle_create_shared_filters(dashboard_page)") {{ label("dashboard_builder.shared_filters.create_shared_filters") }}
+                            button.create(v-on:click="handle_create_shared_filters(dashboard_page.id)") {{ label("dashboard_builder.shared_filters.create_shared_filters") }}
 
                     .col-md-3
                         .custom-api-type-ids-row
