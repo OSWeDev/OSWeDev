@@ -901,6 +901,10 @@ export default class VarsDatasVoUpdateHandler {
             return;
         }
 
+        StatsController.register_stat_COMPTEUR("VarsDatasVoUpdateHandler", "handle_invalidation", "IN");
+        StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "VARS_DATAS_IN", var_datas.length);
+        let date_in_ms = Dates.now_ms();
+
         let env = ConfigurationService.node_configuration;
 
         let var_data_by_index: { [index: string]: VarDataBaseVO } = {};
@@ -918,9 +922,15 @@ export default class VarsDatasVoUpdateHandler {
         //  soit on est en bdd(donc on vient de la trouver et on peut filtrer sur celles chargées de la bdd)
         //  soit on est en cache et on les trouve en dessous
 
-        ConsoleHandler.log('handle_invalidation:filter_by_subs:IN:var_datas:' + var_datas.length);
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('handle_invalidation:filter_by_subs:IN:var_datas:' + var_datas.length);
+        }
         let registered_var_datas_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(Object.keys(var_data_by_index));
-        ConsoleHandler.log('handle_invalidation:filter_by_subs:OUT:registered_var_datas_indexes:' + registered_var_datas_indexes.length);
+        StatsController.register_stat_DUREE("VarsDatasVoUpdateHandler", "handle_invalidation", "filter_by_subs", Dates.now_ms() - date_in_ms);
+        let date_poste_filter_by_subs = Dates.now_ms();
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('handle_invalidation:filter_by_subs:OUT:registered_var_datas_indexes:' + registered_var_datas_indexes.length);
+        }
 
         registered_var_datas = (registered_var_datas_indexes && registered_var_datas_indexes.length) ? registered_var_datas_indexes.map((index) => var_data_by_index[index]) : [];
         registered_var_datas = (registered_var_datas && registered_var_datas.length) ?
@@ -998,6 +1008,7 @@ export default class VarsDatasVoUpdateHandler {
                 (v.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (v.value_type != VarDataBaseVO.VALUE_TYPE_DENIED));
             if (bdd_vars_registered && bdd_vars_registered.length) {
                 await this.delete_vars_pack_without_triggers(bdd_vars_registered);
+                StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "DELETED_bdd_vars_registered", bdd_vars_registered.length);
                 if (env.DEBUG_VARS) {
                     ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:DELETED ' + bdd_vars_registered.length + ' vars from BDD cache.');
                 }
@@ -1024,7 +1035,7 @@ export default class VarsDatasVoUpdateHandler {
 
             // FIXME TODO : On perd l'info de qui a demandé à la base (client_tab_id & server_id) faudrait les sauvegarder depuis le wrapper avant de le supprimer pour chaque var
             await VarsDatasProxy.getInstance().append_var_datas(bdd_vars_registered, 'handle_invalidation__registered_var_datas');
-
+            StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "RECALC_bdd_vars_registered", bdd_vars_registered.length);
             if (env.DEBUG_VARS) {
                 ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
             }
@@ -1049,6 +1060,7 @@ export default class VarsDatasVoUpdateHandler {
             // On doit toujours delete en base, sinon on risque de recharger la data depuis la bdd à moment donné dans les calculs
             if (unregistered_var_datas && unregistered_var_datas.length) {
                 await this.delete_vars_pack_without_triggers(unregistered_var_datas);
+                StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "DELETED_unregistered_var_datas", unregistered_var_datas.length);
                 if (env.DEBUG_VARS) {
                     ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
                 }
@@ -1094,6 +1106,7 @@ export default class VarsDatasVoUpdateHandler {
                  */
                 // FIXME TODO : On perd l'info de qui a demandé à la base (client_tab_id & server_id) faudrait les sauvegarder depuis le wrapper avant de le supprimer pour chaque var
                 await VarsDatasProxy.getInstance().append_var_datas(vars_to_append, 'handle_invalidation__unregistered_var_datas');
+                StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "IGNORE_unregistered_var_datas", unregistered_var_datas.length);
 
                 if (env.DEBUG_VARS) {
                     // ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
@@ -1101,6 +1114,9 @@ export default class VarsDatasVoUpdateHandler {
                 }
             }
         }
+
+        StatsController.register_stat_COMPTEUR("VarsDatasVoUpdateHandler", "handle_invalidation", "OUT");
+        StatsController.register_stat_DUREE("VarsDatasVoUpdateHandler", "handle_invalidation", "OUT", Dates.now_ms() - date_in_ms);
     }
 
     /**

@@ -257,6 +257,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
             if (cache.timeout != null) {
                 options.timeout = cache.timeout;
+            } else {
+                options.timeout = 120000;
             }
             if (!!self.csrf_token) {
                 options.headers['X-CSRF-Token'] = self.csrf_token;
@@ -453,6 +455,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'Default');
             ConsoleHandler.log("request failed :" + request + ":" + err);
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
+                ConsoleHandler.error("Loading failure - Please reload your page:" + JSON.stringify(request) + ":" + JSON.stringify(err));
                 StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'Loading_failure_Please_reload_your_page');
                 (window as any).alert('Loading failure - Please reload your page');
             }
@@ -632,7 +635,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                     if ($.ajaxSetup) {
                         $.ajaxSetup({
-                            timeout: 30000,
+                            timeout: 120000,
                             headers: {
                                 version: EnvHandler.VERSION
                             }
