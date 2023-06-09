@@ -3,6 +3,7 @@ import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
+import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";

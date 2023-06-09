@@ -50,30 +50,99 @@
 
                                     div.select_field_filters
                                         h5.input_label {{ label('dashboard_builder.shared_filters.select_field_filters') }}
-                                        .row.select_field_filters_options
+                                        .select_field_filters_options
                                             template(v-for="(option, translatable_field_filters_code) in readable_field_filters")
                                                 div.option.col-md-12
                                                     .input_wrapper  
                                                         toggle-button(
                                                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                                                            @change="handle_toggle_select_sharable_field_filters(option)"  
+                                                            @change="handle_toggle_select_field_filters(option)"  
                                                             :name="base_filter + '_' + translatable_field_filters_code" 
                                                             :id="base_filter + '_' + translatable_field_filters_code" 
                                                             :value="is_field_filter_selected(option)" 
                                                             :sync="true"
                                                             :width="60"  
                                                         )                            
-                                                    .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }}: {{ option.readable_field_filters }}
+                                                    .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }} 
+                                                        span(v-if="option?.is_filter_hidden") ({{ label('dashboard_builder.shared_filters.filter_hidden') }})
 
                             #share_with_page_tab(v-show="active_tab_view == 'share_with_page_tab'")
                                 template 
                                     div.shared_filters_options
                                         h5.input_label {{ label('dashboard_builder.shared_filters.share_with_page_tab_title') }}
 
-                                        .select_pages_to_share_with
-                                            .input_label {{ label('dashboard_builder.shared_filters.select_pages_to_share_with') }}
-                                            .row.select_pages_to_share_with_options
+                                        .select_dashboards_to_share_with
+                                            .input_label {{ label('dashboard_builder.shared_filters.select_dashboards_to_share_with') }}
+                                            .select_dashboards_to_share_with_options
+                                                //- Load dashboards with server side pagination
+                                                multiselect(
+                                                    v-model="selected_dashboards"
+                                                    autocomplete="off"
+
+                                                    :options="selectionnable_dashboards"
+                                                    :preselect-first="false"
+                                                    :close-on-select="false"
+                                                    :internal-search="true"
+                                                    :hide-selected="true"
+                                                    :searchable="true"
+                                                    :multiple="true"
+                                                    :custom-label='(option) => dashboard_label(option)'
+                                                    :placeholder="label('dashboard_builder.shared_filters.select_dashboards_placeholder')"
+                        
+                                                    :key="'select_dashboards_to_share_with_'"
+                        
+                                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                                    :selected-label='label("multiselect.selectedLabel")'
+                                                    :deselect-label='label("multiselect.deselectLabel")'
+                                                    :select-label='label("multiselect.selectLabel")'
+
+                                                    @search-change="handle_load_selectionnable_dashboards_options"
+                                                )
+        
+                                                    span(slot="noOptions") -
+
+                                                    template(slot="option", slot-scope="props")
+                                                        span.option__title {{ dashboard_label(props.option) }}
+
+                                                    template(slot="tag", slot-scope="props")
+                                                        .pill_wrapper.bg-success
+                                                            span.option__tag {{ dashboard_label(props.option) }}
+                                                            i.fa-duotone.fa-times(@click='props.remove(props.option)')
+
+                                        template(v-for="(dashboard, key) in selected_dashboards")
+                                            //- Load pages by dashboard_id that have been selected
+                                            .select_pages_to_share_with
+                                            .input_label 
+                                                span {{ label('dashboard_builder.shared_filters.select_pages_to_share_with') }}
+                                                span ({{ dashboard_label(dashboard) }})
+
+                                            .select_pages_to_share_with_options
                                                 //- Load dashboard pages with server side pagination
+                                                multiselect(
+                                                    v-model="selected_pages[dashboard.id]"
+                                                    autocomplete="off"
+
+                                                    :options="selectionnable_pages[dashboard.id]"
+                                                    :preselect-first="false"
+                                                    :close-on-select="false"
+                                                    :internal-search="true"
+                                                    :hide-selected="true"
+                                                    :searchable="true"
+                                                    :multiple="true"
+                                                    :custom-label='(option) => page_label(option)'
+                                                    :placeholder="label('dashboard_builder.shared_filters.select_pages_placeholder')"
+                        
+                                                    :key="'select_dashboards_to_share_with_'"
+                        
+                                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                                    :selected-label='label("multiselect.selectedLabel")'
+                                                    :deselect-label='label("multiselect.deselectLabel")'
+                                                    :select-label='label("multiselect.selectLabel")'
+
+                                                    @search-change="handle_load_selectionnable_pages_options"
+                                                )
 
                 .modal-footer
                     template(v-if="!shared_filters?.id")

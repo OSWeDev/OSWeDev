@@ -27,6 +27,11 @@ export default interface IReadableFieldFilters {
     context_filter: ContextFilterVO;
 
     /**
+     * Says if the filter is hidden
+     */
+    is_filter_hidden: boolean;
+
+    /**
      * The field_ref
      *  - where api_type_id is the api_type_id of the field
      *  - and field_id is the field_id of the field

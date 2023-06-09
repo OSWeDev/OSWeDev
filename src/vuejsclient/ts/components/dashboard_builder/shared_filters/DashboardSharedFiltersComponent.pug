@@ -32,11 +32,14 @@
                         //- Load pages shared_filters
                         .shared-filters-row(v-for="(shared_filters, key) in shared_filters_by_page_ids[dashboard_page.id]")
                             .shared-filters {{ shared_filters.name }}
-                                button.update(v-on:click="handle_update_shared_filters(shared_filters)")
-                                button.delete(v-on:click="handle_delete_shared_filters(shared_filters)") 
+                                a.btn.btn-sm.btn-success.pull-right.option__edit(@click='handle_update_shared_filters(shared_filters)')
+                                    i.fa-duotone.fa-pencil-alt
+                                a.btn.btn-sm.btn-danger.pull-right.option__delete(@click='handle_delete_shared_filters(shared_filters)') 
+                                    i.fa-duotone.fa-trash-alt
 
                         .create-shared-filters
-                            button.create(v-on:click="handle_create_shared_filters(dashboard_page.id)") {{ label("dashboard_builder.shared_filters.create_shared_filters") }}
+                            a.btn.btn-success.option__create(@click="handle_create_shared_filters(dashboard_page.id)") 
+                                span {{ label("dashboard_builder.shared_filters.create_shared_filters") }}
 
                     .col-md-3
                         .custom-api-type-ids-row

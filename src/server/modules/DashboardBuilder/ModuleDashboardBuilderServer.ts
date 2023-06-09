@@ -250,6 +250,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.custom_api_type_ids.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre partagé'
+        }, 'dashboard_builder.shared_filters.modal_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Créer un filtre partagé'
         }, 'dashboard_builder.shared_filters.create_shared_filters.___LABEL___'));
 
@@ -278,7 +282,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.share_with_page_tab_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les pages'
+            'fr-fr': 'Selectionner les pages du dashboard'
         }, 'dashboard_builder.shared_filters.select_pages_to_share_with.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -286,16 +290,32 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.select_field_filters.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les filtres à partagé'
+            'fr-fr': 'Saugarde en des filtres partagés cours...'
         }, 'dashboard_builder.shared_filters.save_start.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les filtres à partagé'
+            'fr-fr': 'Filtres partagés sauvegardés avec succès'
         }, 'dashboard_builder.shared_filters.save_ok.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les filtres à partagé'
+            'fr-fr': 'Erreur lors de la sauvegarde des filtres partagés'
         }, 'dashboard_builder.shared_filters.save_failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre caché'
+        }, 'dashboard_builder.shared_filters.filter_hidden.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom des filtres partagé requis'
+        }, 'dashboard_builder.shared_filters.name_required.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Les pages avec lesquels partager sont requises'
+        }, 'dashboard_builder.shared_filters.shared_with_page_ids_required.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages'
+        }, 'dashboard_builder.shared_filters.select_pages_placeholder.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Impossible de créer un nouveau Dashboard...'

@@ -1,5 +1,4 @@
 import AbstractVO from '../../VO/abstract/AbstractVO';
-import FieldFiltersVO from './FieldFiltersVO';
 
 /**
  * SharedFiltersVO
@@ -22,9 +21,9 @@ export default class SharedFiltersVO extends AbstractVO {
 
     public weight: number;
 
-    // JSON object of favorites active field filters
-    public field_filters_to_keep: { [api_type_id: string]: { [field_id: string]: boolean } };
+    // JSON object of field_filters to share
+    public field_filters_to_share: { [api_type_id: string]: { [field_id: string]: boolean } };
 
-    // ids of dashboard_page which this shared_filters is shared with
-    public shared_with_dashboard_page_ids: number[];
+    // ids of page which this shared_filters is shared with
+    public shared_with_page_ids: number[];
 }

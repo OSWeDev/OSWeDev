@@ -703,7 +703,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         this.dashboard = this.dashboards[0];
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
+        this.pages = await query(DashboardPageVO.API_TYPE_ID)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)])
+            .select_vos<DashboardPageVO>();
+
         if (!this.pages) {
             await this.create_dashboard_page();
         } else {

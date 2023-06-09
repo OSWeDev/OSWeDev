@@ -64,6 +64,12 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         { leading: false, trailing: true }
     );
 
+    private throttled_load_all_shared_filters = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.load_all_shared_filters.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
+
     private throttled_load_sharable_field_filters_by_page_ids = ThrottleHelper.getInstance().declare_throttle_without_args(
         this.load_sharable_field_filters_by_page_ids.bind(this),
         50,
@@ -98,6 +104,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     private async onchange_dashboard_pages() {
         // Throttle load_sharable_field_filters_by_page_ids
         this.throttled_load_sharable_field_filters_by_page_ids();
+        this.throttled_load_all_shared_filters();
     }
 
     /**
@@ -125,7 +132,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     /**
      * load_sharable_field_filters_by_page_ids
      * - This method is responsible for loading the sharable field_filters of each dashboard_page
-     * - The sharable field_filters are the field_filters which exists on the dashboard_page
+     * - The sharable field_filters are the default field_filters which exists on the dashboard_page
      *
      * @returns {Promise<{ [page_id: number]: FieldFiltersVO }>}
      */
@@ -215,8 +222,8 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     }
 
     /**
-     * Handle Save
-     *  - Save active dashboard filters for the current user
+     * handle_save_shared_filters
+     *  - Save shared_filters
      *
      * @param {SharedFiltersVO} [shared_filters]
      * @returns {Promise<void>}
@@ -253,7 +260,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
                 );
 
                 if (success) {
-                    // await self.reload_all_visible_active_filters();
+                    await self.load_all_shared_filters();
                     resolve({
                         body: self.label('dashboard_builder.shared_filters.save_ok'),
                         config: {
@@ -277,6 +284,38 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
             })
         );
     }
+
+    /**
+     * load_all_shared_filters
+     * - Reload all shared_filters
+     * - This method is called after each shared_filters save
+     * - This method is called after each shared_filters delete
+     * - This method is called after each dashboard_page load
+     */
+    private async load_all_shared_filters() {
+
+        // Reload dashboard_pages
+        await this.load_dashboard_pages();
+
+        // Reload shared_filters_by_page_ids
+        const shared_filters = await SharedFiltersVOManager.find_shared_filters_by_page_ids(
+            this.dashboard_pages.map((dashboard_page) => dashboard_page.id)
+        );
+
+        // Create shared_filters_by_page_ids
+        const shared_filters_by_page_ids: { [page_id: number]: SharedFiltersVO[] } = {};
+
+        for (const key in this.dashboard_pages) {
+            const dashboard_page = this.dashboard_pages[key];
+
+            shared_filters_by_page_ids[dashboard_page.id] = shared_filters.filter((shared_filter) => {
+                return shared_filter.page_id == dashboard_page.id;
+            });
+        }
+
+        this.shared_filters_by_page_ids = shared_filters_by_page_ids;
+    }
+
 
     /**
      * translate_to_readable_field_filters

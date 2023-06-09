@@ -125,7 +125,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
     ];
 
-    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
+    private throttled_update_visible_options = (timeout: number = 300) => (
+        ThrottleHelper.getInstance().declare_throttle_without_args(
+            this.update_visible_options.bind(this),
+            timeout,
+            { leading: false, trailing: true })
+    )()
 
     private async mounted() {
         ResetFiltersWidgetController.getInstance().register_reseter(
@@ -470,7 +475,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private handle_select_all(): void {
         let selection: DataFilterOption[] = [];
 
-        selection = this.filter_visible_options?.map((_filter) => new DataFilterOption(DataFilterOption.STATE_SELECTED, _filter.label, _filter.id));
+        selection = this.filter_visible_options?.map((_filter) =>
+            new DataFilterOption(DataFilterOption.STATE_SELECTED, _filter.label, _filter.id)
+        );
 
         this.tmp_filter_active_options = selection;
     }
@@ -809,7 +816,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         if (has_active_field_filter &&
             (!(this.tmp_filter_active_options?.length > 0))) {
 
-            this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
+            this.warn_existing_external_filters = !this.try_apply_actual_active_filters(
+                root_context_filter
+            );
         }
 
         // /**
