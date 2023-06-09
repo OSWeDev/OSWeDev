@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
-import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Line } from 'vue-chartjs';
-import 'chart.js-plugin-labels-dv';
+import Chart from "chart.js/auto";
+import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -40,6 +40,13 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     private historiques: ISupervisedItem[];
 
     private debounced_rerender = debounce(this.rerender, 500);
+
+    public async created() {
+        window['Chart'] = Chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
 
     private mounted() {
         this.debounced_rerender();

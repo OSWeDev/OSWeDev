@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
-import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Pie } from 'vue-chartjs';
-import 'chart.js-plugin-labels-dv';
+import Chart from "chart.js/auto";
+import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
@@ -64,6 +64,13 @@ export default class VarPieChartComponent extends VueComponentBase {
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    public async created() {
+        window['Chart'] = Chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
 
     @Watch('chart_data')
     @Watch('chart_options')

@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
-import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Pie } from 'vue-chartjs';
-import 'chart.js-plugin-labels-dv';
+import Chart from "chart.js/auto";
+import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VueComponentBase from '../VueComponentBase';
 import ChartJsDataSetDescriptor from './descriptor/ChartJsDataSetDescriptor';
@@ -24,6 +24,13 @@ export default class ChartJsPieComponent extends VueComponentBase {
     private datasets: ChartJsDataSetDescriptor[];
 
     private debounced_rerender = debounce(this.rerender, 500);
+
+    public async created() {
+        window['Chart'] = Chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
 
     private mounted() {
         this.debounced_rerender();

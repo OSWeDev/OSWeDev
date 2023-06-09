@@ -889,6 +889,9 @@ export default class VueComponentBase extends Vue
     }
 
     protected routeExists(url: string): boolean {
+        if (!url) {
+            return false;
+        }
 
         let resolved = this['$router'].resolve(url);
         if (resolved.route.name != '404') {
