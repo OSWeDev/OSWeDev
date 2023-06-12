@@ -2345,6 +2345,11 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
+                            let force_cast: string = '';
+
+                            if ((field_type == ModuleTableField.FIELD_TYPE_int_array) || (field_type == ModuleTableField.FIELD_TYPE_tstz_array)) {
+                                force_cast = '::bigint[]';
+                            }
                             for (let i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
@@ -2355,7 +2360,7 @@ export default class ContextFilterServerController {
                                 ContextQueryInjectionCheckHandler.assert_numeric(value);
                             }
 
-                            where_conditions.push(field_id + " && ARRAY[" + context_filter.param_numeric_array.join(',') + ']');
+                            where_conditions.push(field_id + " && ARRAY[" + context_filter.param_numeric_array.join(',') + ']' + force_cast);
                             break;
                         }
                         throw new Error('Not Implemented');
