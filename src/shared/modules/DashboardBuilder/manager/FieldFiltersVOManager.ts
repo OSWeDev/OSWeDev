@@ -12,6 +12,10 @@ import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import VOFieldRefVO from '../vos/VOFieldRefVO';
 import ModuleTableField from "../../ModuleTableField";
 import ModuleTable from "../../ModuleTable";
+import ObjectHandler from "../../../tools/ObjectHandler";
+import TranslationManager from "../../Translation/manager/TranslationManager";
+import ModuleTranslation from "../../Translation/ModuleTranslation";
+import LocaleManager from "../../../tools/LocaleManager";
 
 /**
  * FieldFiltersVOManager
@@ -103,7 +107,9 @@ export default class FieldFiltersVOManager {
             });
         }
 
-        return default_field_filters;
+        return ObjectHandler.sort_by_key<FieldFiltersVO>(
+            default_field_filters
+        );
     }
 
     /**
@@ -118,6 +124,8 @@ export default class FieldFiltersVOManager {
     ): Promise<{ [translatable_label_code: string]: IReadableFieldFilters }> {
 
         field_filters = cloneDeep(field_filters);
+
+        const translations = await TranslationManager.get_all_flat_locale_translations();
 
         // Get all required filters props from widgets_options
         let field_filters_porps: Array<{ is_filter_hidden: boolean, vo_field_ref: VOFieldRefVO }> = [];
@@ -180,10 +188,12 @@ export default class FieldFiltersVOManager {
                 }
 
                 // The actual label of the filter
-                const label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                const label_code_text: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
                     vo_field_ref,
                     page_id
                 );
+
+                const label: string = translations[label_code_text] ?? label_code_text;
 
                 // Get HMI readable active field filters
                 const readable_context_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(
@@ -202,7 +212,37 @@ export default class FieldFiltersVOManager {
             }
         }
 
-        return human_readable_field_filters;
+        return ObjectHandler.sort_by_key<{ [translatable_label_code: string]: IReadableFieldFilters }>(
+            human_readable_field_filters
+        );
+    }
+
+    /**
+     * merge_readable_field_filters
+     * - Merge readable_field_filters with each other
+     *
+     * @param {{ [translatable_label_code: string]: IReadableFieldFilters }} from_readable_field_filters
+     * @param {{ [translatable_label_code: string]: IReadableFieldFilters }} with_readable_field_filters
+     * @returns {{ [translatable_label_code: string]: IReadableFieldFilters }}
+     */
+    public static merge_readable_field_filters(
+        from_readable_field_filters: { [translatable_label_code: string]: IReadableFieldFilters },
+        with_readable_field_filters: { [translatable_label_code: string]: IReadableFieldFilters }
+    ): { [translatable_label_code: string]: IReadableFieldFilters } {
+
+        let readable_field_filters: {
+            [translatable_label_code: string]: IReadableFieldFilters
+        } = cloneDeep(from_readable_field_filters);
+
+        for (const label in with_readable_field_filters) {
+            const readable_filters = readable_field_filters[label];
+
+            if (!readable_filters) {
+                readable_field_filters[label] = with_readable_field_filters[label];
+            }
+        }
+
+        return readable_field_filters;
     }
 
     /**

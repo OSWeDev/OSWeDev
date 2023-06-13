@@ -242,8 +242,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.page_sharable_filters.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Partager avec les pages'
-        }, 'dashboard_builder.shared_filters.share_with_pages.___LABEL___'));
+            'fr-fr': 'Filtres Partagé'
+        }, 'dashboard_builder.shared_filters.shared_filters_table_head.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Ajuster les filtres correspondants aux filtres partagés'
@@ -266,15 +266,27 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.field_filters_selection_tab.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Configurer les pages avec lesquel partagé'
+            'fr-fr': 'Configurer les pages avec lesquels partager'
         }, 'dashboard_builder.shared_filters.share_with_page_tab.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer les dashboards avec lesquels partager'
+        }, 'dashboard_builder.shared_filters.share_with_dashboard_tab.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Entrer le nom du filtre partagé *:'
         }, 'dashboard_builder.shared_filters.enter_name.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les pages avec lesquel partagé'
+            'fr-fr': 'Selectionner les dashboards avec lesquels partager'
+        }, 'dashboard_builder.shared_filters.share_with_dashboard.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les dashboards'
+        }, 'dashboard_builder.shared_filters.share_with_dashboard_tab_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages avec lesquels partager'
         }, 'dashboard_builder.shared_filters.share_with_page.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -282,11 +294,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.share_with_page_tab_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les pages du dashboard'
-        }, 'dashboard_builder.shared_filters.select_pages_to_share_with.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les filtres à partagé'
+            'fr-fr': 'Selectionner le groupe de filtres à partager'
         }, 'dashboard_builder.shared_filters.select_field_filters.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -311,11 +319,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Les pages avec lesquels partager sont requises'
-        }, 'dashboard_builder.shared_filters.shared_with_page_ids_required.___LABEL___'));
+        }, 'dashboard_builder.shared_filters.shared_with_dashboard_ids_required.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Selectionner les pages'
         }, 'dashboard_builder.shared_filters.select_pages_placeholder.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les Dashboards'
+        }, 'dashboard_builder.shared_filters.select_dashboards_placeholder.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Impossible de créer un nouveau Dashboard...'

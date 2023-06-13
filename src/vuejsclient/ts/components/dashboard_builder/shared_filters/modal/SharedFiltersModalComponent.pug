@@ -23,20 +23,21 @@
                                     div.alert.alert-danger {{ error }}
 
                         ul.nav.nav-pills.nav-fill(role="tablist")
+                            li(:class="{'active': active_tab_view == 'share_with_dashboard_tab'}")
+                                a#export_pill.nav-item.nav-link(
+                                    :class="{'active': active_tab_view == 'share_with_dashboard_tab'}"
+                                    @click="set_active_tab_view('share_with_dashboard_tab')"
+                                )  {{ label('dashboard_builder.shared_filters.share_with_dashboard_tab') }}
                             li(:class="{'active': active_tab_view == 'field_filters_selection_tab'}")
                                 a#field_filters_selection_pill.nav-item.nav-link(
                                     :class="{'active': active_tab_view == 'field_filters_selection_tab'}"
                                     @click="set_active_tab_view('field_filters_selection_tab')"
                                 ) {{ label('dashboard_builder.shared_filters.field_filters_selection_tab') }}
-                            li(:class="{'active': active_tab_view == 'share_with_page_tab'}")
-                                a#export_pill.nav-item.nav-link(
-                                    :class="{'active': active_tab_view == 'share_with_page_tab'}"
-                                    @click="set_active_tab_view('share_with_page_tab')"
-                                )  {{ label('dashboard_builder.shared_filters.share_with_page_tab') }}
 
                         .tab-content
-                            #field_filters_selection_tab(v-show="active_tab_view == 'field_filters_selection_tab'")
-                                template
+                            
+                            #share_with_dashboard_tab(v-show="active_tab_view == 'share_with_dashboard_tab'")
+                                template 
 
                                     div.shared_filters_name
                                         h5.input_label {{ label('dashboard_builder.shared_filters.enter_name') }}
@@ -47,6 +48,42 @@
                                             )
                                     
                                     hr.my-12
+                                    
+                                    div.shared_filters_options
+                                        h5.input_label {{ label('dashboard_builder.shared_filters.share_with_dashboard_tab_title') }}
+
+                                        .select_dashboards_to_share_with
+                                            .input_label {{ label('dashboard_builder.shared_filters.share_with_dashboard') }}
+                                            .select_dashboards_to_share_with_options
+                                                multiselect(
+                                                    autocomplete="off"
+
+                                                    :options="selectionnable_dashboards"
+                                                    :value="selected_dashboards"
+
+                                                    :preselect-first="false"
+                                                    :close-on-select="true"
+                                                    :internal-search="true"
+                                                    :hide-selected="true"
+                                                    :searchable="true"
+                                                    :multiple="true"
+                                                    :placeholder="label('dashboard_builder.shared_filters.select_dashboards_placeholder')"
+                                                    :custom-label='(option) => dashboard_label(option)'
+                        
+                                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                                    :selected-label='label("multiselect.selectedLabel")'
+                                                    :deselect-label='label("multiselect.deselectLabel")'
+                                                    :select-label='label("multiselect.selectLabel")'
+
+                                                    @search-change="handle_load_selectionnable_dashboards_options"
+                                                    @select="(option) => on_select_selectionnable_dashboard(option)"
+                                                    @remove="(option) => on_remove_selected_dashboard(option)",
+                                                )
+                              
+
+                            #field_filters_selection_tab(v-show="active_tab_view == 'field_filters_selection_tab'")
+                                template
 
                                     div.select_field_filters
                                         h5.input_label {{ label('dashboard_builder.shared_filters.select_field_filters') }}
@@ -59,91 +96,13 @@
                                                             @change="handle_toggle_select_field_filters(option)"  
                                                             :name="base_filter + '_' + translatable_field_filters_code" 
                                                             :id="base_filter + '_' + translatable_field_filters_code" 
-                                                            :value="is_field_filter_selected(option)" 
+                                                            :value="is_readable_field_filter_selected(option)" 
                                                             :sync="true"
                                                             :width="60"  
                                                         )                            
                                                     .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }} 
                                                         span(v-if="option?.is_filter_hidden") ({{ label('dashboard_builder.shared_filters.filter_hidden') }})
-
-                            #share_with_page_tab(v-show="active_tab_view == 'share_with_page_tab'")
-                                template 
-                                    div.shared_filters_options
-                                        h5.input_label {{ label('dashboard_builder.shared_filters.share_with_page_tab_title') }}
-
-                                        .select_dashboards_to_share_with
-                                            .input_label {{ label('dashboard_builder.shared_filters.select_dashboards_to_share_with') }}
-                                            .select_dashboards_to_share_with_options
-                                                //- Load dashboards with server side pagination
-                                                multiselect(
-                                                    v-model="selected_dashboards"
-                                                    autocomplete="off"
-
-                                                    :options="selectionnable_dashboards"
-                                                    :preselect-first="false"
-                                                    :close-on-select="false"
-                                                    :internal-search="true"
-                                                    :hide-selected="true"
-                                                    :searchable="true"
-                                                    :multiple="true"
-                                                    :custom-label='(option) => dashboard_label(option)'
-                                                    :placeholder="label('dashboard_builder.shared_filters.select_dashboards_placeholder')"
-                        
-                                                    :key="'select_dashboards_to_share_with_'"
-                        
-                                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                                                    :select-group-label='label("multiselect.selectGroupLabel")'
-                                                    :selected-label='label("multiselect.selectedLabel")'
-                                                    :deselect-label='label("multiselect.deselectLabel")'
-                                                    :select-label='label("multiselect.selectLabel")'
-
-                                                    @search-change="handle_load_selectionnable_dashboards_options"
-                                                )
-        
-                                                    span(slot="noOptions") -
-
-                                                    template(slot="option", slot-scope="props")
-                                                        span.option__title {{ dashboard_label(props.option) }}
-
-                                                    template(slot="tag", slot-scope="props")
-                                                        .pill_wrapper.bg-success
-                                                            span.option__tag {{ dashboard_label(props.option) }}
-                                                            i.fa-duotone.fa-times(@click='props.remove(props.option)')
-
-                                        template(v-for="(dashboard, key) in selected_dashboards")
-                                            //- Load pages by dashboard_id that have been selected
-                                            .select_pages_to_share_with
-                                            .input_label 
-                                                span {{ label('dashboard_builder.shared_filters.select_pages_to_share_with') }}
-                                                span ({{ dashboard_label(dashboard) }})
-
-                                            .select_pages_to_share_with_options
-                                                //- Load dashboard pages with server side pagination
-                                                multiselect(
-                                                    v-model="selected_pages[dashboard.id]"
-                                                    autocomplete="off"
-
-                                                    :options="selectionnable_pages[dashboard.id]"
-                                                    :preselect-first="false"
-                                                    :close-on-select="false"
-                                                    :internal-search="true"
-                                                    :hide-selected="true"
-                                                    :searchable="true"
-                                                    :multiple="true"
-                                                    :custom-label='(option) => page_label(option)'
-                                                    :placeholder="label('dashboard_builder.shared_filters.select_pages_placeholder')"
-                        
-                                                    :key="'select_dashboards_to_share_with_'"
-                        
-                                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                                                    :select-group-label='label("multiselect.selectGroupLabel")'
-                                                    :selected-label='label("multiselect.selectedLabel")'
-                                                    :deselect-label='label("multiselect.deselectLabel")'
-                                                    :select-label='label("multiselect.selectLabel")'
-
-                                                    @search-change="handle_load_selectionnable_pages_options"
-                                                )
-
+                  
                 .modal-footer
                     template(v-if="!shared_filters?.id")
                         a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}

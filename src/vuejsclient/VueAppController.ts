@@ -8,6 +8,7 @@ import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleSurvey from '../shared/modules/Survey/ModuleSurvey';
 
+import TranslationManager from '../shared/modules/Translation/Manager/TranslationManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import LocaleManager from '../shared/tools/LocaleManager';
@@ -54,13 +55,12 @@ export default abstract class VueAppController {
     public has_access_to_feedback: boolean = false;
     public has_access_to_survey: boolean = false;
 
-
     protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;
     }
 
     public async initializeFlatLocales() {
-        this.ALL_FLAT_LOCALE_TRANSLATIONS = await ModuleTranslation.getInstance().getALL_FLAT_LOCALE_TRANSLATIONS(LocaleManager.getInstance().getDefaultLocale());
+        this.ALL_FLAT_LOCALE_TRANSLATIONS = await TranslationManager.get_all_flat_locale_translations();
     }
 
     public async initialize() {

@@ -76,9 +76,9 @@ export default class ModuleDashboardBuilder extends Module {
         let db_table = this.init_DashboardVO();
 
         let db_page = this.init_DashboardPageVO(db_table);
+        this.init_shared_filters_vo(db_table);
 
         this.init_FavoritesFiltersVO(db_page);
-        this.init_shared_filters_vo(db_page);
 
         this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
@@ -257,20 +257,20 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     /**
-     * Init Dashboard Page Shared Filters
-     *  - Database table to stock sharable_filters of active dashboard page
-     *  - May be useful when switching between dashboard pages
+     * Init Dashboard Shared Filters
+     *  - Database table to stock sharable_filters of active dashboard
+     *  - May be useful when switching between dashboard
      */
-    private init_shared_filters_vo(db_page: ModuleTable<any>) {
+    private init_shared_filters_vo(db_dashboard: ModuleTable<any>) {
 
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard Page', true);
+        let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
         let datatable_fields = [
-            page_id,
+            dashboard_id,
 
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
             new ModuleTableField('field_filters_to_share', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters To Share', false),
-            new ModuleTableField('shared_with_page_ids', ModuleTableField.FIELD_TYPE_int_array, 'Filtre partagé avec les pages', false),
+            new ModuleTableField('shared_with_dashboard_ids', ModuleTableField.FIELD_TYPE_int_array, 'Filtre partagé avec les pages', false),
         ];
 
         this.datatables.push(
@@ -284,7 +284,7 @@ export default class ModuleDashboardBuilder extends Module {
             )
         );
 
-        page_id.addManyToOneRelation(db_page);
+        dashboard_id.addManyToOneRelation(db_dashboard);
     }
 
     private init_VOFieldRefVO() {

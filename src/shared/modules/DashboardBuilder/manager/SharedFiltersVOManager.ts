@@ -39,14 +39,14 @@ export default class SharedFiltersVOManager {
     }
 
     /**
-     * find_shared_filters_by_page_ids
+     * find_shared_filters_by_dashboard_ids
      *
-     * @param {number[]} page_ids
+     * @param {number[]} dashboard_ids
      * @param {boolean} options.refresh
      * @returns {Promise<SharedFiltersVO[]>}
      */
-    public static async find_shared_filters_by_page_ids(
-        page_ids: number[],
+    public static async find_shared_filters_by_dashboard_ids(
+        dashboard_ids: number[],
         options?: {
             refresh?: boolean
         }
@@ -54,16 +54,16 @@ export default class SharedFiltersVOManager {
         const self = SharedFiltersVOManager.getInstance();
 
         // Check has all page_wigets already loaded
-        const has_all_shared_filters_loaded = page_ids.every((page_id) => {
-            return self.shared_filters_by_page_id[page_id];
+        const has_all_shared_filters_loaded = dashboard_ids.every((dashboard_id) => {
+            return self.shared_filters_by_dashboard_id[dashboard_id];
         });
 
         // Return shared_filters if already loaded
         if (!options?.refresh && has_all_shared_filters_loaded) {
             const _shared_filters: SharedFiltersVO[] = [];
 
-            page_ids.map((page_id) => {
-                const s_filters = self.shared_filters_by_page_id[page_id];
+            dashboard_ids.map((dashboard_id) => {
+                const s_filters = self.shared_filters_by_dashboard_id[dashboard_id];
                 _shared_filters.push(...s_filters);
             });
 
@@ -80,12 +80,14 @@ export default class SharedFiltersVOManager {
         // Initialize shared_filters (all_shared_filter in dashboard) of SharedFiltersVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const shared_filters = await query(SharedFiltersVO.API_TYPE_ID)
-            .filter_by_num_has('page_id', page_ids)
+            .filter_by_num_has('dashboard_id', dashboard_ids)
             .select_vos<SharedFiltersVO>();
 
-        page_ids.map((page_id) => {
-            const s_filters = shared_filters.filter((pwidget) => pwidget.page_id == page_id);
-            self.shared_filters_by_page_id[page_id] = s_filters;
+        dashboard_ids.map((dashboard_id) => {
+            const s_filters = shared_filters.filter(
+                (pwidget) => pwidget.dashboard_id == dashboard_id
+            );
+            self.shared_filters_by_dashboard_id[dashboard_id] = s_filters;
         });
 
         return shared_filters;
@@ -133,6 +135,6 @@ export default class SharedFiltersVOManager {
 
     private static instance: SharedFiltersVOManager = null;
 
-    public shared_filters_by_page_id: { [page_id: number]: SharedFiltersVO[] } = {};
+    public shared_filters_by_dashboard_id: { [dashboard_id: number]: SharedFiltersVO[] } = {};
     public shared_filters: SharedFiltersVO[] = null;
 }

@@ -9,37 +9,39 @@
                 h3.title.page-sharable-filters {{ label("dashboard_builder.shared_filters.page_sharable_filters") }} 
                 
             .col-md-3
-                h3.title.share-with-pages {{ label("dashboard_builder.shared_filters.share_with_pages") }} 
-
-            .col-md-3
-                h3.title.custom-api-type-ids {{ label("dashboard_builder.shared_filters.custom_api_type_ids") }}
+                h3.title.share-with-pages {{ label("dashboard_builder.shared_filters.shared_filters_table_head") }} 
 
         .row.body.columns
             //- Dashboard page as row
-            .col-md-12(v-for="dashboard_page in dashboard_pages")
-                .row.dashboard-page-row 
-                    .col-md-3
-                        .dashboard-page
-                            .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.translatable_name_code_text) }}
-                    
-                    .col-md-3
-                        //- Load page sharable filters (all filters that are in the page and are sharable)
-                        .page-sharable-filters-row(v-for="(option, translatable_label_code) in sharable_field_filters_by_page_ids[dashboard_page.id]?.readable_field_filters")
-                            //- Get Human readable name of the filter
-                            .page-sharable-filter-name {{ get_translation_by_vo_field_ref_name_code_text(translatable_label_code) }}
+            .col-md-12
+                .row
+                    .col-md-6
+                        .dashboard-page-wrapper(v-for="dashboard_page in dashboard_pages")
+                            .row
+                                .col-md-6
+                                    .dashboard-page
+                                        .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.translatable_name_code_text) }}
+                                
+                                .col-md-6
+                                    .page-sharable-filters-row(v-for="(option, translatable_label_code) in selectionnable_field_filters_by_page_ids[dashboard_page.id]?.readable_field_filters")
+                                        .page-sharable-filter-name {{ get_translation_by_vo_field_ref_name_code_text(translatable_label_code) }} &nbsp;
+                                            span(v-if="option?.is_filter_hidden") ({{ label('dashboard_builder.shared_filters.filter_hidden') }})
 
-                    .col-md-3
-                        //- Load pages shared_filters
-                        .shared-filters-row(v-for="(shared_filters, key) in shared_filters_by_page_ids[dashboard_page.id]")
-                            .shared-filters {{ shared_filters.name }}
-                                a.btn.btn-sm.btn-success.pull-right.option__edit(@click='handle_update_shared_filters(shared_filters)')
-                                    i.fa-duotone.fa-pencil-alt
-                                a.btn.btn-sm.btn-danger.pull-right.option__delete(@click='handle_delete_shared_filters(shared_filters)') 
-                                    i.fa-duotone.fa-trash-alt
+                    .col-md-6
+                        template(v-if="is_shared_filters_loading")
+                            .is_loading
+                                i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                                
+                        template(v-else)
+                            //- Load pages shared_filters
+                            .shared-filters-wrapper(v-for="(shared_filters, key) in shared_filters_by_dashboard_ids[dashboard.id]")
+                                .shared-filters-name
+                                    span {{ shared_filters.name }}
+                                    a.btn.btn-sm.btn-success.pull-right.option__edit(@click='handle_update_shared_filters(shared_filters)')
+                                        i.fa-duotone.fa-pencil-alt
+                                    a.btn.btn-sm.btn-danger.pull-right.option__delete(@click='handle_delete_shared_filters(shared_filters)') 
+                                        i.fa-duotone.fa-trash-alt
 
                         .create-shared-filters
-                            a.btn.btn-success.option__create(@click="handle_create_shared_filters(dashboard_page.id)") 
+                            a.btn.btn-success.option__create(@click="handle_create_shared_filters(dashboard.id)") 
                                 span {{ label("dashboard_builder.shared_filters.create_shared_filters") }}
-
-                    .col-md-3
-                        .custom-api-type-ids-row

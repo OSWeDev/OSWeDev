@@ -20,7 +20,8 @@
     }
 
     .body {
-        .dashboard-page-row {
+        .dashboard-page-wrapper,
+        .shared-filters-wrapper {
             background: #f5f5f5;
             padding: 1em;
             margin: 5px;
@@ -32,8 +33,21 @@
             }
         }
 
+        .shared-filters-name {
+            span {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+                line-height: 1.5;
+            }
+
+            a {
+                position: relative;
+                bottom: 5px;
+            }
+        }
+
         .create-shared-filters {
-            button.create {
+            a.option__create {
                 width: 100%;
             }
         }
