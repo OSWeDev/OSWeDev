@@ -115,10 +115,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Les params du throttled_select_query
      */
     private throttled_select_query_params: ThrottledSelectQueryParam[] = [];
-    /**
-     * Derniere vérif du param throttled_select_query_size
-     */
-    private throttled_select_query_size_ms_param_last_update: number = Dates.now();
 
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
@@ -5404,21 +5400,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
     // }
 
     private async check_throttled_select_query_size_ms() {
-        if ((!this.throttled_select_query_size_ms_param_last_update) || ((this.throttled_select_query_size_ms_param_last_update) + 120 < Dates.now())) {
-            this.throttled_select_query_size_ms_param_last_update = Dates.now();
+        let old = this.throttled_select_query_size_ms ? this.throttled_select_query_size_ms : 1;
+        try {
+            this.throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 1, 600000);
+        } catch (error) {
+            // Normal pendant le démarrage
+            this.throttled_select_query_size_ms = old;
+        }
 
-            let throttled_select_query_size_ms = this.throttled_select_query_size_ms;
-            try {
-                throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 1);
-                this.throttled_select_query_size_ms = throttled_select_query_size_ms;
-            } catch (error) {
-                // Normal pendant le démarrage
-            }
-
-            if (this.throttled_select_query_size_ms != this.current_throttled_select_query_size_ms) {
-                this.current_throttled_select_query_size_ms = this.throttled_select_query_size_ms;
-                this.throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), this.current_throttled_select_query_size_ms, { leading: false, trailing: true });
-            }
+        if (this.throttled_select_query_size_ms != this.current_throttled_select_query_size_ms) {
+            this.current_throttled_select_query_size_ms = this.throttled_select_query_size_ms;
+            this.throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), this.current_throttled_select_query_size_ms, { leading: false, trailing: true });
         }
     }
 

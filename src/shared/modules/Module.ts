@@ -14,7 +14,11 @@ export default abstract class Module implements IModuleBase {
 
     public actif: boolean = false;
 
+    /**
+     * @deprecated should use ModuleParams instead now
+     */
     public fields: Array<ModuleTableField<any>> = [];
+
     public datatables: Array<ModuleTable<any>> = [];
     public name: string;
     public reflexiveClassName: string;
@@ -79,6 +83,9 @@ export default abstract class Module implements IModuleBase {
         return [];
     }
 
+    /**
+     * @deprecated should use ModuleParams instead now
+     */
     public getParamValue(id: string) {
         for (let i in this.fields) {
             let field = this.fields[i];
@@ -89,6 +96,9 @@ export default abstract class Module implements IModuleBase {
         }
     }
 
+    /**
+     * @deprecated should use ModuleParams instead now
+     */
     public setParamValue(id: string, value: any) {
         for (let i in this.fields) {
             let field = this.fields[i];
@@ -100,6 +110,9 @@ export default abstract class Module implements IModuleBase {
         }
     }
 
+    /**
+     * @deprecated should use ModuleParams instead now
+     */
     public setParamValueFromJSON(id: string, jsonValue: string) {
         for (let i in this.fields) {
             let field = this.fields[i];

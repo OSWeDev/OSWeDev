@@ -49,7 +49,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
     private static instance: ModuleBGThreadServer = null;
 
-    public block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
     public block_param_by_name: { [bgthread_name: string]: boolean } = {};
 
     private constructor() {
@@ -127,39 +126,32 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        while (true) {
-
-            await ThreadHandler.sleep(bgthread.current_timeout, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
+        setInterval(async () => {
 
             /**
              * On check le bloquage par param toutes les minutes
              */
             try {
 
-                if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
-                    (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
+                let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
 
-                    let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name);
-
-                    if (new_param != this.block_param_by_name[bgthread.name]) {
-                        ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
-                    }
-
-                    this.block_param_by_name[bgthread.name] = new_param;
-                    this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
+                if (new_param != this.block_param_by_name[bgthread.name]) {
+                    ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
                 }
+
+                this.block_param_by_name[bgthread.name] = new_param;
             } catch (error) {
                 ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
             }
 
             if (!!this.block_param_by_name[bgthread.name]) {
-                continue;
+                return;
             }
 
             try {
 
                 if (!BGThreadServerController.SERVER_READY) {
-                    continue;
+                    return;
                 }
 
                 let timeout_coef: number = 1;
@@ -181,6 +173,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             } catch (error) {
                 ConsoleHandler.error(error);
             }
-        }
+        }, bgthread.current_timeout);
     }
 }
