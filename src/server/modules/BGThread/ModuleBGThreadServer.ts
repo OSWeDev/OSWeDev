@@ -126,7 +126,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        setInterval(async () => {
+        while (true) {
+
+            await ThreadHandler.sleep(bgthread.current_timeout, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
 
             /**
              * On check le bloquage par param toutes les minutes
@@ -145,13 +147,13 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             }
 
             if (!!this.block_param_by_name[bgthread.name]) {
-                return;
+                continue;
             }
 
             try {
 
                 if (!BGThreadServerController.SERVER_READY) {
-                    return;
+                    continue;
                 }
 
                 let timeout_coef: number = 1;
@@ -173,6 +175,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             } catch (error) {
                 ConsoleHandler.error(error);
             }
-        }, bgthread.current_timeout);
+        }
     }
 }

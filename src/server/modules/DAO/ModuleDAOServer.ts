@@ -111,6 +111,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Le throttle actuellement en place. Si on le change via les params il faut bien le reconstruire avec le throttle helper
      */
     private current_throttled_select_query_size_ms: number = 10;
+
+    private semaphore_check_throttled_select_query_size_ms: boolean = false;
+
     /**
      * Les params du throttled_select_query
      */
@@ -5402,7 +5405,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async check_throttled_select_query_size_ms() {
         let old = this.throttled_select_query_size_ms ? this.throttled_select_query_size_ms : 1;
         try {
-            this.throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 1, 600000);
+            /**
+             * Cas particulier qui nécessite un sémaphore pour pas demander en boucle ce param, qui nécessite un check_throttled_select_query_size_ms ...
+             */
+            if (!this.semaphore_check_throttled_select_query_size_ms) {
+                this.semaphore_check_throttled_select_query_size_ms = true;
+                this.throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 1, 600000);
+                this.semaphore_check_throttled_select_query_size_ms = false;
+            }
         } catch (error) {
             // Normal pendant le démarrage
             this.throttled_select_query_size_ms = old;

@@ -144,6 +144,7 @@ export default class AccessPolicyServerController {
 
         let uid: number = StackContext.get('UID');
         if (!uid) {
+            ConsoleHandler.log('TEMP_DELETE_ME:checkAccessSync:!UID:' + policy_name + ':');
             // profil anonyme
             return AccessPolicyServerController.checkAccessTo(
                 target_policy,

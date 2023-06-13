@@ -30,7 +30,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     private throttled_param_cache_value: { [param_name: string]: any } = {};
     private throttled_param_cache_lastupdate_ms: { [param_name: string]: number } = {};
-    private semaphore_param: { [param_name: string]: boolean } = {};
+    private semaphore_param: { [param_name: string]: Promise<any> } = {};
 
     private constructor() {
         super(ModuleParams.getInstance().name);
@@ -192,30 +192,30 @@ export default class ModuleParamsServer extends ModuleServerBase {
         if (this.semaphore_param[text]) {
             /**
              * Cas d'un param qu'on demande en boucle ou avant le chargement en cours qui initialise le cache.
-             *   Pour le moment on retourne la valeur par défaut
+             *   On attend que le chargement en cours se termine et on retourne la valeur.
              */
-            return default_if_undefined;
+            return await this.semaphore_param[text];
         }
 
-        this.semaphore_param[text] = true;
+        this.semaphore_param[text] = new Promise(async (resolve, reject) => {
 
-        let param: ParamVO = null;
-        try {
-            param = await query(ParamVO.API_TYPE_ID)
-                .filter_by_text_eq('name', text, ParamVO.API_TYPE_ID, true)
-                .exec_as_server(exec_as_server)
-                .select_vo<ParamVO>();
-        } catch (error) {
-            ConsoleHandler.error('getParamValue:' + text + ':' + error);
-        }
-        let res = param ? transformer(param.value) : default_if_undefined;
+            let param: ParamVO = null;
+            try {
+                param = await query(ParamVO.API_TYPE_ID)
+                    .filter_by_text_eq('name', text, ParamVO.API_TYPE_ID, true)
+                    .exec_as_server(exec_as_server)
+                    .select_vo<ParamVO>();
+            } catch (error) {
+                ConsoleHandler.error('getParamValue:' + text + ':' + error);
+            }
+            let res = param ? transformer(param.value) : default_if_undefined;
 
-        this.throttled_param_cache_lastupdate_ms[text] = Dates.now_ms();
-        this.throttled_param_cache_value[text] = res;
+            this.throttled_param_cache_lastupdate_ms[text] = Dates.now_ms();
+            this.throttled_param_cache_value[text] = res;
 
-        this.semaphore_param[text] = false;
-
-        return res;
+            resolve(res);
+        });
+        return await this.semaphore_param[text];
     }
 
     private async _setParamValue(param_name: string, param_value: string | number | boolean, exec_as_server: boolean = false) {
