@@ -205,6 +205,7 @@ export default class FieldFiltersVOManager {
                     readable_field_filters, // TODO: to be removed (deprecated)
                     readable_context_filters,
                     is_filter_hidden,
+                    label_code_text,
                     context_filter,
                     vo_field_ref,
                     label,

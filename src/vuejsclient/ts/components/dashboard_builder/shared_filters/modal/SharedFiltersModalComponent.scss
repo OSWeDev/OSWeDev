@@ -44,6 +44,11 @@
                 display: inline;
                 position: relative;
                 bottom: 4px;
+
+                .hidden-filter {
+                    display: inline;
+                    position: relative;
+                }
             }
         }
     }

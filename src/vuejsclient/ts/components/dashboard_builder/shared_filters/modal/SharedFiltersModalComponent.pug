@@ -88,20 +88,25 @@
                                     div.select_field_filters
                                         h5.input_label {{ label('dashboard_builder.shared_filters.select_field_filters') }}
                                         .select_field_filters_options
-                                            template(v-for="(option, translatable_field_filters_code) in readable_field_filters")
+                                            template(v-for="(option, readable_field_filters_label) in readable_field_filters")
                                                 div.option.col-md-12
                                                     .input_wrapper  
                                                         toggle-button(
                                                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                                                             @change="handle_toggle_select_field_filters(option)"  
-                                                            :name="base_filter + '_' + translatable_field_filters_code" 
-                                                            :id="base_filter + '_' + translatable_field_filters_code" 
+                                                            :name="base_filter + '_' + option.label_code_text" 
+                                                            :id="base_filter + '_' + option.label_code_text" 
                                                             :value="is_readable_field_filter_selected(option)" 
+                                                            :disabled="!is_sharable_field_filter(option)"
                                                             :sync="true"
                                                             :width="60"  
                                                         )                            
-                                                    .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }} 
-                                                        span(v-if="option?.is_filter_hidden") ({{ label('dashboard_builder.shared_filters.filter_hidden') }})
+                                                    .input_label {{ readable_field_filters_label }} 
+                                                        .hidden-filter(v-if="option?.is_filter_hidden") 
+                                                            span ({{ label('dashboard_builder.shared_filters.filter_hidden') }})
+                                                        template(v-for="(dashboard, key) in selected_dashboards")
+                                                            div(v-if="!field_filters_exist_in_selected_dasboard(option, dashboard)") 
+                                                                span {{ label('dashboard_builder.shared_filters.field_filters_does_no_exist_in_dashboard') }} : {{ dashboard_label(dashboard) }}
                   
                 .modal-footer
                     template(v-if="!shared_filters?.id")

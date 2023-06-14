@@ -3,6 +3,7 @@ import VOFieldRefVO from '../vos/VOFieldRefVO';
 
 /**
  * IReadableFieldFilters
+ *  - Human readable field filters
  */
 export default interface IReadableFieldFilters {
 
@@ -10,6 +11,11 @@ export default interface IReadableFieldFilters {
      * The actual field_filter label
      */
     label: string;
+
+    /**
+     * The actual field_filter label_code_text
+     */
+    label_code_text: string;
 
     /**
      * @deprecated use readable_context_filters instead

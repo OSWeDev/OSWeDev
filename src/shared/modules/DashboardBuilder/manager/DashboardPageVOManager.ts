@@ -149,20 +149,20 @@ export default class DashboardPageVOManager {
         const self = DashboardPageVOManager.getInstance();
 
         // Check has all page_wigets already loaded
-        const has_all_dashboard_pages_loaded = dashboard_ids.every((page_id) => {
-            return self.dashboard_pages_by_dashboard_id[page_id];
+        const has_all_dashboard_pages_loaded = dashboard_ids.every((dashboard_id) => {
+            return self.dashboard_pages_by_dashboard_id[dashboard_id]?.length > 0;
         });
 
         // Return dashboard_pages if already loaded
         if (!options?.refresh && has_all_dashboard_pages_loaded) {
-            const _dashboards_pages: DashboardPageVO[] = [];
+            const pages: DashboardPageVO[] = [];
 
-            dashboard_ids.map((page_id) => {
-                const d_pages = self.dashboard_pages_by_dashboard_id[page_id];
-                _dashboards_pages.push(...d_pages);
+            dashboard_ids.map((dashboard_id) => {
+                const _pages = self.dashboard_pages_by_dashboard_id[dashboard_id];
+                pages.push(..._pages);
             });
 
-            return _dashboards_pages;
+            return pages;
         }
 
         // If already loaded, there is no need to check access
@@ -179,10 +179,11 @@ export default class DashboardPageVOManager {
             .select_vos<DashboardPageVO>();
 
         dashboard_ids.map((dashboard_id) => {
-            const d_pages = dashboards_pages.filter(
-                (d_page) => d_page.dashboard_id == dashboard_id
+            const pages = dashboards_pages.filter(
+                (page) => page.dashboard_id == dashboard_id
             );
-            self.dashboard_pages_by_dashboard_id[dashboard_id] = d_pages;
+
+            self.dashboard_pages_by_dashboard_id[dashboard_id] = pages;
         });
 
         return dashboards_pages;

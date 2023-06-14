@@ -262,7 +262,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.form_errors.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Configurer les filtres à partagé'
+            'fr-fr': 'Configurer les filtres à partager'
         }, 'dashboard_builder.shared_filters.field_filters_selection_tab.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -312,6 +312,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtre caché'
         }, 'dashboard_builder.shared_filters.filter_hidden.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre inexistant dans le dashboard'
+        }, 'dashboard_builder.shared_filters.field_filters_does_no_exist_in_dashboard.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Aucun filtre partagé trouvé'

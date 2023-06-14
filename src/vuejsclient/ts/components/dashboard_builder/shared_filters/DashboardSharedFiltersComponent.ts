@@ -371,7 +371,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     /**
      * merge_all_selectionnable_field_filters
      * - Merge all selectionnable_field_filters_by_page_ids
-     * - This method is used to create the selectionnable_field_filters by combining all selectionnable_field_filters_by_page_ids
+     * - This method is used to create the single selectionnable_field_filters by combining (Union) all selectionnable_field_filters_by_page_ids
      *
      * @returns {ISelectionnableFieldFilters}
      */
