@@ -13,6 +13,8 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../VueAppController';
 import VueComponentBase from '../../../VueComponentBase';
 import './SharedFiltersModalComponent.scss';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 
 /**
  * We must have a first tab to select the
@@ -51,7 +53,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     private dashboard_query_string: string = null;
 
     private selected_field_filters: { [api_type_id: string]: { [field_id: string]: boolean } } = null;
-    private selected_shared_with_dashboard_ids: number[] = [];
+    private selected_shared_with_dashboard_ids: NumRange[] = [];
 
     private on_validation_callback: (props: Partial<SharedFiltersVO>) => Promise<void> = null;
     private on_close_callback: (props?: Partial<SharedFiltersVO>) => Promise<void> = null;
@@ -192,9 +194,17 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     @Watch('selectionnable_dashboards', { immediate: true })
     private onchange_selectionnable_dashboards(): void {
         if (this.selected_shared_with_dashboard_ids?.length > 0) {
-            this.selected_dashboards = this.selectionnable_dashboards.filter((dashboard) =>
-                this.selected_shared_with_dashboard_ids.includes(dashboard.id)
-            );
+            this.selected_dashboards = this.selectionnable_dashboards.filter((dashboard) => {
+                let has_dashboard_id = false;
+
+                RangeHandler.foreach_ranges_sync(this.selected_shared_with_dashboard_ids, (dashboard_id: number) => {
+                    if (dashboard_id == dashboard.id) {
+                        has_dashboard_id = true;
+                    }
+                });
+
+                return has_dashboard_id;
+            });
         }
     }
 
@@ -205,8 +215,12 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     @Watch('selected_dashboards', { immediate: true })
     private onchange_selected_dashboards(): void {
-        this.selected_shared_with_dashboard_ids = this.selected_dashboards.map(
+        const selected_dashboards_ids = this.selected_dashboards.map(
             (dashboard) => dashboard.id
+        );
+
+        this.selected_shared_with_dashboard_ids = RangeHandler.get_ids_ranges_from_list(
+            selected_dashboards_ids
         );
     }
 

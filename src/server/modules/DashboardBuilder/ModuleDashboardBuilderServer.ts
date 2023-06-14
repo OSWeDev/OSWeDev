@@ -314,6 +314,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.filter_hidden.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Aucun filtre partagé trouvé'
+        }, 'dashboard_builder.shared_filters.empty_list.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nom des filtres partagé requis'
         }, 'dashboard_builder.shared_filters.name_required.___LABEL___'));
 

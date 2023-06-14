@@ -371,6 +371,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * handle_edit_favorites_filters
      *  - Open the modal to edit the favorites_filters
+     *  - We must have a delay before open the modal (to load the active_field_filters)
+     *  - Scenario: In case of a user select a favorites_filters it may take some time for the active_field_filters to be updated
      *
      * @param {FavoritesFiltersVO} favorites_filters
      */

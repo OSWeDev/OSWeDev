@@ -1,4 +1,5 @@
 import AbstractVO from '../../VO/abstract/AbstractVO';
+import NumRange from '../../DataRender/vos/NumRange';
 
 /**
  * SharedFiltersVO
@@ -26,5 +27,5 @@ export default class SharedFiltersVO extends AbstractVO {
 
     // ids of page which this shared_filters is shared with
     // TODO: change into num_ranges
-    public shared_with_dashboard_ids: number[];
+    public shared_with_dashboard_ids: NumRange[];
 }

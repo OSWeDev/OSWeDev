@@ -87,6 +87,7 @@ export default class SharedFiltersVOManager {
             const s_filters = shared_filters.filter(
                 (pwidget) => pwidget.dashboard_id == dashboard_id
             );
+
             self.shared_filters_by_dashboard_id[dashboard_id] = s_filters;
         });
 
@@ -104,7 +105,9 @@ export default class SharedFiltersVOManager {
      */
     public static async save_shared_filters(shared_filters: SharedFiltersVO): Promise<boolean> {
 
-        const res = await ModuleDAO.getInstance().insertOrUpdateVO(shared_filters);
+        const res = await ModuleDAO.getInstance().insertOrUpdateVO(
+            shared_filters
+        );
 
         return res?.id != null;
     }
@@ -120,7 +123,9 @@ export default class SharedFiltersVOManager {
      */
     public static async delete_shared_filters(shared_filters: SharedFiltersVO): Promise<boolean> {
 
-        const res = await ModuleDAO.getInstance().deleteVOs([shared_filters]);
+        const res = await ModuleDAO.getInstance().deleteVOs(
+            [shared_filters]
+        );
 
         return res?.shift()?.id != null;
     }

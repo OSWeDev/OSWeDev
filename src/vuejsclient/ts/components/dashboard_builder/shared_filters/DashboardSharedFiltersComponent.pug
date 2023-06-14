@@ -33,14 +33,18 @@
                                 i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                                 
                         template(v-else)
-                            //- Load pages shared_filters
-                            .shared-filters-wrapper(v-for="(shared_filters, key) in shared_filters_by_dashboard_ids[dashboard.id]")
-                                .shared-filters-name
-                                    span {{ shared_filters.name }}
-                                    a.btn.btn-sm.btn-success.pull-right.option__edit(@click='handle_update_shared_filters(shared_filters)')
-                                        i.fa-duotone.fa-pencil-alt
-                                    a.btn.btn-sm.btn-danger.pull-right.option__delete(@click='handle_delete_shared_filters(shared_filters)') 
-                                        i.fa-duotone.fa-trash-alt
+                            //- Load all dashboard shared_filters
+                            .shared-filters-wrapper
+                                template(v-if="!(shared_filters.length > 0)")
+                                    .shared-filters-name
+                                        span {{ label('dashboard_builder.shared_filters.empty_list') }}
+                                template(v-for="(_shared_filters, key) in shared_filters")
+                                    .shared-filters-name
+                                        span {{ _shared_filters.name }}
+                                        a.btn.btn-sm.btn-success.pull-right.option__edit(@click='handle_update_shared_filters(_shared_filters)')
+                                            i.fa-duotone.fa-pencil-alt
+                                        a.btn.btn-sm.btn-danger.pull-right.option__delete(@click='handle_delete_shared_filters(_shared_filters)') 
+                                            i.fa-duotone.fa-trash-alt
 
                         .create-shared-filters
                             a.btn.btn-success.option__create(@click="handle_create_shared_filters(dashboard.id)") 

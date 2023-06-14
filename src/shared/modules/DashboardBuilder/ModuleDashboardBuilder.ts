@@ -270,7 +270,7 @@ export default class ModuleDashboardBuilder extends Module {
 
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
             new ModuleTableField('field_filters_to_share', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters To Share', false),
-            new ModuleTableField('shared_with_dashboard_ids', ModuleTableField.FIELD_TYPE_int_array, 'Filtre partagé avec les pages', false),
+            new ModuleTableField('shared_with_dashboard_ids', ModuleTableField.FIELD_TYPE_refrange_array, 'Filtre partagé avec les pages', false),
         ];
 
         this.datatables.push(
@@ -511,7 +511,16 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('interSrcRefFieldId', ModuleTableField.FIELD_TYPE_string, 'interSrcRefFieldId'),
         ];
 
-        this.datatables.push(new ModuleTable(this, ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, () => new ManyToManyReferenceDatatableFieldVO(), datatable_fields, null, "ManyToManyReferenceDatatableFieldVO"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                ManyToManyReferenceDatatableFieldVO.API_TYPE_ID,
+                () => new ManyToManyReferenceDatatableFieldVO(),
+                datatable_fields,
+                null,
+                "ManyToManyReferenceDatatableFieldVO"
+            )
+        );
     }
 
     private initialize_ManyToOneReferenceDatatableFieldVO() {
@@ -601,7 +610,16 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('_src_field_id', ModuleTableField.FIELD_TYPE_string, '_src_field_id'),
         ];
 
-        this.datatables.push(new ModuleTable(this, RefRangesReferenceDatatableFieldVO.API_TYPE_ID, () => new RefRangesReferenceDatatableFieldVO(), datatable_fields, null, "RefRangesReferenceDatatableFieldVO"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                RefRangesReferenceDatatableFieldVO.API_TYPE_ID,
+                () => new RefRangesReferenceDatatableFieldVO(),
+                datatable_fields,
+                null,
+                "RefRangesReferenceDatatableFieldVO"
+            )
+        );
     }
 
     private initialize_SelectBoxDatatableFieldVO() {

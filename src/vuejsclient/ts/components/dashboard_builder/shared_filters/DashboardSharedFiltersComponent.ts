@@ -49,6 +49,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
     private start_update: boolean = false;
 
+    private is_shared_filters_updating: boolean = false;
     private is_shared_filters_loading: boolean = true;
     private is_loading: boolean = true;
 
@@ -59,7 +60,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         [page_id: number]: ISelectionnableFieldFilters
     } = {};
     // The shared_filters of dashboard pages (One page can have many shared_filters)
-    private shared_filters_by_dashboard_ids: { [page_id: number]: SharedFiltersVO[] } = {};
+    private shared_filters: SharedFiltersVO[] = [];
 
     private throttled_load_dashboard_pages = ThrottleHelper.getInstance().declare_throttle_without_args(
         this.load_dashboard_pages.bind(this),
@@ -67,7 +68,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         { leading: false, trailing: true }
     );
 
-    private throttled_load_all_shared_filters = ThrottleHelper.getInstance().declare_throttle_without_args(
+    private throttled_load_all_shared_filters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
         this.load_all_shared_filters.bind(this),
         50,
         { leading: false, trailing: true }
@@ -207,6 +208,8 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * @param shared_filters
      */
     private handle_update_shared_filters(shared_filters: SharedFiltersVO) {
+        this.is_shared_filters_updating = true;
+
         const {
             readable_field_filters,
             field_filters,
@@ -218,7 +221,9 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
                 readable_field_filters: readable_field_filters,
                 shared_filters
             },
-            this.handle_save_shared_filters.bind(this)
+            this.handle_save_shared_filters.bind(this),
+            this.handle_update_shared_filters_modal_close.bind(this),
+            this.handle_delete_shared_filters.bind(this)
         );
     }
 
@@ -229,7 +234,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * @param shared_filters
      */
     private handle_delete_shared_filters(shared_filters: SharedFiltersVO) {
-
+        this.delete_shared_filters(shared_filters);
     }
 
     /**
@@ -256,6 +261,14 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     }
 
     /**
+     * handle_update_shared_filters_modal_close
+     * - Handle shared_filters edit Modal close
+     */
+    private handle_update_shared_filters_modal_close(): void {
+        this.is_shared_filters_updating = false;
+    }
+
+    /**
      * Save Shared Filters
      *
      * @param {SharedFiltersVO} shared_filters
@@ -271,7 +284,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
                 );
 
                 if (success) {
-                    await self.load_all_shared_filters();
+                    self.throttled_load_all_shared_filters({ refresh: true });
                     resolve({
                         body: self.label('dashboard_builder.shared_filters.save_ok'),
                         config: {
@@ -297,28 +310,68 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     }
 
     /**
+     * delete_shared_filters
+     * - Delete shared_filters after confirmation
+     *
+     * @param {SharedFiltersVO} [shared_filters]
+     * @returns {Promise<void>}
+     */
+    private async delete_shared_filters(shared_filters: SharedFiltersVO): Promise<void> {
+        let self = this;
+
+        if (!shared_filters) {
+            return;
+        }
+
+        self.snotify.async(self.label('dashboard_builder.shared_filters.delete_start'), () =>
+            new Promise(async (resolve, reject) => {
+                const success = await SharedFiltersVOManager.delete_shared_filters(
+                    shared_filters
+                );
+
+                if (success) {
+                    self.throttled_load_all_shared_filters({ refresh: true });
+                    resolve({
+                        body: self.label('dashboard_builder.shared_filters.delete_ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } else {
+                    reject({
+                        body: self.label('dashboard_builder.shared_filters.delete_failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
+    }
+
+    /**
      * load_all_shared_filters
      * - Reload all shared_filters
-     * - This method is called after each shared_filters save
-     * - This method is called after each shared_filters delete
-     * - This method is called after each dashboard_page load
+     * - This method is called after each shared_filters save, delete and page load
      */
-    private async load_all_shared_filters() {
+    private async load_all_shared_filters(props: any[]) {
+        const options = props?.shift();
+
         this.is_shared_filters_loading = true;
 
-        // Reload shared_filters_by_dashboard_ids
+        // Reload shared_filters
         const shared_filters = await SharedFiltersVOManager.find_shared_filters_by_dashboard_ids(
-            [this.dashboard.id]
+            [this.dashboard.id],
+            options
         );
 
-        // Create shared_filters_by_dashboard_ids
-        const shared_filters_by_dashboard_ids: { [page_id: number]: SharedFiltersVO[] } = {};
-
-        shared_filters_by_dashboard_ids[this.dashboard.id] = shared_filters.filter((shared_filter) => {
-            return shared_filter.dashboard_id == this.dashboard.id;
-        });
-
-        this.shared_filters_by_dashboard_ids = shared_filters_by_dashboard_ids;
+        this.shared_filters = shared_filters;
 
         this.is_shared_filters_loading = false;
     }
