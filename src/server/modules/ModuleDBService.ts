@@ -7,7 +7,7 @@ import ModuleTableDBService from './ModuleTableDBService';
 
 export default class ModuleDBService {
 
-    public static reloadParamsTimeout: number = 30000;
+    public static reloadParamsTimeout: number = 300000;
 
     public static getInstance(db): ModuleDBService {
         if (!ModuleDBService.instance) {
@@ -65,18 +65,19 @@ export default class ModuleDBService {
         }
     }
 
+    /**
+     * @deprecated should use ModuleParams instead now
+     */
     public async reloadParamsThread(module: Module) {
 
-        while (true) {
-
-            await ThreadHandler.sleep(ModuleDBService.reloadParamsTimeout, 'ModuleDBService.reloadParamsThread');
+        setInterval(async () => {
 
             let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
 
             if (paramsChanged && paramsChanged.length) {
                 await module.hook_module_on_params_changed(paramsChanged);
             }
-        }
+        }, ModuleDBService.reloadParamsTimeout);
     }
 
     // Dernière étape : Configure
@@ -97,6 +98,9 @@ export default class ModuleDBService {
         return true;
     }
 
+    /**
+     * @deprecated should use ModuleParams instead now
+     */
     public async loadParams(module: Module) {
 
 
