@@ -51,6 +51,8 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
     public block_param_by_name: { [bgthread_name: string]: boolean } = {};
 
+    private block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
+
     private constructor() {
         super(ModuleBGThread.getInstance().name);
     }
@@ -135,13 +137,19 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
              */
             try {
 
-                let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
+                if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
+                    (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
 
-                if (new_param != this.block_param_by_name[bgthread.name]) {
-                    ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
+                    let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
+
+                    if (new_param != this.block_param_by_name[bgthread.name]) {
+                        ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
+                    }
+
+                    this.block_param_by_name[bgthread.name] = new_param;
+                    this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
                 }
 
-                this.block_param_by_name[bgthread.name] = new_param;
             } catch (error) {
                 ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
             }

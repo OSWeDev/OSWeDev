@@ -496,25 +496,26 @@ export default class PushDataVueModule extends VueModuleBase {
 
                                 let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
 
-                                let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.warning(content, {
-                                    timeout: 3000
-                                });
+                                // let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
+                                // VueAppBase.instance_.vueInstance.snotify.warning(content, {
+                                //     timeout: 3000
+                                // });
 
-                                setTimeout(() => {
-                                    location.href = PARAM_TECH_DISCONNECT_URL;
-                                }, 3000);
+                                // setTimeout(() => {
+                                location.href = PARAM_TECH_DISCONNECT_URL;
+                                // }, 3000);
                                 break;
 
                             case NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME:
 
-                                let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
-                                    timeout: 3000
-                                });
-                                setTimeout(() => {
-                                    location.href = '/';
-                                }, 3000);
+                                // On teste de supprimer les délais pour éviter les appels à des méthodes qui ne sont plus accessibles typiquement lors d'un impersonate...
+                                // let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
+                                // VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
+                                //     timeout: 3000
+                                // });
+                                // setTimeout(() => {
+                                location.href = '/';
+                                // }, 3000);
                                 break;
 
                             case NotificationVO.TECH_RELOAD:

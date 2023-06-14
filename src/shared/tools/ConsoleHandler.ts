@@ -38,9 +38,12 @@ export default class ConsoleHandler {
 
         if (!!ConsoleHandler.logger_handler) {
             ConsoleHandler.logger_handler.log("ERROR -- " + msg, ...params);
+            // On ERROR we flush immediately
+            ConsoleHandler.logger_handler.force_flush();
         }
         ConsoleHandler.log_to_console_cache.push({ msg: msg, params: params, log_type: 'error' });
-        ConsoleHandler.log_to_console_throttler();
+        // On ERROR we flush immediately
+        ConsoleHandler.log_to_console();
     }
 
     public static warn(error: string | Error, ...params): void {

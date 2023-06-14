@@ -1,5 +1,5 @@
 import VueFlags from "@growthbunker/vueflags";
-import 'jquery';
+import $ from 'jquery';
 import 'bootstrap';
 import moment from 'moment';
 

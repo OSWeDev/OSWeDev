@@ -1,5 +1,6 @@
 import IAPIController from '../../../shared/modules/API/interfaces/IAPIController';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ServerAPIController implements IAPIController {
 

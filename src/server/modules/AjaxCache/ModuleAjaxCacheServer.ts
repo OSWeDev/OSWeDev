@@ -122,13 +122,14 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 }
 
                 let params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
-                let api_res = await apiDefinition.SERVER_HANDLER(...params);
-                res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
-
-                // if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
-                //     (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
-                //     res.requests_results[wrapped_request.index] = APIController.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
-                // }
+                try {
+                    let api_res = await apiDefinition.SERVER_HANDLER(...params);
+                    res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
+                } catch (error) {
+                    let session: IServerUserSession = (req as any).session;
+                    ConsoleHandler.error('Erreur API:requests_wrapper:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":error:" + error + ':');
+                    res.requests_results[wrapped_request.index] = null;
+                }
             });
 
         }
