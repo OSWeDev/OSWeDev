@@ -186,15 +186,11 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * TODO: Select intersect field_filters between dashboard_pages
      */
     private handle_create_shared_filters() {
-        const {
-            readable_field_filters,
-            field_filters,
-        } = this.merge_all_selectionnable_field_filters();
+        const selectionnable_field_filters = this.merge_all_selectionnable_field_filters();
 
         this.get_Sharedfiltersmodalcomponent.open_modal_for_creation(
             {
-                selectionnable_field_filters: field_filters,
-                readable_field_filters: readable_field_filters,
+                selectionnable_field_filters,
                 dashboard_id: this.dashboard.id,
             },
             this.handle_save_shared_filters.bind(this)
@@ -210,15 +206,11 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     private handle_update_shared_filters(shared_filters: SharedFiltersVO) {
         this.is_shared_filters_updating = true;
 
-        const {
-            readable_field_filters,
-            field_filters,
-        } = this.merge_all_selectionnable_field_filters();
+        const selectionnable_field_filters = this.merge_all_selectionnable_field_filters();
 
         this.get_Sharedfiltersmodalcomponent.open_modal_for_update(
             {
-                selectionnable_field_filters: field_filters,
-                readable_field_filters: readable_field_filters,
+                selectionnable_field_filters,
                 shared_filters
             },
             this.handle_save_shared_filters.bind(this),

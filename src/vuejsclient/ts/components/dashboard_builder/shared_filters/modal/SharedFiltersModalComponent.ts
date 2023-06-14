@@ -15,6 +15,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import './SharedFiltersModalComponent.scss';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ISelectionnableFieldFilters from '../interface/ISelectionnableFieldFilters';
 
 /**
  * We must have a first tab to select the
@@ -75,25 +76,26 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     public open_modal_for_creation(
         props: {
+            selectionnable_field_filters: ISelectionnableFieldFilters,
             dashboard_id: number,
-            selectionnable_field_filters: FieldFiltersVO,
-            readable_field_filters: { [label: string]: IReadableFieldFilters },
         } = null,
         validation_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>,
         close_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>
     ): void {
         this.is_modal_open = true;
 
-        this.readable_field_filters = props?.readable_field_filters ?? null;
         this.dashboard_id = props?.dashboard_id ?? null;
 
-        const selectionnable_field_filters: FieldFiltersVO = props?.selectionnable_field_filters ?? null;
+        const selectionnable_field_filters: ISelectionnableFieldFilters = props?.selectionnable_field_filters ?? null;
 
+        // Readable field filters
+        this.readable_field_filters = selectionnable_field_filters.readable_field_filters ?? null;
         // Fields filters settings
         // Modal selectionnable filters
-        this.selectionnable_field_filters = selectionnable_field_filters;
+        this.selectionnable_field_filters = selectionnable_field_filters.field_filters ?? null;
+
         // We must set all selected by default
-        this.set_selected_field_filters(selectionnable_field_filters, true);
+        this.set_selected_field_filters(selectionnable_field_filters.field_filters, true);
 
         if (typeof validation_callback == 'function') {
             this.on_validation_callback = validation_callback;
@@ -113,8 +115,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     public open_modal_for_update(
         props: {
-            selectionnable_field_filters: FieldFiltersVO,
-            readable_field_filters: { [label: string]: IReadableFieldFilters },
+            selectionnable_field_filters: ISelectionnableFieldFilters,
             shared_filters: SharedFiltersVO,
         } = null,
         validation_callback?: (props?: Partial<SharedFiltersVO>) => Promise<void>,
@@ -133,14 +134,13 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
         this.shared_filters = shared_filters;
         this.dashboard_id = shared_filters.dashboard_id;
 
-        const selectionnable_field_filters: FieldFiltersVO = props?.selectionnable_field_filters ?? null;
+        const selectionnable_field_filters: ISelectionnableFieldFilters = props?.selectionnable_field_filters ?? null;
 
         // Readable field filters
-        this.readable_field_filters = props?.readable_field_filters ?? null;
-
+        this.readable_field_filters = selectionnable_field_filters.readable_field_filters ?? null;
         // Fields filters settings
         // Modal selectionnable filters
-        this.selectionnable_field_filters = selectionnable_field_filters;
+        this.selectionnable_field_filters = selectionnable_field_filters.field_filters ?? null;
 
         // We must set all selected with the shared_filters properties
         this.selected_shared_with_dashboard_ids = shared_filters?.shared_with_dashboard_ids ?? [];
