@@ -270,6 +270,15 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             return;
         }
 
+        let is_selected_dashboard_default_field_filters_empty = true;
+
+        if (this.selected_dashboards?.length > 0) {
+            is_selected_dashboard_default_field_filters_empty = this.selected_dashboards?.some((dashboard) => {
+                const dashboard_field_filters = this.default_field_filters_by_dashboard_id[dashboard.id];
+                return !dashboard_field_filters || (Object.keys(dashboard_field_filters).length == 0);
+            });
+        }
+
         for (const api_type_id in field_filters) {
             const filter = field_filters[api_type_id];
 
@@ -289,7 +298,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
 
                 // If field filter is not sharable
                 // we must unselect it
-                if (this.default_field_filters_by_dashboards_loaded && !is_sharable) {
+                if (!is_selected_dashboard_default_field_filters_empty && !is_sharable) {
                     const field_filters_selection = {};
 
                     field_filters_selection[api_type_id] = {};
@@ -387,11 +396,11 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
         for (const i in selected_dashboards_ids) {
             const dashboard_id = selected_dashboards_ids[i];
 
-            dashboard_pages_by_dashboard_id[dashboard_id] = dashboard_pages.filter(
+            dashboard_pages_by_dashboard_id[dashboard_id] = dashboard_pages?.filter(
                 (dashboard_page) => dashboard_page.dashboard_id == dashboard_id
             );
 
-            default_field_filters_by_dashboard_id[dashboard_id] = dashboard_pages_by_dashboard_id[dashboard_id].reduce(
+            default_field_filters_by_dashboard_id[dashboard_id] = dashboard_pages_by_dashboard_id[dashboard_id]?.reduce(
                 (accumulator, dashboard_page) => ({
                     ...accumulator,
                     ...default_field_filters_by_dashboard_page_id[dashboard_page.id]
