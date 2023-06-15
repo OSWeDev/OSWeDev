@@ -322,6 +322,9 @@ export default class FieldFiltersVOManager {
     public static merge_field_filters(
         from_field_filters: FieldFiltersVO,
         with_field_filters: FieldFiltersVO,
+        options?: {
+            keep_empty_context_filter?: boolean
+        }
     ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO; }; } {
 
         let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
@@ -332,7 +335,7 @@ export default class FieldFiltersVOManager {
             for (const field_id in filters) {
                 const context_filter = filters[field_id];
 
-                if (!context_filter) {
+                if (!context_filter && !options?.keep_empty_context_filter) {
                     continue;
                 }
 

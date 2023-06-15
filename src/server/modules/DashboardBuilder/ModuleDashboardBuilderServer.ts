@@ -246,6 +246,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.shared_filters_table_head.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres Partagé par ce Dashboard'
+        }, 'dashboard_builder.shared_filters.shared_filters_from_this_dashboard_table_head.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres Partagé avec ce Dashboard'
+        }, 'dashboard_builder.shared_filters.shared_filters_with_this_dashboard_table_head.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Ajuster les filtres correspondants aux filtres partagés'
         }, 'dashboard_builder.shared_filters.custom_api_type_ids.___LABEL___'));
 

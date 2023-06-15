@@ -22,17 +22,15 @@
                                 li.error(v-for="error in form_errors")
                                     div.alert.alert-danger {{ error }}
 
-                        ul.nav.nav-pills.nav-fill(role="tablist")
-                            li(:class="{'active': active_tab_view == 'share_with_dashboard_tab'}")
+                        ul.row.nav.nav-pills.nav-fill(role="tablist")
+                            li.col-md-6(:class="{'active': active_tab_view == 'share_with_dashboard_tab'}")
                                 a#export_pill.nav-item.nav-link(
-                                    :class="{'active': active_tab_view == 'share_with_dashboard_tab'}"
                                     @click="set_active_tab_view('share_with_dashboard_tab')"
-                                )  {{ label('dashboard_builder.shared_filters.share_with_dashboard_tab') }}
-                            li(:class="{'active': active_tab_view == 'field_filters_selection_tab'}")
+                                ) 1 - {{ label('dashboard_builder.shared_filters.share_with_dashboard_tab') }}
+                            li.col-md-6(:class="{'active': active_tab_view == 'field_filters_selection_tab'}")
                                 a#field_filters_selection_pill.nav-item.nav-link(
-                                    :class="{'active': active_tab_view == 'field_filters_selection_tab'}"
                                     @click="set_active_tab_view('field_filters_selection_tab')"
-                                ) {{ label('dashboard_builder.shared_filters.field_filters_selection_tab') }}
+                                ) 2 - {{ label('dashboard_builder.shared_filters.field_filters_selection_tab') }}
 
                         .tab-content
                             
@@ -90,13 +88,15 @@
                                         .select_field_filters_options
                                             template(v-for="(option, readable_field_filters_label) in readable_field_filters")
                                                 div.option.col-md-12
-                                                    .input_wrapper  
+                                                    .input_wrapper(:class="{'disabled': !is_sharable_field_filter(option)}")
                                                         toggle-button(
-                                                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                                                             @change="handle_toggle_select_field_filters(option)"  
+
+                                                            v-model="is_readable_field_filter_selected(option)" 
+
+                                                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                                                             :name="base_filter + '_' + option.label_code_text" 
                                                             :id="base_filter + '_' + option.label_code_text" 
-                                                            :value="is_readable_field_filter_selected(option)" 
                                                             :disabled="!is_sharable_field_filter(option)"
                                                             :sync="true"
                                                             :width="60"  

@@ -59,6 +59,10 @@ export default class DashboardVOManager {
 
         const limit = pagination?.limit ?? 50;
 
+        if (!options?.refresh && self.all_dashboards_loaded) {
+            return self.dashboards;
+        }
+
         // Check access
         const has_access = await DashboardVOManager.check_dashboard_vo_access();
 
@@ -66,11 +70,13 @@ export default class DashboardVOManager {
             return;
         }
 
+        self.all_dashboards_loaded = false;
+
         if (!context_query) {
             context_query = query(DashboardVO.API_TYPE_ID);
         }
 
-        // force set base_api_type_id to DashboardVO.API_TYPE_ID
+        // force set base_api_type_id to the VO API_TYPE_ID
         context_query.set_base_api_type_id(DashboardVO.API_TYPE_ID);
 
         if (pagination?.sorts?.length > 0) {
@@ -80,8 +86,53 @@ export default class DashboardVOManager {
         const dashboards = await context_query.set_limit(limit)
             .select_vos<DashboardVO>();
 
+        self.dashboards = dashboards;
+
+        self.all_dashboards_loaded = true;
 
         return dashboards;
+    }
+
+    /**
+     * find_dashboard_by_id
+     * - Find dashboard by id
+     *
+     * @param {ContextQueryVO} context_query
+     * @param {boolean} options.refresh
+     * @returns {Promise<DashboardVO[]>}
+     */
+    public static async find_dashboard_by_id(
+        dashboard_id: number,
+        options?: {
+            refresh?: boolean
+        }
+    ): Promise<DashboardVO> {
+        const self = DashboardVOManager.getInstance();
+
+        let dashboard: DashboardVO = self.dashboards?.find((d) => {
+            return d.id === dashboard_id;
+        });
+
+        if (!options?.refresh && dashboard?.id) {
+            return dashboard;
+        }
+
+        // Check access
+        const has_access = await DashboardVOManager.check_dashboard_vo_access();
+
+        if (!has_access) {
+            return;
+        }
+
+        dashboard = await query(DashboardVO.API_TYPE_ID)
+            .filter_by_id(dashboard_id)
+            .select_vo<DashboardVO>();
+
+        if (dashboard?.id) {
+            self.dashboards.push(dashboard);
+        }
+
+        return dashboard;
     }
 
     public static getInstance(): DashboardVOManager {
@@ -94,6 +145,7 @@ export default class DashboardVOManager {
 
     private static instance: DashboardVOManager = null;
 
+    public all_dashboards_loaded: boolean = false;
     public dashboards: DashboardVO[] = null;
 
     protected constructor() { }

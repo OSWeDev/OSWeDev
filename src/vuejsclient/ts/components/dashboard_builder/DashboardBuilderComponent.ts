@@ -42,6 +42,9 @@ import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
 import './DashboardBuilderComponent.scss';
 import DashboardPageWidgetVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 import DashboardPageVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
+import DashboardVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
+import SharedFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import SharedFiltersVOManager from '../../../../shared/modules/DashboardBuilder/manager/SharedFiltersVOManager';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -89,13 +92,19 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private add_page_history: (page_history: DashboardPageVO) => void;
+
     @ModuleDashboardPageAction
     private set_page_history: (page_history: DashboardPageVO[]) => void;
+
     @ModuleDashboardPageAction
     private pop_page_history: (fk) => void;
 
     @ModuleDashboardPageAction
     private set_custom_filters: (custom_filters: string[]) => void;
+
+    @ModuleDashboardPageAction
+    private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
+
     @ModuleDashboardPageAction
     private clear_active_field_filters: () => void;
 
@@ -107,7 +116,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private loading: boolean = true;
 
     private pages: DashboardPageVO[] = [];
-    private page: DashboardPageVO = null;
+    private page: DashboardPageVO = null; // The current page
 
     private show_shared_filters: boolean = false;
     private show_build_page: boolean = false;
@@ -122,7 +131,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
-    private throttle_on_load_dashboard = ThrottleHelper.getInstance().declare_throttle_without_args(this.on_load_dashboard, 50);
+    private throttle_on_dashboard_loaded = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.on_dashboard_loaded,
+        50
+    );
 
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
         if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {
@@ -151,15 +163,26 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                     }
 
                     if ((!!import_on_vo) && (import_on_vo.id)) {
-                        let old_pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', import_on_vo.id).select_vos<DashboardPageVO>();
-                        await ModuleDAO.getInstance().deleteVOs(old_pages);
+                        let old_pages = self.pages = await this.load_dashboard_pages_by_dashboard_id(
+                            self.dashboard.id,
+                            { refresh: true }
+                        );
+
+                        await ModuleDAO.getInstance().deleteVOs(
+                            old_pages
+                        );
                     }
 
                     let imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
 
                     self.loading = true;
-                    self.dashboards = await query(DashboardVO.API_TYPE_ID).set_sorts([new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardVO>();
-                    await self.throttle_on_load_dashboard();
+
+                    self.dashboards = await self.load_all_dashboards(
+                        { refresh: true }
+                    );
+
+                    self.throttle_on_dashboard_loaded();
+
                     // On crée des trads, on les recharge
                     await VueAppController.getInstance().initializeFlatLocales();
                     self.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
@@ -267,7 +290,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
                 try {
                     await ModuleDAO.getInstance().insertOrUpdateVOs(self.pages);
-                    self.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', self.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
+
+                    self.pages = await this.load_dashboard_pages_by_dashboard_id(
+                        self.dashboard.id,
+                        { refresh: true }
+                    );
 
                     resolve({
                         body: self.label('move_page.ok'),
@@ -312,7 +339,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         let db = this.dashboard;
         export_vos.push(ModuleTable.default_get_api_version(db));
 
-        let pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
+        let pages = await this.load_dashboard_pages_by_dashboard_id(
+            this.dashboard.id,
+            { refresh: true }
+        );
+
         if (pages && pages.length) {
             export_vos = export_vos.concat(pages.map((p) => ModuleTable.default_get_api_version(p)));
         }
@@ -512,7 +543,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private async onchange_dashboard_id() {
         this.loading = true;
 
-        this.dashboards = await query(DashboardVO.API_TYPE_ID).set_sorts([new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardVO>();
+        // Load all the dashboards
+        this.dashboards = await this.load_all_dashboards();
+
         if (!this.dashboard_id) {
             await this.init_dashboard();
             this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
@@ -522,15 +555,19 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(parseInt(this.dashboard_id)).select_vo<DashboardVO>();
-        await this.throttle_on_load_dashboard();
+        // The current dashboard (should have been loaded in cache previously)
+        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
+            parseInt(this.dashboard_id)
+        );
+
+        this.throttle_on_dashboard_loaded();
     }
 
     @Watch('dashboard')
     private async onchange_dashboard() {
         this.loading = true;
 
-        if (this.dashboard && this.dashboard.id) {
+        if (this.dashboard?.id) {
             this.$router.push({
                 name: 'DashboardBuilder_id',
                 params: {
@@ -539,10 +576,90 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             });
         }
 
-        await this.throttle_on_load_dashboard();
+        this.throttle_on_dashboard_loaded();
     }
 
-    private async on_load_dashboard() {
+    /**
+     * load_all_dashboards
+     * - Load all the dashboards and sort them by weight
+     *
+     * @param {boolean} [options.refresh]
+     * @returns {Promise<DashboardVO[]>}
+     */
+    private async load_all_dashboards(
+        options?: { refresh?: boolean }
+    ): Promise<DashboardVO[]> {
+
+        const dashboards = await DashboardVOManager.find_all_dashboards(
+            null,
+            {
+                sorts: [
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                ]
+            },
+            options
+        );
+
+        return dashboards;
+    }
+
+    /**
+     * load_dashboard_pages_by_dashboard_id
+     * - Load the dashboard pages by dashboard id and sort them by weight
+     *
+     * @param {number} [dashboard_id]
+     * @param {boolean} [options.refresh]
+     * @returns {Promise<DashboardVO[]>}
+     */
+    private async load_dashboard_pages_by_dashboard_id(
+        dashboard_id: number,
+        options?: { refresh?: boolean }
+    ): Promise<DashboardPageVO[]> {
+
+        const dashboard_pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_id(
+            dashboard_id,
+            {
+                sorts: [
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                ]
+            },
+            options
+        );
+
+        return dashboard_pages;
+    }
+
+    /**
+     * load_shared_filters_with_dashboard_id
+     * - Load the shared filters with dashboard id and sort them by weight
+     *
+     * @param {number} [dashboard_id]
+     * @param {boolean} [options.refresh]
+     * @returns {Promise<DashboardVO[]>}
+     */
+    private async load_shared_filters_with_dashboard_id(
+        dashboard_id: number,
+        options?: { refresh?: boolean }
+    ): Promise<SharedFiltersVO[]> {
+
+        const shared_filters = await SharedFiltersVOManager.find_shared_filters_with_dashboard_ids(
+            [dashboard_id],
+            {
+                sorts: [
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                ]
+            },
+            options
+        );
+
+        return shared_filters;
+    }
+
+    private async on_dashboard_loaded() {
+
         if (!this.dashboard) {
             await this.init_dashboard();
             this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
@@ -561,20 +678,29 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         this.set_page_widgets_components_by_pwid({});
 
-        this.pages = await this.load_dashboard_pages();
+        this.pages = await this.load_dashboard_pages_by_dashboard_id(
+            this.dashboard.id,
+        );
 
         if (!this.pages) {
             await this.create_dashboard_page();
         }
 
-        let page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
+        const page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
             this.pages.map((p) => p.id)
         );
 
         this.set_page_widgets(page_widgets);
 
-        if (page_widgets && page_widgets.length) {
+        const shared_filters: SharedFiltersVO[] = await this.load_shared_filters_with_dashboard_id(
+            this.dashboard.id,
+        );
+
+        this.add_shared_filters_to_map(shared_filters);
+
+        if (page_widgets?.length > 0) {
             let custom_filters: { [name: string]: boolean } = {};
+
             for (let i in page_widgets) {
                 let page_widget = page_widgets[i];
                 if (page_widget.json_options) {
@@ -589,7 +715,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 this.set_custom_filters(Object.keys(custom_filters));
             }
         }
+
         WeightHandler.getInstance().sortByWeight(this.pages);
+
         this.page = this.pages[0];
     }
 
@@ -620,31 +748,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
 
         this.page = page;
-    }
-
-    /**
-     * load_dashboard_pages
-     * - Load the dashboard pages
-     * - Sort them by weight
-     *
-     * @returns {Promise<DashboardPageVO[]>}
-     */
-    private async load_dashboard_pages(): Promise<DashboardPageVO[]> {
-
-        if (!this.dashboard) {
-            return;
-        }
-
-        const pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_id(this.dashboard.id, {
-            sorts: [
-                new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true),
-                new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)
-            ]
-        });
-
-        this.pages = pages;
-
-        return pages;
     }
 
     /**
@@ -687,15 +790,26 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         page.id = insertOrDeleteQueryResult.id;
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
+        this.pages = await this.load_dashboard_pages_by_dashboard_id(
+            this.dashboard.id,
+            { refresh: true }
+        );
 
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = page;
     }
 
-    private async init_dashboard() {
+    /**
+     * init_dashboard
+     * - Initialize the dashboard
+     * - Create a new dashboard if none exists
+     * - Create a new page if none exists
+     *
+     * @returns {Promise<void>}
+     */
+    private async init_dashboard(): Promise<void> {
 
-        if ((!this.dashboards) || (!this.dashboards.length)) {
+        if (!(this.dashboards?.length > 0)) {
             this.dashboards = [];
             await this.create_new_dashboard();
             return;
@@ -703,10 +817,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         this.dashboard = this.dashboards[0];
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard.id)
-            .set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)])
-            .select_vos<DashboardPageVO>();
+        this.pages = await this.load_dashboard_pages_by_dashboard_id(
+            this.dashboard.id,
+        );
 
         if (!this.pages) {
             await this.create_dashboard_page();
@@ -726,13 +839,21 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private async create_new_dashboard() {
         this.dashboard = new DashboardVO();
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
+            this.dashboard
+        );
+
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
             this.dashboard = null;
             return;
         }
-        this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(insertOrDeleteQueryResult.id).select_vo<DashboardVO>();
+
+        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
+            insertOrDeleteQueryResult.id
+        );
+
         if ((!this.dashboard) || (!this.dashboard.id)) {
             this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
             this.dashboard = null;

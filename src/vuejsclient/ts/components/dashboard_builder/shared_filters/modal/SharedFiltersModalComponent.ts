@@ -357,15 +357,20 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     private async load_selectionnable_dashboards_options() {
         const context_query = query(DashboardPageVO.API_TYPE_ID);
 
+        // We may want to filter dashboards by name
         if ((this.dashboard_query_string?.length > 0)) {
             // context_query.field('name', this.dashboard_query_string, 'ILIKE');
         }
 
+        // Find all dashboards
         const dashboards = await DashboardVOManager.find_all_dashboards(
             context_query
         );
 
-        this.selectionnable_dashboards = dashboards;
+        // Remove current dashboard from selectionnable dashboards
+        this.selectionnable_dashboards = dashboards?.filter((dashboard) => {
+            return dashboard.id != this.dashboard_id;
+        });
     }
 
     /**
@@ -623,16 +628,11 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     private is_sharable_field_filter(readable_field_filters: IReadableFieldFilters): boolean {
         let is_sharable = false;
 
-        for (const i in this.selected_dashboards) {
-            const dashboard = this.selected_dashboards[i];
-
-            // If field filter exist in selected dashboard
-            // we can share it
-            if (this.field_filters_exist_in_selected_dasboard(readable_field_filters, dashboard)) {
-                is_sharable = true;
-                break;
-            }
-        }
+        // If field filter exist in every selected dashboard
+        // we can share it
+        is_sharable = this.selected_dashboards.every((dashboard) => {
+            return this.field_filters_exist_in_selected_dasboard(readable_field_filters, dashboard);
+        });
 
         return is_sharable;
     }

@@ -14,6 +14,7 @@ import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
 import SaveFavoritesFiltersModalComponent from "../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent";
+import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import FieldFiltersVO from "../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
 import SharedFiltersModalComponent from "../shared_filters/modal/SharedFiltersModalComponent";
 
@@ -47,6 +48,8 @@ export interface IDashboardPageState {
     active_api_type_ids: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
     query_api_type_ids: string[]; // Setted from widget options to have custom|default query on specified vos api ids
 
+    shared_filters_map: SharedFiltersVO[]; // Shared filters map for all dashboard pages
+
     widgets_invisibility: { [w_id: number]: boolean };
 
     discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -58,6 +61,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         if (!DashboardPageStore.instance) {
             DashboardPageStore.instance = new DashboardPageStore();
         }
+
         return DashboardPageStore.instance;
     }
 
@@ -90,6 +94,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             custom_filters: [],
             active_api_type_ids: [],
             query_api_type_ids: [],
+            shared_filters_map: [],
             widgets_invisibility: {},
             discarded_field_paths: {}
         };
@@ -201,6 +206,30 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             set_query_api_type_ids(state: IDashboardPageState, query_api_type_ids: string[]) {
                 state.query_api_type_ids = query_api_type_ids;
+            },
+
+            set_shared_filters_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
+                state.shared_filters_map = shared_filters_map;
+            },
+
+            add_shared_filters_to_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
+                let _shared_filters_map = state.shared_filters_map;
+
+                if (_shared_filters_map?.length > 0) {
+                    _shared_filters_map = _shared_filters_map.concat(shared_filters_map);
+                } else {
+                    _shared_filters_map = shared_filters_map;
+                }
+
+                // Add shared filters to map
+                // Remove duplicates
+                state.shared_filters_map = _shared_filters_map.reduce((accumulator, shared_filter) => {
+                    if (!accumulator.find((sf) => sf.id == shared_filter.id)) {
+                        accumulator.push(shared_filter);
+                    }
+
+                    return accumulator;
+                }, []);
             },
 
             set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
@@ -350,6 +379,12 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_query_api_type_ids(context: DashboardPageContext, query_api_type_ids: string[]) {
                 commit_set_query_api_type_ids(context, query_api_type_ids);
             },
+            set_shared_filters_map(context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) {
+                commit_set_shared_filters_map(context, shared_filters_map);
+            },
+            add_shared_filters_to_map(context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) {
+                commit_add_shared_filters_to_map(context, shared_filters_map);
+            },
             set_page_history(context: DashboardPageContext, page_history: DashboardPageVO[]) {
                 commit_set_page_history(context, page_history);
             },
@@ -447,6 +482,8 @@ export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutatio
 export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);
 export const commit_set_active_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_active_api_type_ids);
 export const commit_set_query_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_query_api_type_ids);
+export const commit_set_shared_filters_map = commit(DashboardPageStoreInstance.mutations.set_shared_filters_map);
+export const commit_add_shared_filters_to_map = commit(DashboardPageStoreInstance.mutations.add_shared_filters_to_map);
 export const commit_clear_active_field_filters = commit(DashboardPageStoreInstance.mutations.clear_active_field_filters);
 export const commit_set_widgets_invisibility = commit(DashboardPageStoreInstance.mutations.set_widgets_invisibility);
 export const commit_set_widget_invisibility = commit(DashboardPageStoreInstance.mutations.set_widget_invisibility);

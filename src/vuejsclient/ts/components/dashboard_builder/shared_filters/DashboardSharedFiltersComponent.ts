@@ -59,8 +59,10 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     private selectionnable_field_filters_by_page_ids: {
         [page_id: number]: ISelectionnableFieldFilters
     } = {};
-    // The shared_filters of dashboard pages (One page can have many shared_filters)
-    private shared_filters: SharedFiltersVO[] = [];
+    // The shared_filters of dashboard
+    private shared_filters_from_dashboard: SharedFiltersVO[] = [];
+    // The shared_filters with dashboard
+    private shared_filters_with_dashboard: SharedFiltersVO[] = [];
 
     private throttled_load_dashboard_pages = ThrottleHelper.getInstance().declare_throttle_without_args(
         this.load_dashboard_pages.bind(this),
@@ -357,13 +359,20 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
         this.is_shared_filters_loading = true;
 
-        // Reload shared_filters
-        const shared_filters = await SharedFiltersVOManager.find_shared_filters_by_dashboard_ids(
+        // Load shared_filters_from_dashboard
+        const shared_filters_from_dashboard = await SharedFiltersVOManager.find_shared_filters_by_dashboard_ids(
             [this.dashboard.id],
             options
         );
 
-        this.shared_filters = shared_filters;
+        // Load shared_filters_with_dashboard
+        const shared_filters_with_dashboard = await SharedFiltersVOManager.find_shared_filters_with_dashboard_ids(
+            [this.dashboard.id],
+            options
+        );
+
+        this.shared_filters_from_dashboard = shared_filters_from_dashboard;
+        this.shared_filters_with_dashboard = shared_filters_with_dashboard;
 
         this.is_shared_filters_loading = false;
     }
@@ -385,7 +394,8 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
 
             field_filters = FieldFiltersVOManager.merge_field_filters(
                 field_filters,
-                field_filters_metadata.field_filters
+                field_filters_metadata.field_filters,
+                { keep_empty_context_filter: true }
             );
 
             readable_field_filters = FieldFiltersVOManager.merge_readable_field_filters(

@@ -3,6 +3,8 @@ import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import SharedFiltersVO from "../vos/SharedFiltersVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
+import RangeHandler from "../../../tools/RangeHandler";
+import SortByVO from "../../ContextFilter/vos/SortByVO";
 
 /**
  * SharedFiltersVOManager
@@ -54,17 +56,17 @@ export default class SharedFiltersVOManager {
         const self = SharedFiltersVOManager.getInstance();
 
         // Check has all page_wigets already loaded
-        const has_all_shared_filters_loaded = dashboard_ids.every((dashboard_id) => {
+        const has_all_shared_filters_by_dashboard_loaded = dashboard_ids.every((dashboard_id) => {
             return self.shared_filters_by_dashboard_id[dashboard_id];
         });
 
         // Return shared_filters if already loaded
-        if (!options?.refresh && has_all_shared_filters_loaded) {
+        if (!options?.refresh && has_all_shared_filters_by_dashboard_loaded) {
             const _shared_filters: SharedFiltersVO[] = [];
 
             dashboard_ids.map((dashboard_id) => {
-                const s_filters = self.shared_filters_by_dashboard_id[dashboard_id];
-                _shared_filters.push(...s_filters);
+                const shared_filters_map = self.shared_filters_by_dashboard_id[dashboard_id];
+                _shared_filters.push(...shared_filters_map);
             });
 
             return _shared_filters;
@@ -84,11 +86,94 @@ export default class SharedFiltersVOManager {
             .select_vos<SharedFiltersVO>();
 
         dashboard_ids.map((dashboard_id) => {
-            const s_filters = shared_filters.filter(
+            const shared_filters_map = shared_filters.filter(
                 (pwidget) => pwidget.dashboard_id == dashboard_id
             );
 
-            self.shared_filters_by_dashboard_id[dashboard_id] = s_filters;
+            self.shared_filters_by_dashboard_id[dashboard_id] = shared_filters_map;
+        });
+
+        return shared_filters;
+    }
+
+    /**
+     * find_shared_filters_with_dashboard_ids
+     *  - Find shared filters with the given dashboard ids
+     *
+     * @param {number[]} dashboard_ids
+     * @param {boolean} options.refresh
+     * @returns {Promise<SharedFiltersVO[]>}
+     */
+    public static async find_shared_filters_with_dashboard_ids(
+        dashboard_ids: number[],
+        pagination?: { offset?: number, limit?: number, sorts?: SortByVO[] },
+        options?: {
+            refresh?: boolean
+        }
+    ): Promise<SharedFiltersVO[]> {
+        const self = SharedFiltersVOManager.getInstance();
+
+        // Check has all page_wigets already loaded
+        const has_all_shared_filters_with_dashboard_loaded = dashboard_ids.every((dashboard_id) => {
+            return self.shared_filters_with_dashboard_id[dashboard_id];
+        });
+
+        // Return shared_filters if already loaded
+        if (!options?.refresh && has_all_shared_filters_with_dashboard_loaded) {
+            const _shared_filters: SharedFiltersVO[] = [];
+
+            dashboard_ids.map((dashboard_id) => {
+                const shared_filters_map = self.shared_filters_with_dashboard_id[dashboard_id];
+                _shared_filters.push(...shared_filters_map);
+            });
+
+            return _shared_filters;
+        }
+
+        // If already loaded, there is no need to check access
+        const has_access = await SharedFiltersVOManager.check_shared_filters_vo_access();
+
+        if (!has_access) {
+            return;
+        }
+
+        // Convert dashboard_ids to numranges
+        const dashboard_ids_numranges = RangeHandler.get_ids_ranges_from_list(
+            dashboard_ids
+        );
+
+        // force set base_api_type_id
+        const context_query = query(SharedFiltersVO.API_TYPE_ID);
+
+        // Initialize context_query
+        if (pagination?.sorts?.length > 0) {
+            context_query.set_sorts(pagination.sorts);
+        }
+
+        // Initialize shared_filters (all_shared_filter in dashboard) of SharedFiltersVOManager instance
+        // its should be initialized each time the dashboard page is loaded
+        const shared_filters = await context_query
+            .filter_by_num_is_in_ranges('shared_with_dashboard_ids', dashboard_ids_numranges)
+            .select_vos<SharedFiltersVO>();
+
+        // We need to filter shared_filters that share with each dashboard_id
+        dashboard_ids.map((dashboard_id) => {
+            // Filter shared_filters that share with the given dashboard_id
+            const shared_filters_map = shared_filters.filter((sf: SharedFiltersVO) => {
+                let share_with_dashboard_id = false;
+
+                // Check if the given dashboard_id is in the shared_with_dashboard_ids
+                RangeHandler.foreach_ranges_sync(sf.shared_with_dashboard_ids, (d_id: number) => {
+                    if (dashboard_id == d_id) {
+                        share_with_dashboard_id = true;
+                    }
+                });
+
+                return share_with_dashboard_id;
+            });
+
+            // Save shared_filters_map in cache
+            self.shared_filters_with_dashboard_id[dashboard_id] = shared_filters_map;
         });
 
         return shared_filters;
@@ -140,6 +225,7 @@ export default class SharedFiltersVOManager {
 
     private static instance: SharedFiltersVOManager = null;
 
+    public shared_filters_with_dashboard_id: { [dashboard_id: number]: SharedFiltersVO[] } = {};
     public shared_filters_by_dashboard_id: { [dashboard_id: number]: SharedFiltersVO[] } = {};
     public shared_filters: SharedFiltersVO[] = null;
 }

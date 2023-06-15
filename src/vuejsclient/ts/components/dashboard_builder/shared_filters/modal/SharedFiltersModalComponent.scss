@@ -39,6 +39,10 @@
             .input_wrapper {
                 display: inline;
                 margin-right: 10px;
+
+                &.disabled {
+                    cursor: not-allowed;
+                }
             }
             .input_label {
                 display: inline;
@@ -147,9 +151,14 @@
     .nav-pills {
         margin-bottom: 16px;
 
-        > li {
-            cursor: pointer;
+        > li > a {
+            width: 100%;
+            background: #f5f5f5;
             margin-bottom: 2px;
+            border-radius: 2px;
+            padding: 0.5em;
+            text-align: center;
+            cursor: pointer;
         }
 
         > li.active > a,
@@ -157,11 +166,11 @@
         > li.active > a:hover {
             color: #fff;
             background-color: $button_primary_bg_color;
-        }
-        > li.active > a,
-        > li.active > a:hover,
-        > li.active > a:focus {
             border-top-color: $button_primary_bg_color;
+        }
+
+        li + li {
+            margin-left: 0;
         }
     }
 }
