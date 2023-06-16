@@ -2,7 +2,6 @@ import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
 import DashboardPageVO from "../vos/DashboardPageVO";
-import FieldFiltersVO from '../vos/FieldFiltersVO';
 import ModuleDAO from "../../DAO/ModuleDAO";
 
 /**

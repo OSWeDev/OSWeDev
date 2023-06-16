@@ -25,7 +25,7 @@
                                         .dashboard-page-name {{ get_translation_by_vo_field_ref_name_code_text(dashboard_page.translatable_name_code_text) }}
                                 
                                 .col-md-6
-                                    .page-sharable-filters-row(v-for="(option, translatable_label_code) in selectionnable_field_filters_by_page_ids[dashboard_page.id]?.readable_field_filters")
+                                    .page-sharable-filters-row(v-for="(option, translatable_label_code) in dashboard_pages_field_filters_map.find((dpff) => dpff.dashboard_page_id == dashboard_page.id)?.readable_field_filters")
                                         .page-sharable-filter-name {{ get_translation_by_vo_field_ref_name_code_text(translatable_label_code) }} &nbsp;
                                             span(v-if="option?.is_filter_hidden") ({{ label('dashboard_builder.shared_filters.filter_hidden') }})
 

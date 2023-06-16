@@ -20,6 +20,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import './SharedFiltersModalComponent.scss';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import DashboardPageFieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageFieldFiltersVOManager';
 
 @Component({
     template: require('./SharedFiltersModalComponent.pug'),
@@ -477,9 +478,18 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     private async update_selectionnable_field_filters(): Promise<void> {
 
-        const selectionnable_field_filters: FieldFiltersVO = cloneDeep(
-            this.selectionnable_field_filters
+        const dashboard_pages_field_filters_map = await DashboardPageFieldFiltersVOManager.find_dashboard_pages_field_filters_by_dashboard_ids(
+            this.selected_dashboards_shared_from.map((dashboard) => dashboard.id),
         );
+
+        const dashboard_pages_field_filters = DashboardPageFieldFiltersVOManager.merge_all_dashboard_pages_field_filters(
+            dashboard_pages_field_filters_map
+        );
+
+        const selectionnable_field_filters: FieldFiltersVO = cloneDeep(
+            dashboard_pages_field_filters.field_filters
+        );
+
         const field_filters_to_keep: FieldFiltersVO = {};
 
         for (const api_type_id in selectionnable_field_filters) {

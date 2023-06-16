@@ -1,22 +1,20 @@
 import { cloneDeep } from "lodash";
 import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
-import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import TranslationManager from "../../Translation/manager/TranslationManager";
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import DashboardWidgetVOManager from "./DashboardWidgetVOManager";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import FieldFiltersVO from "../vos/FieldFiltersVO";
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 import VOFieldRefVO from '../vos/VOFieldRefVO';
 import ModuleTableField from "../../ModuleTableField";
 import ModuleTable from "../../ModuleTable";
-import ObjectHandler from "../../../tools/ObjectHandler";
-import TranslationManager from "../../Translation/manager/TranslationManager";
-import ModuleTranslation from "../../Translation/ModuleTranslation";
-import LocaleManager from "../../../tools/LocaleManager";
+import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
+import ObjectHandler from "../../../tools/ObjectHandler";
 
 /**
  * FieldFiltersVOManager
