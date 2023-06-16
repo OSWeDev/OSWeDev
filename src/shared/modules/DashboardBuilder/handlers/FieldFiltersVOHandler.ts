@@ -12,12 +12,12 @@ export default class FieldFiltersVOHandler {
      *  - The aim of this function is to check if the given field_filters is empty
      *  - Cannot be checked without a valid vo_field_ref
      *
-     * @param {VOFieldRefVO} vo_field_ref
+     * @param {Partial<VOFieldRefVO>} vo_field_ref
      * @param {FieldFiltersVO} active_field_filters
      * @returns boolean
      */
     public static is_field_filters_empty(
-        vo_field_ref: VOFieldRefVO,
+        vo_field_ref: Partial<VOFieldRefVO>,
         active_field_filters: FieldFiltersVO
     ): boolean {
 

@@ -76,7 +76,7 @@ export default class ModuleDashboardBuilder extends Module {
         let db_table = this.init_DashboardVO();
 
         let db_page = this.init_DashboardPageVO(db_table);
-        this.init_shared_filters_vo(db_table);
+        this.init_shared_filters_vo();
 
         this.init_FavoritesFiltersVO(db_page);
 
@@ -261,16 +261,12 @@ export default class ModuleDashboardBuilder extends Module {
      *  - Database table to stock sharable_filters of active dashboard
      *  - May be useful when switching between dashboard
      */
-    private init_shared_filters_vo(db_dashboard: ModuleTable<any>) {
-
-        let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard', true);
-
+    private init_shared_filters_vo() {
         let datatable_fields = [
-            dashboard_id,
-
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
             new ModuleTableField('field_filters_to_share', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters To Share', false),
-            new ModuleTableField('shared_with_dashboard_ids', ModuleTableField.FIELD_TYPE_refrange_array, 'Filtre partagé avec les pages', false),
+            new ModuleTableField('shared_from_dashboard_ids', ModuleTableField.FIELD_TYPE_refrange_array, 'Filtre partagé par les dashboards', false),
+            new ModuleTableField('shared_with_dashboard_ids', ModuleTableField.FIELD_TYPE_refrange_array, 'Filtre partagé avec les dashboards', false),
         ];
 
         this.datatables.push(
@@ -283,8 +279,6 @@ export default class ModuleDashboardBuilder extends Module {
                 "Filtres Favoris"
             )
         );
-
-        dashboard_id.addManyToOneRelation(db_dashboard);
     }
 
     private init_VOFieldRefVO() {

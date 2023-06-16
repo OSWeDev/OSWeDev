@@ -14,9 +14,6 @@ export default class SharedFiltersVO extends AbstractVO {
 
     public id: number;
 
-    // dashboard_id of this shared_filters
-    public dashboard_id: number;
-
     // Name which the admin gave to the current shared field_filters
     public name: string;
 
@@ -25,7 +22,9 @@ export default class SharedFiltersVO extends AbstractVO {
     // JSON object of field_filters to share
     public field_filters_to_share: { [api_type_id: string]: { [field_id: string]: boolean } };
 
-    // ids of page which this shared_filters is shared with
-    // TODO: change into num_ranges
+    // ids of dashboard from which this shared_filters is shared from
+    public shared_from_dashboard_ids: NumRange[];
+
+    // ids of dashboard with which this shared_filters is shared with
     public shared_with_dashboard_ids: NumRange[];
 }

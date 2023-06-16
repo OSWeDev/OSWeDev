@@ -18,12 +18,6 @@ import VueAppController from '../../../../VueAppController';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardSharedFiltersComponent.scss';
 
-/**
- * Specification:
- * - This component is used to display and configure shared_filters between dashboards and dashboard_pages
- * - Create select multiple dashboard and dashboard_pages to share filters with
- * - Specify which field_filters to share (both dashboard shall have the same possible field_filters)
- */
 @Component({
     template: require('./DashboardSharedFiltersComponent.pug'),
     components: {
@@ -185,7 +179,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
     /**
      * handle_create_shared_filters
      * - Create shared_filters by using shared_filters edit Modal
-     * TODO: Select intersect field_filters between dashboard_pages
+     * - Select intersect field_filters between dashboard_pages
      */
     private handle_create_shared_filters() {
         const selectionnable_field_filters = this.merge_all_selectionnable_field_filters();
@@ -213,6 +207,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
         this.get_Sharedfiltersmodalcomponent.open_modal_for_update(
             {
                 selectionnable_field_filters,
+                dashboard_id: this.dashboard.id,
                 shared_filters
             },
             this.handle_save_shared_filters.bind(this),
@@ -355,19 +350,21 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * - This method is called after each shared_filters save, delete and page load
      */
     private async load_all_shared_filters(props: any[]) {
-        const options = props?.shift();
+        const options: { refresh?: boolean } = props?.shift();
 
         this.is_shared_filters_loading = true;
 
         // Load shared_filters_from_dashboard
-        const shared_filters_from_dashboard = await SharedFiltersVOManager.find_shared_filters_by_dashboard_ids(
+        const shared_filters_from_dashboard = await SharedFiltersVOManager.find_shared_filters_from_dashboard_ids(
             [this.dashboard.id],
+            null,
             options
         );
 
         // Load shared_filters_with_dashboard
         const shared_filters_with_dashboard = await SharedFiltersVOManager.find_shared_filters_with_dashboard_ids(
             [this.dashboard.id],
+            null,
             options
         );
 

@@ -286,12 +286,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.enter_name.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les dashboards à partir desquels partager'
+        }, 'dashboard_builder.shared_filters.share_from_dashboard.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Selectionner les dashboards avec lesquels partager'
         }, 'dashboard_builder.shared_filters.share_with_dashboard.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Selectionner les dashboards'
-        }, 'dashboard_builder.shared_filters.share_with_dashboard_tab_title.___LABEL___'));
+            'fr-fr': 'Configurer les dashboards de partage'
+        }, 'dashboard_builder.shared_filters.dashboard_configurations_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Selectionner les pages avec lesquels partager'

@@ -12,7 +12,6 @@
                 h4.title.share-with-pages {{ label("dashboard_builder.shared_filters.shared_filters_from_this_dashboard_table_head") }} 
                 
             .col-md-3
-                h4.title.share-with-pages {{ label("dashboard_builder.shared_filters.shared_filters_with_this_dashboard_table_head") }} 
 
         .row.body.columns
             //- Dashboard page as row
@@ -58,13 +57,3 @@
                                 .col-md-6
                                     //- Load all dashboard shared_filters_from_dashboard
                                     .shared-filters-wrapper.shared-filters-with
-                                        template(v-if="!(shared_filters_with_dashboard.length > 0)")
-                                            .shared-filters-name
-                                                span {{ label('dashboard_builder.shared_filters.empty_list') }}
-                                        template(v-for="(_shared_filters, key) in shared_filters_with_dashboard")
-                                            .shared-filters-name
-                                                span {{ _shared_filters.name }}
-                                                a.btn.btn-sm.btn-success.pull-right.option__edit(@click='handle_update_shared_filters(_shared_filters)')
-                                                    i.fa-duotone.fa-pencil-alt
-                                                a.btn.btn-sm.btn-danger.pull-right.option__delete(@click='handle_delete_shared_filters(_shared_filters)') 
-                                                    i.fa-duotone.fa-trash-alt

@@ -16,6 +16,7 @@ import ObjectHandler from "../../../tools/ObjectHandler";
 import TranslationManager from "../../Translation/manager/TranslationManager";
 import ModuleTranslation from "../../Translation/ModuleTranslation";
 import LocaleManager from "../../../tools/LocaleManager";
+import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 
 /**
  * FieldFiltersVOManager
@@ -375,6 +376,35 @@ export default class FieldFiltersVOManager {
     }
 
     /**
+     * get_context_filter_from_field_filters
+     * - The aim of this function is to get the context_filter from the given field_filters
+     *
+     * @param {FieldFiltersVO} field_filters
+     * @param {VOFieldRefVO} vo_field_ref
+     * @returns {ContextFilterVO}
+     */
+    public static get_context_filter_from_field_filters(
+        vo_field_ref: VOFieldRefVO,
+        field_filters: FieldFiltersVO,
+    ): ContextFilterVO {
+
+        let context_filter: ContextFilterVO = null;
+
+        const is_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
+            vo_field_ref,
+            field_filters
+        );
+
+        if (!is_field_filters_empty) {
+            const api_type_id = vo_field_ref.api_type_id;
+            const field_id = vo_field_ref.field_id;
+
+            context_filter = field_filters[api_type_id][field_id];
+        }
+
+        return context_filter;
+    }
+    /**
      * Update field_filters by required api type ids
      * - The aim of this function is to update and return field_filters for each given api_type_id
      * - /!\ Updating is not filtering, in this way we are actually updating the context_filter.vo_type with the required api_type_id
@@ -545,7 +575,10 @@ export default class FieldFiltersVOManager {
                     continue;
                 }
 
-                field_filters[field_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(context_filter, api_type_id);
+                field_filters[field_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(
+                    context_filter,
+                    api_type_id
+                );
             }
         }
 
@@ -628,7 +661,9 @@ export default class FieldFiltersVOManager {
         for (const key in widgets_options) {
             const options = widgets_options[key];
 
-            const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(options);
+            const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                options
+            );
 
             if (!vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
                 continue;

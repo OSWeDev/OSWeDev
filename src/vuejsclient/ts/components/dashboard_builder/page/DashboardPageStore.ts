@@ -41,6 +41,7 @@ export interface IDashboardPageState {
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
     Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent;
 
+    dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
 
     page_history: DashboardPageVO[];
 
@@ -90,6 +91,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
             Dashboardcopywidgetcomponent: null,
+            dashboard_navigation_history: { current_dashboard_id: null, previous_dashboard_id: null },
             page_history: [],
             custom_filters: [],
             active_api_type_ids: [],
@@ -116,6 +118,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_active_api_type_ids(state: IDashboardPageState): string[] {
                 return state.active_api_type_ids;
+            },
+
+            get_dashboard_navigation_history(state: IDashboardPageState): { current_dashboard_id: number, previous_dashboard_id: number } {
+                return state.dashboard_navigation_history;
             },
 
             get_query_api_type_ids(state: IDashboardPageState): string[] {
@@ -202,6 +208,13 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             set_active_api_type_ids(state: IDashboardPageState, active_api_type_ids: string[]) {
                 state.active_api_type_ids = active_api_type_ids;
+            },
+
+            set_dashboard_navigation_history(
+                state: IDashboardPageState,
+                dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
+            ) {
+                state.dashboard_navigation_history = dashboard_navigation_history;
             },
 
             set_query_api_type_ids(state: IDashboardPageState, query_api_type_ids: string[]) {
@@ -376,6 +389,12 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_active_api_type_ids(context: DashboardPageContext, active_api_type_ids: string[]) {
                 commit_set_active_api_type_ids(context, active_api_type_ids);
             },
+            set_dashboard_navigation_history(
+                context: DashboardPageContext,
+                dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
+            ) {
+                commit_set_dashboard_navigation_history(context, dashboard_navigation_history);
+            },
             set_query_api_type_ids(context: DashboardPageContext, query_api_type_ids: string[]) {
                 commit_set_query_api_type_ids(context, query_api_type_ids);
             },
@@ -481,6 +500,7 @@ export const commit_add_page_history = commit(DashboardPageStoreInstance.mutatio
 export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);
 export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);
 export const commit_set_active_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_active_api_type_ids);
+export const commit_set_dashboard_navigation_history = commit(DashboardPageStoreInstance.mutations.set_dashboard_navigation_history);
 export const commit_set_query_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_query_api_type_ids);
 export const commit_set_shared_filters_map = commit(DashboardPageStoreInstance.mutations.set_shared_filters_map);
 export const commit_add_shared_filters_to_map = commit(DashboardPageStoreInstance.mutations.add_shared_filters_to_map);

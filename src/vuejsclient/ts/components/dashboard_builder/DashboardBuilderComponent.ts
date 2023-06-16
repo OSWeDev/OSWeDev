@@ -97,6 +97,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private set_page_history: (page_history: DashboardPageVO[]) => void;
 
     @ModuleDashboardPageAction
+    private set_dashboard_navigation_history: (
+        dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
+    ) => void;
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
+
+    @ModuleDashboardPageAction
     private pop_page_history: (fk) => void;
 
     @ModuleDashboardPageAction
@@ -104,9 +112,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
-
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -568,6 +573,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.loading = true;
 
         if (this.dashboard?.id) {
+            // Update the dashboard navigation history
+            this.update_dashboard_navigation_history();
+
             this.$router.push({
                 name: 'DashboardBuilder_id',
                 params: {
@@ -658,6 +666,28 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return shared_filters;
     }
 
+    /**
+     * update_dashboard_navigation_history
+     *  - Update the dashboard navigation history
+     */
+    private update_dashboard_navigation_history(): void {
+        // May be empty
+        const dashboard_navigation_history = this.get_dashboard_navigation_history;
+
+        if (
+            (!dashboard_navigation_history) ||
+            (dashboard_navigation_history?.current_dashboard_id != this.dashboard?.id)
+        ) {
+            // We are navigating to a new dashboard, we clear the navigation history
+            // In this case we must set the current_dashboard_id
+            // and the previous_dashboard_id (with the old current_dashboard_id)
+            this.set_dashboard_navigation_history({
+                current_dashboard_id: this.dashboard.id,
+                previous_dashboard_id: dashboard_navigation_history?.current_dashboard_id
+            });
+        }
+    }
+
     private async on_dashboard_loaded() {
 
         if (!this.dashboard) {
@@ -668,8 +698,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.show_menu_conf = false;
             return;
         }
-
-        this.clear_active_field_filters();
 
         this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
         this.show_build_page = this.can_build_page;
