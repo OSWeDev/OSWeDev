@@ -254,7 +254,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
      * load_shared_filters_with_dashboard
      * - Load shared_filters with the current dashboard and apply the field_filters from the previous dashboard
      * - if the shared_filters.dashboard_id is the previous dashboard_id,
-     *  then apply the shared_filters.field_filters to the current dashboard
+     *      then apply the shared_filters.field_filters to the current dashboard
      * -The shared_filters should be reciprocal (dashboard_id <-> shared_with_dashboard_ids)
      *
      */
