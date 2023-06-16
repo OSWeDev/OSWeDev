@@ -456,7 +456,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 // if varData is_computing, on veut écraser un seul champs
                 if (vo.is_computing) {
 
-                    let stored_var: VarDataValueResVO = VarsClientController.getInstance().cached_var_datas[vo.index];
+                    let stored_var: VarDataValueResVO = VarsClientController.cached_var_datas[vo.index];
 
                     // Si on a encore rien reçu, l'info de calcul en cours est inutile
                     if (!!stored_var) {
@@ -466,7 +466,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         vo.id = stored_var.id;
                     }
                 }
-                VarsClientController.getInstance().cached_var_datas[vo.index] = vo;
+                VarsClientController.cached_var_datas[vo.index] = vo;
 
                 if (!types[vo._type]) {
                     types[vo._type] = true;
