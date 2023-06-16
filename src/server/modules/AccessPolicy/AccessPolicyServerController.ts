@@ -18,6 +18,7 @@ import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeli
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -740,7 +741,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
                 let vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
-                await ModuleDAO.getInstance().deleteVOs(vos);
+                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 roleFromBDD = null;
             } else {
                 throw error;
@@ -798,7 +799,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
                 let vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
-                await ModuleDAO.getInstance().deleteVOs(vos);
+                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 groupFromBDD = null;
             } else {
                 throw error;
@@ -859,7 +860,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
                 let vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
-                await ModuleDAO.getInstance().deleteVOs(vos);
+                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
                 policyFromBDD = null;
             } else {
@@ -935,7 +936,7 @@ export default class AccessPolicyServerController {
                 // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
                 let vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
-                await ModuleDAO.getInstance().deleteVOs(vos);
+                await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 dependencyFromBDD = null;
             } else {
                 throw error;

@@ -1,6 +1,14 @@
-import cloneDeep from 'lodash/cloneDeep';
-
 export default class ArrayHandler {
+
+    public static removeDuplicateStrings(src: string[]): string[] {
+        let map_by_string: { [key: string]: boolean } = {};
+
+        src.forEach((value) => {
+            map_by_string[value] = true;
+        });
+
+        return Object.keys(map_by_string);
+    }
 
     public static getInstance(): ArrayHandler {
         if (!ArrayHandler.instance) {

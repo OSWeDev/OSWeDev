@@ -368,7 +368,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
-    public async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase): Promise<string> {
+    public async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase, exec_as_server: boolean = false): Promise<string> {
 
         if (!vo._type) {
             ConsoleHandler.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
@@ -390,7 +390,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
+                let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo), exec_as_server);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
                     return null;
@@ -445,7 +445,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification
-                let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
+                let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection');
                     return null;
@@ -2739,6 +2739,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this._insertOrUpdateVOs(vos, exec_as_server);
     }
 
+    public async deleteVOs_as_server(vos: IDistantVOBase[], exec_as_server: boolean = true): Promise<InsertOrDeleteQueryResult[]> {
+        return await this._deleteVOs(vos, exec_as_server);
+    }
+
+
     private async refuseVOByForeignKeys<T extends IDistantVOBase>(vo: T): Promise<boolean> {
 
         let time_in = Dates.now_ms();
@@ -2959,10 +2964,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         //         for (let i in results) {
 
         //             if (isUpdates[i]) {
-        //                 await DAOServerController.getInstance().post_update_trigger_hook.trigger(vos[i]._type, new DAOUpdateVOHolder(preUpdates[i], vos[i]));
+        //                 await DAOServerController.getInstance().post_update_trigger_hook.trigger(vos[i]._type, new DAOUpdateVOHolder(preUpdates[i], vos[i]), exec_as_server);
         //             } else {
         //                 vos[i].id = parseInt(results[i].id.toString());
-        //                 await DAOServerController.getInstance().post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
+        //                 await DAOServerController.getInstance().post_create_trigger_hook.trigger(vos[i]._type, vos[i], exec_as_server);
         //             }
         //         }
         //     }
@@ -3210,10 +3215,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         //     if (res && vo) {
         //         if (isUpdate) {
-        //             await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(preUpdate, vo));
+        //             await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(preUpdate, vo), exec_as_server);
         //         } else {
         //             vo.id = res.id;
-        //             await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
+        //             await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
         //         }
         //     }
 
@@ -3225,7 +3230,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
+        return await this._deleteVOs(vos, false);
+    }
 
+    private async _deleteVOs(vos: IDistantVOBase[], exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'in');
 
@@ -3292,7 +3300,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après suppression.
                 //  Attention si un des output est false avant suppression, on annule la suppression
-                let res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(vo._type, vo);
+                let res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(vo._type, vo, exec_as_server);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
                     StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'pre_delete_trigger_hook_rejection');
                     continue;
@@ -3327,7 +3335,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 if (deps_to_delete && deps_to_delete.length) {
-                    let dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(deps_to_delete);
+                    let dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server(deps_to_delete, exec_as_server);
 
                     if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
                         ConsoleHandler.error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION: DEPS_TYPES:' + DEBUG_deps_types_to_delete);
@@ -3352,7 +3360,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 deleted_vos.push(vo);
                 queries.push(t.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
-                    await this.post_delete_trigger_hook.trigger(vo._type, vo);
+                    await this.post_delete_trigger_hook.trigger(vo._type, vo, exec_as_server);
                 })*/);
             }
 
@@ -3367,7 +3375,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                 }
 
-                await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo);
+                await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, exec_as_server);
             }
             return value;
         });
@@ -5601,7 +5609,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // }
 
                 await promise_pipeline.push(async () => {
-                    let sql: string = await this.getqueryfor_insertOrUpdateVO(vo, null);
+                    let sql: string = await this.getqueryfor_insertOrUpdateVO(vo, null, exec_as_server);
 
                     if (!sql) {
                         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'NO_SQL');
@@ -5621,7 +5629,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let time_before_insert = Dates.now_ms();
 
             if (sqls.length > 0) {
-                let query_uid = this.log_db_query_perf_start('insert_vos', 'ex: ' + sqls[0]);
+                let query_uid = this.log_db_query_perf_start('insert_vos', 'nb:' + sqls.length + ':first:' + sqls[0]);
                 results = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
                     let queries: any[] = [];
@@ -5637,7 +5645,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }).catch((reason) => {
                     StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'ERROR');
                     ConsoleHandler.error('insert_vos :' + reason);
-                    this.log_db_query_perf_end(query_uid, 'insert_vos', 'ex: ' + sqls[0]);
+                    this.log_db_query_perf_end(query_uid, 'insert_vos', 'nb:' + sqls.length + ':first:' + sqls[0]);
                     resolve(null);
                     resolved = true;
                 });
@@ -5673,7 +5681,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 await promise_pipeline.push(async () => {
 
                     vo.id = parseInt(results[i].id.toString());
-                    await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
+                    await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
                     InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(vo.id));
                 });
             }

@@ -46,6 +46,7 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
+import ArrayHandler from '../../../shared/tools/ArrayHandler';
 
 export default class ContextQueryServerController {
 
@@ -141,7 +142,7 @@ export default class ContextQueryServerController {
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-        // Case when union_query => we need to take care of each res vo_type 
+        // Case when union_query => we need to take care of each res vo_type
         // (as we should have _explicit_api_type_id)
         for (const i in query_res) {
             const data = query_res[i];
@@ -708,7 +709,7 @@ export default class ContextQueryServerController {
 
                     await promise_pipeline.push(async () => {
 
-                        let sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo);
+                        let sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo, context_query.is_server);
 
                         if (!sql) {
                             ConsoleHandler.warn('Est-ce bien normal ? update_vos :(!sql):' + JSON.stringify(vo_to_update));
@@ -732,7 +733,7 @@ export default class ContextQueryServerController {
                             return null;
                         }
 
-                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update));
+                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update), context_query.is_server);
 
                         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'OK');
                         StatsController.register_stat_DUREE('ContextQueryServerController', 'update_vos', 'OK', Dates.now_ms() - time_in);
@@ -827,7 +828,7 @@ export default class ContextQueryServerController {
                     if (has_trigger_pre_delete) {
                         // Ajout des triggers, avant et après suppression.
                         //  Attention si un des output est false avant suppression, on annule la suppression
-                        let preDeleteTrigger_res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(context_query.base_api_type_id, vo_to_delete);
+                        let preDeleteTrigger_res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(context_query.base_api_type_id, vo_to_delete, context_query.is_server);
                         if (!BooleanHandler.getInstance().AND(preDeleteTrigger_res, true)) {
                             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'pre_delete_trigger_hook_rejection');
                             return;
@@ -954,7 +955,7 @@ export default class ContextQueryServerController {
                             ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                         }
 
-                        await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo);
+                        await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
                     }
                 }
                 return value;
@@ -1206,6 +1207,12 @@ export default class ContextQueryServerController {
                         }
                     }
                 }
+
+                /**
+                 * WARN :: Un check complémentaire suite observation en prod, mais sans comprendre pourquoi on a besoin de le faire
+                 *  On cleans les doublons de requête, sinon on peut avoir 2 résultats identiques à la fin
+                 */
+                queries = ArrayHandler.removeDuplicateStrings(queries);
 
                 if (!queries.length) {
                     main_query_wrapper.mark_as_is_segmented_non_existing_table();

@@ -1,13 +1,13 @@
 
+import debounce from 'lodash/debounce';
 import Vue from 'vue';
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors } from "vuex-typescript";
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../../shared/modules/PushData/vos/NotificationVO';
 import IStoreModule from '../../../store/IStoreModule';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import debounce from 'lodash/debounce';
-import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { store_mutations_names } from '../../../store/StoreModuleBase';
 
 export type NotificationContext = ActionContext<INotificationState, any>;
 
@@ -34,7 +34,27 @@ export default class NotificationStore implements IStoreModule<INotificationStat
     public module_name: string;
     public state: any;
     public getters: GetterTree<INotificationState, NotificationContext>;
-    public mutations: MutationTree<INotificationState>;
+    public mutations = {
+
+        set_notifications_by_ids(state: INotificationState, notifications_by_ids: { [id: number]: NotificationVO }) { state.notifications_by_ids = notifications_by_ids; },
+        add_notification(state: INotificationState, notification: NotificationVO) { Vue.set(state.notifications_by_ids as any, notification.id, notification); },
+        add_notifications(state: INotificationState, notifications: NotificationVO[]) {
+
+            for (let i in notifications) {
+                let notification = notifications[i];
+                Vue.set(state.notifications_by_ids as any, notification.id, notification);
+            }
+        },
+        read_notification(state: INotificationState, notification: NotificationVO) {
+            state.notifications_by_ids[notification.id].read = true;
+            state.notifications_by_ids[notification.id].read_date = Dates.now();
+
+            state.mark_as_read.push(state.notifications_by_ids[notification.id]);
+            NotificationStore.getInstance().debounced_read_notifs();
+        },
+        set_is_updating(state: INotificationState, is_updating: boolean) { state.is_updating = is_updating; },
+        set_notif_viewer_opened(state: INotificationState, notif_viewer_opened: boolean) { state.notif_viewer_opened = notif_viewer_opened; },
+    };
     public actions: ActionTree<INotificationState, NotificationContext>;
     public namespaced: boolean = true;
     private debounced_read_notifs = debounce(this.read_notifs, 200);
@@ -74,39 +94,13 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             },
         };
 
-        this.mutations = {
-
-            set_notifications_by_ids(state: INotificationState, notifications_by_ids: { [id: number]: NotificationVO }) { state.notifications_by_ids = notifications_by_ids; },
-            // delete_notification(state: INotificationState, notification: NotificationVO) { Vue.delete(state.notifications_by_ids as any, notification.id); },
-            add_notification(state: INotificationState, notification: NotificationVO) { Vue.set(state.notifications_by_ids as any, notification.id, notification); },
-            add_notifications(state: INotificationState, notifications: NotificationVO[]) {
-
-                for (let i in notifications) {
-                    let notification = notifications[i];
-                    Vue.set(state.notifications_by_ids as any, notification.id, notification);
-                }
-            },
-            read_notification(state: INotificationState, notification: NotificationVO) {
-                state.notifications_by_ids[notification.id].read = true;
-                state.notifications_by_ids[notification.id].read_date = Dates.now();
-
-                state.mark_as_read.push(state.notifications_by_ids[notification.id]);
-                NotificationStore.getInstance().debounced_read_notifs();
-            },
-            set_is_updating(state: INotificationState, is_updating: boolean) { state.is_updating = is_updating; },
-            set_notif_viewer_opened(state: INotificationState, notif_viewer_opened: boolean) { state.notif_viewer_opened = notif_viewer_opened; },
-        };
-
-
-
         this.actions = {
-            set_notifications_by_ids(context: NotificationContext, notifications_by_ids: { [id: number]: NotificationVO }) { commit_set_notifications_by_ids(context, notifications_by_ids); },
-            // delete_notification(context: NotificationContext, notification: NotificationVO) { commit_delete_notification(context, notification); },
-            add_notification(context: NotificationContext, notification: NotificationVO) { commit_add_notification(context, notification); },
-            add_notifications(context: NotificationContext, notifications: NotificationVO[]) { commit_add_notifications(context, notifications); },
-            read_notification(context: NotificationContext, notification: NotificationVO) { commit_read_notification(context, notification); },
-            set_is_updating(context: NotificationContext, is_updating: boolean) { commit_set_is_updating(context, is_updating); },
-            set_notif_viewer_opened(context: NotificationContext, notif_viewer_opened: boolean) { commit_set_notif_viewer_opened(context, notif_viewer_opened); },
+            set_notifications_by_ids: (context: NotificationContext, notifications_by_ids: { [id: number]: NotificationVO }) => context.commit(store_mutations_names(this).set_notifications_by_ids, notifications_by_ids),
+            add_notification: (context: NotificationContext, notification: NotificationVO) => context.commit(store_mutations_names(this).add_notification, notification),
+            add_notifications: (context: NotificationContext, notifications: NotificationVO[]) => context.commit(store_mutations_names(this).add_notifications, notifications),
+            read_notification: (context: NotificationContext, notification: NotificationVO) => context.commit(store_mutations_names(this).read_notification, notification),
+            set_is_updating: (context: NotificationContext, is_updating: boolean) => context.commit(store_mutations_names(this).set_is_updating, is_updating),
+            set_notif_viewer_opened: (context: NotificationContext, notif_viewer_opened: boolean) => context.commit(store_mutations_names(this).set_notif_viewer_opened, notif_viewer_opened),
         };
     }
 
@@ -119,15 +113,5 @@ export default class NotificationStore implements IStoreModule<INotificationStat
     }
 }
 
-const { commit, read, dispatch } =
-    getStoreAccessors<INotificationState, any>("NotificationStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleNotificationGetter = namespace('NotificationStore', Getter);
 export const ModuleNotificationAction = namespace('NotificationStore', Action);
-
-export const commit_set_notifications_by_ids = commit(NotificationStore.getInstance().mutations.set_notifications_by_ids);
-// export const commit_delete_notification = commit(NotificationStore.getInstance().mutations.delete_notification);
-export const commit_add_notification = commit(NotificationStore.getInstance().mutations.add_notification);
-export const commit_add_notifications = commit(NotificationStore.getInstance().mutations.add_notifications);
-export const commit_read_notification = commit(NotificationStore.getInstance().mutations.read_notification);
-export const commit_set_is_updating = commit(NotificationStore.getInstance().mutations.set_is_updating);
-export const commit_set_notif_viewer_opened = commit(NotificationStore.getInstance().mutations.set_notif_viewer_opened);

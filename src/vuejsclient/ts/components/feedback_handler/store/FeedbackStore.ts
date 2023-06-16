@@ -1,7 +1,7 @@
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors } from "vuex-typescript";
 import IStoreModule from '../../../store/IStoreModule';
+import { store_mutations_names } from "../../../store/StoreModuleBase";
 
 export type FeedbackContext = ActionContext<IFeedbackState, any>;
 
@@ -23,7 +23,9 @@ export default class FeedbackStore implements IStoreModule<IFeedbackState, Feedb
     public module_name: string;
     public state: any;
     public getters: GetterTree<IFeedbackState, FeedbackContext>;
-    public mutations: MutationTree<IFeedbackState>;
+    public mutations = {
+        set_hidden(state: IFeedbackState, hidden: boolean) { state.hidden = hidden; },
+    };
     public actions: ActionTree<IFeedbackState, FeedbackContext>;
     public namespaced: boolean = true;
 
@@ -41,22 +43,11 @@ export default class FeedbackStore implements IStoreModule<IFeedbackState, Feedb
             get_hidden(state: IFeedbackState): boolean { return state.hidden; },
         };
 
-        this.mutations = {
-
-            set_hidden(state: IFeedbackState, hidden: boolean) { state.hidden = hidden; },
-        };
-
-
-
         this.actions = {
-            set_hidden(context: FeedbackContext, hidden: boolean) { commit_set_hidden(context, hidden); },
+            set_hidden: (context: FeedbackContext, hidden: boolean) => context.commit(store_mutations_names(this).set_hidden, hidden),
         };
     }
 }
 
-const { commit, read, dispatch } =
-    getStoreAccessors<IFeedbackState, any>("FeedbackStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleFeedbackGetter = namespace('FeedbackStore', Getter);
 export const ModuleFeedbackAction = namespace('FeedbackStore', Action);
-
-export const commit_set_hidden = commit(FeedbackStore.getInstance().mutations.set_hidden);

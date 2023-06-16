@@ -1423,7 +1423,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (role_policy) {
 
             // Si oui on la supprime
-            let insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([role_policy]);
+            let insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server([role_policy]);
             if ((!insertOrDeleteQueryResults) || (!insertOrDeleteQueryResults.length)) {
                 return false;
             }

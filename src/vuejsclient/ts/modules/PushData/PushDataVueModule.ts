@@ -45,7 +45,7 @@ export default class PushDataVueModule extends VueModuleBase {
         let first = true;
 
         // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
-        this.socket = io.connect({
+        this.socket = io({
             transportOptions: {
                 polling: {
                     extraHeaders: {
