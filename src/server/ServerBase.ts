@@ -60,6 +60,7 @@ import DefaultTranslationsServerManager from './modules/Translation/DefaultTrans
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
+import { IClient } from 'pg-promise/typescript/pg-subset';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -158,10 +159,10 @@ export default abstract class ServerBase {
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         let pgp: pg_promise.IMain = pg_promise({
-            async connect(client, dc, useCount) {
+            async connect(e: { client: IClient, dc: any, useCount: number }) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
             },
-            async disconnect(client, dc) {
+            async disconnect(e: { client: IClient, dc: any }) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
             },
             async query(e) {
