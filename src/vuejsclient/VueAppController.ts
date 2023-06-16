@@ -14,6 +14,7 @@ import LocaleManager from '../shared/tools/LocaleManager';
 import { all_promises } from '../shared/tools/PromiseTools';
 import MenuController from './ts/components/menu/MenuController';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
+import ConsoleHandler from '../shared/tools/ConsoleHandler';
 
 export default abstract class VueAppController {
 

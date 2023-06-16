@@ -6,8 +6,6 @@ import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/Maintenanc
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
@@ -62,7 +60,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance) {
                 this.stats_out('inactive', time_in);
-                return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+                return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
             let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);

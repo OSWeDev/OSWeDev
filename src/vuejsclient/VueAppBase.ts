@@ -1,5 +1,5 @@
 import VueFlags from "@growthbunker/vueflags";
-import 'jquery';
+import $ from 'jquery';
 import 'bootstrap';
 import moment from 'moment';
 
@@ -101,12 +101,10 @@ export default abstract class VueAppBase {
         let self = this;
         let promises = [];
 
-        promises.push((async () => {
-            Vue.config.devtools = false;
-            if (EnvHandler.IS_DEV) {
-                Vue.config.devtools = true;
-            }
-        })());
+        Vue.config.devtools = false;
+        if (EnvHandler.IS_DEV) {
+            Vue.config.devtools = true;
+        }
 
         promises.push((async () => {
             await this.appController.initialize();

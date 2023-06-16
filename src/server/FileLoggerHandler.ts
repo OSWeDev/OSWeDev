@@ -37,6 +37,10 @@ export default class FileLoggerHandler implements ILoggerHandler {
         }
     }
 
+    public force_flush() {
+        this.log_to_file();
+    }
+
     public log(msg: string, ...params) {
 
         for (let i in params) {

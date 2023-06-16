@@ -4,6 +4,8 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -670,17 +672,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS, this.getALL_FLAT_LOCALE_TRANSLATIONS.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
-    }
-
-    public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
-        return await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
     }
 
     public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
@@ -731,8 +728,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     private async getALL_FLAT_LOCALE_TRANSLATIONS(code_lang: string): Promise<{ [code_text: string]: string }> {
 
         if (this.flat_translations && this.flat_translations[code_lang]) {
+            StatsController.register_stat_COMPTEUR("ModuleTranslationServer", "getALL_FLAT_LOCALE_TRANSLATIONS", "USING_CACHE");
             return this.flat_translations[code_lang];
         }
+
+        let time_in_ms = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR("ModuleTranslationServer", "getALL_FLAT_LOCALE_TRANSLATIONS", "BUILDING");
+        ConsoleHandler.log('getALL_FLAT_LOCALE_TRANSLATIONS:BUILDING...');
 
         let res: { [code_text: string]: string } = {};
 
@@ -755,7 +757,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
         promises.push((async () => {
-            translatableTexts = await this.getTranslatableTexts();
+            translatableTexts = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             translatableTexts_by_id = VOsTypesManager.vosArray_to_vosByIds(translatableTexts);
         })());
 
@@ -769,6 +771,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             this.flat_translations = {};
         }
         this.flat_translations[code_lang] = res;
+
+        ConsoleHandler.log('getALL_FLAT_LOCALE_TRANSLATIONS:BUILT');
+        StatsController.register_stat_DUREE("ModuleTranslationServer", "getALL_FLAT_LOCALE_TRANSLATIONS", "BUILT", Dates.now_ms() - time_in_ms);
+
         return res;
     }
 
