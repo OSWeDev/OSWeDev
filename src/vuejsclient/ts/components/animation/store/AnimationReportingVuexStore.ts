@@ -11,6 +11,7 @@ import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from "../../../../../shared/modules/DataRender/vos/NumSegment";
 import RangeHandler from "../../../../../shared/tools/RangeHandler";
 import IStoreModule from '../../../store/IStoreModule';
+import { store_mutations_names } from "../../../store/StoreModuleBase";
 
 export type AnimationReportingContext = ActionContext<IAnimationReportingVueXState, any>;
 
@@ -52,7 +53,176 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
     public module_name: string;
     public state: any;
     public getters: GetterTree<IAnimationReportingVueXState, AnimationReportingContext>;
-    public mutations: MutationTree<IAnimationReportingVueXState>;
+    public mutations = {
+        set_all_anim_theme_by_ids: (state: IAnimationReportingVueXState, all_anim_theme_by_ids: { [id: number]: AnimationThemeVO }) => state.all_anim_theme_by_ids = all_anim_theme_by_ids,
+        set_filter_anim_theme_active_options: (state: IAnimationReportingVueXState, filter_anim_theme_active_options: DataFilterOption[]) => state.filter_anim_theme_active_options = filter_anim_theme_active_options,
+        set_anim_theme_id_ranges: (state: IAnimationReportingVueXState) => {
+            let res: NumRange[] = [];
+
+            let theme_ids: number[] = state.filter_anim_theme_active_options ? state.filter_anim_theme_active_options.map((s) => s.id) : [];
+
+            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
+                if (theme_ids.length > 0) {
+                    if (theme_ids.indexOf(parseInt(anim_theme_id)) == -1) {
+                        continue;
+                    }
+                }
+
+                res.push(RangeHandler.create_single_elt_NumRange(parseInt(anim_theme_id), NumSegment.TYPE_INT));
+            }
+
+            state.anim_theme_id_ranges = res;
+        },
+
+        set_all_anim_module_by_ids: (state: IAnimationReportingVueXState, all_anim_module_by_ids: { [id: number]: AnimationModuleVO }) => state.all_anim_module_by_ids = all_anim_module_by_ids,
+        set_filter_anim_module_active_options: (state: IAnimationReportingVueXState, filter_anim_module_active_options: DataFilterOption[]) => state.filter_anim_module_active_options = filter_anim_module_active_options,
+        set_anim_module_id_ranges: (state: IAnimationReportingVueXState) => {
+            let res: NumRange[] = [];
+
+            let module_ids: number[] = state.filter_anim_module_active_options ? state.filter_anim_module_active_options.map((s) => s.id) : [];
+
+            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    let module_id: number = parseInt(anim_module_id);
+
+                    if (module_ids.length > 0) {
+                        if (module_ids.indexOf(module_id) == -1) {
+                            continue;
+                        }
+                    }
+
+                    if (state.anim_theme_id_ranges && state.anim_theme_id_ranges.length > 0) {
+                        let anim_module: AnimationModuleVO = state.all_anim_module_by_ids[module_id];
+
+                        if (!anim_module) {
+                            continue;
+                        }
+
+                        let anim_theme: AnimationThemeVO = state.all_anim_theme_by_ids[anim_module.theme_id];
+
+                        if (!anim_theme) {
+                            continue;
+                        }
+
+                        if (!RangeHandler.elt_intersects_any_range(anim_theme.id, state.anim_theme_id_ranges)) {
+                            continue;
+                        }
+                    }
+
+                    res.push(RangeHandler.create_single_elt_NumRange(module_id, NumSegment.TYPE_INT));
+                }
+            }
+
+            state.anim_module_id_ranges = res;
+        },
+
+        set_all_role_by_ids: (state: IAnimationReportingVueXState, all_role_by_ids: { [id: number]: RoleVO }) => state.all_role_by_ids = all_role_by_ids,
+        set_filter_role_active_options: (state: IAnimationReportingVueXState, filter_role_active_options: DataFilterOption[]) => state.filter_role_active_options = filter_role_active_options,
+        set_role_id_ranges: (state: IAnimationReportingVueXState) => {
+            let res: NumRange[] = [];
+
+            let role_ids: number[] = state.filter_role_active_options ? state.filter_role_active_options.map((s) => s.id) : [];
+            let role_id_add: { [role_id: number]: boolean } = {};
+
+            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    let anim_module: AnimationModuleVO = state.all_anim_module_by_ids[anim_module_id];
+
+                    if (!anim_module) {
+                        continue;
+                    }
+
+                    if (anim_module.role_id_ranges && anim_module.role_id_ranges.length > 0) {
+                        RangeHandler.foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
+                            if (role_id_add[role_id]) {
+                                return;
+                            }
+
+                            if (role_ids.length > 0 && role_ids.indexOf(role_id) == -1) {
+                                return;
+                            }
+
+                            role_id_add[role_id] = true;
+
+                            res.push(RangeHandler.create_single_elt_NumRange(role_id, NumSegment.TYPE_INT));
+                        });
+                    }
+                }
+            }
+
+            state.role_id_ranges = res;
+        },
+
+        set_all_user_by_ids: (state: IAnimationReportingVueXState, all_user_by_ids: { [id: number]: UserVO }) => state.all_user_by_ids = all_user_by_ids,
+        set_filter_user_active_options: (state: IAnimationReportingVueXState, filter_user_active_options: DataFilterOption[]) => state.filter_user_active_options = filter_user_active_options,
+        set_user_id_ranges: (state: IAnimationReportingVueXState) => {
+            let res: NumRange[] = [];
+
+            let user_id_add: { [id: number]: boolean } = {};
+            let user_ids: number[] = state.filter_user_active_options ? state.filter_user_active_options.map((s) => s.id) : [];
+
+            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    for (let user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
+                        if (user_id_add[user_id]) {
+                            continue;
+                        }
+
+                        if (user_ids.length > 0) {
+                            if (user_ids.indexOf(parseInt(user_id)) == -1) {
+                                continue;
+                            }
+                        }
+
+                        user_id_add[user_id] = true;
+                        res.push(RangeHandler.create_single_elt_NumRange(parseInt(user_id), NumSegment.TYPE_INT));
+                    }
+                }
+            }
+
+            state.user_id_ranges = res;
+        },
+
+        set_all_aum_by_theme_module_user: (state: IAnimationReportingVueXState, all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } }) => state.all_aum_by_theme_module_user = all_aum_by_theme_module_user,
+
+        set_filter_module_termine_active_option: (state: IAnimationReportingVueXState, filter_module_termine_active_option: DataFilterOption) => state.filter_module_termine_active_option = filter_module_termine_active_option,
+        set_filter_module_valide_active_option: (state: IAnimationReportingVueXState, filter_module_valide_active_option: DataFilterOption) => state.filter_module_valide_active_option = filter_module_valide_active_option,
+
+        set_percent_module_finished: (state: IAnimationReportingVueXState) => {
+            let total_aum: number = 0;
+            let total_finished_aum: number = 0;
+
+            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    for (let user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
+                        let aum: AnimationUserModuleVO = state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id][user_id];
+
+                        total_aum++;
+
+                        if (aum.end_date) {
+                            total_finished_aum++;
+                        }
+                    }
+                }
+            }
+
+            state.percent_module_finished = total_aum ? (total_finished_aum / total_aum) : 0;
+        },
+
+        init: (state: IAnimationReportingVueXState, params: {
+            all_anim_theme_by_ids: { [id: number]: AnimationThemeVO },
+            all_anim_module_by_ids: { [id: number]: AnimationModuleVO },
+            all_role_by_ids: { [id: number]: RoleVO },
+            all_user_by_ids: { [id: number]: UserVO },
+            all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } },
+        }) => {
+            state.all_anim_theme_by_ids = params.all_anim_theme_by_ids;
+            state.all_anim_module_by_ids = params.all_anim_module_by_ids;
+            state.all_role_by_ids = params.all_role_by_ids;
+            state.all_user_by_ids = params.all_user_by_ids;
+            state.all_aum_by_theme_module_user = params.all_aum_by_theme_module_user;
+        },
+    };
     public actions: ActionTree<IAnimationReportingVueXState, AnimationReportingContext>;
     public namespaced: boolean = true;
 
@@ -108,211 +278,40 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
             get_all_aum_by_theme_module_user: (state: IAnimationReportingVueXState) => state.all_aum_by_theme_module_user,
         };
 
-        this.mutations = {
-            set_all_anim_theme_by_ids: (state: IAnimationReportingVueXState, all_anim_theme_by_ids: { [id: number]: AnimationThemeVO }) => state.all_anim_theme_by_ids = all_anim_theme_by_ids,
-            set_filter_anim_theme_active_options: (state: IAnimationReportingVueXState, filter_anim_theme_active_options: DataFilterOption[]) => state.filter_anim_theme_active_options = filter_anim_theme_active_options,
-            set_anim_theme_id_ranges: (state: IAnimationReportingVueXState) => {
-                let res: NumRange[] = [];
-
-                let theme_ids: number[] = state.filter_anim_theme_active_options ? state.filter_anim_theme_active_options.map((s) => s.id) : [];
-
-                for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                    if (theme_ids.length > 0) {
-                        if (theme_ids.indexOf(parseInt(anim_theme_id)) == -1) {
-                            continue;
-                        }
-                    }
-
-                    res.push(RangeHandler.create_single_elt_NumRange(parseInt(anim_theme_id), NumSegment.TYPE_INT));
-                }
-
-                state.anim_theme_id_ranges = res;
-            },
-
-            set_all_anim_module_by_ids: (state: IAnimationReportingVueXState, all_anim_module_by_ids: { [id: number]: AnimationModuleVO }) => state.all_anim_module_by_ids = all_anim_module_by_ids,
-            set_filter_anim_module_active_options: (state: IAnimationReportingVueXState, filter_anim_module_active_options: DataFilterOption[]) => state.filter_anim_module_active_options = filter_anim_module_active_options,
-            set_anim_module_id_ranges: (state: IAnimationReportingVueXState) => {
-                let res: NumRange[] = [];
-
-                let module_ids: number[] = state.filter_anim_module_active_options ? state.filter_anim_module_active_options.map((s) => s.id) : [];
-
-                for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                    for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                        let module_id: number = parseInt(anim_module_id);
-
-                        if (module_ids.length > 0) {
-                            if (module_ids.indexOf(module_id) == -1) {
-                                continue;
-                            }
-                        }
-
-                        if (state.anim_theme_id_ranges && state.anim_theme_id_ranges.length > 0) {
-                            let anim_module: AnimationModuleVO = state.all_anim_module_by_ids[module_id];
-
-                            if (!anim_module) {
-                                continue;
-                            }
-
-                            let anim_theme: AnimationThemeVO = state.all_anim_theme_by_ids[anim_module.theme_id];
-
-                            if (!anim_theme) {
-                                continue;
-                            }
-
-                            if (!RangeHandler.elt_intersects_any_range(anim_theme.id, state.anim_theme_id_ranges)) {
-                                continue;
-                            }
-                        }
-
-                        res.push(RangeHandler.create_single_elt_NumRange(module_id, NumSegment.TYPE_INT));
-                    }
-                }
-
-                state.anim_module_id_ranges = res;
-            },
-
-            set_all_role_by_ids: (state: IAnimationReportingVueXState, all_role_by_ids: { [id: number]: RoleVO }) => state.all_role_by_ids = all_role_by_ids,
-            set_filter_role_active_options: (state: IAnimationReportingVueXState, filter_role_active_options: DataFilterOption[]) => state.filter_role_active_options = filter_role_active_options,
-            set_role_id_ranges: (state: IAnimationReportingVueXState) => {
-                let res: NumRange[] = [];
-
-                let role_ids: number[] = state.filter_role_active_options ? state.filter_role_active_options.map((s) => s.id) : [];
-                let role_id_add: { [role_id: number]: boolean } = {};
-
-                for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                    for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                        let anim_module: AnimationModuleVO = state.all_anim_module_by_ids[anim_module_id];
-
-                        if (!anim_module) {
-                            continue;
-                        }
-
-                        if (anim_module.role_id_ranges && anim_module.role_id_ranges.length > 0) {
-                            RangeHandler.foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
-                                if (role_id_add[role_id]) {
-                                    return;
-                                }
-
-                                if (role_ids.length > 0 && role_ids.indexOf(role_id) == -1) {
-                                    return;
-                                }
-
-                                role_id_add[role_id] = true;
-
-                                res.push(RangeHandler.create_single_elt_NumRange(role_id, NumSegment.TYPE_INT));
-                            });
-                        }
-                    }
-                }
-
-                state.role_id_ranges = res;
-            },
-
-            set_all_user_by_ids: (state: IAnimationReportingVueXState, all_user_by_ids: { [id: number]: UserVO }) => state.all_user_by_ids = all_user_by_ids,
-            set_filter_user_active_options: (state: IAnimationReportingVueXState, filter_user_active_options: DataFilterOption[]) => state.filter_user_active_options = filter_user_active_options,
-            set_user_id_ranges: (state: IAnimationReportingVueXState) => {
-                let res: NumRange[] = [];
-
-                let user_id_add: { [id: number]: boolean } = {};
-                let user_ids: number[] = state.filter_user_active_options ? state.filter_user_active_options.map((s) => s.id) : [];
-
-                for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                    for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                        for (let user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
-                            if (user_id_add[user_id]) {
-                                continue;
-                            }
-
-                            if (user_ids.length > 0) {
-                                if (user_ids.indexOf(parseInt(user_id)) == -1) {
-                                    continue;
-                                }
-                            }
-
-                            user_id_add[user_id] = true;
-                            res.push(RangeHandler.create_single_elt_NumRange(parseInt(user_id), NumSegment.TYPE_INT));
-                        }
-                    }
-                }
-
-                state.user_id_ranges = res;
-            },
-
-            set_all_aum_by_theme_module_user: (state: IAnimationReportingVueXState, all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } }) => state.all_aum_by_theme_module_user = all_aum_by_theme_module_user,
-
-            set_filter_module_termine_active_option: (state: IAnimationReportingVueXState, filter_module_termine_active_option: DataFilterOption) => state.filter_module_termine_active_option = filter_module_termine_active_option,
-            set_filter_module_valide_active_option: (state: IAnimationReportingVueXState, filter_module_valide_active_option: DataFilterOption) => state.filter_module_valide_active_option = filter_module_valide_active_option,
-
-            set_percent_module_finished: (state: IAnimationReportingVueXState) => {
-                let total_aum: number = 0;
-                let total_finished_aum: number = 0;
-
-                for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                    for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                        for (let user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
-                            let aum: AnimationUserModuleVO = state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id][user_id];
-
-                            total_aum++;
-
-                            if (aum.end_date) {
-                                total_finished_aum++;
-                            }
-                        }
-                    }
-                }
-
-                state.percent_module_finished = total_aum ? (total_finished_aum / total_aum) : 0;
-            },
-
-            init: (state: IAnimationReportingVueXState, params: {
-                all_anim_theme_by_ids: { [id: number]: AnimationThemeVO },
-                all_anim_module_by_ids: { [id: number]: AnimationModuleVO },
-                all_role_by_ids: { [id: number]: RoleVO },
-                all_user_by_ids: { [id: number]: UserVO },
-                all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } },
-            }) => {
-                state.all_anim_theme_by_ids = params.all_anim_theme_by_ids;
-                state.all_anim_module_by_ids = params.all_anim_module_by_ids;
-                state.all_role_by_ids = params.all_role_by_ids;
-                state.all_user_by_ids = params.all_user_by_ids;
-                state.all_aum_by_theme_module_user = params.all_aum_by_theme_module_user;
-            },
-        };
-
         this.actions = {
-            set_all_anim_theme_by_ids: (context: AnimationReportingContext, all_anim_theme_by_ids: { [id: number]: AnimationThemeVO }) => commit_set_all_anim_theme_by_ids(context, all_anim_theme_by_ids),
-            set_filter_anim_theme_active_options: (context: AnimationReportingContext, filter_anim_theme_active_options: DataFilterOption[]) => commit_set_filter_anim_theme_active_options(context, filter_anim_theme_active_options),
-            set_anim_theme_id_ranges: (context: AnimationReportingContext) => commit_set_anim_theme_id_ranges(context, null),
+            set_all_anim_theme_by_ids: (context: AnimationReportingContext, all_anim_theme_by_ids: { [id: number]: AnimationThemeVO }) => context.commit(store_mutations_names(this).set_all_anim_theme_by_ids, all_anim_theme_by_ids),
+            set_filter_anim_theme_active_options: (context: AnimationReportingContext, filter_anim_theme_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_anim_theme_active_options, filter_anim_theme_active_options),
+            set_anim_theme_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_anim_theme_id_ranges, null),
 
-            set_all_anim_module_by_ids: (context: AnimationReportingContext, all_anim_module_by_ids: { [id: number]: AnimationModuleVO }) => commit_set_all_anim_module_by_ids(context, all_anim_module_by_ids),
-            set_filter_anim_module_active_options: (context: AnimationReportingContext, filter_anim_module_active_options: DataFilterOption[]) => commit_set_filter_anim_module_active_options(context, filter_anim_module_active_options),
-            set_anim_module_id_ranges: (context: AnimationReportingContext) => commit_set_anim_module_id_ranges(context, null),
+            set_all_anim_module_by_ids: (context: AnimationReportingContext, all_anim_module_by_ids: { [id: number]: AnimationModuleVO }) => context.commit(store_mutations_names(this).set_all_anim_module_by_ids, all_anim_module_by_ids),
+            set_filter_anim_module_active_options: (context: AnimationReportingContext, filter_anim_module_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_anim_module_active_options, filter_anim_module_active_options),
+            set_anim_module_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_anim_module_id_ranges, null),
 
-            set_all_role_by_ids: (context: AnimationReportingContext, all_role_by_ids: { [id: number]: RoleVO }) => commit_set_all_role_by_ids(context, all_role_by_ids),
-            set_filter_role_active_options: (context: AnimationReportingContext, filter_role_active_options: DataFilterOption[]) => commit_set_filter_role_active_options(context, filter_role_active_options),
-            set_role_id_ranges: (context: AnimationReportingContext) => commit_set_role_id_ranges(context, null),
+            set_all_role_by_ids: (context: AnimationReportingContext, all_role_by_ids: { [id: number]: RoleVO }) => context.commit(store_mutations_names(this).set_all_role_by_ids, all_role_by_ids),
+            set_filter_role_active_options: (context: AnimationReportingContext, filter_role_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_role_active_options, filter_role_active_options),
+            set_role_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_role_id_ranges, null),
 
-            set_all_user_by_ids: (context: AnimationReportingContext, all_user_by_ids: { [id: number]: UserVO }) => commit_set_all_user_by_ids(context, all_user_by_ids),
-            set_filter_user_active_options: (context: AnimationReportingContext, filter_user_active_options: DataFilterOption[]) => commit_set_filter_user_active_options(context, filter_user_active_options),
-            set_user_id_ranges: (context: AnimationReportingContext) => commit_set_user_id_ranges(context, null),
+            set_all_user_by_ids: (context: AnimationReportingContext, all_user_by_ids: { [id: number]: UserVO }) => context.commit(store_mutations_names(this).set_all_user_by_ids, all_user_by_ids),
+            set_filter_user_active_options: (context: AnimationReportingContext, filter_user_active_options: DataFilterOption[]) => context.commit(store_mutations_names(this).set_filter_user_active_options, filter_user_active_options),
+            set_user_id_ranges: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_user_id_ranges, null),
 
             set_all_aum_by_theme_module_user: async (context: AnimationReportingContext, all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } }) => {
-                commit_set_all_aum_by_theme_module_user(context, all_aum_by_theme_module_user);
+                context.commit(store_mutations_names(this).set_all_aum_by_theme_module_user, all_aum_by_theme_module_user);
                 await set_all_datas_for_filter(context, null);
             },
 
             set_all_datas_for_filter: (context: AnimationReportingContext) => {
-                commit_set_anim_theme_id_ranges(context, null);
-                commit_set_anim_module_id_ranges(context, null);
-                commit_set_role_id_ranges(context, null);
-                commit_set_user_id_ranges(context, null);
-                commit_set_percent_module_finished(context, null);
+                context.commit(store_mutations_names(this).set_anim_theme_id_ranges, null);
+                context.commit(store_mutations_names(this).set_anim_module_id_ranges, null);
+                context.commit(store_mutations_names(this).set_role_id_ranges, null);
+                context.commit(store_mutations_names(this).set_user_id_ranges, null);
+                context.commit(store_mutations_names(this).set_percent_module_finished, null);
             },
 
-            set_filter_module_termine_active_option: (context: AnimationReportingContext, filter_module_termine_active_option: DataFilterOption) => commit_set_filter_module_termine_active_option(context, filter_module_termine_active_option),
-            set_filter_module_valide_active_option: (context: AnimationReportingContext, filter_module_valide_active_option: DataFilterOption) => commit_set_filter_module_valide_active_option(context, filter_module_valide_active_option),
+            set_filter_module_termine_active_option: (context: AnimationReportingContext, filter_module_termine_active_option: DataFilterOption) => context.commit(store_mutations_names(this).set_filter_module_termine_active_option, filter_module_termine_active_option),
+            set_filter_module_valide_active_option: (context: AnimationReportingContext, filter_module_valide_active_option: DataFilterOption) => context.commit(store_mutations_names(this).set_filter_module_valide_active_option, filter_module_valide_active_option),
 
-            set_percent_module_finished: (context: AnimationReportingContext) => commit_set_percent_module_finished(context, null),
+            set_percent_module_finished: (context: AnimationReportingContext) => context.commit(store_mutations_names(this).set_percent_module_finished, null),
 
             init: async (context: AnimationReportingContext, params: {
                 all_anim_theme_by_ids: { [id: number]: AnimationThemeVO },
@@ -321,7 +320,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
                 all_user_by_ids: { [id: number]: UserVO },
                 all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } },
             }) => {
-                commit_init(context, params);
+                context.commit(store_mutations_names(this).init, params);
 
                 await set_all_datas_for_filter(context, null);
             },
@@ -337,27 +336,3 @@ export const ModuleAnimationReportingVuexGetter = namespace('AnimationReportingV
 export const ModuleAnimationReportingVuexAction = namespace('AnimationReportingVuexStore', Action);
 
 export const set_all_datas_for_filter = dispatch(AnimationReportingVuexStore.actions.set_all_datas_for_filter as ActionHandlerWithPayload<IAnimationReportingVueXState, any, any, {}>);
-
-export const commit_set_all_anim_theme_by_ids = commit(AnimationReportingVuexStore.mutations.set_all_anim_theme_by_ids);
-export const commit_set_filter_anim_theme_active_options = commit(AnimationReportingVuexStore.mutations.set_filter_anim_theme_active_options);
-export const commit_set_anim_theme_id_ranges = commit(AnimationReportingVuexStore.mutations.set_anim_theme_id_ranges);
-
-export const commit_set_all_anim_module_by_ids = commit(AnimationReportingVuexStore.mutations.set_all_anim_module_by_ids);
-export const commit_set_filter_anim_module_active_options = commit(AnimationReportingVuexStore.mutations.set_filter_anim_module_active_options);
-export const commit_set_anim_module_id_ranges = commit(AnimationReportingVuexStore.mutations.set_anim_module_id_ranges);
-
-export const commit_set_all_role_by_ids = commit(AnimationReportingVuexStore.mutations.set_all_role_by_ids);
-export const commit_set_filter_role_active_options = commit(AnimationReportingVuexStore.mutations.set_filter_role_active_options);
-export const commit_set_role_id_ranges = commit(AnimationReportingVuexStore.mutations.set_role_id_ranges);
-
-export const commit_set_all_user_by_ids = commit(AnimationReportingVuexStore.mutations.set_all_user_by_ids);
-export const commit_set_filter_user_active_options = commit(AnimationReportingVuexStore.mutations.set_filter_user_active_options);
-export const commit_set_user_id_ranges = commit(AnimationReportingVuexStore.mutations.set_user_id_ranges);
-
-export const commit_set_filter_module_termine_active_option = commit(AnimationReportingVuexStore.mutations.set_filter_module_termine_active_option);
-export const commit_set_filter_module_valide_active_option = commit(AnimationReportingVuexStore.mutations.set_filter_module_valide_active_option);
-
-export const commit_set_percent_module_finished = commit(AnimationReportingVuexStore.mutations.set_percent_module_finished);
-export const commit_set_all_aum_by_theme_module_user = commit(AnimationReportingVuexStore.mutations.set_all_aum_by_theme_module_user);
-
-export const commit_init = commit(AnimationReportingVuexStore.mutations.init);

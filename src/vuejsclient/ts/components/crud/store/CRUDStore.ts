@@ -1,8 +1,8 @@
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors } from "vuex-typescript";
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import IStoreModule from '../../../store/IStoreModule';
+import { store_mutations_names } from "../../../store/StoreModuleBase";
 
 export type CRUDContext = ActionContext<ICRUDState, any>;
 
@@ -25,7 +25,11 @@ export default class CRUDStore implements IStoreModule<ICRUDState, CRUDContext> 
     public module_name: string;
     public state: any;
     public getters: GetterTree<ICRUDState, CRUDContext>;
-    public mutations: MutationTree<ICRUDState>;
+    public mutations = {
+        setSelectedVOs(state: ICRUDState, selectedVOs: IDistantVOBase[]) {
+            state.selectedVOs = selectedVOs;
+        },
+    };
     public actions: ActionTree<ICRUDState, CRUDContext>;
     public namespaced: boolean = true;
 
@@ -45,31 +49,12 @@ export default class CRUDStore implements IStoreModule<ICRUDState, CRUDContext> 
             },
         };
 
-
-
-        this.mutations = {
-            setSelectedVOs(state: ICRUDState, selectedVOs: IDistantVOBase[]) {
-                state.selectedVOs = selectedVOs;
-            },
-
-        };
-
-
-
         this.actions = {
-            setSelectedVOs(context: CRUDContext, selectedVOs: IDistantVOBase[]) {
-                commitSetSelectedVOs(context, selectedVOs);
-            }
+            setSelectedVOs: (context: CRUDContext, selectedVOs: IDistantVOBase[]) => context.commit(store_mutations_names(this).setSelectedVOs, selectedVOs)
         };
     }
 }
 
 export const crudStore = CRUDStore.getInstance();
-
-
-const { commit, read, dispatch } =
-    getStoreAccessors<ICRUDState, any>("CRUDStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleCRUDGetter = namespace('CRUDStore', Getter);
 export const ModuleCRUDAction = namespace('CRUDStore', Action);
-
-export const commitSetSelectedVOs = commit(crudStore.mutations.setSelectedVOs);

@@ -98,7 +98,7 @@ export default class ModuleStats extends Module {
         let fields = [
             stat_group_id,
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
-            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true),
+            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true).index(),
         ];
 
         let table = new ModuleTable(this, StatVO.API_TYPE_ID, () => new StatVO(), fields, null, 'Stats');
@@ -111,7 +111,7 @@ export default class ModuleStats extends Module {
 
         let fields = [
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
-            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true),
+            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true).index(),
 
             new ModuleTableField('tmp_category_name', ModuleTableField.FIELD_TYPE_string, 'Catégorie - temp', false),
             new ModuleTableField('tmp_sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - temp', false),
@@ -152,7 +152,7 @@ export default class ModuleStats extends Module {
             new ModuleTableField('stat_type_name', ModuleTableField.FIELD_TYPE_string, 'Type', false),
             new ModuleTableField('thread_name', ModuleTableField.FIELD_TYPE_string, 'Thread', false),
 
-            new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
+            new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS).index(),
             new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
         ];
 

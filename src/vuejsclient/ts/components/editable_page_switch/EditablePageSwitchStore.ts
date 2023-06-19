@@ -1,8 +1,7 @@
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors, GetterHandler } from "vuex-typescript";
-import Vue, { WatchOptionsWithHandler } from 'vue';
 import IStoreModule from '../../store/IStoreModule';
+import { store_mutations_names } from "../../store/StoreModuleBase";
 
 export type EditablePageSwitchContext = ActionContext<IEditablePageSwitchState, any>;
 
@@ -29,7 +28,14 @@ export default class EditablePageSwitchStore implements IStoreModule<IEditablePa
     public module_name: string;
     public state: any;
     public getters: GetterTree<IEditablePageSwitchState, EditablePageSwitchContext>;
-    public mutations: MutationTree<IEditablePageSwitchState>;
+    public mutations = {
+        set_is_waiting_for_save: (state: IEditablePageSwitchState, is_waiting_for_save: boolean) => state.is_waiting_for_save = is_waiting_for_save,
+        set_saving_handlers: (state: IEditablePageSwitchState, saving_handlers: Array<() => Promise<boolean>>) => state.saving_handlers = saving_handlers,
+        set_show_floating_save_button: (state: IEditablePageSwitchState, show_floating_save_button: boolean) => state.show_floating_save_button = show_floating_save_button,
+        set_is_editing_page: (state: IEditablePageSwitchState, is_editing_page: boolean) => state.is_editing_page = is_editing_page,
+        set_is_saving: (state: IEditablePageSwitchState, is_saving: boolean) => state.is_saving = is_saving,
+        add_saving_handlers: (state: IEditablePageSwitchState, saving_handlers: Array<() => Promise<boolean>>) => state.saving_handlers = state.saving_handlers.concat(saving_handlers),
+    };
     public actions: ActionTree<IEditablePageSwitchState, EditablePageSwitchContext>;
     public namespaced: boolean = true;
 
@@ -55,35 +61,16 @@ export default class EditablePageSwitchStore implements IStoreModule<IEditablePa
             is_saving: (state: IEditablePageSwitchState) => state.is_saving,
         };
 
-        this.mutations = {
-
-            set_is_waiting_for_save: (state: IEditablePageSwitchState, is_waiting_for_save: boolean) => state.is_waiting_for_save = is_waiting_for_save,
-            set_saving_handlers: (state: IEditablePageSwitchState, saving_handlers: Array<() => Promise<boolean>>) => state.saving_handlers = saving_handlers,
-            set_show_floating_save_button: (state: IEditablePageSwitchState, show_floating_save_button: boolean) => state.show_floating_save_button = show_floating_save_button,
-            set_is_editing_page: (state: IEditablePageSwitchState, is_editing_page: boolean) => state.is_editing_page = is_editing_page,
-            set_is_saving: (state: IEditablePageSwitchState, is_saving: boolean) => state.is_saving = is_saving,
-            add_saving_handlers: (state: IEditablePageSwitchState, saving_handlers: Array<() => Promise<boolean>>) => state.saving_handlers = state.saving_handlers.concat(saving_handlers),
-        };
-
         this.actions = {
-            set_is_waiting_for_save: (context: EditablePageSwitchContext, is_waiting_for_save: boolean) => commit_set_is_waiting_for_save(context, is_waiting_for_save),
-            set_saving_handlers: (context: EditablePageSwitchContext, saving_handlers: Array<() => Promise<boolean>>) => commit_set_saving_handlers(context, saving_handlers),
-            set_show_floating_save_button: (context: EditablePageSwitchContext, show_floating_save_button: boolean) => commit_set_show_floating_save_button(context, show_floating_save_button),
-            set_is_editing_page: (context: EditablePageSwitchContext, is_editing_page: boolean) => commit_set_is_editing_page(context, is_editing_page),
-            set_is_saving: (context: EditablePageSwitchContext, is_saving: boolean) => commit_set_is_saving(context, is_saving),
-            add_saving_handlers: (context: EditablePageSwitchContext, saving_handlers: Array<() => Promise<boolean>>) => commit_add_saving_handlers(context, saving_handlers),
+            set_is_waiting_for_save: (context: EditablePageSwitchContext, is_waiting_for_save: boolean) => context.commit(store_mutations_names(this).set_is_waiting_for_save, is_waiting_for_save),
+            set_saving_handlers: (context: EditablePageSwitchContext, saving_handlers: Array<() => Promise<boolean>>) => context.commit(store_mutations_names(this).set_saving_handlers, saving_handlers),
+            set_show_floating_save_button: (context: EditablePageSwitchContext, show_floating_save_button: boolean) => context.commit(store_mutations_names(this).set_show_floating_save_button, show_floating_save_button),
+            set_is_editing_page: (context: EditablePageSwitchContext, is_editing_page: boolean) => context.commit(store_mutations_names(this).set_is_editing_page, is_editing_page),
+            set_is_saving: (context: EditablePageSwitchContext, is_saving: boolean) => context.commit(store_mutations_names(this).set_is_saving, is_saving),
+            add_saving_handlers: (context: EditablePageSwitchContext, saving_handlers: Array<() => Promise<boolean>>) => context.commit(store_mutations_names(this).add_saving_handlers, saving_handlers),
         };
     }
 }
 
-const { commit, read, dispatch } =
-    getStoreAccessors<IEditablePageSwitchState, any>("EditablePageSwitchStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleEditablePageSwitchGetter = namespace('EditablePageSwitchStore', Getter);
 export const ModuleEditablePageSwitchAction = namespace('EditablePageSwitchStore', Action);
-
-export const commit_set_is_waiting_for_save = commit(EditablePageSwitchStore.getInstance().mutations.set_is_waiting_for_save);
-export const commit_set_saving_handlers = commit(EditablePageSwitchStore.getInstance().mutations.set_saving_handlers);
-export const commit_set_show_floating_save_button = commit(EditablePageSwitchStore.getInstance().mutations.set_show_floating_save_button);
-export const commit_set_is_editing_page = commit(EditablePageSwitchStore.getInstance().mutations.set_is_editing_page);
-export const commit_add_saving_handlers = commit(EditablePageSwitchStore.getInstance().mutations.add_saving_handlers);
-export const commit_set_is_saving = commit(EditablePageSwitchStore.getInstance().mutations.set_is_saving);

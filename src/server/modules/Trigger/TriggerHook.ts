@@ -8,7 +8,7 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
     /**
      * Local thread cache -----
      */
-    protected registered_handlers: { [conditionUID: string]: [(params: Params) => Promise<Out>] } = {};
+    protected registered_handlers: { [conditionUID: string]: [(params: Params, exec_as_server?: boolean) => Promise<Out>] } = {};
     /**
      * ----- Local thread cache
      */
@@ -24,7 +24,7 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
 
     public abstract getConditionUID_from_Conditions(conditions: Conditions): string;
 
-    public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params) => Promise<Out>) {
+    public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params, exec_as_server?: boolean) => Promise<Out>) {
         let conditionUID: string = conditions ? this.getConditionUID_from_Conditions(conditions) : TriggerHook.NO_CONDITION_UID;
 
         if (!this.registered_handlers[conditionUID]) {
@@ -34,10 +34,10 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
         this.registered_handlers[conditionUID].push(handler.bind(handler_bind_this));
     }
 
-    public async trigger(conditions: Conditions, params: Params): Promise<Out[]> {
-        let noconditionHandlers: [(params: Params) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
+    public async trigger(conditions: Conditions, params: Params, exec_as_server: boolean = false): Promise<Out[]> {
+        let noconditionHandlers: [(params: Params, exec_as_server?: boolean) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
         let conditionUID: string = this.getConditionUID_from_Conditions(conditions);
-        let conditionalHandlers: [(params: Params) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
+        let conditionalHandlers: [(params: Params, exec_as_server?: boolean) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
 
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('TriggerHook', this.trigger_type_UID, conditionUID);
@@ -48,14 +48,14 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
 
             for (let i in noconditionHandlers) {
                 let noconditionHandler = noconditionHandlers[i];
-                res.push(await noconditionHandler(params));
+                res.push(await noconditionHandler(params, exec_as_server));
             }
         }
         if (conditionalHandlers && (conditionalHandlers.length > 0)) {
 
             for (let i in conditionalHandlers) {
                 let conditionalHandler = conditionalHandlers[i];
-                res.push(await conditionalHandler(params));
+                res.push(await conditionalHandler(params, exec_as_server));
             }
         }
 
