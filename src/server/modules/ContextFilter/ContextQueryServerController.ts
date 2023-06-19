@@ -990,7 +990,7 @@ export default class ContextQueryServerController {
                  */
                 let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
 
-                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query.filters).select_vos();
+                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_vos();
                 let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
 
                 if (!ids || !ids.length) {
@@ -1053,7 +1053,7 @@ export default class ContextQueryServerController {
                  */
                 let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
 
-                return await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query.filters).select_count();
+                return await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_count();
             default:
                 throw new Error('Invalid segmentation_moduletable');
         }
@@ -1070,6 +1070,11 @@ export default class ContextQueryServerController {
             context_query.log(true);
             throw new Error('Invalid query param:build_select_query_not_count');
         }
+
+        /**
+         * On rajoute un check sur les filtres, si on a une arbo en ET, on transforme en tableau de filtres
+         */
+        this.check_filters_arbo_ET(context_query);
 
         let main_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], null);
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
@@ -2416,6 +2421,8 @@ export default class ContextQueryServerController {
 
     /**
      * On agrémente la liste des active_api_type_ids par les relations N/N dont les types liés sont actifs
+     * WARN : JNE : je commence à me demander si c'est vraiment une bonne idée de permettre l'ajout auto de liaisons
+     *  qui n'ont pas été explicitement citées lors de la construction de la requête. On commence par logguer les ajouts et on avisera
      */
     private add_activated_many_to_many(context_query: ContextQueryVO) {
 
@@ -2432,7 +2439,8 @@ export default class ContextQueryServerController {
             for (let j in nnfields) {
                 let nnfield = nnfields[j];
 
-                if (context_query.active_api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) {
+                if ((context_query.active_api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) ||
+                    (context_query.discarded_field_paths && context_query.discarded_field_paths[nn_table.vo_type] && context_query.discarded_field_paths[nn_table.vo_type][nnfield.field_id])) {
                     has_inactive_relation = true;
                     break;
                 }
@@ -2440,6 +2448,11 @@ export default class ContextQueryServerController {
 
             if (!has_inactive_relation) {
                 context_query.active_api_type_ids.push(nn_table.vo_type);
+
+                if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_PERF) {
+                    ConsoleHandler.warn('add_activated_many_to_many:Ajout de :' + nn_table.vo_type + ': à la requête :');
+                    context_query.log();
+                }
             }
         }
     }
@@ -2473,8 +2486,9 @@ export default class ContextQueryServerController {
     /**
      * Le plan est de supprimer toute référence à la table segmentée, sinon on tourne en rond
      */
-    private configure_query_for_segmented_table_segment_listing(context_query: ContextQueryVO, segmented_table: ModuleTable<any>, filters: ContextFilterVO[]): ContextQueryVO {
+    private configure_query_for_segmented_table_segment_listing(context_query: ContextQueryVO, segmented_table: ModuleTable<any>, src_context_query: ContextQueryVO): ContextQueryVO {
 
+        let filters: ContextFilterVO[] = src_context_query.filters;
         let forbidden_api_type_id = segmented_table.vo_type;
         let forbidden_fields: Array<ModuleTableField<any>> = segmented_table.get_fields().filter(
             (field) => field.field_type == ModuleTableField.FIELD_TYPE_foreign_key
@@ -2486,11 +2500,30 @@ export default class ContextQueryServerController {
         for (let i in forbidden_fields) {
             let field = forbidden_fields[i];
 
-            context_query.discard_field_path(forbidden_api_type_id, field.field_id);
+            context_query.set_discard_field_path(forbidden_api_type_id, field.field_id);
+        }
+
+        /**
+         * On ajoute aussi les chemins invalidés sur la requête source
+         */
+        for (let api_type_id in src_context_query.discarded_field_paths) {
+            let discard_field_path = src_context_query.discarded_field_paths[api_type_id];
+
+            for (let field_id in discard_field_path) {
+                context_query.set_discard_field_path(api_type_id, field_id);
+            }
         }
 
         for (let i in filters) {
             let f = filters[i];
+
+            /**
+             * FIXME TODO : incompatible sur les arborescences de ET et OU pour le moment
+             */
+            if ((f.filter_type == ContextFilterVO.TYPE_FILTER_AND) || (f.filter_type == ContextFilterVO.TYPE_FILTER_OR)) {
+                ConsoleHandler.warn('ContextQueryController.configure_query_for_segmented_table_segment_listing : incompatible sur les arborescences de ET et OU pour le moment');
+                continue;
+            }
 
             if (f.vo_type == forbidden_api_type_id) {
 
@@ -2532,5 +2565,87 @@ export default class ContextQueryServerController {
         }
 
         return context_query;
+    }
+
+    /**
+     * Si on a une arbo de ET, on va la remplacer par un tableau de filtres
+     * @param context_query
+     * @returns
+     */
+    private check_filters_arbo_ET(context_query: ContextQueryVO) {
+
+        if (!context_query || !context_query.filters) {
+            return;
+        }
+
+        /**
+         *  on regarde si on a une arbo de ET
+         */
+        let new_filters: ContextFilterVO[] = [];
+        for (let i in context_query.filters) {
+            let f = context_query.filters[i];
+
+            let arbo_ET = this.get_arbo_ET(f);
+
+            if (!arbo_ET) {
+                new_filters.push(f);
+                continue;
+            }
+
+            /**
+             * On a une arbo de ET, on va la remplacer par un tableau de filtres
+             */
+            for (let j in arbo_ET) {
+                let go_left = arbo_ET[j];
+
+                if (go_left) {
+                    new_filters.push(f.right_hook);
+                    f = f.left_hook;
+                } else {
+                    new_filters.push(f.left_hook);
+                    f = f.right_hook;
+                }
+            }
+
+            new_filters.push(f.left_hook);
+            new_filters.push(f.right_hook);
+        }
+
+        context_query.filters = new_filters;
+    }
+
+    /**
+     * On construit un chemin en indiquant si on prend à gauche (true) ou à droite (false) à chaque étape, et si on trouve un chemin valide on le retourne
+     * @param context_filter
+     * @returns
+     */
+    private get_arbo_ET(context_filter: ContextFilterVO): boolean[] {
+
+        if (context_filter.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
+
+            if (context_filter.left_hook.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
+                let res_left = this.get_arbo_ET(context_filter.left_hook);
+                if (res_left) {
+                    res_left.unshift(true);
+                    return res_left;
+                } else {
+                    return [];
+                }
+            }
+
+            if (context_filter.right_hook.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
+                let res_right = this.get_arbo_ET(context_filter.right_hook);
+                if (res_right) {
+                    res_right.unshift(false);
+                    return res_right;
+                } else {
+                    return [];
+                }
+            }
+
+            return [];
+        }
+
+        return null;
     }
 }

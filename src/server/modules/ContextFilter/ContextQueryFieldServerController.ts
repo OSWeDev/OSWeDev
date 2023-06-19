@@ -122,6 +122,9 @@ export default class ContextQueryFieldServerController {
     public apply_modifier(context_query_field: ContextQueryFieldVO, field_query_statement: string): string {
 
         switch (context_query_field.modifier) {
+            case ContextQueryFieldVO.FIELD_MODIFIER_DISTINCT:
+                return "DISTINCT(" + field_query_statement + ")";
+
             case ContextQueryFieldVO.FIELD_MODIFIER_LOWER:
                 return "LOWER(" + field_query_statement + ")";
 
