@@ -71,8 +71,11 @@ export default class TableWidgetManager {
 
         for (const name in valuetables_widgets_options) {
 
-            const page_widget_id = valuetables_widgets_options[name].page_widget_id;
-            const widget_options = valuetables_widgets_options[name].widget_options;
+            const {
+                dashboard_page_id,
+                page_widget_id,
+                widget_options,
+            } = valuetables_widgets_options[name];
 
             const widget_options_fields = TableWidgetManager.get_table_fields_by_widget_options(
                 dashboard,
@@ -106,7 +109,7 @@ export default class TableWidgetManager {
                 null,
                 null,
                 TableWidgetManager.get_export_options_by_widget_options(widget_options),
-                await VarWidgetManager.get_exportable_vars_indicator(dashboard_page.id),
+                await VarWidgetManager.get_exportable_vars_indicator(dashboard_page_id),
             );
         }
 
