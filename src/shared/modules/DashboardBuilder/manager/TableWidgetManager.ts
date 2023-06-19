@@ -47,7 +47,7 @@ export default class TableWidgetManager {
      *
      * @param {DashboardVO} dashboard
      * @param {DashboardPageWidgetVO} dashboard_page
-     * @param {{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, page_widget_id: number } }} valuetables_widgets_options
+     * @param {{ [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }} valuetables_widgets_options
      * @param {FieldFiltersVO} active_field_filters
      * @returns {{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }}
      */
@@ -63,7 +63,7 @@ export default class TableWidgetManager {
             `Export-${LocaleManager.getInstance().t(dashboard_page.translatable_name_code_text)}-{#Date}.xlsx` :
             `Export-{#Date}.xlsx`;
 
-        const valuetables_widgets_options = TableWidgetManager.get_valuetables_widgets_options();
+        const valuetables_widgets_options = await TableWidgetManager.get_valuetables_widgets_options(dashboard_page.id);
 
         const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
             { id: dashboard.id } as DashboardVO
@@ -106,7 +106,7 @@ export default class TableWidgetManager {
                 null,
                 null,
                 TableWidgetManager.get_export_options_by_widget_options(widget_options),
-                VarWidgetManager.get_exportable_vars_indicator(),
+                await VarWidgetManager.get_exportable_vars_indicator(dashboard_page.id),
             );
         }
 
@@ -116,17 +116,21 @@ export default class TableWidgetManager {
     /**
      * Get Valuetable Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: TableWidgetOptions, widget_name: string, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: { widget_options: TableWidgetOptions, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
-    public static get_valuetables_widgets_options(): {
-        [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, page_widget_id: number }
-    } {
+    public static async get_valuetables_widgets_options(
+        dashboard_page_id: number
+    ): Promise<
+        {
+            [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+        }
+    > {
 
         const valuetable_page_widgets: {
-            [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number }
-        } = DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name('valuetable');
+            [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], 'valuetable');
 
-        const res: { [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: { widget_options: TableWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } } = {};
 
         for (const key in valuetable_page_widgets) {
             const options = valuetable_page_widgets[key];
@@ -134,10 +138,12 @@ export default class TableWidgetManager {
             const widget_options = new TableWidgetOptionsVO().from(options.widget_options);
             const name = widget_options.get_title_name_code_text(options.page_widget_id);
 
-            res[name] = {} as any;
-            res[name].page_widget_id = options.page_widget_id;
-            res[name].widget_name = options.widget_name;
-            res[name].widget_options = widget_options;
+            res[name] = {
+                dashboard_page_id: options.dashboard_page_id,
+                page_widget_id: options.page_widget_id,
+                widget_name: options.widget_name,
+                widget_options: widget_options
+            };
         }
 
         return res;

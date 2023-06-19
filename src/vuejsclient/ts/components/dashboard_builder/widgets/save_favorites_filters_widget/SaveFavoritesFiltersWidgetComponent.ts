@@ -62,7 +62,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async handle_open_modal(): Promise<void> {
 
-        const selectionnable_active_field_filters = this.get_selectionnable_active_field_filters();
+        const selectionnable_active_field_filters = await this.get_selectionnable_active_field_filters();
         const exportable_data = await this.get_exportable_xlsx_params();
 
         this.get_Savefavoritesfiltersmodalcomponent.open_modal_for_creation(
@@ -190,11 +190,12 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      *
      * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
      */
-    private get_selectionnable_active_field_filters(): FieldFiltersVO {
+    private async get_selectionnable_active_field_filters(): Promise<FieldFiltersVO> {
+        const dashboard_page_id = this.dashboard_page.id;
 
-        const field_value_filters_widgets_options = FieldValueFilterWidgetManager.get_field_value_filters_widgets_options();
-        const month_filters_widgets_options = MonthFilterWidgetManager.get_month_filters_widgets_options();
-        const year_filters_widgets_options = YearFilterWidgetManager.get_year_filters_widgets_options();
+        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options(dashboard_page_id);
+        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options(dashboard_page_id);
+        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options(dashboard_page_id);
 
         const widgets_options: any[] = [];
 

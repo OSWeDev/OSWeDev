@@ -4,13 +4,14 @@ import IFavoritesFiltersOptions from '../interfaces/IFavoritesFiltersOptions';
 import IExportParamsProps from '../interfaces/IExportParamsProps';
 import DashboardBuilderController from "../DashboardBuilderController";
 import IDistantVOBase from "../../IDistantVOBase";
+import AbstractVO from '../../VO/abstract/AbstractVO';
 import FieldFiltersVO from './FieldFiltersVO';
 
 /**
  * FavoritesFiltersVO
  *  - One user may have many favorites active filters on one page
  */
-export default class FavoritesFiltersVO implements IDistantVOBase {
+export default class FavoritesFiltersVO extends AbstractVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "dashboard_p_favorites_filters";
 
     public _type: string = FavoritesFiltersVO.API_TYPE_ID;
@@ -34,19 +35,6 @@ export default class FavoritesFiltersVO implements IDistantVOBase {
 
     // JSON object of favorites filters behaviors options (ex: overwrite active_field_filters, etc...)
     public options: IFavoritesFiltersOptions;
-
-    /**
-     * Hydrate from the given properties
-     *
-     * @param {Partial<FavoritesFiltersVO>} [props]
-     * @returns {FavoritesFiltersVO}
-     */
-    public from(props: Partial<FavoritesFiltersVO>): FavoritesFiltersVO {
-
-        Object.assign(this, props);
-
-        return this;
-    }
 
     /**
      * Get translatable_name_code_text

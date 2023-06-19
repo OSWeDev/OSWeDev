@@ -45,26 +45,30 @@ export default class DashboardPageWidgetVOManager {
      * - Return all page widgets options corresponding to widget_name
      *
      * @param {string} widget_name
-     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
-    public static filter_all_page_widgets_options_by_widget_name(
+    public static async filter_all_page_widgets_options_by_widget_name(
+        dashboard_page_ids: number[],
         widget_name: string,
         options?: {
             all_page_widgets?: DashboardPageWidgetVO[],
             sorted_widgets_types?: DashboardWidgetVO[],
         }
-    ): { [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } } {
+    ): Promise<{ [page_widget_id: number]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number } }> {
 
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
         const { sorted_widgets } = DashboardWidgetVOManager.getInstance();
         // Get page_widgets (or all_page_widgets from dashboard)
-        const { page_widgets } = DashboardPageWidgetVOManager.getInstance();
+        const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_ids(
+            dashboard_page_ids
+        );
 
         const res: {
             [page_widget_id: number]: {
+                dashboard_page_id: number,
+                page_widget_id: number,
                 widget_options: any,
                 widget_name: string,
-                page_widget_id: number
             }
         } = {};
 
@@ -99,6 +103,7 @@ export default class DashboardPageWidgetVOManager {
 
             res[page_widget_id] = {
                 widget_options: page_widget_options,
+                dashboard_page_id: page_widget.page_id,
                 page_widget_id: page_widget.id,
                 widget_name,
             };
@@ -115,14 +120,14 @@ export default class DashboardPageWidgetVOManager {
      * It's would be better to use find by page_id (There would be no need to load all page_widgets if already loaded)
      *
      * @param options
-     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
     public static find_all_sorted_page_wigdets_options(
         options?: {
             all_page_widgets?: DashboardPageWidgetVO[],
             sorted_widgets_types?: DashboardWidgetVO[],
         }
-    ): { [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } } {
+    ): { [page_widget_id: number]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number } } {
 
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
         const { sorted_widgets } = DashboardWidgetVOManager.getInstance();
@@ -131,9 +136,10 @@ export default class DashboardPageWidgetVOManager {
 
         const res: {
             [page_widget_id: number]: {
+                dashboard_page_id: number,
+                page_widget_id: number,
                 widget_options: any,
                 widget_name: string,
-                page_widget_id: number
             }
         } = {};
 
@@ -163,6 +169,7 @@ export default class DashboardPageWidgetVOManager {
 
                 res[page_widget_id] = {
                     widget_options: page_widget_options,
+                    dashboard_page_id: page_widget.page_id,
                     page_widget_id: page_widget.id,
                     widget_name: widget_type?.name,
                 };
@@ -176,24 +183,26 @@ export default class DashboardPageWidgetVOManager {
      * find_all_wigdets_options_metadata_by_page_id
      * - Return all page widgets_options metadata of the given page_id
      *
-     * @param {number} page_id
-     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @param {number} dashboard_page_id
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
     public static async find_all_wigdets_options_metadata_by_page_id(
-        page_id: number,
-    ): Promise<{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }> {
+        dashboard_page_id: number,
+    ): Promise<{ [page_widget_id: number]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number } }> {
 
         // All sorted_widgets_types (Should get all possible widgets_types)
         const sorted_widgets_types = await DashboardWidgetVOManager.find_all_sorted_widgets_types();
         // Get page_widgets of actual page
-        const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(page_id);
+        const page_widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
+            dashboard_page_id
+        );
 
         const widgets_options_metadata: {
             [page_widget_id: number]: {
                 widget_options: any, // JSON widget_options of page_widget
                 widget_name: string, // Required to find widget_type for factory construction
                 page_widget_id: number // Required to find page_widget
-                page_id: number // Required to find dashboard_page
+                dashboard_page_id: number, // Required to find dashboard_page
             }
         } = {};
 
@@ -215,9 +224,9 @@ export default class DashboardPageWidgetVOManager {
 
                 widgets_options_metadata[page_widget_id] = {
                     widget_options: page_widget_options,
+                    dashboard_page_id: page_widget.page_id,
                     page_widget_id: page_widget.id,
                     widget_name: widget_type?.name,
-                    page_id: page_widget.page_id,
                 };
             }
         }
@@ -230,7 +239,7 @@ export default class DashboardPageWidgetVOManager {
      * - Return all page widgets_options of the given page_id
      *
      * @param {number} page_id
-     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: number]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
     public static async find_all_wigdets_options_by_page_id(
         page_id: number,
@@ -256,7 +265,7 @@ export default class DashboardPageWidgetVOManager {
      * @param {VOFieldRefVO} vo_field_ref
      * @param {DashboardPageWidgetVO[]} options.all_page_widgets - all_page_widgets from dashboard
      * @param {DashboardWidgetVO[]} options.sorted_widgets_types - sorted_widgets_types the actual widgets types from dashboard
-     * @returns {{ widget_options: any, widget_name: string, page_widget_id: number }[]}
+     * @returns {{ widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }[]}
      */
     public static async find_all_page_wigdets_options_by_vo_field_ref(
         vo_field_ref: VOFieldRefVO,
@@ -264,7 +273,7 @@ export default class DashboardPageWidgetVOManager {
             all_page_widgets?: DashboardPageWidgetVO[],
             sorted_widgets_types?: DashboardWidgetVO[],
         }
-    ): Promise<Array<{ widget_options: any, widget_name: string, page_widget_id: number }>> {
+    ): Promise<Array<{ widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }>> {
 
         // Get sorted_page_widgets_options from dashboard
         const sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options({
@@ -272,7 +281,7 @@ export default class DashboardPageWidgetVOManager {
             all_page_widgets: options?.all_page_widgets,
         });
 
-        let res: Array<{ widget_options: any, widget_name: string, page_widget_id: number }> = [];
+        let res: Array<{ widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }> = [];
 
         res = Object.values(sorted_page_widgets_options)?.filter((sorted_page_widget_option) => {
             const _vo_field_ref = sorted_page_widget_option?.widget_options?.vo_field_ref;
@@ -351,6 +360,7 @@ export default class DashboardPageWidgetVOManager {
 
             page_ids.map((page_id) => {
                 const pwidgets = self.page_widgets_by_page_id[page_id];
+
                 _pages_widgets.push(...pwidgets);
             });
 
@@ -371,9 +381,14 @@ export default class DashboardPageWidgetVOManager {
             .select_vos<DashboardPageWidgetVO>();
 
         page_ids.map((page_id) => {
-            const pwidgets = pages_widgets.filter((pwidget) => pwidget.page_id == page_id);
+            const pwidgets = pages_widgets.filter((pwidget) =>
+                pwidget.page_id == page_id
+            );
+
             self.page_widgets_by_page_id[page_id] = pwidgets;
         });
+
+        self.page_widgets = pages_widgets;
 
         return pages_widgets;
     }
