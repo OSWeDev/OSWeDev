@@ -139,7 +139,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
 
-            res[var_param.index] = VarsClientController.getInstance().cached_var_datas[var_param.index];
+            res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
         }
         this.var_datas = res;
     }

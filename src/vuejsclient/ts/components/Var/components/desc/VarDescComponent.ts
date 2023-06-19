@@ -51,7 +51,7 @@ export default class VarDescComponent extends VueComponentBase {
             this.var_data = null;
             return;
         }
-        this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
+        this.var_data = VarsClientController.cached_var_datas[this.var_param.index];
     }
 
     get var_data_has_valid_value(): boolean {
