@@ -103,12 +103,12 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         let old_value_type = this.var_data ? this.var_data.value_type : null;
         let old_value = this.var_data ? this.var_data.value : null;
-        this.var_data = this.var_param ? VarsClientController.getInstance().cached_var_datas[this.var_param.index] : null;
+        this.var_data = this.var_param ? VarsClientController.cached_var_datas[this.var_param.index] : null;
 
         let var_datas: VarDataValueResVO[] = [];
         for (let i in this.deps_params) {
             let dep_param = this.deps_params[i];
-            var_datas.push(VarsClientController.getInstance().cached_var_datas[dep_param.index]);
+            var_datas.push(VarsClientController.cached_var_datas[dep_param.index]);
         }
         this.var_datas_deps = var_datas;
 
@@ -266,10 +266,10 @@ export default class VarDescExplainComponent extends VueComponentBase {
                 if (!param_dep_id.startsWith(var_dep_id)) {
                     continue;
                 }
-                if (!VarsClientController.getInstance().cached_var_datas[this.deps_params[param_dep_id].index]) {
+                if (!VarsClientController.cached_var_datas[this.deps_params[param_dep_id].index]) {
                     continue;
                 }
-                values.push(VarsClientController.getInstance().cached_var_datas[this.deps_params[param_dep_id].index].value);
+                values.push(VarsClientController.cached_var_datas[this.deps_params[param_dep_id].index].value);
             }
 
             if ((!values) || (!values.length)) {

@@ -8,6 +8,7 @@ import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDat
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
@@ -109,12 +110,33 @@ export default class VarDataRefComponent extends VueComponentBase {
     private var_data_editing: VarDataValueResVO = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
     };
     private aggregated_var_param: VarDataBaseVO = null;
 
+    private var_data_value_is_imported: boolean = false;
+    private var_data_value_is_denied: boolean = false;
+    private is_being_updated: boolean = true;
+    private var_data_value: any = null;
+    private filtered_value: any = null;
+    private var_conf: VarConfVO = null;
+    private editable_field: SimpleDatatableFieldVO<any, any> = null;
+
+    @Watch('var_data')
+    private onchange_var_data() {
+        this.debounce_onchange_var_data();
+    }
+
+    @Watch('filter_additional_params')
+    private onchange_filter_additional_params() {
+        this.set_filtered_value();
+    }
+
     @Watch('var_param')
     private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
+
+        this.set_var_conf();
+        this.set_editable_field();
 
         // On doit vérifier qu'ils sont bien différents
         if (VarDataBaseVO.are_same(new_var_param, old_var_param)) {
@@ -135,6 +157,14 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (!this.can_inline_edit) {
             this.is_inline_editing = false;
         }
+    }
+
+    private debounce_onchange_var_data() {
+        this.set_var_data_value_is_imported();
+        this.set_var_data_value_is_denied();
+        this.set_is_being_updated();
+        this.set_var_data_value();
+        this.set_filtered_value();
     }
 
     private async onchangevo(data: VarDataBaseVO, field, value) {
@@ -230,7 +260,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
 
-        this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
+        this.var_data = VarsClientController.cached_var_datas[this.var_param.index];
     }
 
     private async mounted() {
@@ -311,6 +341,110 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         this.setDescSelectedVarParam(this.var_param);
+    }
+
+    private set_var_data_value_is_imported() {
+        this.var_data_value_is_imported = this.var_data && (this.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT);
+    }
+
+    private set_var_data_value_is_denied() {
+        this.var_data_value_is_denied = this.var_data && (this.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED);
+    }
+
+    private set_is_being_updated() {
+        this.is_being_updated = !this.var_data || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
+    }
+
+    private set_var_data_value() {
+        if (!this.var_data) {
+            this.var_data_value = null;
+            return;
+        }
+
+        if (!this.var_value_callback) {
+            this.var_data_value = this.var_data.value;
+            return;
+        }
+
+        this.var_data_value = this.var_value_callback(this.var_data, this);
+    }
+
+    private set_filtered_value() {
+
+        if (!this.var_data) {
+            this.filtered_value = null;
+            return;
+        }
+
+        if (!this.filter) {
+            this.filtered_value = this.var_data_value;
+            return;
+        }
+
+        let params = [this.var_data_value];
+
+        if (!!this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        this.filtered_value = this.filter.apply(null, params);
+    }
+
+    private set_var_conf() {
+        if ((!this.var_param) || (!this.var_param.var_id) ||
+            (!VarsController.getInstance().var_conf_by_id) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
+            this.var_conf = null;
+            return;
+        }
+
+        this.var_conf = VarsController.getInstance().var_conf_by_id[this.var_param.var_id];
+    }
+
+    private set_editable_field() {
+        if (!this.var_param) {
+            this.editable_field = null;
+            return;
+        }
+
+        let res = SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
+
+        if (this.filter_obj) {
+            let filter_type: string = this.filter_obj.type;
+
+            switch (filter_type) {
+                case FilterObj.FILTER_TYPE_tstz:
+                    throw new Error('Not implemented');
+
+                case FilterObj.FILTER_TYPE_hour:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_hour;
+                    break;
+                case FilterObj.FILTER_TYPE_amount:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_amount;
+                    break;
+                case FilterObj.FILTER_TYPE_percent:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_prct;
+                    break;
+                case FilterObj.FILTER_TYPE_toFixedCeil:
+                case FilterObj.FILTER_TYPE_toFixedFloor:
+                case FilterObj.FILTER_TYPE_toFixed:
+                case FilterObj.FILTER_TYPE_padHour:
+                case FilterObj.FILTER_TYPE_positiveNumber:
+                case FilterObj.FILTER_TYPE_hideZero:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_float;
+                    break;
+                case FilterObj.FILTER_TYPE_bignum:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_int;
+                    break;
+                case FilterObj.FILTER_TYPE_boolean:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_boolean;
+                    break;
+                case FilterObj.FILTER_TYPE_truncate:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_string;
+                    break;
+            }
+        }
+
+        this.editable_field = res;
     }
 
     get is_show_import_aggregated(): boolean {
@@ -413,31 +547,6 @@ export default class VarDataRefComponent extends VueComponentBase {
         });
     }
 
-    get var_data_value_is_imported() {
-        if (!this.var_data) {
-            return false;
-        }
-
-        return this.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT;
-    }
-
-    get var_data_value_is_denied() {
-        if (!this.var_data) {
-            return false;
-        }
-
-        return this.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED;
-    }
-
-    get var_conf() {
-        if ((!this.var_param) || (!this.var_param.var_id) ||
-            (!VarsController.getInstance().var_conf_by_id) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
-            return null;
-        }
-
-        return VarsController.getInstance().var_conf_by_id[this.var_param.var_id];
-    }
-
     get public_tooltip() {
         if ((!this.var_conf) || (!this.var_conf.show_help_tooltip)) {
             return null;
@@ -463,92 +572,6 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id);
-    }
-
-    get editable_field() {
-        if (!this.var_param) {
-            return null;
-        }
-
-        let res = SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
-
-        if (this.filter_obj) {
-            let filter_type: string = this.filter_obj.type;
-
-            switch (filter_type) {
-                case FilterObj.FILTER_TYPE_tstz:
-                    throw new Error('Not implemented');
-
-                case FilterObj.FILTER_TYPE_hour:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_hour;
-                    break;
-                case FilterObj.FILTER_TYPE_amount:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_amount;
-                    break;
-                case FilterObj.FILTER_TYPE_percent:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_prct;
-                    break;
-                case FilterObj.FILTER_TYPE_toFixedCeil:
-                case FilterObj.FILTER_TYPE_toFixedFloor:
-                case FilterObj.FILTER_TYPE_toFixed:
-                case FilterObj.FILTER_TYPE_padHour:
-                case FilterObj.FILTER_TYPE_positiveNumber:
-                case FilterObj.FILTER_TYPE_hideZero:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_float;
-                    break;
-                case FilterObj.FILTER_TYPE_bignum:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_int;
-                    break;
-                case FilterObj.FILTER_TYPE_boolean:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_boolean;
-                    break;
-                case FilterObj.FILTER_TYPE_truncate:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_string;
-                    break;
-            }
-        }
-
-        return res;
-    }
-
-    get is_being_updated(): boolean {
-
-        if (!this.var_data) {
-            return true;
-        }
-
-        return (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
-    }
-
-    get filtered_value() {
-
-        if (!this.var_data) {
-            return null;
-        }
-
-        if (!this.filter) {
-            return this.var_data_value;
-        }
-
-        let params = [this.var_data_value];
-
-        if (!!this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params);
-        }
-
-        return this.filter.apply(null, params);
-    }
-
-    get var_data_value() {
-        if (!this.var_data) {
-            return null;
-        }
-
-        if (!this.var_value_callback) {
-            return this.var_data.value;
-        }
-
-        return this.var_value_callback(this.var_data, this);
     }
 
     get is_selected_var(): boolean {

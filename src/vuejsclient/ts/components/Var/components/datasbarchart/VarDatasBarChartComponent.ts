@@ -81,7 +81,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
                 for (let i in var_params) {
                     let var_param = var_params[i];
-                    res[var_param.index] = VarsClientController.getInstance().cached_var_datas[var_param.index];
+                    res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
                 }
             }
         }

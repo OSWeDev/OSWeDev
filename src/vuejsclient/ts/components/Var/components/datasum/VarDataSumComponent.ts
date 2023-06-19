@@ -66,7 +66,7 @@ export default class VarDataSumComponent extends VueComponentBase {
         let var_datas: VarDataValueResVO[] = [];
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
-            var_datas.push(VarsClientController.getInstance().cached_var_datas[var_param.index]);
+            var_datas.push(VarsClientController.cached_var_datas[var_param.index]);
         }
         this.var_datas = var_datas;
     }

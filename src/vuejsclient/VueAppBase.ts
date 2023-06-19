@@ -520,10 +520,10 @@ export default abstract class VueAppBase {
     protected async postMountHook() { }
 
     protected async unregisterVarsBeforeUnload() {
-        if (VarsClientController.getInstance().registered_var_params) {
+        if (VarsClientController.registered_var_params) {
             let params: VarDataBaseVO[] = [];
-            for (let i in VarsClientController.getInstance().registered_var_params) {
-                let wrapper = VarsClientController.getInstance().registered_var_params[i];
+            for (let i in VarsClientController.registered_var_params) {
+                let wrapper = VarsClientController.registered_var_params[i];
                 params.push(wrapper.var_param);
             }
             if (params.length) {

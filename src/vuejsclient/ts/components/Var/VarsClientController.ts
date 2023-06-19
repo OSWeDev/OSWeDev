@@ -12,6 +12,17 @@ import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
 
+    /**
+     * Les vars params registered et donc registered aussi côté serveur, si on est déjà registered on a pas besoin de rajouter des instances
+     *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
+     */
+    public static registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
+
+    /**
+     * On stocke les dernières Vardatares reçues (TODO FIXME à nettoyer peut-etre au bout d'un moment)
+     */
+    public static cached_var_datas: { [index: string]: VarDataValueResVO } = {};
+
     public static get_CB_UID(): number {
         return this.CB_UID++;
     }
@@ -25,17 +36,6 @@ export default class VarsClientController {
 
     private static CB_UID: number = 0;
     private static instance: VarsClientController = null;
-
-    /**
-     * Les vars params registered et donc registered aussi côté serveur, si on est déjà registered on a pas besoin de rajouter des instances
-     *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
-     */
-    public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
-
-    /**
-     * On stocke les dernières Vardatares reçues (TODO FIXME à nettoyer peut-etre au bout d'un moment)
-     */
-    public cached_var_datas: { [index: string]: VarDataValueResVO } = {};
 
     public last_notif_received: number = 0;
 
@@ -90,18 +90,18 @@ export default class VarsClientController {
                 continue;
             }
 
-            if (!this.registered_var_params[var_param.index]) {
+            if (!VarsClientController.registered_var_params[var_param.index]) {
 
                 needs_registration[var_param.index] = var_param;
-                this.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);
+                VarsClientController.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);
                 if (callbacks) {
-                    await this.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    await VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             } else {
-                this.registered_var_params[var_param.index].nb_registrations++;
+                VarsClientController.registered_var_params[var_param.index].nb_registrations++;
 
                 if (callbacks) {
-                    await this.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    await VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             }
         }
@@ -118,8 +118,8 @@ export default class VarsClientController {
 
         let needs_registration: { [index: string]: VarDataBaseVO } = {};
 
-        for (let i in this.registered_var_params) {
-            let var_param_wrapper = this.registered_var_params[i];
+        for (let i in VarsClientController.registered_var_params) {
+            let var_param_wrapper = VarsClientController.registered_var_params[i];
 
             if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param_wrapper.var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param_wrapper.var_param.index);
@@ -214,7 +214,7 @@ export default class VarsClientController {
         for (let i in var_params) {
             let var_param = var_params[i];
 
-            if (!this.registered_var_params[var_param.index]) {
+            if (!VarsClientController.registered_var_params[var_param.index]) {
                 continue;
                 // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
             }
@@ -224,18 +224,18 @@ export default class VarsClientController {
                 continue;
             }
 
-            this.registered_var_params[var_param.index].nb_registrations--;
-            if (this.registered_var_params[var_param.index].nb_registrations < 0) {
+            VarsClientController.registered_var_params[var_param.index].nb_registrations--;
+            if (VarsClientController.registered_var_params[var_param.index].nb_registrations < 0) {
                 continue;
                 // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
             }
 
-            if (this.registered_var_params[var_param.index].nb_registrations <= 0) {
+            if (VarsClientController.registered_var_params[var_param.index].nb_registrations <= 0) {
                 needs_unregistration[var_param.index] = var_param;
-                delete this.registered_var_params[var_param.index];
+                delete VarsClientController.registered_var_params[var_param.index];
             } else {
                 if (callbacks) {
-                    this.registered_var_params[var_param.index].remove_callbacks(callbacks);
+                    VarsClientController.registered_var_params[var_param.index].remove_callbacks(callbacks);
                 }
             }
         }
@@ -254,7 +254,7 @@ export default class VarsClientController {
         let promises = [];
         for (let i in var_datas) {
             let var_data: VarDataValueResVO = var_datas[i];
-            let registered_var = this.registered_var_params[var_data.index];
+            let registered_var = VarsClientController.registered_var_params[var_data.index];
             let uids_to_remove: number[] = [];
 
             if (!registered_var) {
@@ -267,8 +267,8 @@ export default class VarsClientController {
                 // cas d'un callback en VALID uniquement
                 if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_VALID) && (
                     (!var_data) ||
-                    (typeof VarsClientController.getInstance().cached_var_datas[var_data.index].value == 'undefined') ||
-                    (!VarsClientController.getInstance().cached_var_datas[var_data.index].value_ts))
+                    (typeof VarsClientController.cached_var_datas[var_data.index].value == 'undefined') ||
+                    (!VarsClientController.cached_var_datas[var_data.index].value_ts))
                 ) {
                     continue;
                 }
@@ -311,21 +311,21 @@ export default class VarsClientController {
              */
             let check_params: { [index: string]: VarDataBaseVO } = {};
 
-            for (let i in this.registered_var_params) {
-                let registered_var_param: RegisteredVarDataWrapper = this.registered_var_params[i];
+            for (let i in VarsClientController.registered_var_params) {
+                let registered_var_param: RegisteredVarDataWrapper = VarsClientController.registered_var_params[i];
 
-                let var_data: VarDataValueResVO = VarsClientController.getInstance().cached_var_datas[registered_var_param.var_param.index];
+                let var_data: VarDataValueResVO = VarsClientController.cached_var_datas[registered_var_param.var_param.index];
 
                 if (var_data && (typeof var_data.value !== 'undefined') && !var_data.is_computing) {
-                    if (this.registered_var_params_to_check_next_time[registered_var_param.var_param.index]) {
-                        delete this.registered_var_params_to_check_next_time[registered_var_param.var_param.index];
+                    if (VarsClientController.getInstance().registered_var_params_to_check_next_time[registered_var_param.var_param.index]) {
+                        delete VarsClientController.getInstance().registered_var_params_to_check_next_time[registered_var_param.var_param.index];
                     }
 
                     continue;
                 }
 
-                if (!this.registered_var_params_to_check_next_time[registered_var_param.var_param.index]) {
-                    this.registered_var_params_to_check_next_time[registered_var_param.var_param.index] = true;
+                if (!VarsClientController.getInstance().registered_var_params_to_check_next_time[registered_var_param.var_param.index]) {
+                    VarsClientController.getInstance().registered_var_params_to_check_next_time[registered_var_param.var_param.index] = true;
                     continue;
                 }
 
@@ -353,12 +353,12 @@ export default class VarsClientController {
         let self = this;
 
         try {
-            if (!this.registered_var_params) {
+            if (!VarsClientController.registered_var_params) {
                 setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
                 return;
             }
 
-            let vars = Object.values(this.registered_var_params);
+            let vars = Object.values(VarsClientController.registered_var_params);
             if (!vars || !vars.length) {
                 setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
                 return;
@@ -381,7 +381,7 @@ export default class VarsClientController {
         let filtered_unregistrations: { [index: string]: VarDataBaseVO } = {};
 
         for (let i in params) {
-            if ((!this.registered_var_params[i]) || (!this.registered_var_params[i].nb_registrations)) {
+            if ((!VarsClientController.registered_var_params[i]) || (!VarsClientController.registered_var_params[i].nb_registrations)) {
                 filtered_unregistrations[i] = params[i];
             }
         }
