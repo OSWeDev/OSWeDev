@@ -1,6 +1,6 @@
 .db_var_datatable_field
     .var_data
-        template(v-if='is_loading || !var_param')
+        template(v-if='is_loading')
             i.fa-duotone.fa-refresh.fa-spin
         template(v-else)
             var-data(

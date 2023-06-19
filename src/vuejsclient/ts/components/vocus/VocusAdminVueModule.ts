@@ -52,7 +52,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "VocusComponent" */ './VocusComponent'),
+            component: () => import('./VocusComponent'),
             props: (route) => ({
                 key: main_route_name
             })
@@ -63,7 +63,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name + '__vo',
-            component: () => import(/* webpackChunkName: "VocusComponent" */ './VocusComponent'),
+            component: () => import('./VocusComponent'),
             props: (route) => ({
                 key: main_route_name,
                 vo_id: parseInt(route.params.id),

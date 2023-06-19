@@ -1,8 +1,59 @@
 import cloneDeep from 'lodash/cloneDeep';
-import * as moment from 'moment';
+import moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import * as lang from "vuejs-datepicker/src/locale";
+import {
+    af,
+    ar,
+    bg,
+    bs,
+    ca,
+    cs,
+    da,
+    de,
+    ee,
+    el,
+    en,
+    es,
+    fa,
+    fi,
+    fo,
+    fr,
+    ge,
+    gl,
+    he,
+    hr,
+    hu,
+    id,
+    is,
+    it,
+    ja,
+    kk,
+    ko,
+    lb,
+    lt,
+    lv,
+    mk,
+    mn,
+    nbNO,
+    nl,
+    pl,
+    ptBR,
+    ro,
+    ru,
+    sk,
+    slSI,
+    srCYRL,
+    sr,
+    sv,
+    th,
+    tr,
+    uk,
+    ur,
+    vi,
+    zh,
+    zhHK
+} from "vuejs-datepicker/src/locale";
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
@@ -67,7 +118,58 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
 
-    private languages = lang;
+    private languages = {
+        af,
+        ar,
+        bg,
+        bs,
+        ca,
+        cs,
+        da,
+        de,
+        ee,
+        el,
+        en,
+        es,
+        fa,
+        fi,
+        fo,
+        fr,
+        ge,
+        gl,
+        he,
+        hr,
+        hu,
+        id,
+        is,
+        it,
+        ja,
+        kk,
+        ko,
+        lb,
+        lt,
+        lv,
+        mk,
+        mn,
+        nbNO,
+        nl,
+        pl,
+        ptBR,
+        ro,
+        ru,
+        sk,
+        slSI,
+        srCYRL,
+        sr,
+        sv,
+        th,
+        tr,
+        uk,
+        ur,
+        vi,
+        zh,
+        zhHK
+    };
 
     get language(): string {
 

@@ -153,7 +153,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      *
      * @return {void}
      */
-    private async reload_all_visible_active_filters() {
+    private async reload_all_visible_active_filters(): Promise<void> {
         for (const db_id in ReloadFiltersWidgetController.getInstance().reloaders) {
             const db_reloaders = ReloadFiltersWidgetController.getInstance().reloaders[db_id];
 

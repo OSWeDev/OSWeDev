@@ -1,4 +1,4 @@
-import pgPromise = require("pg-promise");
+import pgPromise from 'pg-promise';
 import ContextQueryVO from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ParameterizedQueryWrapperField from "../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField";
 

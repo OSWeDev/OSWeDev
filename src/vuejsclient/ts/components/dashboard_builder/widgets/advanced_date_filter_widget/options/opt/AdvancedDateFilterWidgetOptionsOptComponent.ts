@@ -78,6 +78,10 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
         return options;
     }
 
+    get is_search_type_ytd() {
+        return this.object_opt ? this.object_opt.search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_YTD : false;
+    }
+
     get is_search_type_last() {
         return this.object_opt ? this.object_opt.search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_LAST : false;
     }

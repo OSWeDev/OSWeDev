@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import 'mocha';
 
 import ResetDateHelper from '../../../shared/modules/Var/ResetDateHelper';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('ResetDateHelper', () => {
 

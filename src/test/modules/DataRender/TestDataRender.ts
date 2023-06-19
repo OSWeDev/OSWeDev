@@ -8,7 +8,7 @@ import 'mocha';
 import DataRenderController from '../../../shared/modules/DataRender/DataRenderController';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('DataRender', () => {
 

@@ -23,7 +23,7 @@ export default class LocaleManager {
             txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
             params
         );
-        return res ? res.toString() : null;
+        return (res != null) ? res.toString() : null;
     }
 
     public t(txt: string, params = {}): string {
@@ -32,7 +32,7 @@ export default class LocaleManager {
         }
 
         let res = LocaleManager.getInstance().i18n.t(txt, params);
-        return res ? res.toString() : null;
+        return (res != null) ? res.toString() : null;
     }
 
     public setDefaultLocale(defaultLocale: string) {

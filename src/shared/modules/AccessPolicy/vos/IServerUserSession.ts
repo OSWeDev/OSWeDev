@@ -1,5 +1,8 @@
+import UserVO from "./UserVO";
+
 export default interface IServerUserSession {
     uid: number;
+    user_vo: UserVO;
     sid: string;
     returning: boolean;
     impersonated_from: IServerUserSession;

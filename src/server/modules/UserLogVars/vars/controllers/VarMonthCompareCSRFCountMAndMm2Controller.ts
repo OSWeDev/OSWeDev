@@ -32,14 +32,7 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
         super(
             new VarConfVO(UserLogVarsNamesHolder.VarMonthCompareCSRFCountMAndMm2Controller_VAR_NAME, UserMinDataRangesVO.API_TYPE_ID, {
                 ts_ranges: TimeSegment.TYPE_MONTH,
-            }, null).set_pixel_activated(true).set_pixel_never_delete(true).set_pixel_fields([
-                (new VarPixelFieldConfVO())
-                    .set_vo_api_type_id(UserVO.API_TYPE_ID)
-                    .set_vo_field_id('id')
-                    .set_param_field_id('user_id_ranges')
-                    .set_range_type(NumRange.RANGE_TYPE)
-                    .set_segmentation_type(NumSegment.TYPE_INT)
-            ]),
+            }, null),
             { 'fr-fr': '% nb chargements M vs M-2' },
             {
                 'fr-fr': 'Ratio du nombre de lancement de l\'application réalisés par les utilisateurs sélectionnés sur la période sélectionnée en comparaison à la période M-2.'
@@ -53,7 +46,7 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
     public getVarCacheConf(): VarCacheConfVO {
         let res: VarCacheConfVO = new VarCacheConfVO();
         res.var_id = this.varConf.id;
-        res.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL;
+        res.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS;
         return res;
     }
 

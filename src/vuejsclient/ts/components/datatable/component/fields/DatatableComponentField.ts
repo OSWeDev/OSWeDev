@@ -16,6 +16,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
 import './DatatableComponentField.scss';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -83,7 +84,7 @@ export default class DatatableComponentField extends VueComponentBase {
     public async mounted() {
         if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
             this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type)
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type)
             );
         }
 

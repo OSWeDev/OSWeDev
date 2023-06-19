@@ -2,10 +2,14 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -14,12 +18,12 @@ import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager'
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -167,7 +171,7 @@ export default class VarsDatasVoUpdateHandler {
      */
     public async force_empty_vars_datas_vo_update_cache() {
 
-        ModuleDAOServer.getInstance().global_update_blocker = true;
+        DAOServerController.GLOBAL_UPDATE_BLOCKER = true;
         let max_sleeps = 100;
 
         while (true) {
@@ -183,7 +187,7 @@ export default class VarsDatasVoUpdateHandler {
                 ConsoleHandler.warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
                 return;
             }
-            await ThreadHandler.sleep(5000);
+            await ThreadHandler.sleep(5000, 'VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache');
             max_sleeps--;
             if (max_sleeps <= 0) {
                 throw new Error('Unable to force_empty_vars_datas_vo_update_cache');
@@ -239,6 +243,14 @@ export default class VarsDatasVoUpdateHandler {
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
         let solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
 
+        if ((!intersectors_by_index) || (!ObjectHandler.hasAtLeastOneAttribute(intersectors_by_index))) {
+            return false;
+        }
+
+        StatsController.register_stat_COMPTEUR('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents');
+        StatsController.register_stat_QUANTITE('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', Object.keys(intersectors_by_index).length);
+        let time_in = Dates.now_ms();
+
         let max = ConfigurationService.node_configuration ? Math.max(ConfigurationService.node_configuration.MAX_POOL / 2, 1) : 10;
         let promise_pipeline = new PromisePipeline(max);
         for (let i in intersectors_by_index) {
@@ -252,6 +264,10 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         await promise_pipeline.end();
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_DUREE('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', time_out - time_in);
+
         await this.push_invalidators(Object.values(solved_invalidators_by_index));
 
         // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
@@ -327,7 +343,7 @@ export default class VarsDatasVoUpdateHandler {
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
-        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
+        while (ObjectHandler.hasAtLeastOneAttribute(intersectors_by_index)) {
             let promise_pipeline = new PromisePipeline(max);
 
             for (let i in intersectors_by_index) {
@@ -885,6 +901,10 @@ export default class VarsDatasVoUpdateHandler {
             return;
         }
 
+        StatsController.register_stat_COMPTEUR("VarsDatasVoUpdateHandler", "handle_invalidation", "IN");
+        StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "VARS_DATAS_IN", var_datas.length);
+        let date_in_ms = Dates.now_ms();
+
         let env = ConfigurationService.node_configuration;
 
         let var_data_by_index: { [index: string]: VarDataBaseVO } = {};
@@ -902,9 +922,15 @@ export default class VarsDatasVoUpdateHandler {
         //  soit on est en bdd(donc on vient de la trouver et on peut filtrer sur celles chargées de la bdd)
         //  soit on est en cache et on les trouve en dessous
 
-        ConsoleHandler.log('handle_invalidation:filter_by_subs:IN:var_datas:' + var_datas.length);
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('handle_invalidation:filter_by_subs:IN:var_datas:' + var_datas.length);
+        }
         let registered_var_datas_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(Object.keys(var_data_by_index));
-        ConsoleHandler.log('handle_invalidation:filter_by_subs:OUT:registered_var_datas_indexes:' + registered_var_datas_indexes.length);
+        StatsController.register_stat_DUREE("VarsDatasVoUpdateHandler", "handle_invalidation", "filter_by_subs", Dates.now_ms() - date_in_ms);
+        let date_poste_filter_by_subs = Dates.now_ms();
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('handle_invalidation:filter_by_subs:OUT:registered_var_datas_indexes:' + registered_var_datas_indexes.length);
+        }
 
         registered_var_datas = (registered_var_datas_indexes && registered_var_datas_indexes.length) ? registered_var_datas_indexes.map((index) => var_data_by_index[index]) : [];
         registered_var_datas = (registered_var_datas && registered_var_datas.length) ?
@@ -982,6 +1008,7 @@ export default class VarsDatasVoUpdateHandler {
                 (v.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (v.value_type != VarDataBaseVO.VALUE_TYPE_DENIED));
             if (bdd_vars_registered && bdd_vars_registered.length) {
                 await this.delete_vars_pack_without_triggers(bdd_vars_registered);
+                StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "DELETED_bdd_vars_registered", bdd_vars_registered.length);
                 if (env.DEBUG_VARS) {
                     ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:DELETED ' + bdd_vars_registered.length + ' vars from BDD cache.');
                 }
@@ -1008,7 +1035,7 @@ export default class VarsDatasVoUpdateHandler {
 
             // FIXME TODO : On perd l'info de qui a demandé à la base (client_tab_id & server_id) faudrait les sauvegarder depuis le wrapper avant de le supprimer pour chaque var
             await VarsDatasProxy.getInstance().append_var_datas(bdd_vars_registered, 'handle_invalidation__registered_var_datas');
-
+            StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "RECALC_bdd_vars_registered", bdd_vars_registered.length);
             if (env.DEBUG_VARS) {
                 ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
             }
@@ -1033,6 +1060,7 @@ export default class VarsDatasVoUpdateHandler {
             // On doit toujours delete en base, sinon on risque de recharger la data depuis la bdd à moment donné dans les calculs
             if (unregistered_var_datas && unregistered_var_datas.length) {
                 await this.delete_vars_pack_without_triggers(unregistered_var_datas);
+                StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "DELETED_unregistered_var_datas", unregistered_var_datas.length);
                 if (env.DEBUG_VARS) {
                     ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
                 }
@@ -1078,6 +1106,7 @@ export default class VarsDatasVoUpdateHandler {
                  */
                 // FIXME TODO : On perd l'info de qui a demandé à la base (client_tab_id & server_id) faudrait les sauvegarder depuis le wrapper avant de le supprimer pour chaque var
                 await VarsDatasProxy.getInstance().append_var_datas(vars_to_append, 'handle_invalidation__unregistered_var_datas');
+                StatsController.register_stat_QUANTITE("VarsDatasVoUpdateHandler", "handle_invalidation", "IGNORE_unregistered_var_datas", unregistered_var_datas.length);
 
                 if (env.DEBUG_VARS) {
                     // ConsoleHandler.log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
@@ -1085,6 +1114,9 @@ export default class VarsDatasVoUpdateHandler {
                 }
             }
         }
+
+        StatsController.register_stat_COMPTEUR("VarsDatasVoUpdateHandler", "handle_invalidation", "OUT");
+        StatsController.register_stat_DUREE("VarsDatasVoUpdateHandler", "handle_invalidation", "OUT", Dates.now_ms() - date_in_ms);
     }
 
     /**
@@ -1096,7 +1128,7 @@ export default class VarsDatasVoUpdateHandler {
             return null;
         }
 
-        let query_ = query(invalidators[ObjectHandler.getInstance().getFirstAttributeName(invalidators)].var_data._type);
+        let query_ = query(invalidators[ObjectHandler.getFirstAttributeName(invalidators)].var_data._type);
         let filters = [];
 
         for (let i in invalidators) {
@@ -1163,7 +1195,7 @@ export default class VarsDatasVoUpdateHandler {
         let var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
         let cached_by_index: { [index: string]: VarDataBaseVO } = {};
 
-        let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         for (let var_id_s in invalidators_by_var_id) {
@@ -1222,7 +1254,7 @@ export default class VarsDatasVoUpdateHandler {
         let original_markers = Object.assign({}, markers);
         let original_ctrls_to_update_1st_stage = Object.assign({}, ctrls_to_update_1st_stage);
 
-        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
+        while (ObjectHandler.hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
 
             let actual_time = Dates.now();
 
@@ -1403,10 +1435,10 @@ export default class VarsDatasVoUpdateHandler {
             return;
         }
 
-        intersectors = ObjectHandler.getInstance().mapByStringFieldFromArray(
+        intersectors = ObjectHandler.mapByStringFieldFromArray(
             MatroidController.getInstance().union(Object.values(intersectors)), 'index');
 
-        if ((!intersectors) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors))) {
+        if ((!intersectors) || (!ObjectHandler.hasAtLeastOneAttribute(intersectors))) {
             return;
         }
         intersectors_by_var_id[Nx.var_controller.varConf.id] = intersectors;
@@ -1421,7 +1453,7 @@ export default class VarsDatasVoUpdateHandler {
             let dep = node.incoming_deps[j];
             let controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
 
-            let tmp = await controller.get_invalid_params_intersectors_from_dep(dep.dep_name, [intersector]);
+            let tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
             if (tmp && tmp.length) {
                 tmp.forEach((e) => res[e.index] = e);
             }
@@ -1463,7 +1495,7 @@ export default class VarsDatasVoUpdateHandler {
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
                     }
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group_stats_wrapper(vos_create_or_delete_buffer[vo_type]);
                     if (tmp && !!tmp.length) {
                         tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                     }
@@ -1477,7 +1509,7 @@ export default class VarsDatasVoUpdateHandler {
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);
                     }
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group_stats_wrapper(vos_update_buffer[vo_type]);
                     if (tmp && !!tmp.length) {
                         tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                     }
@@ -1523,7 +1555,7 @@ export default class VarsDatasVoUpdateHandler {
                 if (VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
                     for (let i in VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
                         let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[i];
-                        if ((wrapper.is_server_request || wrapper.client_tab_id || wrapper.client_user_id) && !VarsServerController.getInstance().has_valid_value(wrapper.var_data)) {
+                        if ((wrapper.is_server_request || wrapper.client_tab_id || wrapper.client_user_id) && !VarsServerController.has_valid_value(wrapper.var_data)) {
                             ConsoleHandler.warn('VarsDatasVoUpdateHandler:prepare_updates:INTERROMPU:demandes client ou serveur en attente de résolution:' + wrapper.var_data.index);
                             return;
                         }

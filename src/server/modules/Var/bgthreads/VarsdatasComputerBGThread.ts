@@ -1,8 +1,7 @@
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
@@ -23,7 +22,6 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
-import StatsServerController from '../../Stats/StatsServerController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarDagPerfsServerController from '../VarDagPerfsServerController';
 import VarsComputeController from '../VarsComputeController';
@@ -166,7 +164,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         let time_in = Dates.now_ms();
 
         try {
-            StatsServerController.register_stat('VarsdatasComputerBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('VarsdatasComputerBGThread', 'work', 'IN');
 
             /**
              * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
@@ -205,9 +203,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('VarsdatasComputerBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('VarsdatasComputerBGThread.work.' + activity + '.OUT.time', time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('VarsdatasComputerBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('VarsdatasComputerBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async do_calculation_run(): Promise<void> {
@@ -217,7 +214,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         this.semaphore = true;
         this.run_asap = false;
 
-        if ((!VarsController.getInstance().var_conf_by_id) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsController.getInstance().var_conf_by_id))) {
+        if ((!VarsController.getInstance().var_conf_by_id) || (!ObjectHandler.hasAtLeastOneAttribute(VarsController.getInstance().var_conf_by_id))) {
             this.semaphore = false;
             this.run_asap = true;
             return;
@@ -332,13 +329,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private async save_last_dag_perfs(var_dag: VarDAG) {
 
         let vardag_perfs = var_dag.perfs;
-        let vardag_perfs_res = await ModuleDAO.getInstance().insertOrUpdateVO(vardag_perfs);
-        if ((!vardag_perfs_res) || (!vardag_perfs_res.id)) {
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vardag_perfs);
+        if (!vardag_perfs.id) {
             ConsoleHandler.error('Failed insert vardag_perfs_res:save_last_dag_perfs');
             return;
         }
-
-        vardag_perfs.id = vardag_perfs_res.id;
 
         let all_var_perfs: { [var_id: number]: VarBatchVarPerfVO } = {};
         for (let i in var_dag.nodes) {
@@ -356,7 +351,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             this.add_var_node_perfs(node.perfs, this_var_perfs, node);
         }
 
-        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(Object.values(all_var_perfs));
+        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(Object.values(all_var_perfs), null, true);
     }
 
     private init_new_var_batch_var_perf_element(var_batch_perf_id: number, var_id: number): VarBatchVarPerfVO {

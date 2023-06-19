@@ -278,6 +278,14 @@
                     name="var_name_selector_1"
                 )
                     .lang_selector_option(slot="noOptions") -
+
+        .var_title_1(v-if='page_widget && page_widget.id && widget_options && widget_options.var_id_1 && widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)')
+            .var_title_1_label {{ label('var_pie_chart_widget_options_component.var_title_1.title_name_code_text') }}
+            .var_title_1_wrapper
+                Inlinetranslatabletext(
+                    :code_text="widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)" 
+                    :is_editable="true")
+                    
         .bg_color_1
             .explication {{ label("var_pie_chart_widget_options_component.bg_color_1") }}
             color-picker(v-model="bg_color_1" @change='throttled_update_colors')

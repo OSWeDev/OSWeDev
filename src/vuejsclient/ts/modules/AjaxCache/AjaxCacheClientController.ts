@@ -1,4 +1,5 @@
-import debounce from 'lodash/debounce';
+import zlib from 'zlib';
+import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';
 import CacheInvalidationRegexpRuleVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRegexpRuleVO';
@@ -7,12 +8,12 @@ import LightWeightSendableRequestVO from '../../../../shared/modules/AjaxCache/v
 import RequestResponseCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestsCacheVO';
 import RequestsWrapperResult from '../../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
-import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
+import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
-const zlib = require('zlib');
 
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
@@ -30,16 +31,19 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      */
     public client_tab_id: string = Dates.now() + '_' + Math.floor(Math.random() * 100000);
 
-    public ajaxcache_debouncer: number = 200;
+    // public ajaxcache_debouncer: number = 25;
+
     public api_logs: LightWeightSendableRequestVO[] = [];
 
     public csrf_token: string = null;
 
     private cache: RequestsCacheVO = new RequestsCacheVO();
     private invalidationRules: CacheInvalidationRulesVO = new CacheInvalidationRulesVO();
-    private waitingForRequest: RequestResponseCacheVO[] = [];
 
-    // private timerProcessRequests = 100;
+    /**
+     * Les requêtes pour le prochain batch d'envoi
+     */
+    private waitingForRequest: RequestResponseCacheVO[] = [];
 
     private disableCache = false;
     private defaultInvalidationTimeout: number = 300; //seconds
@@ -47,18 +51,31 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
     private api_logs_limit: number = 101;
 
-    private processRequestsSemaphore: boolean = false;
-    private processRequestsSemaphore_needs_reload: boolean = false;
-    private actions_waiting_for_release_of_processRequestsSemaphore: Array<() => Promise<void>> = [];
+    /**
+     * Semaphore pour savoir si actuellement le système d'envoi des requêtes est en train de tourner
+     *  Si oui, inutile de le relancer
+     */
+    private is_processing_requests: boolean = false;
 
-    private debounced_requests_wrapper = debounce(this.processRequestsWrapper, this.ajaxcache_debouncer);
+    // private processRequestsWrapperSemaphore: boolean = false;
+    // private processRequestsSemaphore: boolean = false;
+    // private processRequestsSemaphore_needs_reload: boolean = false;
+
+    // private debounced_requests_wrapper = ThrottleHelper.getInstance().declare_throttle_without_args(this.processRequestsWrapper.bind(this), this.ajaxcache_debouncer, { leading: true, trailing: true });
 
     public async getCSRFToken() {
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
+        let time_in = Dates.now_ms();
+
         let res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
         if (!res) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'FAILED');
+            StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'FAILED', Dates.now_ms() - time_in);
             return;
         }
         this.csrf_token = res['csrfToken'];
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'OK');
+        StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'OK', Dates.now_ms() - time_in);
     }
 
     /**
@@ -83,9 +100,23 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         timeout: number = null,
         post_for_get: boolean = false) {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'IN');
         let self = this;
 
         return new Promise((resolve, reject) => {
+
+            let resolve_stats_wrapper = (res) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'OK');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'get', 'OK', Dates.now_ms() - time_in);
+                resolve(res);
+            };
+
+            let reject_stats_wrapper = (err) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'FAILED');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'get', 'FAILED', Dates.now_ms() - time_in);
+                reject(err);
+            };
 
             // If in cache
             let UIDindex = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
@@ -101,19 +132,19 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     // If valid
                     if (self.isValidCache(cache)) {
                         if (cache.state == RequestResponseCacheVO.STATE_RESOLVED) {
-                            resolve(cache.datas);
+                            resolve_stats_wrapper(cache.datas);
                         } else if (cache.state == RequestResponseCacheVO.STATE_REJECTED) {
-                            reject(cache.datas);
+                            reject_stats_wrapper(cache.datas);
                         }
                     } else {
                         self.invalidateCachedItem(cache);
-                        self.addCallback(cache, resolve, reject);
+                        self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
                         self.addToWaitingRequestsStack(cache);
                     }
                 } else if (cache.state == RequestResponseCacheVO.STATE_REQUESTED) {
-                    self.addCallback(cache, resolve, reject);
+                    self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
                 } else if (cache.state == RequestResponseCacheVO.STATE_INIT) {
-                    self.addCallback(cache, resolve, reject);
+                    self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
                     self.addToWaitingRequestsStack(cache);
                 }
             } else {
@@ -126,8 +157,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     processData,
                     timeout,
                     api_types_involved,
-                    resolve,
-                    reject,
+                    resolve_stats_wrapper,
+                    reject_stats_wrapper,
                     post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
                 self.addToWaitingRequestsStack(cache);
             }
@@ -151,6 +182,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false,
         is_wrapper: boolean = false): Promise<any> {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'IN');
+
         let self = this;
 
         if (!is_wrapper) {
@@ -169,6 +203,18 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
         let res = new Promise(async (resolve, reject) => {
 
+            let resolve_stats_wrapper = (datas) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'post', 'OK');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'post', 'OK', Dates.now_ms() - time_in);
+                resolve(datas);
+            };
+
+            let reject_stats_wrapper = (err) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'post', 'FAILED');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'post', 'FAILED', Dates.now_ms() - time_in);
+                reject(err);
+            };
+
             // On ajoute le système de catch code retour pour les POST aussi
             let cache = self.addCache(
                 apiDefinition,
@@ -179,8 +225,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 processData,
                 timeout,
                 api_types_involved,
-                resolve,
-                reject,
+                resolve_stats_wrapper,
+                reject_stats_wrapper,
                 post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_POST);
 
             if (!post_for_get) {
@@ -220,14 +266,19 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
             if (cache.timeout != null) {
                 options.timeout = cache.timeout;
+            } else {
+                options.timeout = 120000;
             }
             if (!!self.csrf_token) {
                 options.headers['X-CSRF-Token'] = self.csrf_token;
                 options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
             }
-            self.addCallback(cache, resolve, reject);
+            if (!!EnvHandler.VERSION) {
+                options.headers['version'] = EnvHandler.VERSION;
+            }
+            self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
 
-            // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
+            // const $ = await import('jquery');
             if ($.ajax) {
                 await $.ajax(options)
                     .done(async (r) => {
@@ -382,33 +433,52 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private addToWaitingRequestsStack(cache: RequestResponseCacheVO) {
 
-        if (this.processRequestsSemaphore) {
-            let self = this;
-            this.actions_waiting_for_release_of_processRequestsSemaphore.push(async () => {
-                self.addToWaitingRequestsStack(cache);
-            });
-            return false;
-        }
-
         cache.state = RequestResponseCacheVO.STATE_REQUESTED;
         this.waitingForRequest.push(cache);
 
-        this.debounced_processRequests();
+        if (this.is_processing_requests) {
+            return;
+        }
+
+        this.is_processing_requests = true;
+        try {
+            this.processRequests()
+                .catch((err) => {
+                    ConsoleHandler.error('addToWaitingRequestsStack:processRequests:FAILED:' + err);
+                })
+                .finally(() => {
+                    this.is_processing_requests = false;
+
+                    // Petite sécu au cas où le sémaphore ne se libère pas au bon moment
+                    if (this.waitingForRequest.length) {
+                        this.addToWaitingRequestsStack(this.waitingForRequest.shift());
+                    }
+                });
+        } catch (error) {
+            ConsoleHandler.error("addToWaitingRequestsStack:processRequests:FAILED:" + error);
+            this.is_processing_requests = false;
+        }
     }
 
     private async traitementFailRequest(err, request: RequestResponseCacheVO) {
         let self = this;
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'IN');
 
         if (401 == err.status) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', '401');
             (window as any).location.replace('/login');
         } else if (((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) && (request.tries < 3) && (request.type != RequestResponseCacheVO.API_TYPE_POST)) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', '503_502_timeout_NOT_POST_3_tries');
             request.tries += 1;
             setTimeout(() => {
                 self.addToWaitingRequestsStack(request);
             }, 2000);
         } else {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'Default');
             ConsoleHandler.log("request failed :" + request + ":" + err);
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
+                ConsoleHandler.error("Loading failure - Please reload your page:" + JSON.stringify(request) + ":" + JSON.stringify(err));
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'Loading_failure_Please_reload_your_page');
                 (window as any).alert('Loading failure - Please reload your page');
             }
             request.datasDate = Dates.now();
@@ -427,69 +497,55 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
     }
 
-    private debounced_processRequests() {
-
-        if (this.processRequestsSemaphore) {
-            // ça veut dire qu'on demande un process alors qu'un est déjà en cours.
-            // Il faut pouvoir revenir s'en occuper
-            this.processRequestsSemaphore_needs_reload = true;
-            return () => { };
-        }
-
-        this.debounced_requests_wrapper();
-    }
-
-    private async processRequestsWrapper() {
-        // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
-        // Mais du coup quand l'update est terminé, il est important de vérifier si de nouvelles demandes de mise à jour ont eues lieues.
-        //  et si oui relancer une mise à jour.
-        // ATTENTION : Risque d'explosion de la pile des appels si on a un temps trop élevé de résolution des variables, par rapport à une mise
-        //  à jour automatique par exemple à intervale régulier, plus court que le temps de mise à jour.
-        if (this.processRequestsSemaphore) {
-            return;
-        }
-        this.processRequestsSemaphore_needs_reload = false;
-        this.processRequestsSemaphore = true;
-        try {
-            await this.processRequests();
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        this.processRequestsSemaphore = false;
-
-        if ((!!this.actions_waiting_for_release_of_processRequestsSemaphore) && (this.actions_waiting_for_release_of_processRequestsSemaphore.length)) {
-            for (let i in this.actions_waiting_for_release_of_processRequestsSemaphore) {
-                let action = this.actions_waiting_for_release_of_processRequestsSemaphore[i];
-
-                await action();
-            }
-        }
-
-        this.actions_waiting_for_release_of_processRequestsSemaphore = [];
-
-        if (this.processRequestsSemaphore_needs_reload) {
-            // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
-            this.processRequestsSemaphore_needs_reload = false;
-            this.debounced_processRequests();
-        }
-    }
-
-    private async wrap_request(wrappable_requests: RequestResponseCacheVO[]) {
+    private async wrap_request(wrappable_requests: RequestResponseCacheVO[], nb_requests: number) {
         if ((!wrappable_requests) || (wrappable_requests.length <= 0)) {
             return;
         }
 
-        let sendable_objects: LightWeightSendableRequestVO[] = [];
-        let correspondance: { [id_local: string]: string } = {};
+        let sendable_objects_by_request_num: { [num: number]: LightWeightSendableRequestVO[] } = {};
+        let wrappable_requests_by_request_num: { [num: number]: RequestResponseCacheVO[] } = {};
+        let request_num_from_url: { [url: string]: number } = {};
+        let request_barrel_num: number = -1;
+
+        // let sendable_objects: LightWeightSendableRequestVO[] = [];
+        let correspondance_by_request_num: { [num: number]: { [id_local: string]: string } } = {};
         for (let i in wrappable_requests) {
             let request = wrappable_requests[i];
 
-            request.index = i.toString();
-            correspondance[i.toString()] = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
+            // Choix du pool de requête
+            if (!request_num_from_url[request.url]) {
+                request_barrel_num++;
 
+                if (request_barrel_num >= nb_requests) {
+                    request_barrel_num = 0;
+                }
+
+                request_num_from_url[request.url] = request_barrel_num;
+            }
+
+            // Ajout de la requête dans le pool
+            if (!wrappable_requests_by_request_num[request_num_from_url[request.url]]) {
+                wrappable_requests_by_request_num[request_num_from_url[request.url]] = [];
+            }
+            wrappable_requests_by_request_num[request_num_from_url[request.url]].push(request);
+
+            // Ajout de l'index de la requête au sein du pool
+            let this_query_index: string = (wrappable_requests_by_request_num[request_num_from_url[request.url]].length - 1).toString();
+            request.index = this_query_index;
+
+            // Ajout de la correspondance entre l'index de la requête et son id local
+            if (!correspondance_by_request_num[request_num_from_url[request.url]]) {
+                correspondance_by_request_num[request_num_from_url[request.url]] = {};
+            }
+            correspondance_by_request_num[request_num_from_url[request.url]][this_query_index] = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
+
+            // Version Light pour envoi
             let light_weight = new LightWeightSendableRequestVO(request);
-            sendable_objects.push(light_weight);
+            if (!sendable_objects_by_request_num[request_num_from_url[request.url]]) {
+                sendable_objects_by_request_num[request_num_from_url[request.url]] = [];
+            }
+            sendable_objects_by_request_num[request_num_from_url[request.url]].push(light_weight);
+
 
             if (this.api_logs.length >= this.api_logs_limit) {
                 this.api_logs.shift();
@@ -498,6 +554,20 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
 
         // On encapsule les gets dans une requête de type post
+        let promise_pipeline = new PromisePipeline(nb_requests);
+
+        for (let i in sendable_objects_by_request_num) {
+            let sendable_objects = sendable_objects_by_request_num[i];
+
+            await promise_pipeline.push(async () => {
+                await this.wrap_request_send(sendable_objects, wrappable_requests_by_request_num[i], correspondance_by_request_num[i]);
+            });
+        }
+
+        await promise_pipeline.end();
+    }
+
+    private async wrap_request_send(sendable_objects: LightWeightSendableRequestVO[], wrappable_requests: RequestResponseCacheVO[], correspondance: { [id_local: string]: string }) {
         try {
             let results: RequestsWrapperResult = await this.post(
                 null,
@@ -508,7 +578,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 null, null, false, true
             ) as RequestsWrapperResult;
 
-            if ((!results?.requests_results)) {
+            if ((!results) || (!results.requests_results)) {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Pas_de_resultat_pour_la_requete_groupee');
                 throw new Error('Pas de résultat pour la requête groupée.');
             }
 
@@ -516,6 +587,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 let wrapped_request = wrappable_requests[i];
 
                 if ((!wrapped_request.url) || (typeof results.requests_results[i] === 'undefined')) {
+                    StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Pas_de_resultat_pour_la_requete');
                     throw new Error('Pas de résultat pour la requête :' + wrapped_request.url + ":");
                 }
 
@@ -524,6 +596,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 await this.resolve_request(wrapped_request, results.requests_results[i]);
             }
         } catch (error) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Echec_de_requete_groupee');
             ConsoleHandler.error("Echec de requête groupée : " + error);
 
             // Si ça échoue, on relance avec une logique de dichotomie, si il reste plus d'une requête à traiter. On demande minimum 2 requêtes par wrap
@@ -538,94 +611,118 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             left_wrappable_requests = wrappable_requests.slice(0, Math.floor(wrappable_requests.length / 2));
             right_wrappable_requests = wrappable_requests.slice(Math.floor(wrappable_requests.length / 2));
 
-            await all_promises([this.wrap_request(left_wrappable_requests), this.wrap_request(right_wrappable_requests)]);
+            await all_promises([this.wrap_request(left_wrappable_requests, 1), this.wrap_request(right_wrappable_requests, 1)]);
             return;
         }
-
-        this.waitingForRequest = this.waitingForRequest.filter((req: RequestResponseCacheVO) => (wrappable_requests.indexOf(req) < 0));
     }
 
-    // Le processus qui dépile les requêtes en attente
-    // Pour rappel structure de la request
-    //  url: url,
-    //  resolve_callbacks: [resolve],
-    //  reject_callbacks: [reject],
-    //  state: this.STATE_INIT,
-    //  creationDate: moment(),
-    //  datas: null,
-    //  datasDate: null
+    /**
+     * On traite les requêtes en attente
+     */
     private async processRequests() {
 
+        while (this.waitingForRequest.length > 0) {
+
+            let this_batch_requests = this.waitingForRequest;
+            this.waitingForRequest = [];
+
+            // On commence par séparer les requêtes wrappable des autres
+            let wrappable_requests: RequestResponseCacheVO[] = [];
+            let non_wrappable_requests: RequestResponseCacheVO[] = [];
+
+            for (let i in this_batch_requests) {
+                let request = this_batch_requests[i];
+
+                if (request.wrappable_request) {
+                    wrappable_requests.push(request);
+                } else {
+                    non_wrappable_requests.push(request);
+                }
+            }
+
+            /**
+             * On se fait un PromisePipeline de 6 requêtes max, qui correspond à la limite de requêtes simultanées du navigateur
+             * (https://stackoverflow.com/questions/985431/max-parallel-http-connections-in-a-browser)
+             */
+            let max_query = 6;
+            let promise_pipeline: PromisePipeline = new PromisePipeline(max_query);
+
+            // on traite d'une part les requêtes wrappable
+            if (wrappable_requests.length > 0) {
+                await promise_pipeline.push(async () => {
+                    await this.wrap_request(wrappable_requests, Math.max(1, max_query - non_wrappable_requests.length));
+                });
+            }
+
+            // on traite d'autre part les requêtes non wrappable
+            if (non_wrappable_requests.length > 0) {
+                for (let i in non_wrappable_requests) {
+                    let request = non_wrappable_requests[i];
+
+                    await promise_pipeline.push(async () => {
+                        await this.resolve_non_wrappable_request(request);
+                    });
+                }
+            }
+
+            // On attend la fin de toutes les requêtes
+            await promise_pipeline.end();
+        }
+    }
+
+    private async resolve_non_wrappable_request(request: RequestResponseCacheVO) {
+
         let self = this;
+        let light_weight = new LightWeightSendableRequestVO(request);
 
-        // On a 1 ou plusieurs requêtes. Ce qu'on veut idéalement c'est pouvoir gérer directement toutes les requêtes en attente
-        //  en 1 seul batch, et recevoir une seule réponse qui encapsule toutes les questions.
-        // On doit pouvoir faire ça pour les gets sans trop de difficultés
-
-        if (self.waitingForRequest && (self.waitingForRequest.length > 1)) {
-
-            await this.wrap_request(Array.from(self.waitingForRequest).filter((req) => req.wrappable_request));
+        if (this.api_logs.length >= this.api_logs_limit) {
+            this.api_logs.shift();
         }
+        this.api_logs.push(light_weight);
 
-        if (self.waitingForRequest && (self.waitingForRequest.length > 0)) {
-            let request: RequestResponseCacheVO = self.waitingForRequest.shift();
+        switch (request.type) {
+            case RequestResponseCacheVO.API_TYPE_GET:
 
-            let light_weight = new LightWeightSendableRequestVO(request);
+                // const $ = await import('jquery');
 
-            if (this.api_logs.length >= this.api_logs_limit) {
-                this.api_logs.shift();
-            }
-            this.api_logs.push(light_weight);
+                if ($.ajaxSetup) {
+                    $.ajaxSetup({
+                        timeout: 120000,
+                        headers: {
+                            version: EnvHandler.VERSION
+                        }
+                    }); // in milliseconds
+                }
 
-            switch (request.type) {
-                case RequestResponseCacheVO.API_TYPE_GET:
+                if ($.get) {
+                    $.get(
+                        request.url,
+                        async (datas) => {
+                            await self.resolve_request(request, datas);
+                        })
+                        .fail(async (err) => {
+                            await self.traitementFailRequest(err, request);
+                        });
+                } else {
+                    let resolve_callback = request.resolve_callbacks.shift();
+                    resolve_callback(null);
+                }
+                break;
 
-                    // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
+            case RequestResponseCacheVO.API_TYPE_POST:
+                ConsoleHandler.error('Should never happen :processRequests:TYPE == POST:');
+                break;
 
-                    if ($.ajaxSetup) {
-                        $.ajaxSetup({
-                            timeout: 30000
-                        }); // in milliseconds
-                    }
+            case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
+                let res = await this.post(
+                    request.apiDefinition,
+                    request.url, request.api_types_involved, request.postdatas,
+                    request.dataType, request.contentType, request.processData, request.timeout,
+                    true);
 
-                    if ($.get) {
-                        $.get(
-                            request.url,
-                            async (datas) => {
-                                await self.resolve_request(request, datas);
-                            })
-                            .fail(async (err) => {
-                                await self.traitementFailRequest(err, request);
-                            });
-                    } else {
-                        let resolve_callback = request.resolve_callbacks.shift();
-                        resolve_callback(null);
-                    }
-                    break;
-
-                case RequestResponseCacheVO.API_TYPE_POST:
-                    ConsoleHandler.error('Should never happen :processRequests:TYPE == POST:');
-                    break;
-
-                case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
-                    let res = await this.post(
-                        request.apiDefinition,
-                        request.url, request.api_types_involved, request.postdatas,
-                        request.dataType, request.contentType, request.processData, request.timeout,
-                        true);
-
-                    await this.resolve_request(request, res);
-                    break;
-            }
+                await this.resolve_request(request, res);
+                break;
         }
-
-        if (self.waitingForRequest && (self.waitingForRequest.length > 0)) {
-            this.processRequestsSemaphore_needs_reload = true;
-        }
-
-        // setTimeout((async () => {
-        //     self.processRequests();
-        // }), self.timerProcessRequests);
     }
 
     private async resolve_request(request: RequestResponseCacheVO, datas) {

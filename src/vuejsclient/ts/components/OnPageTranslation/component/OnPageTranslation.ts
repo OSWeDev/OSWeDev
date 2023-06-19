@@ -323,7 +323,7 @@ export default class OnPageTranslation extends VueComponentBase {
                 lang_id,
                 text_id
             }
-        } = ObjectHandler.getInstance().mapByStringFieldFromArray(
+        } = ObjectHandler.mapByStringFieldFromArray(
             await query(TranslationVO.API_TYPE_ID)
                 .field('code_text', null, TranslatableTextVO.API_TYPE_ID)
                 .field('id')
@@ -332,6 +332,7 @@ export default class OnPageTranslation extends VueComponentBase {
                 .field('translated')
                 .filter_by_text_has('code_text', texts, TranslatableTextVO.API_TYPE_ID)
                 .filter_by_num_eq('lang_id', this.lang_id)
+                .set_max_age_ms(1000 * 60) // 1 minute de cache - on peut imaginer plus si on a une invalidation du cache via trigger. pour l'instant c'est pas le cas
                 .select_all() as any,
             'code_text'
         );

@@ -19,7 +19,6 @@ import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import APIGetVarDataByIndexParamVO from './params/APIGetVarDataByIndexParamVO';
 import VarsController from './VarsController';
-import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import SlowVarVO from './vos/SlowVarVO';
 import VarBatchNodePerfVO from './vos/VarBatchNodePerfVO';
@@ -59,6 +58,7 @@ export default class ModuleVar extends Module {
     public static APINAME_update_params_registration: string = 'update_params_registration';
     public static APINAME_unregister_params: string = 'unregister_params';
 
+    public static APINAME_get_var_data: string = 'get_var_data';
     public static APINAME_get_var_data_by_index: string = 'get_var_data_by_index';
 
     public static APINAME_getVarControllerVarsDeps: string = 'getVarControllerVarsDeps';
@@ -104,15 +104,12 @@ export default class ModuleVar extends Module {
     public getParamDependencies: (param: VarDataBaseVO) => Promise<{ [dep_id: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getParamDependencies);
     public getVarParamDatas: (param: VarDataBaseVO) => Promise<{ [ds_name: string]: string }> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamDatas);
     public getAggregatedVarDatas: (param: VarDataBaseVO) => Promise<{ [var_data_index: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getAggregatedVarDatas);
-    /**
-     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server
-     * @see {@link ModuleVarServer.register_params}
-     */
     public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_register_params);
     public update_params_registration: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_update_params_registration);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
 
+    public get_var_data: <T extends VarDataBaseVO>(var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data);
     public get_var_data_by_index: <T extends VarDataBaseVO>(var_data_api_type_id: string, var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data_by_index);
 
     public getVarParamFromContextFilters: (
@@ -138,31 +135,27 @@ export default class ModuleVar extends Module {
         /**
          * On refuse de lancer une requête si on a explicitement pas de filtre custom, alors qu'on en attend un
          */
-        if (custom_filters && !Object.keys(custom_filters).length) {
 
-            // On définit qu'on attend un custom param si on a du ts_ranges ou du hour_ranges pour le moment
-            let fields = MatroidController.getInstance().getMatroidFields(VarsController.getInstance().var_conf_by_name[var_name].var_data_vo_type);
-            if (!fields) {
-                // très improbable...
-                return true;
-            }
-
-            let ts_ranges_fields = fields.filter((field) =>
-                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
-            );
-
-            if (!ts_ranges_fields || !ts_ranges_fields.length) {
-                return true;
-            }
-
-            for (let i in ts_ranges_fields) {
-                if (!custom_filters[ts_ranges_fields[i].field_id]) {
-                    return false;
-                }
-            }
-
+        // On définit qu'on attend un custom param si on a du ts_ranges ou du hour_ranges pour le moment
+        let fields = MatroidController.getInstance().getMatroidFields(VarsController.getInstance().var_conf_by_name[var_name].var_data_vo_type);
+        if (!fields) {
+            // très improbable...
             return true;
+        }
+
+        let ts_ranges_fields = fields.filter((field) =>
+            (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
+        );
+
+        if (!ts_ranges_fields || !ts_ranges_fields.length) {
+            return true;
+        }
+
+        for (let i in ts_ranges_fields) {
+            if (!custom_filters[ts_ranges_fields[i].field_id]) {
+                return false;
+            }
         }
 
         return true;
@@ -193,10 +186,6 @@ export default class ModuleVar extends Module {
         this.initVarBatchNodePerfVO();
         this.initVarNodeParentPerfVO();
         this.initVarNodePerfElementVO();
-
-        VarsPerfMonController.getInstance().initialize_VarControllerPMLInfosVO(this);
-        VarsPerfMonController.getInstance().initialize_DSControllerPMLInfosVO(this);
-        VarsPerfMonController.getInstance().initialize_MatroidBasePMLInfoVO(this);
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base] = null;
@@ -277,6 +266,13 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_data_by_index,
             ((param: APIGetVarDataByIndexParamVO) => [param.api_type_id])
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, VarDataBaseVO>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_get_var_data,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            StringParamVOStatic
         ));
 
         // APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(

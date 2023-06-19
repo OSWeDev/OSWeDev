@@ -22,12 +22,12 @@ export default class EnvParam implements IEnvParam {
     public SERVER_START_BOOSTER: boolean;
     public SERVER_ENCODING: string;
     public CONSOLE_LOG_TO_FILE: boolean = true;
-    public DEBUG_FORKS: boolean = false;
     public START_MAINTENANCE_ACCEPTATION_CODE: string;
     public AUTO_END_MAINTENANCE_ON_START: boolean = true;
     public CODE_GOOGLE_ANALYTICS: string = null;
     public LAUNCH_INIT?: boolean = false;
 
+    public DEBUG_FORKS?: boolean = false;
     public DEBUG_SLOW_QUERIES?: boolean = false;
     public DEBUG_SLOW_QUERIES_MS_LIMIT?: number = 100;
     public DEBUG_VARS?: boolean = false;
@@ -47,4 +47,11 @@ export default class EnvParam implements IEnvParam {
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
     public ZOOM_AUTO?: boolean = false;
+
+    /**
+     * ATTENTION : bien indiquer l'environnement principal de production. On bloque par exemple les comptes tests sur cet environnement.
+     */
+    public IS_MAIN_PROD_ENV: boolean = false;
+
+    public OPEN_API_API_KEY?: string = null;
 }

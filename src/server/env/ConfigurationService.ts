@@ -4,10 +4,6 @@ import EnvParam from './EnvParam';
 import IEnvParam from './IEnvParam';
 
 
-// ATTENTION subtilité sur ConfigurationService et STATIC_ENV_PARAMS, on
-//  a besoin de ces fichiers en JS également pour la conf de webpack, donc il faut
-//  recopier le JS à chaque compilation d'une nouvelle version de ces 2 fichiers.
-
 export default class ConfigurationService {
 
     /**
@@ -16,9 +12,6 @@ export default class ConfigurationService {
     public static nodeInstall: boolean;
     public static nodeInstallFullSegments: boolean;
 
-    /**
-     * Just an helper for webpack conf
-     */
     public static shared_params: any;
     public static node_configuration: EnvParam = null;
     /**

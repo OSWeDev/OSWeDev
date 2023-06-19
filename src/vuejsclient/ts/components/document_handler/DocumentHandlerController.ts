@@ -1,23 +1,17 @@
-import Component from 'vue-class-component';
-import VueComponentBase from '../VueComponentBase';
-import DocumentHandlerButtonComponent from './button/DocumentHandlerButtonComponent';
-import DocumentHandlerModalComponent from './modal/DocumentHandlerModalComponent';
-import './DocumentHandlerComponent.scss';
-import { ModuleDocumentAction, ModuleDocumentGetter } from './store/DocumentStore';
-import DocumentVO from '../../../../shared/modules/Document/vos/DocumentVO';
-import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO';
-import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
-import DocumentDocumentTagVO from '../../../../shared/modules/Document/vos/DocumentDocumentTagVO';
-import { Watch } from 'vue-property-decorator';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
-import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
-import DocumentTagDocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagDocumentTagGroupVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import WeightHandler from '../../../../shared/tools/WeightHandler';
-import DocumentHandlerReloadListVO from './vos/DocumentHandlerReloadListVO';
-import DocumentHandlerDatasVO from './vos/DocumentHandlerDatasVO';
+import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
+import DocumentDocumentTagVO from '../../../../shared/modules/Document/vos/DocumentDocumentTagVO';
+import DocumentTagDocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagDocumentTagGroupVO';
+import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
+import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO';
+import DocumentVO from '../../../../shared/modules/Document/vos/DocumentVO';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
+import WeightHandler from '../../../../shared/tools/WeightHandler';
+import './DocumentHandlerComponent.scss';
+import DocumentHandlerDatasVO from './vos/DocumentHandlerDatasVO';
+import DocumentHandlerReloadListVO from './vos/DocumentHandlerReloadListVO';
 
 export default class DocumentHandlerController {
 
@@ -61,8 +55,8 @@ export default class DocumentHandlerController {
 
         let dt_dtgs: DocumentTagDocumentTagGroupVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentTagDocumentTagGroupVO>(
             DocumentTagDocumentTagGroupVO.API_TYPE_ID,
-            'dt_id', ObjectHandler.getInstance().getIdsList(res.all_dt_by_ids),
-            'dtg_id', ObjectHandler.getInstance().getIdsList(tmp_dtg_by_ids)
+            'dt_id', ObjectHandler.getIdsList(res.all_dt_by_ids),
+            'dtg_id', ObjectHandler.getIdsList(tmp_dtg_by_ids)
         );
 
         tmp_dts_by_dtg_ids = {};
@@ -82,8 +76,8 @@ export default class DocumentHandlerController {
 
         res.d_dts = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentDocumentTagVO>(
             DocumentDocumentTagVO.API_TYPE_ID,
-            'd_id', ObjectHandler.getInstance().getIdsList(res.all_d_by_ids),
-            'dt_id', ObjectHandler.getInstance().getIdsList(valid_dt_by_ids)
+            'd_id', ObjectHandler.getIdsList(res.all_d_by_ids),
+            'dt_id', ObjectHandler.getIdsList(valid_dt_by_ids)
         );
 
         WeightHandler.getInstance().sortByWeight(tmp_dtgs_by_weight);

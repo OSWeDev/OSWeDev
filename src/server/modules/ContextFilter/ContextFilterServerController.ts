@@ -1,6 +1,6 @@
-import pgPromise = require('pg-promise');
-import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import pgPromise from 'pg-promise';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
@@ -239,13 +239,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
 
@@ -483,13 +485,46 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(
+                                field_id +
+                                " = " +
+                                context_filter.param_alias);
+
+                            break;
+                        }
+
+                        if (context_filter.param_text != null) {
+                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+                            where_conditions.push(field_id + " = crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_id + ")");
+                        } else if (context_filter.param_textarray != null) {
+                            let like_array = [];
+                            for (let i in context_filter.param_textarray) {
+                                let param_text = context_filter.param_textarray[i];
+                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                if (!text) {
+                                    continue;
+                                }
+
+                                like_array.push("crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_id + ")");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            // TODO on peut aussi identifie qu'on a plusieurs chaines différentes et fuir la requete (si on doit être = à TOUS il vaut mieux en avoir qu'un...)
+                            where_conditions.push(field_id + " = ALL(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
                         if (context_filter.param_alias != null) {
                             where_conditions.push(
                                 (context_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (context_filter.text_ignore_case ? ')' : '') +
@@ -616,13 +651,52 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(
+                                field_id +
+                                " = " +
+                                context_filter.param_alias);
+
+                            break;
+                        }
+
+                        if (context_filter.param_text != null) {
+                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+
+                            where_conditions.push(field_id + " = crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_id + ")");
+                        } else if (context_filter.param_textarray != null) {
+
+                            if (context_filter.param_textarray.length == 0) {
+                                where_conditions.push("false");
+                                break;
+                            }
+
+                            let like_array = [];
+                            for (let i in context_filter.param_textarray) {
+                                let param_text = context_filter.param_textarray[i];
+                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                if (!text) {
+                                    continue;
+                                }
+
+                                like_array.push("crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_id + ")");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " = ANY(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
                         if (context_filter.param_alias != null) {
                             where_conditions.push(
                                 (context_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (context_filter.text_ignore_case ? ')' : '') +
@@ -752,13 +826,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
                         if (context_filter.param_alias != null) {
 
                             if (context_filter.text_ignore_case) {
@@ -899,13 +975,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
                         if (context_filter.param_alias != null) {
 
                             if (context_filter.text_ignore_case) {
@@ -1046,13 +1124,41 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+
+                        if (context_filter.param_text != null) {
+                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+
+                            where_conditions.push(field_id + " != crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_id + ")");
+
+                        } else if (context_filter.param_textarray != null) {
+
+                            let like_array = [];
+                            for (let i in context_filter.param_textarray) {
+                                let param_text = context_filter.param_textarray[i];
+                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+
+                                if (!text) {
+                                    continue;
+                                }
+
+                                like_array.push("crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_id + ")");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " != ALL(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
 
                         if (context_filter.param_text != null) {
                             let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
@@ -1217,13 +1323,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
                             if (context_filter.text_ignore_case) {
@@ -1344,13 +1452,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
 
@@ -1480,13 +1590,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
+                    case ModuleTableField.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
+
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
 
                         if (context_filter.param_text != null) {
 
@@ -2233,6 +2345,11 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
+                            let force_cast: string = '';
+
+                            if ((field_type == ModuleTableField.FIELD_TYPE_int_array) || (field_type == ModuleTableField.FIELD_TYPE_tstz_array)) {
+                                force_cast = '::bigint[]';
+                            }
                             for (let i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
@@ -2243,7 +2360,7 @@ export default class ContextFilterServerController {
                                 ContextQueryInjectionCheckHandler.assert_numeric(value);
                             }
 
-                            where_conditions.push(field_id + " && ARRAY[" + context_filter.param_numeric_array.join(',') + ']');
+                            where_conditions.push(field_id + " && ARRAY[" + context_filter.param_numeric_array.join(',') + ']' + force_cast);
                             break;
                         }
                         throw new Error('Not Implemented');
@@ -2936,6 +3053,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableField.FIELD_TYPE_boolean:
                         where_conditions.push(field_id + " is null");
                         break;
 
@@ -3333,7 +3451,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                        let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3353,6 +3471,7 @@ export default class ContextFilterServerController {
                             );
                             break;
                         case ModuleTableField.FIELD_TYPE_refrange_array:
+                        case ModuleTableField.FIELD_TYPE_numrange_array:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
@@ -3411,7 +3530,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                        let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3431,6 +3550,7 @@ export default class ContextFilterServerController {
                             );
                             break;
                         case ModuleTableField.FIELD_TYPE_refrange_array:
+                        case ModuleTableField.FIELD_TYPE_numrange_array:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
@@ -3509,7 +3629,7 @@ export default class ContextFilterServerController {
                 }
             } else {
 
-                let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                 if (!full_name) {
                     throw new Error('Table not found');
                 }
@@ -3531,6 +3651,7 @@ export default class ContextFilterServerController {
      * Check injection OK : get_segmented_full_name est ok et est le seul risque identifié
      */
     public async get_table_full_name(
+        context_query: ContextQueryVO,
         moduletable: ModuleTable<any>,
         filters: ContextFilterVO[]): Promise<string> {
 
@@ -3585,12 +3706,18 @@ export default class ContextFilterServerController {
 
                 if (simple_filters && simple_filters.length) {
 
-                    let context_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
-                    let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(context_query);
+                    let linked_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
+
+                    // Si le context_query est admin, on doit faire la requete en admin
+                    if (context_query.is_server) {
+                        linked_query.exec_as_server();
+                    }
+
+                    let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(linked_query);
 
                     if (query_res && query_res.length) {
 
-                        let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
+                        let unique_segment_vos = context_query.is_server ? query_res : await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
 
                         if (unique_segment_vos && (unique_segment_vos.length == 1)) {
                             is_implemented = true;

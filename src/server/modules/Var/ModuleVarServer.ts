@@ -22,10 +22,10 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
@@ -63,7 +63,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
-import StatsServerController from '../Stats/StatsServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
@@ -178,11 +178,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
 
-        let postCTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let postDTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
         postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onCVarCacheConf);
@@ -834,6 +834,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data, this.get_var_data.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
@@ -949,11 +950,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             let real_start_time = start_time;
             while (
                 VarsdatasComputerBGThread.getInstance().semaphore ||
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
+                ObjectHandler.hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.sleep(1000);
+                await ThreadHandler.sleep(50, 'ModuleVarServer.wait_for_computation_hole');
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + 60)) {
@@ -1002,7 +1003,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      * Fonction ayant pour but d'être appelée sur le thread de computation des vars
      * FIXME : POURQUOI ? await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve
      */
-    public async exec_in_computation_hole(cb: () => {}, interval_sleep_ms: number = 1000, timeout_ms: number = 60000): Promise<boolean> {
+    public async exec_in_computation_hole(cb: () => {}, interval_sleep_ms: number = 50, timeout_ms: number = 60000): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
 
@@ -1025,11 +1026,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             let real_start_time = start_time;
             while (
                 VarsdatasComputerBGThread.getInstance().semaphore ||
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
+                ObjectHandler.hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.sleep(interval_sleep_ms);
+                await ThreadHandler.sleep(interval_sleep_ms, 'ModuleVarServer.exec_in_computation_hole');
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + (timeout_ms / 1000))) {
@@ -1179,8 +1180,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        StatsServerController.register_stats('ModuleVarServer.register_params.nb_params',
-            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleVarServer', 'register_params', 'IN');
+        StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_IN_varsdatas', params.length);
+        let time_in = Dates.now_ms();
 
         /**
          * On commence par refuser les params mal construits (champs null)
@@ -1206,8 +1208,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        StatsServerController.register_stats('ModuleVarServer.register_params.nb_valid_registered_varsdatas',
-            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_valid_registered_varsdatas', params.length);
 
         let uid = StackContext.get('UID');
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
@@ -1236,8 +1237,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
-            StatsServerController.register_stats('ModuleVarServer.register_params.nb_cache_notified_varsdatas',
-                notifyable_vars.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_cache_notified_varsdatas', notifyable_vars.length);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 for (let i in notifyable_vars) {
@@ -1247,6 +1247,10 @@ export default class ModuleVarServer extends ModuleServerBase {
                 }
             }
         }
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('ModuleVarServer', 'register_params', 'OUT');
+        StatsController.register_stat_DUREE('ModuleVarServer', 'register_params', 'OUT', time_out - time_in);
     }
 
     private filter_null_fields_params(params: VarDataBaseVO[]): VarDataBaseVO[] {
@@ -1621,16 +1625,21 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                             if ((!ids_db) || !ids_db.length) {
 
-                                // Max range étant interdit sur les registers de var, on force un retour null
-                                if (!accept_max_ranges) {
+                                /**
+                                 * Alors si on a pas d'éléments pour un champs lié à la var on est pas vraiment sur un maxrange a priori mais plutôt sur un
+                                 *  'minrange', donc on refuse mais sans logger d'erreur
+                                 */
+                                // // Max range étant interdit sur les registers de var, on force un retour null
+                                // if (!accept_max_ranges) {
 
-                                    if (!refuse_param) {
-                                        ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                                        refuse_param = true;
-                                    }
-                                } else {
-                                    var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
-                                }
+                                //     if (!refuse_param) {
+                                //         ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                //         refuse_param = true;
+                                //     }
+                                // } else {
+                                //     var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                                // }
+                                refuse_param = true;
                                 break;
                             }
 
@@ -1902,7 +1911,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async load_slowvars() {
 
-        let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID).filter_by_num_eq('type', SlowVarVO.TYPE_DENIED).select_vos<SlowVarVO>();
+        let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID).filter_by_num_eq('type', SlowVarVO.TYPE_DENIED).exec_as_server().select_vos<SlowVarVO>();
 
         VarsDatasProxy.getInstance().denied_slowvars = {};
         for (let i in items) {
@@ -1963,7 +1972,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                     // }
 
                     // let results: VarDataBaseVO[] = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
-                    let results: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).select_vos<VarDataBaseVO>();
+                    // TODO en vrai avec les contexts queries et les index réversibles, estèce qu'on a besoin de tout ce bordel ?
+                    let results: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).exec_as_server().select_vos<VarDataBaseVO>();
 
                     for (let i in results) {
                         let vo = results[i];
@@ -1998,6 +2008,10 @@ export default class ModuleVarServer extends ModuleServerBase {
                 }
             }
         }
+    }
+
+    private async get_var_data(var_data_index: string): Promise<VarDataBaseVO> {
+        return await VarsServerCallBackSubsController.getInstance().get_var_data(VarDataBaseVO.from_index(var_data_index), "client:get-var-data");
     }
 
     /**

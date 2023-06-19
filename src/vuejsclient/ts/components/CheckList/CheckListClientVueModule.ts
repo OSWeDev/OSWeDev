@@ -54,7 +54,7 @@ export default class CheckListClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "CheckListComponent" */ './CheckListComponent'),
+            component: () => import('./CheckListComponent'),
             props: (route) => ({
                 key: this.checklist_shared_module.name + '_list_' + parseInt(route.params.list_id),
                 list_id: parseInt(route.params.list_id),
@@ -84,7 +84,7 @@ export default class CheckListClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "CheckListComponent" */ './CheckListComponent'),
+            component: () => import('./CheckListComponent'),
             props: (route) => ({
                 key: this.checklist_shared_module.name + '_list_' + parseInt(route.params.list_id) + '_ITEM_' + parseInt(route.params.item_id),
                 list_id: parseInt(route.params.list_id),
@@ -102,7 +102,7 @@ export default class CheckListClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "CheckListComponent" */ './CheckListComponent'),
+            component: () => import('./CheckListComponent'),
             props: (route) => ({
                 key: this.checklist_shared_module.name + '_list_' + parseInt(route.params.list_id) + '_ITEM_' + parseInt(route.params.item_id) + '_CHECKPOINT_' + parseInt(route.params.checkpoint_id),
                 list_id: parseInt(route.params.list_id),

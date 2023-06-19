@@ -9,7 +9,7 @@ import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import DateHandler from '../../../shared/tools/DateHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('TimeSegmentHandler', () => {
 

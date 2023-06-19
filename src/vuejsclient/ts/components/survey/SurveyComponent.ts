@@ -54,10 +54,7 @@ export default class SurveyComponent extends VueComponentBase {
 
     @Watch('$route.name', { immediate: true })
     private async onchange_route_name() {
-
-
         await this.throttled_retry();
-
     }
 
     private async define_survey() {

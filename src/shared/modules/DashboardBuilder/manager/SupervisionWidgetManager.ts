@@ -7,13 +7,13 @@ import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/Contex
 import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
-import { query } from "../../ContextFilter/vos/ContextQueryVO";
-import DashboardVO from "../vos/DashboardVO";
-import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
 import SupervisionController from "../../Supervision/SupervisionController";
-import { cloneDeep } from "lodash";
+import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
+import DashboardVO from "../vos/DashboardVO";
 
 /**
  * SupervisionWidgetManager

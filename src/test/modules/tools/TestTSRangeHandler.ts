@@ -12,7 +12,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import * as moment from 'moment';
+import moment from 'moment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 describe('TSRangeHandler', () => {

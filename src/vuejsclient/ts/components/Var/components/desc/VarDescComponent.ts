@@ -19,9 +19,9 @@ import './VarDescComponent.scss';
 @Component({
     template: require('./VarDescComponent.pug'),
     components: {
-        Vardesccontrollercomponent: () => import(/* webpackChunkName: "VarDescControllerComponent" */ './controller/VarDescControllerComponent'),
-        Vardescparamfieldscomponent: () => import(/* webpackChunkName: "VarDescParamFieldsComponent" */ './param_fields/VarDescParamFieldsComponent'),
-        Vardescexplaincomponent: () => import(/* webpackChunkName: "VarDescExplainComponent" */ './explain/VarDescExplainComponent'),
+        Vardesccontrollercomponent: () => import('./controller/VarDescControllerComponent'),
+        Vardescparamfieldscomponent: () => import('./param_fields/VarDescParamFieldsComponent'),
+        Vardescexplaincomponent: () => import('./explain/VarDescExplainComponent'),
         Inlinetranslatabletext: InlineTranslatableText,
     }
 })

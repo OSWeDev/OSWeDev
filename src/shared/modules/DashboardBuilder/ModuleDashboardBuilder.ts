@@ -30,6 +30,7 @@ import DashboardVO from './vos/DashboardVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
+import DAOController from '../DAO/DAOController';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -63,7 +64,7 @@ export default class ModuleDashboardBuilder extends Module {
     public registerApis() {
         // Load all users favorites filters and start exporting by using their filters
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, void>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, FavoritesFiltersVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, FavoritesFiltersVO.API_TYPE_ID),
             ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
             [FavoritesFiltersVO.API_TYPE_ID]
         ));

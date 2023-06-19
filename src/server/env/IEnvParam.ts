@@ -45,4 +45,8 @@ export default interface IEnvParam {
     ACTIVATE_PWA: boolean;
     RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean;
     ZOOM_AUTO?: boolean;
+
+    IS_MAIN_PROD_ENV: boolean;
+
+    OPEN_API_API_KEY?: string;
 }

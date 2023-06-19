@@ -22,9 +22,9 @@ import './VarDescExplainComponent.scss';
     template: require('./VarDescExplainComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
-        Vardescexplaindepcomponent: () => import(/* webpackChunkName: "VarDescExplainDepComponent" */ './dep/VarDescExplainDepComponent'),
-        Vardescexplaindscomponent: () => import(/* webpackChunkName: "VarDescExplainDsComponent" */ './ds/VarDescExplainDsComponent'),
-        Vardescexplainimportscomponent: () => import(/* webpackChunkName: "VarDescExplainImportsComponent" */ './imports/VarDescExplainImportsComponent'),
+        Vardescexplaindepcomponent: () => import('./dep/VarDescExplainDepComponent'),
+        Vardescexplaindscomponent: () => import('./ds/VarDescExplainDsComponent'),
+        Vardescexplainimportscomponent: () => import('./imports/VarDescExplainImportsComponent'),
     }
 })
 export default class VarDescExplainComponent extends VueComponentBase {
@@ -130,7 +130,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
     }
 
     get is_aggregator(): boolean {
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.aggregated_var_datas);
+        return ObjectHandler.hasAtLeastOneAttribute(this.aggregated_var_datas);
     }
 
     private var_id_from_name(name: string): number {
@@ -341,7 +341,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return false;
         }
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.deps_params);
+        return ObjectHandler.hasAtLeastOneAttribute(this.deps_params);
     }
 
     private async destroyed() {
@@ -353,7 +353,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return;
         }
 
-        if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
+        if (deps_params && ObjectHandler.hasAtLeastOneAttribute(deps_params)) {
             await VarsClientController.getInstance().registerParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
@@ -363,7 +363,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return;
         }
 
-        if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
+        if (deps_params && ObjectHandler.hasAtLeastOneAttribute(deps_params)) {
             await VarsClientController.getInstance().unRegisterParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
@@ -380,11 +380,11 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return;
         }
 
-        if (old_var_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(old_var_params)) {
+        if (old_var_params && ObjectHandler.hasAtLeastOneAttribute(old_var_params)) {
             await this.unregister(old_var_params);
         }
 
-        if (new_var_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(new_var_params)) {
+        if (new_var_params && ObjectHandler.hasAtLeastOneAttribute(new_var_params)) {
             await this.register(new_var_params);
         }
     }

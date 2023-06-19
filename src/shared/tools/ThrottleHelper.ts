@@ -67,7 +67,6 @@ export default class ThrottleHelper {
             this.throttles_stackable_args[UID] = [];
 
             await func(params);
-
         }, wait_ms, options);
 
         return (stackable_args?: any | any[]) => {

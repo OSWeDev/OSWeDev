@@ -4,6 +4,7 @@ import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamV
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
@@ -53,6 +54,9 @@ export default class ModuleMaintenance extends Module {
 
     public registerApis() {
 
+        /**
+         * Cas spécifique d'une fonction GET qui réalise une modif en base (ici un start_maintenance) pour jenkins. à modifier probablement un jour
+         */
         APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, void>(
             null,
             ModuleMaintenance.APINAME_START_MAINTENANCE,
@@ -60,12 +64,12 @@ export default class ModuleMaintenance extends Module {
             StringParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, void>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID]
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, void>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],
             NumberParamVOStatic

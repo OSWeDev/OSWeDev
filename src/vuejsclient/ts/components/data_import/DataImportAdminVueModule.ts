@@ -100,7 +100,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         // On adapte le CRUD des imports pour avoir un bouton de réimport et une colonne de visualisation graphique de l'état
         let historic_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[DataImportHistoricVO.API_TYPE_ID];
 
-        Vue.component('Reimportcomponent', async () => (await import(/* webpackChunkName: "ReimportComponent" */  './reimport_component/reimport_component')));
+        Vue.component('Reimportcomponent', async () => (await import('./reimport_component/reimport_component')));
         historic_crud.readDatatable.unshiftField(ComponentDatatableFieldVO.createNew('reimporter', 'Reimportcomponent', 'file_id'));
 
 

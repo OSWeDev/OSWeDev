@@ -20,7 +20,6 @@ import ModuleDashboardBuilder from '../../shared/modules/DashboardBuilder/Module
 import ModuleDataExport from '../../shared/modules/DataExport/ModuleDataExport';
 import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
-import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
@@ -40,7 +39,7 @@ import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
 import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
-import ModulePerfMon from '../../shared/modules/PerfMon/ModulePerfMon';
+import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
@@ -48,7 +47,7 @@ import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleStats from '../../shared/modules/Stats/ModuleStats';
-import StatVO from '../../shared/modules/Stats/vos/StatVO';
+import StatsController from '../../shared/modules/Stats/StatsController';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
@@ -102,7 +101,7 @@ import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
 import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
-import ModulePerfMonServer from './PerfMon/ModulePerfMonServer';
+import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
@@ -110,16 +109,18 @@ import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleStatsServer from './Stats/ModuleStatsServer';
-import StatsServerController from './Stats/StatsServerController';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
+import ModuleTriggerServer from './Trigger/ModuleTriggerServer';
 import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
+import ModuleGPTServer from './GPT/ModuleGPTServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -497,7 +498,6 @@ export default abstract class ModuleServiceBase {
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
-            ModulePerfMon.getInstance(),
             ModuleAPI.getInstance(),
             ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
@@ -550,6 +550,8 @@ export default abstract class ModuleServiceBase {
             ModuleStats.getInstance(),
             ModuleExpressDBSessions.getInstance(),
             ModuleUserLogVars.getInstance(),
+            ModulePlayWright.getInstance(),
+            ModuleGPT.getInstance(),
         ];
     }
 
@@ -558,11 +560,11 @@ export default abstract class ModuleServiceBase {
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
-            ModulePerfMonServer.getInstance(),
             ModuleAPIServer.getInstance(),
             ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
+            ModuleTriggerServer.getInstance(),
             ModuleCronServer.getInstance(),
             ModuleContextFilterServer.getInstance(),
             ModuleVarServer.getInstance(),
@@ -608,6 +610,8 @@ export default abstract class ModuleServiceBase {
             ModuleStatsServer.getInstance(),
             ModuleExpressDBSessionServer.getInstance(),
             ModuleUserLogVarsServer.getInstance(),
+            ModulePlayWrightServer.getInstance(),
+            ModuleGPTServer.getInstance(),
         ];
     }
 
@@ -624,7 +628,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsServerController.register_stat('db_none.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_none', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -638,7 +642,7 @@ export default abstract class ModuleServiceBase {
                 return;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsServerController.register_stat('db_none.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_none', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -661,8 +665,8 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('db_none.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('db_none.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('db_none', 'ok', '-');
+        StatsController.register_stat_DUREE('db_none', 'ok', '-', time_out - time_in);
     }
 
     private async db_query(query: string, values?: []) {
@@ -679,7 +683,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsServerController.register_stat('db_query.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_query', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -693,7 +697,7 @@ export default abstract class ModuleServiceBase {
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsServerController.register_stat('db_query.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_query', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -712,13 +716,13 @@ export default abstract class ModuleServiceBase {
             }
 
             ConsoleHandler.error(error);
-            StatsServerController.register_stat('db_query.error.others', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('db_query', 'error', 'others');
             return res;
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('db_query.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('db_query.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('db_query', 'ok', '-');
+        StatsController.register_stat_DUREE('db_query', 'time', '-', time_out - time_in);
 
         return res;
     }
@@ -740,7 +744,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsServerController.register_stat('db_oneOrNone.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -754,7 +758,7 @@ export default abstract class ModuleServiceBase {
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsServerController.register_stat('db_oneOrNone.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -777,8 +781,8 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('db_oneOrNone.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('db_oneOrNone.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('db_oneOrNone', 'ok', '-');
+        StatsController.register_stat_DUREE('db_oneOrNone', 'time', '-', time_out - time_in);
         return res;
     }
 }

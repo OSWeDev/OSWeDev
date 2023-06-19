@@ -1,5 +1,5 @@
 
-import * as  moment from 'moment';
+import moment from 'moment';
 import VarsComputeController from '../../../../server/modules/Var/VarsComputeController';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';

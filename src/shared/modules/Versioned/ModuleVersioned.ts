@@ -7,6 +7,7 @@ export default class ModuleVersioned extends Module {
 
     public static MODULE_NAME: string = 'Versioned';
 
+    public static PARAM_NAME_ROBOT_USER_ID: string = "ModuleVersioned.ROBOT_USER_ID";
     public static APINAME_RESTORE_TRASHED_VO: string = "RESTORE_TRASHED_VO";
 
     public static getInstance(): ModuleVersioned {

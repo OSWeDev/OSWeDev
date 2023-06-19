@@ -3,6 +3,7 @@ import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -54,17 +55,17 @@ export default class ModuleDocument extends Module {
 
     public registerApis() {
         APIControllerWrapper.registerApi(new GetAPIDefinition<void, DocumentVO[]>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentVO.API_TYPE_ID),
             ModuleDocument.APINAME_get_ds_by_user_lang,
             [DocumentVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
         APIControllerWrapper.registerApi(new GetAPIDefinition<void, DocumentTagVO[]>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentTagVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentTagVO.API_TYPE_ID),
             ModuleDocument.APINAME_get_dts_by_user_lang,
             [DocumentTagVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
         APIControllerWrapper.registerApi(new GetAPIDefinition<void, DocumentTagGroupVO[]>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentTagGroupVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentTagGroupVO.API_TYPE_ID),
             ModuleDocument.APINAME_get_dtgs_by_user_lang,
             [DocumentTagGroupVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));

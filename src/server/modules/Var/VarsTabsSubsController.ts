@@ -1,10 +1,9 @@
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
-import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
@@ -76,7 +75,9 @@ export default class VarsTabsSubsController {
             this._tabs_subs[param_index][user_id][client_tab_id] = Dates.now();
         }
 
-        ConsoleHandler.log('VarsTabsSubsController:post register_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('VarsTabsSubsController:post register_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        }
     }
 
     /**
@@ -128,8 +129,9 @@ export default class VarsTabsSubsController {
             delete this._tabs_subs[param_index_to_delete[i]];
         }
 
-
-        ConsoleHandler.log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        }
     }
 
     /**
@@ -205,11 +207,15 @@ export default class VarsTabsSubsController {
                 return;
             }
 
-            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:IN');
+            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:IN');
+            }
 
             await self.clean_old_subs();
 
-            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:OUT');
+            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:OUT');
+            }
 
             for (let i in var_datas_indexes) {
                 let var_datas_index = var_datas_indexes[i];
@@ -219,7 +225,9 @@ export default class VarsTabsSubsController {
                 }
             }
 
-            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':for has_registered_user:OUT:resolve:' + res.length + ':');
+            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':for has_registered_user:OUT:resolve:' + res.length + ':');
+            }
 
             resolve(res);
         });
@@ -258,7 +266,9 @@ export default class VarsTabsSubsController {
         }
         this.last_subs_clean = now;
 
-        ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:IN:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:IN:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        }
 
         let indexs_to_delete = [];
         for (let index in this._tabs_subs) {
@@ -309,6 +319,8 @@ export default class VarsTabsSubsController {
             delete this._tabs_subs[indexs_to_delete[i]];
         }
 
-        ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:OUT:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:OUT:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        }
     }
 }

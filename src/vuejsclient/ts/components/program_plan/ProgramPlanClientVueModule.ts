@@ -60,7 +60,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "ProgramsOverviewComponent" */ './ProgramsOverview/ProgramsOverviewComponent'),
+            component: () => import('./ProgramsOverview/ProgramsOverviewComponent'),
             props: (route) => ({
                 key: main_route_name,
                 program_plan_shared_module: this.program_plan_shared_module,
@@ -85,7 +85,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "ProgramPlanComponent" */ './ProgramPlanComponent'),
+            component: () => import('./ProgramPlanComponent'),
             props: (route) => ({
                 key: this.program_plan_shared_module.name + '_' + parseInt(route.params.program_id),
                 program_id: parseInt(route.params.program_id),
@@ -101,7 +101,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "ProgramPlanComponent" */ './ProgramPlanComponent'),
+            component: () => import('./ProgramPlanComponent'),
             props: (route) => ({
                 key: this.program_plan_shared_module.name + '_RDV_' + parseInt(route.params.selected_rdv_id),
                 program_id: parseInt(route.params.program_id),

@@ -1,4 +1,4 @@
-import cloneDeep = require('lodash/cloneDeep');
+import cloneDeep from 'lodash/cloneDeep';
 
 export default class ArrayHandler {
 

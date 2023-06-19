@@ -1,6 +1,8 @@
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import StackContext from '../../StackContext';
@@ -23,20 +25,21 @@ export default class ContextAccessServerController {
     }
 
     public check_access_to_api_type_ids_field_ids(
+        context_query: ContextQueryVO,
         base_api_type_id: string,
         fields: ContextQueryFieldVO[],
         access_type: string): boolean {
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
         let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+            roles = AccessPolicyServerController.getUsersRoles(false, null);
         } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+            roles = AccessPolicyServerController.getUsersRoles(true, uid);
         }
 
         if (fields && fields.length) {
@@ -63,19 +66,20 @@ export default class ContextAccessServerController {
     }
 
     public check_access_to_fields(
+        context_query: ContextQueryVO,
         fields: FieldPathWrapper[],
         access_type: string): boolean {
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
         let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+            roles = AccessPolicyServerController.getUsersRoles(false, null);
         } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+            roles = AccessPolicyServerController.getUsersRoles(true, uid);
         }
 
         for (let i in fields) {
@@ -91,20 +95,21 @@ export default class ContextAccessServerController {
     }
 
     public check_access_to_field_retrieve_roles(
+        context_query: ContextQueryVO,
         api_type_id: string,
         field_id: string,
         access_type: string): boolean {
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
         let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+            roles = AccessPolicyServerController.getUsersRoles(false, null);
         } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+            roles = AccessPolicyServerController.getUsersRoles(true, uid);
         }
         if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
             return false;
@@ -128,11 +133,11 @@ export default class ContextAccessServerController {
             tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(
-            ModuleDAO.getInstance().getAccessPolicyName(tmp_access_type, api_type_id)
+        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(
+            DAOController.getAccessPolicyName(tmp_access_type, api_type_id)
         );
 
-        if (!AccessPolicyServerController.getInstance().checkAccessTo(target_policy, roles)) {
+        if (!AccessPolicyServerController.checkAccessTo(target_policy, roles)) {
             return false;
         }
 

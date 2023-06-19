@@ -1,6 +1,7 @@
 import ModuleAnimationImportTheme from "../../../../../shared/modules/Animation/import/Theme/ModuleAnimationImportTheme";
 import AnimationImportThemeVO from "../../../../../shared/modules/Animation/import/Theme/vos/AnimationImportThemeVO";
 import AnimationThemeVO from "../../../../../shared/modules/Animation/vos/AnimationThemeVO";
+import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
@@ -34,7 +35,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     //  * On définit les droits d'accès du module
     //  */
     // public async registerAccessPolicies(): Promise<void> {
-    //     let group: AccessPolicyGroupVO = AccessPolicyServerController.getInstance().get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
+    //     let group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
 
 
     //     //access sinon ca bug (C:\Sources\YR\appli\node_modules\oswedev\dist\server\modules\DAO\ModuleDAOServer.js:318:178) comprendre comment ca marche si ca resoud
@@ -49,7 +50,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     //     let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
     //     access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
     //     access_dependency.src_pol_id = access.id;
-    //     access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
+    //     access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
     //     access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     // }
 
@@ -59,7 +60,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
     public async validate_formatted_data(themes_data: AnimationImportThemeVO[]): Promise<AnimationImportThemeVO[]> {
 
-        let themes_db: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let themes_db: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
         for (let theme_data of themes_data) {
 
@@ -97,7 +98,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             return false;
         }
 
-        let themesInDB: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let themesInDB: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
         let succeeded = true;
         for (let i in themeDatas) {

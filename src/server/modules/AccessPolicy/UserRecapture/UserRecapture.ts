@@ -66,30 +66,26 @@ export default class UserRecapture {
 
     public async beginrecapture_user(user: UserVO): Promise<boolean> {
 
-        // On doit se comporter comme un server à ce stade
-        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
+        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(UserRecapture.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+        let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
-            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(UserRecapture.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
-            let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+        // Send mail
+        if (!!SEND_IN_BLUE_TEMPLATE_ID) {
 
-            // Send mail
-            if (!!SEND_IN_BLUE_TEMPLATE_ID) {
-
-                // Using SendInBlue
-                await SendInBlueMailServerController.getInstance().sendWithTemplate(
-                    UserRecapture.MAILCATEGORY_UserRecapture,
-                    SendInBlueMailVO.createNew(user.name, user.email),
-                    SEND_IN_BLUE_TEMPLATE_ID,
-                    ['UserRecapture'],
-                    {
-                        EMAIL: user.email,
-                        UID: user.id.toString(),
-                        CODE_CHALLENGE: user.recovery_challenge
-                    });
-            }
-        });
+            // Using SendInBlue
+            await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                UserRecapture.MAILCATEGORY_UserRecapture,
+                SendInBlueMailVO.createNew(user.name, user.email),
+                SEND_IN_BLUE_TEMPLATE_ID,
+                ['UserRecapture'],
+                {
+                    EMAIL: user.email,
+                    UID: user.id.toString(),
+                    CODE_CHALLENGE: user.recovery_challenge
+                });
+        }
         return true;
     }
 
@@ -121,20 +117,16 @@ export default class UserRecapture {
         let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(UserRecapture.CODE_TEXT_SMS_recapture);
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
-        // On doit se comporter comme un server à ce stade
-        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
-
-            // Using SendInBlue
-            await SendInBlueSmsServerController.getInstance().send(
-                SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
-                await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
-                    EMAIL: user.email,
-                    UID: user.id.toString(),
-                    CODE_CHALLENGE: user.recovery_challenge
-                }),
-                'UserRecapture');
-        });
+        // Using SendInBlue
+        await SendInBlueSmsServerController.getInstance().send(
+            SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
+            await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
+                EMAIL: user.email,
+                UID: user.id.toString(),
+                CODE_CHALLENGE: user.recovery_challenge
+            }),
+            'UserRecapture');
     }
 }

@@ -31,12 +31,13 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
 
     private filter_type: string = null;
     private filter_uids: string[] = [
+        'none',
         Filters.FILTER_TYPE_amount,
         Filters.FILTER_TYPE_percent,
         Filters.FILTER_TYPE_toFixed,
         Filters.FILTER_TYPE_toFixedCeil,
         Filters.FILTER_TYPE_toFixedFloor,
-        Filters.FILTER_TYPE_tstz
+        Filters.FILTER_TYPE_tstz,
     ];
 
     get filter_names(): { [filter_uid: string]: string } {

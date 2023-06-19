@@ -11,16 +11,23 @@ import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPat
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
+import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -32,6 +39,9 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ModuleServiceBase from '../ModuleServiceBase';
+import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
@@ -88,7 +98,7 @@ export default class ContextQueryServerController {
         }
 
         //Requête
-        if (!query_wrapper || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
+        if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select_vos');
@@ -126,7 +136,7 @@ export default class ContextQueryServerController {
          * query_res est immutable potentiellement à ce stade, on le copie dans ce cas
          */
         if (Object.isFrozen(query_res)) {
-            query_res = cloneDeep(query_res);
+            query_res = ObjectHandler.clone_vos(query_res);
         }
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
@@ -193,7 +203,7 @@ export default class ContextQueryServerController {
         }
 
         query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
-        if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
+        if ((!query_wrapper || !query_wrapper.query) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select');
@@ -223,7 +233,7 @@ export default class ContextQueryServerController {
          * query_res est immutable potentiellement à ce stade, on le copie dans ce cas
          */
         if (Object.isFrozen(query_res)) {
-            query_res = cloneDeep(query_res);
+            query_res = ObjectHandler.clone_vos(query_res);
         }
 
         // Anonymisation
@@ -276,7 +286,7 @@ export default class ContextQueryServerController {
         // On force des résultats distincts sur un datatable row
         context_query.query_distinct = true;
         let query_wrapper = await this.build_select_query(context_query);
-        if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
+        if ((!query_wrapper || !query_wrapper.query) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_datatable_rows:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select_datatable_rows');
@@ -306,7 +316,7 @@ export default class ContextQueryServerController {
          * query_res est immutable potentiellement à ce stade, on le copie dans ce cas
          */
         if (Object.isFrozen(query_res)) {
-            query_res = cloneDeep(query_res);
+            query_res = ObjectHandler.clone_vos(query_res);
         }
 
         // Anonymisation
@@ -495,8 +505,7 @@ export default class ContextQueryServerController {
         context_query.query_limit = null;
 
         let query_wrapper = await this.build_select_query_not_count(context_query);
-
-        if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
+        if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:build_query_count');
@@ -517,21 +526,48 @@ export default class ContextQueryServerController {
 
     /**
      * Update des vos en appliquant les filtres
-     *  1 à un (enfin en paquet de 100) pour appeler les triggers => rien de comparable à un update qui serait faire directement
+     *  1 à un (enfin en paquet de 100) pour appeler les triggers => rien de comparable à un update qui serait fait directement
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
      * @param update_field_id En cas d'update, le nom du champs cible (sur le base_api_type_id)
      * @param new_api_translated_value En cas d'update, la valeur api_translated (par exemple issue de moduletable.default_get_field_api_version)
      *  qu'on va mettre en remplacement de la valeur actuelle
      */
-    public async update_vos(
-        context_query: ContextQueryVO, update_field_id: string, new_api_translated_value: any): Promise<void> {
+    public async update_vos<T extends IDistantVOBase>(
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
+
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'IN');
 
         /**
          * On a besoin d'utiliser les limit / offset et sortBy donc on refuse ces infos en amont
          */
         if (context_query.query_limit || context_query.query_offset || context_query.sort_by) {
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'Invalid_context_query_param');
             throw new Error('Invalid context_query param');
+        }
+
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+            let uid: number = StackContext.get('UID');
+            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                ModuleDAOServer.getInstance().throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'global_update_blocker');
+            return null;
+        }
+
+        // On vérifie qu'on peut faire un update
+        if ((!context_query.is_server) && !AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, context_query.base_api_type_id))) {
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'failed_checkAccessSync');
+            ConsoleHandler.warn('WARNING: update_vos without access and not as server:' + JSON.stringify(context_query));
+            return null;
+        }
+
+        // On vérifie qu'il y a un filtrage au minimum, sinon on log un WARNING
+        if ((!context_query.filters) || (!context_query.filters.length)) {
+            ConsoleHandler.warn('WARNING: update_vos without filters:' + JSON.stringify(context_query));
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'no_filters');
         }
 
         /**
@@ -540,40 +576,175 @@ export default class ContextQueryServerController {
          * au pire si on a des nouvelles lignes, elles nous forcerons à remodifier des lignes déjà updatées. probablement pas très grave
          */
         context_query.query_offset = 0;
-        context_query.query_limit = 100;
+        context_query.query_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_UPDATE_PER_QUERY, 1000, 600000);
+
         let might_have_more: boolean = true;
         context_query.set_sort(new SortByVO(context_query.base_api_type_id, 'id', false));
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
-        let field = moduletable.get_field_by_id(update_field_id);
         let get_active_field_filters = ContextFilterVOHandler.getInstance().get_active_field_filters(context_query.filters);
 
         // Si le champs modifié impact un filtrage, on doit pas faire évoluer l'offset
+        // FIXME : on est bien sûr de ça ? Typiquement il se passe quoi si on demande de modifier un champs, mais qu'on lui réaffecte la même valeur ... ? On tourne en rond non ?
+        //      on doit pouvoir mettre à jour le offset dans ce cas en identifiant qu'on charge toujours les mêmes ids.
+        let already_treated_ids: { [id: number]: boolean } = {};
+
         let change_offset = true;
         for (let field_id in get_active_field_filters[context_query.base_api_type_id]) {
-            if (field_id == update_field_id) {
+            if (!!new_api_translated_values[field_id]) {
                 change_offset = false;
                 break;
             }
         }
 
-        if (!field.is_readonly) {
+        let fields = moduletable.get_fields();
+        let fields_by_id: { [id: string]: ModuleTableField<any> } = {};
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            if (!field) {
+                continue;
+            }
+
+            if (field.is_readonly) {
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'readonly_field');
+                continue;
+            }
+
+            fields_by_id[field.field_id] = field;
+        }
+
+        // // Problème des triggers, qui modifient des champs, et on prend pas en compte ces champs si on limite aux new_api_translated_values
+        // let fields_by_id: { [id: string]: ModuleTableField<any> } = {};
+        // for (let field_id in new_api_translated_values) {
+        //     let field = moduletable.getFieldFromId(field_id);
+
+        //     if (!field) {
+        //         continue;
+        //     }
+
+        //     if (field.is_readonly) {
+        //         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'readonly_field');
+        //         continue;
+        //     }
+
+        //     fields_by_id[field_id] = field;
+        // }
+
+        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+        if (!moduleTable) {
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'no_moduletable');
+            return null;
+        }
+
+        let res: InsertOrDeleteQueryResult[] = [];
+        /**
+         * FIXME Faudra creuser comment on peut faire du FASTTRACK pour pas faire les updates 1 par 1 si on a pas besoin
+         */
+
+        if (ObjectHandler.hasAtLeastOneAttribute(fields_by_id)) {
             while (might_have_more) {
 
-                let vos = await this.select_vos(context_query);
+                let while_time_in = Dates.now_ms();
+                let preupdate_vos: T[] = await this.select_vos<T>(context_query);
+                let preupdate_vos_by_ids: { [id: number]: T } = VOsTypesManager.vosArray_to_vosByIds(preupdate_vos);
+                let preupdate_vos_by_ids_length = preupdate_vos ? preupdate_vos.length : 0;
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'select_vos');
+                StatsController.register_stat_DUREE('ContextQueryServerController', 'update_vos', 'select_vos', Dates.now_ms() - while_time_in);
 
-                if ((!vos) || (!vos.length)) {
+                might_have_more = (preupdate_vos_by_ids_length >= context_query.query_limit);
+                context_query.query_offset += change_offset ? context_query.query_limit : 0;
+
+                if (!preupdate_vos_by_ids_length) {
                     break;
                 }
+                StatsController.register_stat_QUANTITE('ContextQueryServerController', 'update_vos', 'select_vos', preupdate_vos_by_ids_length);
 
-                vos.forEach((vo) => {
-                    vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
+                /**
+                 * Si les vos sont segmentés, on check en amont l'existence des tables segmentées
+                 *  car on ne peut pas les créer en parallèle. Du coup on les crée en amont si besoin
+                 */
+                await ModuleDAOServer.getInstance().confirm_segmented_tables_existence(preupdate_vos);
+
+                if (ModuleDAOServer.getInstance().check_foreign_keys) {
+                    preupdate_vos = await ModuleDAOServer.getInstance().filterByForeignKeys(preupdate_vos);
+                    preupdate_vos_by_ids = VOsTypesManager.vosArray_to_vosByIds(preupdate_vos);
+                    preupdate_vos_by_ids_length = preupdate_vos ? preupdate_vos.length : 0;
+
+                    if (!preupdate_vos_by_ids_length) {
+                        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'filteredByForeignKeys');
+                        continue;
+                    }
+                }
+
+                let vos_to_update: IDistantVOBase[] = ObjectHandler.clone_vos(preupdate_vos);
+
+                vos_to_update.forEach((vo) => {
+                    if (already_treated_ids[vo.id]) {
+                        // Cas particulier où on a déjà sélectionné ce vo précédemment et donc l'offset n'a pas été incrémenté suffisamment pour l'éviter
+                        context_query.query_offset++;
+                        return;
+                    }
+                    already_treated_ids[vo.id] = true;
+
+                    for (let field_id in new_api_translated_values as IDistantVOBase) {
+
+                        // Si le champs est filtré (readonly par exemple) on ne le met pas à jour
+                        if (!fields_by_id[field_id]) {
+                            continue;
+                        }
+
+                        let new_api_translated_value = new_api_translated_values[field_id];
+
+                        vo[field_id] = moduletable.default_field_from_api_version(new_api_translated_value, fields_by_id[field_id]);
+                    }
                 });
-                await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(vos);
 
-                might_have_more = (vos.length >= context_query.query_limit);
-                context_query.query_offset += change_offset ? context_query.query_limit : 0;
+                let promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2)));
+
+                for (let i in vos_to_update) {
+                    let vo_to_update = vos_to_update[i];
+                    let preupdate_vo = preupdate_vos_by_ids[vo_to_update.id];
+
+                    await promise_pipeline.push(async () => {
+
+                        let sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo);
+
+                        if (!sql) {
+                            ConsoleHandler.warn('Est-ce bien normal ? update_vos :(!sql):' + JSON.stringify(vo_to_update));
+                            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'no_sql');
+                            return null;
+                        }
+                        let failed: boolean = false;
+
+                        let bdd_version = moduleTable.get_bdd_version(vo_to_update);
+                        let query_uid = ModuleDAOServer.getInstance().log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
+                        let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
+                            ConsoleHandler.error('update_vos :' + reason);
+                            failed = true;
+                        });
+                        ModuleDAOServer.getInstance().log_db_query_perf_end(query_uid, 'update_vos', 'type:' + vo_to_update._type);
+
+                        let this_res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
+
+                        if (failed || (!this_res) || (!this_res.id)) {
+                            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'failed');
+                            return null;
+                        }
+
+                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update));
+
+                        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'OK');
+                        StatsController.register_stat_DUREE('ContextQueryServerController', 'update_vos', 'OK', Dates.now_ms() - time_in);
+                        res.push(this_res);
+                    });
+                }
+
+                await promise_pipeline.end();
             }
         }
+
+        return res;
     }
 
     /**
@@ -582,34 +753,216 @@ export default class ContextQueryServerController {
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
      */
-    public async delete_vos(context_query: ContextQueryVO): Promise<void> {
+    public async delete_vos(context_query: ContextQueryVO): Promise<InsertOrDeleteQueryResult[]> {
+
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'IN');
 
         /**
          * On a besoin d'utiliser les limit / offset et sortBy donc on refuse ces infos en amont
          */
         if (context_query.query_limit || context_query.query_offset || context_query.sort_by) {
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'Invalid_context_query_param');
             throw new Error('Invalid context_query param');
         }
 
         /**
-         * On se fixe des paquets de 100 vos à delete
+         * Il faut savoir si on a besoin de faire appel à des triggers
          */
-        context_query.query_offset = 0;
-        context_query.query_limit = 100;
-        let might_have_more: boolean = true;
 
-        while (might_have_more) {
-
-            let vos = await this.select_vos(context_query);
-
-            if ((!vos) || (!vos.length)) {
-                break;
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+            let uid: number = StackContext.get('UID');
+            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                ModuleDAOServer.getInstance().throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
-
-            await ModuleDAO.getInstance().deleteVOs(vos);
-
-            might_have_more = (vos.length >= context_query.query_limit);
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'global_update_blocker');
+            return null;
         }
+
+        // On vérifie qu'on peut faire un delete
+        if ((!context_query.is_server) && !AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, context_query.base_api_type_id))) {
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'failed_checkAccessSync');
+            ConsoleHandler.warn('WARNING: selete_vos without access and not as server:' + JSON.stringify(context_query));
+            return null;
+        }
+
+        // On commence par charger les vos à supprimer pour pouvoir réaliser les triggers
+        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+        let vos_to_delete: IDistantVOBase[] = null;
+        let deleted_vos_by_id: { [id: number]: IDistantVOBase } = {};
+        let has_more_to_delete: boolean = true;
+        let queries: string[] = [];
+        let res: InsertOrDeleteQueryResult[] = [];
+        let has_trigger_pre_delete: boolean = DAOServerController.getInstance().pre_delete_trigger_hook.has_trigger(context_query.base_api_type_id);
+        let has_trigger_post_delete: boolean = DAOServerController.getInstance().post_delete_trigger_hook.has_trigger(context_query.base_api_type_id);
+
+        // if (has_trigger_pre_delete || has_trigger_post_delete || has_deps) { FIXME Faudrait pouvoir avoir un FastTrack si on a pas de trigger et pas de deps
+        //  pour éviter au max ce select_vos()... mais très compliqué de gérer les deps  avec les blocages de suppression à mi-chemin + les triggers. ça se
+        //  fait maintenant avec le contextquery en récursif mais là c'est pas le moment.... à creuser pour les perfs on doit pouvoir booster énormément cette
+        //  partie là
+
+        context_query.query_offset = 0;
+        context_query.query_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_DELETE_PER_QUERY, 1000, 600000);
+        let InsertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = [];
+
+        while (has_more_to_delete) {
+            let while_time_in = Dates.now_ms();
+            vos_to_delete = await context_query.select_vos();
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'select_vos');
+            StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'select_vos', Dates.now_ms() - while_time_in);
+
+            if ((!vos_to_delete) || (!vos_to_delete.length)) {
+                return res;
+            }
+            StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'select_vos', vos_to_delete.length);
+            has_more_to_delete = (vos_to_delete.length >= context_query.query_limit);
+
+            let deleted_vos_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3);
+            for (let i in vos_to_delete) {
+                let vo_to_delete = vos_to_delete[i];
+
+                await deleted_vos_promise_pipeline.push(async () => {
+
+                    if (has_trigger_pre_delete) {
+                        // Ajout des triggers, avant et après suppression.
+                        //  Attention si un des output est false avant suppression, on annule la suppression
+                        let preDeleteTrigger_res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(context_query.base_api_type_id, vo_to_delete);
+                        if (!BooleanHandler.getInstance().AND(preDeleteTrigger_res, true)) {
+                            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'pre_delete_trigger_hook_rejection');
+                            return;
+                        }
+                    }
+
+                    /**
+                     * AJOUT de la suppression Dep by Dep => on ne laisse plus la BDD fait marcher les triggers de suppression, on gère
+                     *  ça directement applicativement => attention à l'impact sur les perfs. L'objectif est surtout de s'assurer qu'on
+                     *  appelle bien tous les triggers et entre autre les droits de suppression des dépendances
+                     */
+                    let deps: VocusInfoVO[] = await ModuleVocusServer.getInstance().getVosRefsById(vo_to_delete._type, vo_to_delete.id, null, null);
+
+                    // Si on a une interdiction de supprimer un item à mi-chemin, il faudrait restaurer tout ceux qui ont été supprimés
+                    //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
+                    //  deps sont définitivement perdues...
+                    let deps_to_delete: IDistantVOBase[] = [];
+                    let deps_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3);
+
+                    for (let dep_i in deps) {
+                        let dep = deps[dep_i];
+
+                        if (!dep.is_cascade) {
+                            continue;
+                        }
+
+                        let is_ok = false;
+                        await deps_promise_pipeline.push(async () => {
+                            try {
+                                let count_links: number = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_server(context_query.is_server).select_count();
+                                if (!count_links) {
+                                    is_ok = true;
+                                    return;
+                                }
+
+                                let deleted_links: InsertOrDeleteQueryResult[] = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_server(context_query.is_server).delete_vos();
+                                if ((!deleted_links) || (deleted_links.length != count_links)) {
+                                    StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'failed_delete_links');
+                                    ConsoleHandler.error('FAILED DELETE DEPS :' + dep.linked_type + ':' + dep.linked_id + ':ABORT DELETION:' + JSON.stringify(vo_to_delete));
+                                    return;
+                                }
+                                is_ok = true;
+                            } catch (error) {
+                                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'error_deleting_links');
+                                ConsoleHandler.error(error);
+                            }
+                        });
+
+                        if (!is_ok) {
+                            continue;
+                        }
+                    }
+
+                    await deps_promise_pipeline.end();
+
+                    let full_name = null;
+
+                    if (moduletable.is_segmented) {
+                        // Si on est sur une table segmentée on adapte le comportement
+                        full_name = moduletable.get_segmented_full_name_from_vo(vo_to_delete);
+                    } else {
+                        full_name = moduletable.full_name;
+                    }
+
+                    ContextQueryInjectionCheckHandler.assert_numeric(vo_to_delete.id);
+                    const sql = "DELETE FROM " + full_name + " where id = " + vo_to_delete.id + " RETURNING id";
+                    if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                        ConsoleHandler.log('DELETEVOS:oneOrNone:' + sql + ':' + JSON.stringify(vo_to_delete));
+                    }
+
+                    queries.push(sql);
+                    deleted_vos_by_id[vo_to_delete.id] = vo_to_delete;
+                });
+            }
+            await deleted_vos_promise_pipeline.end();
+
+            if ((!queries) || (!queries.length)) {
+                StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'deleted_vos_promise_pipeline_end_empty', Dates.now_ms() - while_time_in);
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'nothing_to_delete');
+                return null;
+            }
+            StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'deleted_vos_promise_pipeline_end', Dates.now_ms() - while_time_in);
+            StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'deleted_vos', queries.length);
+
+            let db_time_in = Dates.now_ms();
+
+            await ModuleServiceBase.getInstance().db.tx(async (t) => {
+
+                let qs = [];
+                for (let i in queries) {
+                    let sql = queries[i];
+                    qs.push(t.oneOrNone(sql));
+                }
+                return t.batch(qs);
+            }).then(async (value: any) => {
+
+                StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'WHILE_IN_TO_DB_OUT', Dates.now_ms() - while_time_in);
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
+                StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'DB', Dates.now_ms() - db_time_in);
+
+                let really_deleted_vos: IDistantVOBase[] = [];
+                if (value && value.length) {
+                    StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DB_deleted_vos', value.length);
+                    for (let i in value) {
+                        let result = value[i];
+                        let result_id = (result && result.id) ? parseInt(result.id.toString()) : null;
+                        InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(result_id));
+                        if (result_id && deleted_vos_by_id[result_id]) {
+                            really_deleted_vos.push(deleted_vos_by_id[result_id]);
+                        }
+                    }
+                    let expected_nb_deleted_vos = Object.keys(deleted_vos_by_id).length;
+                    if (value.length != expected_nb_deleted_vos) {
+                        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED');
+                        StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED', expected_nb_deleted_vos - value.length);
+                    }
+                }
+
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
+                if (has_trigger_post_delete || ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                    for (let i in really_deleted_vos) {
+                        let deleted_vo = really_deleted_vos[i];
+                        if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                            ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
+                        }
+
+                        await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo);
+                    }
+                }
+                return value;
+            });
+        }
+        StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'OUT', Dates.now_ms() - time_in);
+        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'OUT');
+        return InsertOrDeleteQueryResults;
     }
 
     public async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
@@ -631,17 +984,17 @@ export default class ContextQueryServerController {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
-                // Find all ids related to the segmentation (relation manyToOne)
-                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(
-                    query(segmentation_field.manyToOne_target_moduletable.vo_type)
-                        .field('id')
-                        .set_query_distinct(), moduletable, context_query.filters)
-                    .select_vos();
+                /**
+                 * Si la requete principale est admin, la requete de segmentation doit l'être aussi
+                 */
+                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
 
+                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query.filters).select_vos();
                 let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
 
-                if (!(ids?.length > 0)) {
-                    throw new Error('Invalid segmentations');
+                if (!ids || !ids.length) {
+                    return null;
+                    // EDIT : je vois pas pourquoi ça serait un problème en fait, on a juste pas de résultats de segmentation ça semble pas grave en soit... throw new Error('Invalid segmentations');
                 }
 
                 /**
@@ -694,13 +1047,12 @@ export default class ContextQueryServerController {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
-                return await this.configure_query_for_segmented_table_segment_listing(
-                    query(segmentation_field.manyToOne_target_moduletable.vo_type)
-                        .field('id')
-                        .set_query_distinct(),
-                    moduletable,
-                    context_query.filters
-                ).select_count();
+                /**
+                 * Si la requete principale est admin, la requete de segmentation doit l'être aussi
+                 */
+                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
+
+                return await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query.filters).select_count();
             default:
                 throw new Error('Invalid segmentation_moduletable');
         }
@@ -740,13 +1092,8 @@ export default class ContextQueryServerController {
              */
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
 
-            const has_access = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
-                context_query.base_api_type_id,
-                context_query.fields,
-                access_type
-            );
-
-            if (!has_access) {
+            // Si on ignore_access_hook, on ignore les droits aussi
+            if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
                 return null;
             }
 
@@ -806,6 +1153,7 @@ export default class ContextQueryServerController {
                         const union_context_query = context_query.union_queries[key];
 
                         const has_access_api_type_id = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
+                            union_context_query,
                             union_context_query.base_api_type_id,
                             union_context_query.fields,
                             access_type
@@ -1534,7 +1882,7 @@ export default class ContextQueryServerController {
         }
 
         let tables_aliases_by_type_for_access_hooks = cloneDeep(query_wrapper.tables_aliases_by_type);
-        if (!context_query.is_access_hook_def) {
+        if (!context_query.is_server) {
             /**
              * Check injection : OK
              */
@@ -1777,7 +2125,7 @@ export default class ContextQueryServerController {
                 /**
                  * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
                  */
-                if (!await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(selected_field.api_type_id, selected_field.field_id, access_type)) {
+                if ((!context_query.is_server) && !await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_id, access_type)) {
                     ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
                     return aliases_n;
                 }
@@ -1800,7 +2148,7 @@ export default class ContextQueryServerController {
         /**
          * On doit checker le trajet complet
          */
-        if (!ContextAccessServerController.getInstance().check_access_to_fields(path, access_type)) {
+        if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_fields(context_query, path, access_type)) {
             return aliases_n;
         }
 
@@ -1895,7 +2243,7 @@ export default class ContextQueryServerController {
         /**
          * Si on est serveur, on ignore cette étape
          */
-        if (!StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return;
         }
 
@@ -1922,8 +2270,8 @@ export default class ContextQueryServerController {
 
                 uid = StackContext.get('UID');
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
-                user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
-                user_roles = ObjectHandler.getInstance().hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
+                user_roles_by_role_id = AccessPolicyServerController.getUsersRoles(true, uid);
+                user_roles = ObjectHandler.hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
             }
 
             let promises = [];
@@ -1967,7 +2315,7 @@ export default class ContextQueryServerController {
                 let query_ = querys[j];
 
                 let query_wrapper = await this.build_select_query(query_.set_query_distinct());
-                if (((!query_wrapper) || (!query_wrapper.query)) && !query_wrapper.is_segmented_non_existing_table) {
+                if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:add_context_access_hooks:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
                     context_query.log(true);
                     throw new Error('Invalid query:add_context_access_hooks');
@@ -2146,8 +2494,28 @@ export default class ContextQueryServerController {
                 //TODO FIXME handle refranges
                 let field = VOsTypesManager.moduleTables_by_voType[f.vo_type].getFieldFromId(f.field_id);
                 if (field && (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key)) {
-                    f.vo_type = field.manyToOne_target_moduletable.vo_type;
-                    f.field_id = 'id';
+                    /**
+                     * On doit créer un nouveau filtre sur l'id de la table ciblée par le lien
+                     */
+                    let new_filter = new ContextFilterVO();
+                    new_filter.field_id = 'id';
+                    new_filter.filter_type = f.filter_type;
+                    new_filter.id = f.id;
+                    new_filter.left_hook = f.left_hook;
+                    new_filter.param_alias = f.param_alias;
+                    new_filter.param_hourranges = f.param_hourranges;
+                    new_filter.param_numeric = f.param_numeric;
+                    new_filter.param_numeric_array = f.param_numeric_array;
+                    new_filter.param_numranges = f.param_numranges;
+                    new_filter.param_text = f.param_text;
+                    new_filter.param_textarray = f.param_textarray;
+                    new_filter.right_hook = f.right_hook;
+                    new_filter.vo_type = field.manyToOne_target_moduletable.vo_type;
+                    new_filter.param_tsranges = f.param_tsranges;
+                    new_filter.sub_query = f.sub_query;
+                    new_filter.text_ignore_case = f.text_ignore_case;
+
+                    f = new_filter;
                 } else {
                     continue;
                 }

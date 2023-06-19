@@ -4,15 +4,15 @@
             form(v-on:submit.prevent="param_from_index")
                 .form-group.has-feedback
                     input.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
-                    p(id = "p1") 
+                    p.p1
                         | Calcul d'index simultané : 
                     textarea.form-control(type='text', v-model='multi_param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
                     button.btn-success.m-3(@click="display_all_index") Valider les index
                     .row(v-if='display_data')
-                        p(id = "p1") 
+                        p.p1
                             | Résultats :
                         .col-12(v-if='errors_data && (errors_data.length > 0)')
-                            p(id = "p2") 
+                            p.p2
                                 span Erreur d'index ligne :
                                 ul
                                     template(v-for="error_d in errors_data")
@@ -31,3 +31,11 @@
         .col-md-12
             template(v-for='filtered_data in get_filtered_datas')
                 var-data(:var_param='filtered_data')
+
+    .row
+        .col-md-12
+            span get_var_data testeur, delete when useless
+            input.form-control(type='text', v-model='get_var_data_param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
+            button.btn-success.m-3(@click="get_var_data") get_var_data
+            textarea.form-control(type='text', v-model='multi_get_var_data_param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
+            button.btn-success.m-3(@click="multi_get_var_data") multi_get_var_data

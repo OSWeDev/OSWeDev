@@ -62,9 +62,7 @@ export default class CRUDFormServices {
 
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
-                            IDistantVOBase
-                        >(datatable.API_TYPE_ID);
+                        let vos: IDistantVOBase[] = await query(datatable.API_TYPE_ID).select_vos();
                         storeDatas({
                             API_TYPE_ID: datatable.API_TYPE_ID,
                             vos: vos

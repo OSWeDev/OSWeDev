@@ -1,13 +1,11 @@
 
-import * as socketIO from 'socket.io';
+import socketIO from 'socket.io';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -18,6 +16,7 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
 
@@ -163,7 +162,7 @@ export default class PushDataServerController {
         this.registeredSockets_by_id[socket.id] = wrapper;
 
         // No user or session, don't save this socket in registeredSockets
-        let client_tab_id = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] : null;
+        let client_tab_id: string = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] as string : null;
         if ((!session) || (!session.id) || (!client_tab_id)) {
             return;
         }
@@ -384,7 +383,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarData');
     }
 
     /**
@@ -418,7 +417,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyRedirectHomeAndDisconnect');
     }
 
     /**
@@ -449,7 +448,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyUserLoggedAndRedirectHome');
     }
 
     /**
@@ -476,7 +475,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyTabReload');
     }
 
     // /**
@@ -552,7 +551,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarsDatas');
     }
 
     public async notifyVarsDatasBySocket(socket_id: string, vos: VarDataValueResVO[]) {
@@ -572,7 +571,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarsDatasBySocket_');
     }
 
     public async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
@@ -596,7 +595,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAOGetVoById');
     }
 
     public async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
@@ -620,7 +619,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAORemoveId');
     }
 
     public async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string) {
@@ -643,7 +642,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAOGetVos');
     }
 
     public async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
@@ -879,9 +878,9 @@ export default class PushDataServerController {
             };
 
             await self.notify(notification);
-            await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+            // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyPrompt');
 
-            await ThreadHandler.sleep(120000);
+            await ThreadHandler.sleep(120000, 'PushDataServerController.notifyPrompt.120000');
             if (still_waiting) {
                 reject('No Prompt received');
             }
@@ -930,7 +929,7 @@ export default class PushDataServerController {
         notification.notif_route_params_name = notif_route_params_name;
         notification.notif_route_params_values = notif_route_params_values;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyRedirect');
     }
 
     private async notifySimple(
@@ -956,7 +955,7 @@ export default class PushDataServerController {
         notification.auto_read_if_connected = auto_read_if_connected;
         notification.simple_downloadable_link = simple_downloadable_link;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifySimple');
     }
 
 
@@ -999,10 +998,7 @@ export default class PushDataServerController {
 
             // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
             if ((notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE || notification.notification_type == NotificationVO.TYPE_NOTIF_REDIRECT) && (notification.user_id)) {
-                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(notification);
-                if (res && res.id) {
-                    notification.id = res.id;
-                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(notification);
             }
 
             if (socketWrappers && socketWrappers.length) {
@@ -1099,7 +1095,7 @@ export default class PushDataServerController {
                 delete sessionSockets[toclose[j]];
             }
 
-            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(sessionSockets)) {
+            if (!ObjectHandler.hasAtLeastOneAttribute(sessionSockets)) {
                 toclose_tabs.push(client_tab_id);
             }
         }

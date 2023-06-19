@@ -4,7 +4,7 @@ export default class VarNodeParentPerfVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "var_node_parent_perf";
 
     /**
-     * @param node_name null si la perf appartient à var_dag.perfs ou le nom du node lié
+     * @param node null si la perf appartient à var_dag.perfs ou le nom du node lié
      * @param perf_name le nom de la perf
      * @returns
      */

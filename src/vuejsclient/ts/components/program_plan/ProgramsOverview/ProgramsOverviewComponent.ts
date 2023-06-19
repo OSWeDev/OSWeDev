@@ -9,6 +9,7 @@ import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanClientVueModule from '../ProgramPlanClientVueModule';
 import './ProgramsOverviewComponent.scss';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./ProgramsOverviewComponent.pug'),
@@ -33,14 +34,14 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
 
         this.storeDatas({
             API_TYPE_ID: this.program_plan_shared_module.program_category_type_id,
-            vos: await ModuleDAO.getInstance().getVos(this.program_plan_shared_module.program_category_type_id)
+            vos: await query(this.program_plan_shared_module.program_category_type_id).select_vos()
         });
 
         this.nextLoadingStep();
 
         this.storeDatas({
             API_TYPE_ID: this.program_plan_shared_module.program_type_id,
-            vos: await ModuleDAO.getInstance().getVos(this.program_plan_shared_module.program_type_id)
+            vos: await query(this.program_plan_shared_module.program_type_id).select_vos()
         });
 
         this.stopLoading();

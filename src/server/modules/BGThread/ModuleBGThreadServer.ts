@@ -49,8 +49,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
     private static instance: ModuleBGThreadServer = null;
 
-    public block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
     public block_param_by_name: { [bgthread_name: string]: boolean } = {};
+
+    private block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
 
     private constructor() {
         super(ModuleBGThread.getInstance().name);
@@ -76,7 +77,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
@@ -129,7 +130,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         while (true) {
 
-            await ThreadHandler.sleep(bgthread.current_timeout);
+            await ThreadHandler.sleep(bgthread.current_timeout, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
 
             /**
              * On check le bloquage par param toutes les minutes
@@ -139,7 +140,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
                     (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
 
-                    let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name);
+                    let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
 
                     if (new_param != this.block_param_by_name[bgthread.name]) {
                         ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
@@ -148,6 +149,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                     this.block_param_by_name[bgthread.name] = new_param;
                     this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
                 }
+
             } catch (error) {
                 ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
             }

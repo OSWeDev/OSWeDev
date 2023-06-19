@@ -6,8 +6,8 @@ import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueRe
 import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
-import TypesHandler from '../../../../shared/tools/TypesHandler';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
@@ -43,11 +43,6 @@ export default class VarsClientController {
      * On utilise pour se donner un délai de 30 secondes pour les calculs et si on dépasse (entre 30 et 60 secondes) on relance un register sur la var pour rattrapper un oublie de notif
      */
     public registered_var_params_to_check_next_time: { [index: string]: boolean } = {};
-
-    /**
-     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server (ModuleVarServer)
-     * @see {@link ModuleVarServer.register_params}
-     */
 
     public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 50, { leading: false, trailing: true });
     public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false, trailing: true });
@@ -111,7 +106,7 @@ export default class VarsClientController {
             }
         }
 
-        if (needs_registration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_registration)) {
+        if (needs_registration && ObjectHandler.hasAtLeastOneAttribute(needs_registration)) {
             this.throttled_server_registration(needs_registration);
         }
     }
@@ -134,7 +129,7 @@ export default class VarsClientController {
             needs_registration[var_param_wrapper.var_param.index] = var_param_wrapper.var_param;
         }
 
-        if (needs_registration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_registration)) {
+        if (needs_registration && ObjectHandler.hasAtLeastOneAttribute(needs_registration)) {
             this.throttled_server_registration(needs_registration);
         }
     }
@@ -245,7 +240,7 @@ export default class VarsClientController {
             }
         }
 
-        if (needs_unregistration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_unregistration)) {
+        if (needs_unregistration && ObjectHandler.hasAtLeastOneAttribute(needs_unregistration)) {
             this.throttled_server_unregistration(needs_unregistration);
         }
     }
@@ -256,6 +251,7 @@ export default class VarsClientController {
      */
     public async notifyCallbacks(var_datas: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
 
+        let promises = [];
         for (let i in var_datas) {
             let var_data: VarDataValueResVO = var_datas[i];
             let registered_var = this.registered_var_params[var_data.index];
@@ -278,7 +274,7 @@ export default class VarsClientController {
                 }
 
                 if (!!callback.callback) {
-                    await callback.callback(var_data);
+                    promises.push(callback.callback(var_data));
                 }
 
                 if (callback.type == VarUpdateCallback.TYPE_ONCE) {
@@ -290,6 +286,8 @@ export default class VarsClientController {
                 delete registered_var.callbacks[uids_to_remove[j]];
             }
         }
+
+        await all_promises(promises);
     }
 
     private async check_invalid_valued_params_registration() {
@@ -334,7 +332,7 @@ export default class VarsClientController {
                 check_params[registered_var_param.var_param.index] = registered_var_param.var_param;
             }
 
-            if (check_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(check_params)) {
+            if (check_params && ObjectHandler.hasAtLeastOneAttribute(check_params)) {
                 this.throttled_server_registration(check_params);
             }
         } catch (error) {
@@ -374,11 +372,6 @@ export default class VarsClientController {
         setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
     }
 
-    /**
-     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server (ModuleVarServer)
-     * @see {@link ModuleVarServer.register_params }
-     * @param params
-     */
     private async do_server_registration(params: { [index: string]: VarDataBaseVO }) {
         await ModuleVar.getInstance().register_params(Object.values(params));
     }

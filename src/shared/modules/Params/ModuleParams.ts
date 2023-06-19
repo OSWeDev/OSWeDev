@@ -3,6 +3,7 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -82,46 +83,40 @@ export default class ModuleParams extends Module {
 
     public registerApis() {
 
-        // APIControllerWrapper.registerApi(new GetAPIDefinition<GetParamParamVO, string>(
-        //     ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
-        //     ModuleParams.APINAME_getParamValue,
-        //     [ParamVO.API_TYPE_ID],
-        //     GetParamParamVOStatic
-        // ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsStringVO, string>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsString,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsStringVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsInt,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsNumberVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsBooleanVO, boolean>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsBoolean,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsBooleanVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsFloat,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsNumberVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<SetParamParamVO, void>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue,
             [ParamVO.API_TYPE_ID],
             SetParamParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<SetParamParamVO, void>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue_if_not_exists,
             [ParamVO.API_TYPE_ID],
             SetParamParamVOStatic

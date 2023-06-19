@@ -1,7 +1,9 @@
-import cloneDeep = require('lodash/cloneDeep');
+import cloneDeep from 'lodash/cloneDeep';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
@@ -12,7 +14,6 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import StatsServerController from '../Stats/StatsServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -60,6 +61,15 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         this.varConf = await VarsServerController.getInstance().registerVar(this.varConf, this);
         let var_cache_conf = this.getVarCacheConf();
         this.var_cache_conf = (var_cache_conf && !var_cache_conf.id) ? await VarsServerController.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
+
+        if (var_cache_conf && var_cache_conf.id && this.varConf.id) {
+            // Cas des tests unitaires par exemple, on doit quand même init le varcacheconf_by_var_ids du VarsServerController
+            VarsServerController.getInstance().varcacheconf_by_var_ids[this.varConf.id] = this.var_cache_conf;
+            if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type]) {
+                VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type] = {};
+            }
+            VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type][this.varConf.id] = this.var_cache_conf;
+        }
     }
 
     public getVarCacheConf(): VarCacheConfVO {
@@ -104,8 +114,8 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public async computeValue(varDAGNode: VarDAGNode) {
 
-        StatsServerController.register_stat('VarServerControllerBase.' + varDAGNode.var_data.var_id + '.compute.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'computeValue', this.varConf.name);
+        let time_in = Dates.now_ms();
 
         let value: number;
         if (varDAGNode.is_aggregator) {
@@ -127,6 +137,9 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
         varDAGNode.var_data.value_ts = Dates.now();
         await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_DUREE('VarServerControllerBase', 'computeValue', this.varConf.name, time_out - time_in);
     }
 
     /**
@@ -162,6 +175,26 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     }
 
     /**
+     * Stats wrapper for get_invalid_params_intersectors_on_POST_C_POST_D_group
+     */
+    public async get_invalid_params_intersectors_on_POST_C_POST_D_group_stats_wrapper(c_or_d_vos: IDistantVOBase[]): Promise<TData[]> {
+        if (!c_or_d_vos || !c_or_d_vos.length) {
+            return null;
+        }
+
+        StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name);
+        StatsController.register_stat_QUANTITE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, c_or_d_vos.length);
+        let time_in = Dates.now_ms();
+
+        let res = await this.get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos);
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_DUREE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, time_out - time_in);
+
+        return res;
+    }
+
+    /**
      * On ajoute une fonction qui prend toutes les modifs en cours, pour permettre des optis sur les vars sur des grands nombres de modifs concomittentes
      */
     public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: IDistantVOBase[]): Promise<TData[]> {
@@ -191,9 +224,30 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     }
 
     /**
+     * Stats wrapper for get_invalid_params_intersectors_on_POST_U_group
+     */
+    public async get_invalid_params_intersectors_on_POST_U_group_stats_wrapper<T extends IDistantVOBase>(u_vo_holders: Array<DAOUpdateVOHolder<T>>): Promise<TData[]> {
+        if (!u_vo_holders || !u_vo_holders.length) {
+            return null;
+        }
+
+        StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name);
+        StatsController.register_stat_QUANTITE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, u_vo_holders.length);
+        let time_in = Dates.now_ms();
+
+        let res = await this.get_invalid_params_intersectors_on_POST_U_group(u_vo_holders);
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_DUREE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, time_out - time_in);
+
+        return res;
+    }
+
+    /**
      * On ajoute une fonction qui prend toutes les modifs en cours, pour permettre des optis sur les vars sur des grands nombres de modifs concomittentes
      */
     public async get_invalid_params_intersectors_on_POST_U_group<T extends IDistantVOBase>(u_vo_holders: Array<DAOUpdateVOHolder<T>>): Promise<TData[]> {
+
         let intersectors_by_index: { [index: string]: TData } = {};
 
         /**
@@ -237,6 +291,27 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<TData[]> {
         return null;
     }
+
+    /**
+     * Stats wrapper for get_invalid_params_intersectors_from_dep
+     */
+    public async get_invalid_params_intersectors_from_dep_stats_wrapper<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): Promise<TData[]> {
+        if (!intersectors || !intersectors.length) {
+            return null;
+        }
+
+        StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name);
+        StatsController.register_stat_QUANTITE('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, intersectors.length);
+        let time_in = Dates.now_ms();
+
+        let res = await this.get_invalid_params_intersectors_from_dep(dep_id, intersectors);
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_DUREE('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, time_out - time_in);
+
+        return res;
+    }
+
 
     /**
      * ATTENTION à redéfinir si on a des dépendances - la valeur par défaut de la fonction est pour le cas d'une var sans dépendances

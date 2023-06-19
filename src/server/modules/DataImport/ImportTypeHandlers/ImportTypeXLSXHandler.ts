@@ -1,6 +1,6 @@
 
 
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx';
 import { CellAddress, WorkBook, WorkSheet } from 'xlsx';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
@@ -18,7 +18,7 @@ import DateHandler from '../../../../shared/tools/DateHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ImportLogger from '../logger/ImportLogger';
 import TextHandler from '../../../../shared/tools/TextHandler';
-import moment = require('moment');
+import moment from 'moment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 

@@ -64,6 +64,7 @@ import TableWidgetOptions from './../options/TableWidgetOptions';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import TableWidgetController from './../TableWidgetController';
 import './TableWidgetTableComponent.scss';
+import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -603,16 +604,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         this.stopLoading();
     }
 
-    @Watch('dashboard_page', { immediate: true })
-    private async onchange_dashboard_page() {
-        if (!this.dashboard_page) {
-            return;
-        }
-    }
-
-    @Watch('dashboard_vo_action', { immediate: true })
+    @Watch('dashboard_vo_action')
     @Watch('dashboard_vo_id', { immediate: true })
-    @Watch('api_type_id_action', { immediate: true })
+    @Watch('api_type_id_action')
     private async onchange_dashboard_vo_props() {
         await this.debounced_onchange_dashboard_vo_route_param();
     }
@@ -629,7 +623,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         if (this.can_delete_right == null) {
             this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
         }
 
         if (this.can_delete_all_right == null) {
@@ -643,12 +637,12 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         if (this.can_update_right == null) {
             this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
 
         if (this.can_create_right == null) {
             this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
     }
 
@@ -1349,6 +1343,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         // Reset des filtres
         this.clear_active_field_filters();
 
+        // TODO FIXME JNE : A mon avis on devrait plutôt vider la table, revenir à l'état initial et utiliser throttle_update_visible_options pour pas charger sans filtre quand ya un bouton de validation des filtres...
         // On update le visuel de tout le monde suite au reset
         await this.throttle_do_update_visible_options();
     }
@@ -1688,7 +1683,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
         let promises = [
-            this.throttle_do_update_visible_options(),
+            this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
             this.update_filter_by_access_cache()
         ];
         await all_promises(promises);
@@ -2002,7 +1997,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             }
 
             res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
+                ObjectHandler.hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
                 active_field_filters
             );
         }

@@ -1,17 +1,19 @@
 import { Express, Request, Response } from 'express';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
+import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import AjaxCacheController from '../../../shared/modules/AjaxCache/AjaxCacheController';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ConfigurationService from '../../env/ConfigurationService';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleServerBase from '../ModuleServerBase';
 const zlib = require('zlib');
 
@@ -32,17 +34,21 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     public registerExpressApis(app: Express): void {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'IN');
+
         // On doit register toutes les APIs
         for (let i in APIControllerWrapper.registered_apis) {
             let api: APIDefinition<any, any> = APIControllerWrapper.registered_apis[i];
 
+            StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'API');
             switch (api.api_type) {
                 case APIDefinition.API_TYPE_GET:
-                    ConsoleHandler.log("AJOUT API GET  :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
+                    // ConsoleHandler.log("AJOUT API GET  :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     app.get(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST:
-                    ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
+                    // ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     } else {
@@ -50,7 +56,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     }
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
-                    ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
+                    // ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     } else {
@@ -59,14 +65,20 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     break;
             }
         }
+        StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'OUT');
+        StatsController.register_stat_DUREE('ModuleAPIServer', 'registerExpressApis', 'OUT', Dates.now_ms() - time_in);
     }
 
     private createApiRequestHandler<T, U>(api: APIDefinition<T, U>): (req: Request, res: Response) => void {
         return async (req: Request, res: Response) => {
 
             if (!!api.access_policy_name) {
-                if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(api.access_policy_name)) {
-                    ConsoleHandler.error('Access denied to API:' + api.api_name + ': sessionID' + req.sessionID + ":");
+                if (!await StackContext.runPromise(
+                    await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
+                    async () => AccessPolicyServerController.checkAccessSync(api.access_policy_name))) {
+                    let session: IServerUserSession = (req as any).session;
+                    ConsoleHandler.error('Access denied to API:' + api.api_name + ':sessionID:' + req.sessionID + ":uid:" + (session ? session.uid : "null") + ":user_vo:" + ((session && session.user_vo) ? JSON.stringify(session.user_vo) : null));
+                    StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'access_denied_api', api.api_name);
                     this.respond_on_error(api, res);
                     return;
                 }
@@ -104,12 +116,13 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
 
                 param = APIControllerWrapper.try_translate_vo_from_api(req_body);
-                has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req_body);
+                has_params = ObjectHandler.hasAtLeastOneAttribute(req_body);
             } else if (api.param_translator && api.param_translator.fromREQ) {
                 try {
-                    has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req.params);
+                    has_params = ObjectHandler.hasAtLeastOneAttribute(req.params);
                     param = api.param_translator.fromREQ(req);
                 } catch (error) {
+                    StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'createApiRequestHandler', 'param_translator.fromREQ');
                     ConsoleHandler.error(error);
                     this.respond_on_error(api, res);
                     return;
@@ -124,11 +137,15 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 } else if (res) {
                     params = [res];
                 }
+                StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name);
+                let date_in_ms = Dates.now_ms();
                 returnvalue = await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => await api.SERVER_HANDLER(...params, req));
+                StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name, Dates.now_ms() - date_in_ms);
             } catch (error) {
                 ConsoleHandler.error(error);
+                StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER.ERROR', api.api_name);
                 this.respond_on_error(api, res);
                 return;
             }

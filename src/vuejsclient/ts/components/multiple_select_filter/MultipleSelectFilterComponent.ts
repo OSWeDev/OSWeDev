@@ -171,8 +171,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             if (!(this.filter_active_options?.length > 0)) {
                 let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
 
-                if (ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(res)) {
-                    let selected = res[ObjectHandler.getInstance().getFirstAttributeName(res)];
+                if (ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
+                    let selected = res[ObjectHandler.getFirstAttributeName(res)];
 
                     const option = new DataFilterOption(
                         DataFilterOption.STATE_SELECTABLE,
@@ -339,7 +339,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
         try {
 
-            if ((!this.all_by_ids) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.all_by_ids))) {
+            if ((!this.all_by_ids) || (!ObjectHandler.hasAtLeastOneAttribute(this.all_by_ids))) {
                 return res;
             }
 
@@ -392,8 +392,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
             let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
 
-            if (this.preselect_first_if_one_element && ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(res)) {
-                const selected = res[ObjectHandler.getInstance().getFirstAttributeName(res)];
+            if (this.preselect_first_if_one_element && ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
+                const selected = res[ObjectHandler.getFirstAttributeName(res)];
 
                 const option = new DataFilterOption(
                     DataFilterOption.STATE_SELECTABLE,

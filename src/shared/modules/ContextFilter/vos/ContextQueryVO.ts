@@ -2,6 +2,7 @@ import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
+import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
@@ -27,6 +28,20 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
     public id: number;
     public _type: string = ContextQueryVO.API_TYPE_ID;
+
+    /**
+     * Durée de rétention (et donc de faîcheur) max de la requête en cache
+     *  - > 0 : cache de la durée indiquée
+     * On utilise le cache de la requête pour les requêtes de type select passées par le throttled query
+     *  et on active le cache requete par requete avec pour paramètre cette durée de rétention
+     *  et si on en voit plusieurs, on garde la valeur de rétention max
+     * Si on a dans le cache un résultat plus récent que la durée de rétention, on charge depuis le cache
+     *  sinon on relance la requête et on écrase le cache
+     * Le cache est vidé régulièremetn par le throttled query qui lance de temps à autres un clean_cache
+     *  qui vide le cache suivant les durées de rétention
+     */
+    public max_age_ms: number;
+
 
     /**
      * Indicateur de select count()
@@ -87,15 +102,25 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     public query_tables_prefix: string;
 
     /**
-     * Pas fan de cette solution : le but est d'identifier qu'on est en train de définir un accesshook
-     *  pour éviter de tourner en boucle sur l'ajout de conditions where sur le base_type_id.
-     *  si on identifie pas ce cas correctement on définit le access hook en renvoyer un contextquery,
-     *  qui par définition va déclencher l'appel au contexte accesshook et ajouter une condition sur subquery... en boucle
-     *  donc quand on définit un access_hook on met ce paramètre à true dans le contextquery pour éviter ce problème
-     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
-     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
+     * On renomme / remplace is_access_hook_def par is_admin => on indique qu'on ignore tout type de
+     *  filtrage des types de données et des données (les droits, et les content access hooks)
+     * Ce paramètre est forcé à false quand on arrive par l'API, seul le serveur peut décider de le mettre à true
      */
-    public is_access_hook_def: boolean;
+    public is_server: boolean;
+
+    /**
+     * @deprecated use is_admin
+     */
+    get is_access_hook_def(): boolean {
+        return this.is_server;
+    }
+
+    /**
+     * @deprecated use is_admin
+     */
+    set is_access_hook_def(is_admin: boolean) {
+        this.is_server = is_admin;
+    }
 
     /**
      * Pour exclure les champs techniques de type versioning du path autorisé (false pour exclure)
@@ -929,12 +954,35 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     /**
      * Ignorer les context access hooks => à utiliser si l'on est en train de déclarer un context access hook pour
      *  éviter une récursivité du hook
-     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
-     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
+     * ATTENTION : on ignore aussi tout type de filtrage de droit => on devient ADMIN. Equivalent de l'ancien IS_CLIENT: false
+     * @deprecated use query_as_admin
      */
     public ignore_access_hooks(): ContextQueryVO {
 
         this.is_access_hook_def = true;
+
+        return this;
+    }
+
+    /**
+     * Ignorer les content access hooks et les droits d'accès aux API_TYPE_IDS => on devient SERVER. Equivalent de l'ancien IS_CLIENT: false
+     *  => à utiliser par exemple si l'on est en train de déclarer un context access hook pour éviter une récursivité du hook
+     */
+    public exec_as_server(is_server = true): ContextQueryVO {
+
+        this.is_server = is_server;
+
+        return this;
+    }
+
+    /**
+     * Paramétrer le max_age de la query (cf. commentaire max_age_ms pour le fonctionnement du cache)
+     * On accepte de charger de la data ancienne issue d'un cache, sans invalidation auto lors d'un update pour le moment
+     *  et donc potentiellement fausse vs bdd
+     */
+    public set_max_age_ms(max_age_ms: number): ContextQueryVO {
+
+        this.max_age_ms = max_age_ms;
 
         return this;
     }
@@ -962,6 +1010,27 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      */
     public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
         return await ModuleContextFilter.getInstance().select_vos(this);
+    }
+
+    /**
+     * Faire la requête en mode delete_vos
+     * ATTENTION : les access_hooks sont ignorés, il faut passer par un trigger pre-delete pour refuser le delete
+     *  ou modifier le comportement comme expliqué sur "context_access_hooks" dans le ModuleDAOServer
+     * @returns les vos issus de la requête
+     */
+    public async delete_vos(): Promise<InsertOrDeleteQueryResult[]> {
+        return await ModuleContextFilter.getInstance().delete_vos(this);
+    }
+
+    /**
+     * Faire la requête en mode update_vos
+     * ATTENTION : les access_hooks sont ignorés, il faut passer par un trigger pre-delete pour refuser le delete
+     *  ou modifier le comportement comme expliqué sur "context_access_hooks" dans le ModuleDAOServer
+     * @param new_api_translated_values les valeurs à mettre à jour => les champs (field_id) doivent être les champs de l'objet et non les champs API, mais par contre la valeur du champs doit être la valeur API
+     * @returns les vos issus de la requête
+     */
+    public async update_vos<T extends IDistantVOBase>(new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
+        return await ModuleContextFilter.getInstance().update_vos<T>(this, new_api_translated_values);
     }
 
     /**

@@ -32,7 +32,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
             this.getRouteUser()
         );
 
-        Vue.component('Impersonatecomponent', async () => (await import(/* webpackChunkName: "ImpersonateComponent" */  './user/impersonate/ImpersonateComponent')));
+        Vue.component('Impersonatecomponent', async () => (await import('./user/impersonate/ImpersonateComponent')));
         TableWidgetController.getInstance().register_component(
             ComponentDatatableFieldVO.createNew(
                 'impersonate',
@@ -40,7 +40,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
                 'id'
             ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
-        Vue.component('Sendinitpwdcomponent', async () => (await import(/* webpackChunkName: "SendInitPwdComponent" */  './user/sendinitpwd/SendInitPwdComponent')));
+        Vue.component('Sendinitpwdcomponent', async () => (await import('./user/sendinitpwd/SendInitPwdComponent')));
         TableWidgetController.getInstance().register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
@@ -48,7 +48,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
                 'id'
             ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
-        Vue.component('Sendrecapturecomponent', async () => (await import(/* webpackChunkName: "SendRecaptureComponent" */  './user/sendrecapture/SendRecaptureComponent')));
+        Vue.component('Sendrecapturecomponent', async () => (await import('./user/sendrecapture/SendRecaptureComponent')));
         TableWidgetController.getInstance().register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
@@ -89,7 +89,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
         return {
             path: '/user',
             name: 'user',
-            component: () => import(/* webpackChunkName: "UserComponent" */ './user/UserComponent')
+            component: () => import('./user/UserComponent')
         };
     }
 }

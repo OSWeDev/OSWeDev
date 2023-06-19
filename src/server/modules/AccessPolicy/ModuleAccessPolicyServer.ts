@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -10,12 +11,12 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -26,15 +27,18 @@ import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO'
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import SendInBlueSmsFormatVO from '../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -48,13 +52,14 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
-import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
+import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -78,6 +83,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         super(ModuleAccessPolicy.getInstance().name);
 
         ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
+        AccessPolicyServerController.init_tasks();
     }
 
     /**
@@ -91,14 +97,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         this.rights_have_been_preloaded = true;
         // On preload ce qui l'a pas été et on complète les listes avec les données en base qui peuvent
         //  avoir été ajoutée en parralèle des déclarations dans le source
-        await AccessPolicyServerController.getInstance().preload_registered_roles();
-        await AccessPolicyServerController.getInstance().preload_registered_policies();
-        await AccessPolicyServerController.getInstance().preload_registered_policy_groups();
-        await AccessPolicyServerController.getInstance().preload_registered_dependencies();
+        await all_promises([
 
-        await AccessPolicyServerController.getInstance().preload_registered_users_roles();
-        await AccessPolicyServerController.getInstance().preload_registered_roles_policies();
-        await AccessPolicyServerController.getInstance().reload_access_matrix();
+            AccessPolicyServerController.preload_registered_roles(), // init registered_roles, registered_roles_by_ids
+            AccessPolicyServerController.preload_registered_policies(), // init registered_policies, registered_policies_by_ids
+            AccessPolicyServerController.preload_registered_policy_groups(), // init registered_policy_groups
+            AccessPolicyServerController.preload_registered_dependencies(), // init registered_dependencies / registered_dependencies_for_loading_process
+            AccessPolicyServerController.preload_registered_roles_policies(), // init registered_roles_policies
+        ]);
+
+        await AccessPolicyServerController.preload_registered_users_roles(); // init registered_users_roles / needs registered_roles_by_ids
+        await AccessPolicyServerController.reload_access_matrix();
     }
 
     /**
@@ -257,21 +266,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Les héritages sont gérés directement dans la fonction register_role pour ces rôles de base
      */
     public async registerAccessRoles(): Promise<void> {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = ModuleAccessPolicy.ROLE_ANONYMOUS;
-        AccessPolicyServerController.getInstance().role_anonymous = await this.registerRole(AccessPolicyServerController.getInstance().role_anonymous, new DefaultTranslation({
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.translatable_name = ModuleAccessPolicy.ROLE_ANONYMOUS;
+        AccessPolicyServerController.role_anonymous = await this.registerRole(AccessPolicyServerController.role_anonymous, new DefaultTranslation({
             'fr-fr': 'Utilisateur anonyme'
         }));
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = ModuleAccessPolicy.ROLE_LOGGED;
-        AccessPolicyServerController.getInstance().role_logged = await this.registerRole(AccessPolicyServerController.getInstance().role_logged, new DefaultTranslation({
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.translatable_name = ModuleAccessPolicy.ROLE_LOGGED;
+        AccessPolicyServerController.role_logged = await this.registerRole(AccessPolicyServerController.role_logged, new DefaultTranslation({
             'fr-fr': 'Utilisateur connecté'
         }));
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = ModuleAccessPolicy.ROLE_ADMIN;
-        AccessPolicyServerController.getInstance().role_admin = await this.registerRole(AccessPolicyServerController.getInstance().role_admin, new DefaultTranslation({
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.translatable_name = ModuleAccessPolicy.ROLE_ADMIN;
+        AccessPolicyServerController.role_admin = await this.registerRole(AccessPolicyServerController.role_admin, new DefaultTranslation({
             'fr-fr': 'Administrateur'
         }));
     }
@@ -308,22 +317,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
         // On ajoute un trigger pour la création du compte
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOCreate);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUser);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUser);
 
         // On ajoute un trigger pour la modification du mot de passe
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUserUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUserUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onCreateAccessPolicyVO);
         postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onCreatePolicyDependencyVO);
@@ -852,47 +861,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID, this.BEGIN_RECOVER_SMS_UID.bind(this));
     }
 
-    /**
-     * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
-     * @param policy_name
-     */
-    public checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
-
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
-            ConsoleHandler.error('checkAccessSync:!policy_name');
-            return false;
-        }
-
-        if (!StackContext.get('IS_CLIENT')) {
-            return true;
-        }
-
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
-        if (!target_policy) {
-            ConsoleHandler.error('checkAccessSync:!target_policy:' + policy_name + ':');
-            return false;
-        }
-
-        let uid: number = StackContext.get('UID');
-        if (!uid) {
-            // profil anonyme
-            return AccessPolicyServerController.getInstance().checkAccessTo(
-                target_policy,
-                AccessPolicyServerController.getInstance().getUsersRoles(false, null),
-                undefined, undefined, undefined, undefined, undefined, can_fail);
-        }
-
-        if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
-            ConsoleHandler.warn('checkAccessSync:!get_registered_user_roles_by_uid:uid:' + uid + ':policy_name:' + policy_name + ':');
-            return false;
-        }
-
-        return AccessPolicyServerController.getInstance().checkAccessTo(
-            target_policy,
-            AccessPolicyServerController.getInstance().getUsersRoles(true, uid),
-            undefined, undefined, undefined, undefined, undefined, can_fail);
-    }
-
     public async logout() {
 
         return new Promise(async (accept, reject) => {
@@ -914,13 +882,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                  * Gestion du impersonate
                  */
                 user_log.handle_impersonation(session);
-
-
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                    });
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
             }
 
             /**
@@ -933,6 +895,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 session = Object.assign(session, session.impersonated_from);
                 delete session.impersonated_from;
+                // session = session.impersonated_from; ???
 
                 session.save((err) => {
                     if (err) {
@@ -946,6 +909,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session.uid = null;
+                session.user_vo = null;
                 session.save((err) => {
                     if (err) {
                         ConsoleHandler.log(err);
@@ -961,7 +925,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDRECAPTURE)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDRECAPTURE)) {
             return;
         }
 
@@ -973,7 +937,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -985,7 +949,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -1021,30 +985,30 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
         await PasswordInitialisation.getInstance().begininitpwd_uid(num);
     }
 
-    public async addRoleToUser(user_id: number, role_id: number): Promise<void> {
+    public async addRoleToUser(user_id: number, role_id: number, exec_as_server: boolean = false): Promise<void> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!user_id) || (!role_id)) {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!exec_as_server && !AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return;
         }
 
-        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_num_eq('role_id', role_id).select_vo<UserRoleVO>();
+        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_num_eq('role_id', role_id).exec_as_server(exec_as_server).select_vo<UserRoleVO>();
 
         if (!userRole) {
             userRole = new UserRoleVO();
             userRole.role_id = role_id;
             userRole.user_id = user_id;
-            await ModuleDAO.getInstance().insertOrUpdateVO(userRole);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userRole, exec_as_server);
         }
     }
 
@@ -1061,7 +1025,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             for (let j in role_names) {
                 let role_name = role_names[j];
 
-                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], AccessPolicyServerController.getInstance().access_matrix);
+                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], AccessPolicyServerController.access_matrix);
             }
         }
     }
@@ -1083,11 +1047,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-            return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).ignore_access_hooks().select_vo<UserVO>();
-        }) as UserVO;
-
-        return user;
+        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
     }
 
     public async getMyLang(): Promise<LangVO> {
@@ -1101,20 +1061,29 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public async generate_challenge(user: UserVO) {
 
+        StatsController.register_stat_COMPTEUR('ModuleAccessPolicyServer', 'generate_challenge', '-');
+
         // on génère un code qu'on stocke dans le user en base (en datant) et qu'on envoie par mail
         // Si un code existe déjà et n'a pas encore expiré, on le prolonge et on le renvoie pour pas invalider un mail qui serait très récent
         if (user.recovery_challenge && user.recovery_expiration && (user.recovery_expiration >= Dates.now())) {
             console.debug("challenge - pushing expiration:" + user.email + ':' + user.recovery_challenge + ':');
             user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
-            await ModuleDAO.getInstance().insertOrUpdateVO(user);
+
+            await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+                [field_names<UserVO>().recovery_expiration]: user.recovery_expiration
+            });
             return;
         }
 
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
-        console.debug("challenge:" + user.email + ':' + challenge + ':');
         user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
-        await ModuleDAO.getInstance().insertOrUpdateVO(user);
+        console.debug("challenge:" + user.email + ':' + challenge + ':');
+
+        await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+            [field_names<UserVO>().recovery_expiration]: user.recovery_expiration,
+            [field_names<UserVO>().recovery_challenge]: user.recovery_challenge
+        });
     }
 
     public async change_lang(num: number): Promise<void> {
@@ -1137,7 +1106,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerRole(role: RoleVO, default_translation: DefaultTranslation): Promise<RoleVO> {
-        return await AccessPolicyServerController.getInstance().registerRole(role, default_translation);
+        return await AccessPolicyServerController.registerRole(role, default_translation);
     }
 
     /**
@@ -1145,7 +1114,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslation): Promise<AccessPolicyGroupVO> {
-        return await AccessPolicyServerController.getInstance().registerPolicyGroup(group, default_translation);
+        return await AccessPolicyServerController.registerPolicyGroup(group, default_translation);
     }
 
     /**
@@ -1153,7 +1122,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
-        return await AccessPolicyServerController.getInstance().registerPolicy(policy, default_translation, moduleVO);
+        return await AccessPolicyServerController.registerPolicy(policy, default_translation, moduleVO);
     }
 
 
@@ -1162,7 +1131,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await AccessPolicyServerController.getInstance().registerPolicyDependency(dependency);
+        return await AccessPolicyServerController.registerPolicyDependency(dependency);
     }
 
     /**
@@ -1233,7 +1202,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.get('SESSION');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
@@ -1246,11 +1215,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return false;
             }
 
-            let user: UserVO = null;
-
-            await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                user = await query(UserVO.API_TYPE_ID).filter_by_id(uid).select_vo<UserVO>();
-            });
+            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
 
             if (!user) {
                 return false;
@@ -1262,12 +1227,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
-                await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user);
+
+                await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+                    [field_names<UserVO>().logged_once]: user.logged_once
                 });
             }
 
             session.uid = user.id;
+            session.user_vo = user;
 
             PushDataServerController.getInstance().registerSession(session);
 
@@ -1279,11 +1246,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1405,10 +1368,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let uid: number = StackContext.get('UID');
         if (!uid) {
-            return role_ids.indexOf(AccessPolicyServerController.getInstance().role_anonymous.id) >= 0;
+            return role_ids.indexOf(AccessPolicyServerController.role_anonymous.id) >= 0;
         }
 
-        let user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+        let user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getUsersRoles(true, uid);
 
         for (let i in user_roles) {
             if (role_ids.indexOf(user_roles[i].id) >= 0) {
@@ -1438,16 +1401,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return false;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy_by_id(policy_id);
-        let role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(role_id);
+        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy_by_id(policy_id);
+        let role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(role_id);
         /**
          * Le but est d'avoir false, donc on esquive le log et la déco avec le dernier param
          */
-        if (AccessPolicyServerController.getInstance().checkAccessTo(
+        if (AccessPolicyServerController.checkAccessTo(
             target_policy,
             { [role.id]: role }, undefined, undefined, undefined, undefined, role, true)) {
             // On devrait pas pouvoir arriver là avec un héritage true
@@ -1456,7 +1419,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         // Il faut qu'on sache si il existe une policy explicit à cet endroit
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult;
-        let role_policy: RolePolicyVO = AccessPolicyServerController.getInstance().get_role_policy_by_ids(role.id, target_policy.id);
+        let role_policy: RolePolicyVO = AccessPolicyServerController.get_role_policy_by_ids(role.id, target_policy.id);
         if (role_policy) {
 
             // Si oui on la supprime
@@ -1483,15 +1446,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async getAccessMatrix(bool: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
 
         /**
-         * Si la matrice est disponible, on la renvoie, sinon on force un recalcule avant de la renvoyer
+         * Si la matrice est disponible, on la renvoie, sinon on force un recalcul avant de la renvoyer
          */
-        if ((!bool) && AccessPolicyServerController.getInstance().access_matrix_validity) {
-            return AccessPolicyServerController.getInstance().access_matrix;
+        if ((!bool) && AccessPolicyServerController.access_matrix_validity) {
+            return AccessPolicyServerController.access_matrix;
         }
-        if ((bool) && AccessPolicyServerController.getInstance().access_matrix_heritance_only_validity) {
-            return AccessPolicyServerController.getInstance().access_matrix_heritance_only;
+        if ((bool) && AccessPolicyServerController.access_matrix_heritance_only_validity) {
+            return AccessPolicyServerController.access_matrix_heritance_only;
         }
-        return await AccessPolicyServerController.getInstance().getAccessMatrix(bool);
+        return AccessPolicyServerController.getAccessMatrix(bool);
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
@@ -1507,7 +1470,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks().select_vos();
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
     }
 
     private async get_user_roles(uid: number): Promise<RoleVO[]> {
@@ -1517,7 +1480,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks().select_vos();
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
     }
 
     /**
@@ -1569,14 +1532,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    private async testAccess(policy_name: string): Promise<boolean> {
+    private testAccess(policy_name: string): boolean {
 
-        return this.checkAccessSync(policy_name, true);
+        return AccessPolicyServerController.checkAccessSync(policy_name, true);
     }
 
-    private async checkAccess(policy_name: string): Promise<boolean> {
+    private checkAccess(policy_name: string): boolean {
 
-        return this.checkAccessSync(policy_name);
+        return AccessPolicyServerController.checkAccessSync(policy_name);
     }
 
     private async beginRecover(text: string): Promise<boolean> {
@@ -1585,7 +1548,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return PasswordRecovery.getInstance().beginRecovery(text);
+        return await PasswordRecovery.getInstance().beginRecovery(text);
     }
 
     private async beginRecoverSMS(text: string): Promise<boolean> {
@@ -1598,7 +1561,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        return PasswordRecovery.getInstance().beginRecoverySMS(text);
+        return await PasswordRecovery.getInstance().beginRecoverySMS(text);
     }
 
     private async checkCode(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1656,7 +1619,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((!vo) || (!vo.password)) {
             return true;
         }
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).select_vo<UserVO>();
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).exec_as_server().select_vo<UserVO>();
         if (!!user) {
             await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
             return false;
@@ -1797,7 +1760,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.get('SESSION');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
@@ -1812,79 +1775,66 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.uid = null;
+            session.user_vo = null;
 
             if ((!email) || (!password) || (!nom)) {
                 return null;
             }
 
-            return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
-                if (!!user) {
+            if (!!user) {
 
-                    if (user.invalidated) {
+                if (user.invalidated) {
 
-                        await PasswordRecovery.getInstance().beginRecovery(user.email);
+                    await PasswordRecovery.getInstance().beginRecovery(user.email);
 
-                    }
-                    return null;
-                } else {
-                    user = new UserVO();
                 }
+                return null;
+            } else {
+                user = new UserVO();
+            }
+
+            user.logged_once = true;
+            user.name = nom;
+            user.password = password;
+            user.email = email;
+            user.blocked = false;
+            user.reminded_pwd_1 = false;
+            user.reminded_pwd_2 = false;
+            user.invalidated = false;
+            user.recovery_challenge = "";
+            user.phone = "";
+            user.recovery_expiration = 0;
+            user.password_change_date = Dates.now();
+            user.creation_date = Dates.now();
 
 
-                user.logged_once = true;
-                user.name = nom;
-                user.password = password;
-                user.email = email;
-                user.blocked = false;
-                user.reminded_pwd_1 = false;
-                user.reminded_pwd_2 = false;
-                user.invalidated = false;
-                user.recovery_challenge = "";
-                user.phone = "";
-                user.recovery_expiration = 0;
-                user.password_change_date = Dates.now();
-                user.creation_date = Dates.now();
+            // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
+            let lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, 'id', true)).set_limit(1).select_vo<LangVO>();
+            user.lang_id = lang.id;
 
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
 
-                // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
-                let langs: LangVO[] = await ModuleDAO.getInstance().getVos(LangVO.API_TYPE_ID);
-                user.lang_id = langs[0].id;
-                // let res: InsertOrDeleteQueryResult = await StackContext.runPromise({ IS_CLIENT: false }, async () =>
-                //     await ModuleDAO.getInstance().insertOrUpdateVO(user)) as InsertOrDeleteQueryResult;
+            if (!user.id) {
+                throw new Error('Impossible de créer le compte');
+            }
+            session.uid = user.id;
+            session.user_vo = user;
+            PushDataServerController.getInstance().registerSession(session);
 
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-                let insertOrDeleteQueryResult = null;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
-                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(user);
-
-                if (!res || !res.id) {
-                    throw new Error();
-                }
-                session.uid = res.id;
-                PushDataServerController.getInstance().registerSession(session);
-
-                // On stocke le log de connexion en base
-                let user_log = new UserLogVO();
-                user_log.user_id = res.id;
-                user_log.log_time = Dates.now();
-                user_log.impersonated = false;
-                user_log.referer = StackContext.get('REFERER');
-                user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-                // On await pas ici on se fiche du résultat
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                    });
-
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
-
-                return res.id;
-
-            });
+            return user.id;
         } catch (error) {
             ConsoleHandler.error("login:" + email + ":" + error);
         }
@@ -1897,7 +1847,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.get('SESSION');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
@@ -1912,6 +1862,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.uid = null;
+            session.user_vo = null;
 
             if ((!email) || (!password)) {
                 return null;
@@ -1919,8 +1870,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             let user: UserVO = null;
 
-            if (AccessPolicyServerController.getInstance().hook_user_login) {
-                user = await AccessPolicyServerController.getInstance().hook_user_login(email, password);
+            if (AccessPolicyServerController.hook_user_login) {
+                user = await AccessPolicyServerController.hook_user_login(email, password);
             } else {
                 user = await ModuleDAOServer.getInstance().selectOneUser(email, password);
             }
@@ -1948,6 +1899,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.uid = user.id;
+            session.user_vo = user;
 
             PushDataServerController.getInstance().registerSession(session);
 
@@ -1959,12 +1911,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            // On await pas ici on se fiche du résultat
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1982,7 +1929,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let session = StackContext.get('SESSION');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySimpleERROR(
                     StackContext.get('UID'),
@@ -1996,7 +1943,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+            if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
                 return null;
             }
 
@@ -2018,6 +1965,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.impersonated_from = Object.assign({}, session);
             session.uid = user.id;
+            session.user_vo = user;
 
             PushDataServerController.getInstance().registerSession(session);
 
@@ -2029,11 +1977,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.handle_impersonation(session);
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -2092,7 +2036,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')]);
         res.add_filters([filter_or]);
-        res.ignore_access_hooks();
+        res.exec_as_server();
 
         return res;
     }
@@ -2189,11 +2133,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
         if (!!user.id) {
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).select_vo<UserVO>();
-                });
+            old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().select_vo<UserVO>();
         }
 
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(user, old_user);
@@ -2266,11 +2206,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
         }
 
         /**
@@ -2294,17 +2230,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
         }
 
         await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
         await PushDataServerController.getInstance().unregisterSession(session, true);
 
         session.uid = null;
+        session.user_vo = null;
         session.destroy((err) => {
             if (err) {
                 ConsoleHandler.log(err);

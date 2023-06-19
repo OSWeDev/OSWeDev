@@ -241,8 +241,8 @@ export default class VOsTypesManager {
         new_fields: Array<ModuleTableField<any>>,
         deleted_fields: Array<ModuleTableField<any>>) {
 
-        let src_fields = ObjectHandler.getInstance().mapByStringFieldFromArray(type_src.get_fields(), 'field_id');
-        let dest_fields = ObjectHandler.getInstance().mapByStringFieldFromArray(type_dest.get_fields(), 'field_id');
+        let src_fields = ObjectHandler.mapByStringFieldFromArray(type_src.get_fields(), 'field_id');
+        let dest_fields = ObjectHandler.mapByStringFieldFromArray(type_dest.get_fields(), 'field_id');
         for (let i in src_fields) {
             let src_field = src_fields[i];
 

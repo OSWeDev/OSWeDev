@@ -1,3 +1,5 @@
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
@@ -5,14 +7,11 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import EnvHandler from '../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -90,7 +89,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 }
 
                 if (!!apiDefinition.access_policy_name) {
-                    if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(apiDefinition.access_policy_name)) {
+                    if (!AccessPolicyServerController.checkAccessSync(apiDefinition.access_policy_name)) {
                         let session: IServerUserSession = (req as any).session;
                         ConsoleHandler.error('Access denied to API:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
                         res.requests_results[wrapped_request.index] = null;
@@ -123,13 +122,14 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 }
 
                 let params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
-                let api_res = await apiDefinition.SERVER_HANDLER(...params);
-                res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
-
-                // if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
-                //     (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
-                //     res.requests_results[wrapped_request.index] = APIController.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
-                // }
+                try {
+                    let api_res = await apiDefinition.SERVER_HANDLER(...params);
+                    res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
+                } catch (error) {
+                    let session: IServerUserSession = (req as any).session;
+                    ConsoleHandler.error('Erreur API:requests_wrapper:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":error:" + error + ':');
+                    res.requests_results[wrapped_request.index] = null;
+                }
             });
 
         }

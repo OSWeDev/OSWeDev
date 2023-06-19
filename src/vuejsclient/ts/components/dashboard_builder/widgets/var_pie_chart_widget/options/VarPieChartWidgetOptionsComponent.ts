@@ -212,8 +212,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             10,
 
             50, // 0-100 - exemples : donut 50, camembert 0
-            Math.PI, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-            Math.PI, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
+            270, // 0-360 - exemples : donut 270, camembert 0
+            180, // 0-180 - exemples : donut 180, camembert 0
 
             false,
             10, // Permet de limiter le nombre de vars affichées (par défaut 10)
@@ -531,8 +531,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         (this.widget_options.var_id_1 == options.var_id_1) &&
                         (this.widget_options.var_id_2 == options.var_id_2) &&
                         (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
-                        (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
-                        (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters_2, options.filter_custom_field_filters_2)) &&
+                        (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
+                        (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_2, options.filter_custom_field_filters_2)) &&
 
                         (this.widget_options.legend_display == options.legend_display) &&
                         (this.widget_options.legend_position == options.legend_position) &&
@@ -559,7 +559,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         (this.widget_options.sort_dimension_by_asc == options.sort_dimension_by_asc) &&
 
                         (this.widget_options.dimension_is_vo_field_ref == options.dimension_is_vo_field_ref) &&
-                        ObjectHandler.getInstance().are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
+                        ObjectHandler.are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
                         (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
                         (this.widget_options.dimension_custom_filter_segment_type == options.dimension_custom_filter_segment_type) &&
                         (this.widget_options.border_width_1 == options.border_width_1) &&
@@ -615,7 +615,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             }
 
             if ((!!options) && (!!this.page_widget.json_options)) {
-                if (!ObjectHandler.getInstance().are_equal(this.widget_options, options)) {
+                if (!ObjectHandler.are_equal(this.widget_options, options)) {
                     this.widget_options = options;
                 }
             } else if ((!!this.widget_options) && !this.page_widget.json_options) {
@@ -641,8 +641,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.title_font_size = '16';
             this.title_padding = '10';
             this.cutout_percentage = '50';
-            this.rotation = Math.PI.toString();
-            this.circumference = Math.PI.toString();
+            this.rotation = '270';
+            this.circumference = '180';
 
             this.has_dimension = false;
             this.max_dimension_values = '10';
@@ -1092,7 +1092,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (!this.rotation) {
 
             if (this.widget_options.rotation) {
-                this.widget_options.rotation = Math.PI;
+                this.widget_options.rotation = 270;
                 await this.throttled_update_options();
             }
             return;
@@ -1120,7 +1120,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (!this.circumference) {
 
             if (this.widget_options.circumference) {
-                this.widget_options.circumference = Math.PI;
+                this.widget_options.circumference = 180;
                 await this.throttled_update_options();
             }
             return;

@@ -85,7 +85,7 @@ export default class CMSFrontVueModule extends VueModuleBase {
             if (cms_route == cleaned_route) {
                 this.routes.push({
                     path: cleaned_route,
-                    component: () => import(/* webpackChunkName: "CMSPageComponent" */ './component/CMSPageComponent'),
+                    component: () => import('./component/CMSPageComponent'),
                     props: () => ({
                         page_id: page.id,
                         preloaded_page: page

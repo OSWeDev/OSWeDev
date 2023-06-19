@@ -5,9 +5,8 @@ import { performance } from 'perf_hooks';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import StatVO from '../../../shared/modules/Stats/vos/StatVO';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import StatsServerController from '../Stats/StatsServerController';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
@@ -36,7 +35,7 @@ export default class ForkMessageController {
 
     private last_log_msg_error: number = 0;
 
-    private throttled_retry = throttle(this.retry.bind(this), 1000);
+    private throttled_retry = throttle(this.retry.bind(this), 500);
 
     private constructor() { }
 
@@ -49,10 +48,15 @@ export default class ForkMessageController {
             return false;
         }
 
-        StatsServerController.register_stat('ForkMessageController.receive.' + msg.message_type + '.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_type);
 
-        return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
+        try {
+
+            return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
+        } catch (error) {
+            ConsoleHandler.error('ForkMessageController.message_handler error: ' + error);
+            return false;
+        }
     }
 
     /**
@@ -74,14 +78,13 @@ export default class ForkMessageController {
                 }
                 await this.send(msg, forked.child_process, forked);
             }
-            await this.message_handler(msg);
+            return await this.message_handler(msg);
         }
     }
 
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
-        StatsServerController.register_stat('ForkMessageController.send.' + msg.message_type + '.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_type);
 
         return new Promise((resolve, reject) => {
 

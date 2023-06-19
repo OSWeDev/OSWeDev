@@ -1,15 +1,16 @@
-import * as io from 'socket.io-client/dist/socket.io.slim.js';
+import { io } from "socket.io-client";
 import { SnotifyToast } from 'vue-snotify';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../../shared/tools/EnvHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
@@ -17,9 +18,6 @@ import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import EnvHandler from '../../../../shared/tools/EnvHandler';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -160,10 +158,26 @@ export default class PushDataVueModule extends VueModuleBase {
         let server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
         if (server_app_version && (EnvHandler.VERSION != server_app_version)) {
-            VueAppBase.instance_.vueInstance.snotify.warning(
-                VueAppBase.instance_.vueInstance.label("app_version_changed"),
-                { timeout: 3000 }
-            );
+
+            /**
+             * Cas du dev local, on checke le timestamp server vs local, si le local est plus récent inutile de recharger
+             */
+            const server_app_version_timestamp_str: string = server_app_version.split('-')[1];
+            const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
+
+            const local_app_version_timestamp_str: string = EnvHandler.VERSION.split('-')[1];
+            const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
+
+            if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
+                return;
+            }
+
+            if (VueAppBase.instance_.vueInstance && VueAppBase.instance_.vueInstance.snotify) {
+                VueAppBase.instance_.vueInstance.snotify.warning(
+                    VueAppBase.instance_.vueInstance.label("app_version_changed"),
+                    { timeout: 3000 }
+                );
+            }
 
             setTimeout(() => {
                 window.location.reload();
@@ -424,7 +438,7 @@ export default class PushDataVueModule extends VueModuleBase {
             }
         }
 
-        if (var_by_indexes && ObjectHandler.getInstance().hasAtLeastOneAttribute(var_by_indexes)) {
+        if (var_by_indexes && ObjectHandler.hasAtLeastOneAttribute(var_by_indexes)) {
 
             let vos = Object.values(var_by_indexes);
 
@@ -482,25 +496,26 @@ export default class PushDataVueModule extends VueModuleBase {
 
                                 let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
 
-                                let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.warning(content, {
-                                    timeout: 3000
-                                });
+                                // let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
+                                // VueAppBase.instance_.vueInstance.snotify.warning(content, {
+                                //     timeout: 3000
+                                // });
 
-                                setTimeout(() => {
-                                    location.href = PARAM_TECH_DISCONNECT_URL;
-                                }, 3000);
+                                // setTimeout(() => {
+                                location.href = PARAM_TECH_DISCONNECT_URL;
+                                // }, 3000);
                                 break;
 
                             case NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME:
 
-                                let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
-                                    timeout: 3000
-                                });
-                                setTimeout(() => {
-                                    location.href = '/';
-                                }, 3000);
+                                // On teste de supprimer les délais pour éviter les appels à des méthodes qui ne sont plus accessibles typiquement lors d'un impersonate...
+                                // let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
+                                // VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
+                                //     timeout: 3000
+                                // });
+                                // setTimeout(() => {
+                                location.href = '/';
+                                // }, 3000);
                                 break;
 
                             case NotificationVO.TECH_RELOAD:

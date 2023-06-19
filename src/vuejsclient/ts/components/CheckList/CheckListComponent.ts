@@ -271,7 +271,7 @@ export default class CheckListComponent extends VueComponentBase {
             return;
         }
         delete this.checklistitems[item.id];
-        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
         this.$router.push(this.global_route_path + '/' + this.list_id);
@@ -299,7 +299,7 @@ export default class CheckListComponent extends VueComponentBase {
         if (this.checklistitems[vo.id].archived) {
             delete this.checklistitems[vo.id];
         }
-        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
     }
@@ -375,7 +375,7 @@ export default class CheckListComponent extends VueComponentBase {
 
     get ordered_checkpoints(): ICheckPoint[] {
 
-        if ((!this.checkpoints) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checkpoints))) {
+        if ((!this.checkpoints) || (!ObjectHandler.hasAtLeastOneAttribute(this.checkpoints))) {
             return null;
         }
 
@@ -391,6 +391,6 @@ export default class CheckListComponent extends VueComponentBase {
             return false;
         }
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems);
+        return ObjectHandler.hasAtLeastOneAttribute(this.checklistitems);
     }
 }

@@ -14,7 +14,7 @@
 // import RangeHandler from '../../../shared/tools/RangeHandler';
 // import FakeVarController from '../Var/fakes/FakeVarController';
 // import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
-// import moment = require('moment');
+// import moment from 'moment';
 
 // describe('VarDAGDefineNodeDeps', () => {
 

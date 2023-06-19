@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import 'mocha';
 
 import TimeHandler from '../../../shared/tools/TimeHandler';
-import * as moment from 'moment';
+import moment from 'moment';
 
 
 describe('TimeHandler', () => {

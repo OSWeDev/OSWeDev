@@ -4,6 +4,7 @@ import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/v
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -69,10 +70,10 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      * @param new_api_translated_value En cas d'update, la valeur api_translated (par exemple issue de moduletable.default_get_field_api_version)
      *  qu'on va mettre en remplacement de la valeur actuelle
      */
-    public async update_vos(
-        context_query: ContextQueryVO, update_field_id: string, new_api_translated_value: any
-    ): Promise<void> {
-        return await ContextQueryServerController.getInstance().update_vos(context_query, update_field_id, new_api_translated_value);
+    public async update_vos<T extends IDistantVOBase>(
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }
+    ): Promise<InsertOrDeleteQueryResult[]> {
+        return await ContextQueryServerController.getInstance().update_vos(context_query, new_api_translated_values);
     }
 
     /**
@@ -83,7 +84,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      */
     public async delete_vos(
         context_query: ContextQueryVO
-    ): Promise<void> {
+    ): Promise<InsertOrDeleteQueryResult[]> {
         return await ContextQueryServerController.getInstance().delete_vos(context_query);
     }
 

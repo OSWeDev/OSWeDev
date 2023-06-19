@@ -1,11 +1,9 @@
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
-import StatsServerController from '../../Stats/StatsServerController';
 import ModuleDataExportServer from '../ModuleDataExportServer';
 import ExportContextQueryToXLSXQueryVO from './vos/ExportContextQueryToXLSXQueryVO';
 
@@ -27,6 +25,8 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
+
+    public exec_in_dedicated_thread: boolean = true;
 
     private constructor() {
         ForkedTasksController.getInstance().register_task(ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query, this.push_export_query.bind(this));
@@ -51,7 +51,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('ExportContextQueryToXLSXBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('ExportContextQueryToXLSXBGThread', 'work', 'IN');
 
             /**
              * On dépile une demande d'export
@@ -96,8 +96,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('ExportContextQueryToXLSXBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('ExportContextQueryToXLSXBGThread.work.' + activity + '.OUT.time', time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

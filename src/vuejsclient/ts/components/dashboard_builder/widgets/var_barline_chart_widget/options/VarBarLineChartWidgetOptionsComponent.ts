@@ -532,8 +532,8 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     //                     (this.widget_options.var_id_1 == options.var_id_1) &&
     //                     (this.widget_options.var_id_2 == options.var_id_2) &&
     //                     (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
-    //                     (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
-    //                     (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters_2, options.filter_custom_field_filters_2)) &&
+    //                     (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
+    //                     (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_2, options.filter_custom_field_filters_2)) &&
 
     //                     (this.widget_options.legend_display == options.legend_display) &&
     //                     (this.widget_options.legend_position == options.legend_position) &&
@@ -560,7 +560,7 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     //                     (this.widget_options.sort_dimension_by_asc == options.sort_dimension_by_asc) &&
 
     //                     (this.widget_options.dimension_is_vo_field_ref == options.dimension_is_vo_field_ref) &&
-    //                     ObjectHandler.getInstance().are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
+    //                     ObjectHandler.are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
     //                     (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
     //                     (this.widget_options.dimension_custom_filter_segment_type == options.dimension_custom_filter_segment_type) &&
     //                     (this.widget_options.border_width_1 == options.border_width_1) &&
@@ -616,7 +616,7 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     //         }
 
     //         if ((!!options) && (!!this.page_widget.json_options)) {
-    //             if (!ObjectHandler.getInstance().are_equal(this.widget_options, options)) {
+    //             if (!ObjectHandler.are_equal(this.widget_options, options)) {
     //                 this.widget_options = options;
     //             }
     //         } else if ((!!this.widget_options) && !this.page_widget.json_options) {

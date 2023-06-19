@@ -154,7 +154,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     @Watch('tmp_active_favorites_filters_option')
-    private async onchange_tmp_filter_active_options() {
+    private async onchange_tmp_filter_active_options(): Promise<void> {
 
         if (!this.tmp_active_favorites_filters_option) {
             if (this.is_updating) {
@@ -329,6 +329,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     private async reset_all_visible_active_field_filters() {
+
+        let promises = [];
         for (const db_id in ResetFiltersWidgetController.getInstance().reseters) {
             const db_reseters = ResetFiltersWidgetController.getInstance().reseters[db_id];
 
@@ -338,10 +340,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
                 for (const w_id in p_reseters) {
                     const reset = p_reseters[w_id];
 
-                    await reset();
+                    promises.push(reset());
                 }
             }
         }
+        await all_promises(promises);
     }
 
     /**

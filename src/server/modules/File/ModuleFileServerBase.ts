@@ -1,6 +1,6 @@
 import { Express, Request, Response } from 'express';
-import * as fileUpload from 'express-fileupload';
-import * as fs from 'fs';
+import fileUpload from 'express-fileupload';
+import fs from 'fs';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -13,7 +13,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
 import FileServerController from './FileServerController';
-import path = require('path');
+import path from 'path';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 

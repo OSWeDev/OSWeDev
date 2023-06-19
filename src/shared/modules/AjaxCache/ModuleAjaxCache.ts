@@ -41,12 +41,6 @@ export default class ModuleAjaxCache extends Module {
         this.forceActivationOnInstallation();
     }
 
-    public setAjaxcacheDebouncer(ajaxcache_debouncer: number) {
-        if (!!this.client_controller) {
-            this.client_controller.ajaxcache_debouncer = ajaxcache_debouncer;
-        }
-    }
-
     public setClientController(client_controller: IAjaxCacheClientController) {
         this.client_controller = client_controller;
     }

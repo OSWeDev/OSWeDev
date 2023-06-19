@@ -39,6 +39,7 @@ import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -163,7 +164,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     get ordered_checkpoints(): ICheckPoint[] {
 
-        if ((!this.checkpoints) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checkpoints))) {
+        if ((!this.checkpoints) || (!ObjectHandler.hasAtLeastOneAttribute(this.checkpoints))) {
             return null;
         }
 
@@ -197,7 +198,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (this.checklistitems[vo.id].archived) {
             delete this.checklistitems[vo.id];
         }
-        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
         await this.throttled_update_visible_options();
@@ -276,7 +277,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems);
+        return ObjectHandler.hasAtLeastOneAttribute(this.checklistitems);
     }
 
     private async createNew() {
@@ -299,7 +300,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return;
         }
         delete this.checklistitems[item.id];
-        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+        if (!ObjectHandler.hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
         this.get_Checklistitemmodalcomponent.closemodal();
@@ -341,17 +342,17 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         if (this.can_delete_right == null) {
             this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.checklist_shared_module.checklistitem_type_id));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.checklist_shared_module.checklistitem_type_id));
         }
 
         if (this.can_update_right == null) {
             this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
         }
 
         if (this.can_create_right == null) {
             this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.checklist_shared_module.checklistitem_type_id));
         }
     }
 

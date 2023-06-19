@@ -21,25 +21,25 @@ export default class AnimationVueModule extends VueModuleBase {
         this.routes = [{
             path: '/animation',
             name: AnimationController.ROUTE_NAME_ANIMATION,
-            component: () => import(/* webpackChunkName: "VueAnimationComponent" */ "./_base/animation"),
+            component: () => import("./_base/animation"),
         }, {
             path: '/animation/module/:module_id',
             name: AnimationController.ROUTE_NAME_ANIMATION_MODULE,
-            component: () => import(/* webpackChunkName: "VueAnimationModuleComponent" */ "./module/module"),
+            component: () => import("./module/module"),
             props: (route) => ({
                 module_id: parseInt(route.params.module_id),
             })
         }, {
             path: '/animation/module/:module_id/feedback',
             name: AnimationController.ROUTE_NAME_ANIMATION_MODULE_FEEDBACK,
-            component: () => import(/* webpackChunkName: "VueAnimationModuleFeedbackComponent" */ "./feedback/feedback"),
+            component: () => import("./feedback/feedback"),
             props: (route) => ({
                 module_id: parseInt(route.params.module_id),
             })
         }, {
             path: '/animation_reporting',
             name: AnimationController.ROUTE_NAME_ANIMATION_REPORTING,
-            component: () => import(/* webpackChunkName: "VueAnimationReportingComponent" */ "./reporting/_base/reporting"),
+            component: () => import("./reporting/_base/reporting"),
         }];
     }
 }

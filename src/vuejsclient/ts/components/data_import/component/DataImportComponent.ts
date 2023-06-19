@@ -1,5 +1,5 @@
 
-import * as moment from 'moment';
+import moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';

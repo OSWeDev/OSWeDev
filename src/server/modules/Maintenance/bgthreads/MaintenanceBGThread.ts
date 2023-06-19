@@ -5,12 +5,11 @@ import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMain
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
-import StatsServerController from '../../Stats/StatsServerController';
 import MaintenanceServerController from '../MaintenanceServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 
@@ -42,7 +41,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('MaintenanceBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('MaintenanceBGThread', 'work', 'IN');
 
             // On veut voir si une maintenance est en base et inconnue pour le moment du système
             //  ou si la maintenance que l'on croit devoir préparer est toujours d'actualité
@@ -61,7 +60,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance) {
                 this.stats_out('inactive', time_in);
-                return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+                return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
             let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
@@ -118,8 +117,7 @@ export default class MaintenanceBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('MaintenanceBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('MaintenanceBGThread.work.' + activity + '.OUT.time', time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('MaintenanceBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('MaintenanceBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

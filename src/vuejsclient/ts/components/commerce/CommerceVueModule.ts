@@ -40,7 +40,7 @@ export default class CommerceVueModule extends VueModuleBase {
         return {
             path: '/commandes',
             name: 'commandes',
-            component: () => import(/* webpackChunkName: "CommandeListeComponent" */ './commande/liste/CommandeListeComponent')
+            component: () => import('./commande/liste/CommandeListeComponent')
         };
     }
 
@@ -48,7 +48,7 @@ export default class CommerceVueModule extends VueModuleBase {
         return {
             path: '/commande/:commande_id',
             name: 'commande_detail',
-            component: () => import(/* webpackChunkName: "CommandeDetailComponent" */ './commande/detail/CommandeDetailComponent'),
+            component: () => import('./commande/detail/CommandeDetailComponent'),
             props: (route) => ({
                 commande_id: parseInt(route.params.commande_id)
             })

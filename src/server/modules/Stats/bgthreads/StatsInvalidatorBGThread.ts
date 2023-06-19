@@ -2,14 +2,13 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsGroupSecDataRangesVO from '../../../../shared/modules/Stats/vars/vos/StatsGroupDayDataRangesVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleVarServer from '../../Var/ModuleVarServer';
-import StatsServerController from '../StatsServerController';
 import VarSecStatsGroupeController from '../vars/controllers/VarSecStatsGroupeController';
 
 export default class StatsInvalidatorBGThread implements IBGThread {
@@ -48,7 +47,7 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('StatsInvalidatorBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('StatsInvalidatorBGThread', 'work', 'IN');
 
             let invalidation_interval_sec = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
             let invalidate_x_previous_minutes = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
@@ -81,9 +80,8 @@ export default class StatsInvalidatorBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('StatsInvalidatorBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('StatsInvalidatorBGThread.work.' + activity + '.OUT.time', time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('StatsInvalidatorBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('StatsInvalidatorBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async invalidateStats(invalidate_x_previous_minutes: number, invalidate_current_minute: boolean) {

@@ -1,5 +1,6 @@
 import IDistantVOBase from '../../IDistantVOBase';
 import VarDAG from '../graph/VarDAG';
+import VarDAGNode from '../graph/VarDAGNode';
 import VarNodeParentPerfVO from './VarNodeParentPerfVO';
 
 
@@ -72,11 +73,11 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
      * @param parent_perf_ref la perf parente si il y en a une
      */
     public constructor(
-        node_name: string,
+        node: VarDAGNode,
         perf_name: string,
         parent_perf_ref: VarNodeParentPerfVO = null
     ) {
-        this.node_name = node_name;
+        this.node_name = node ? node.var_data.index : null;
         this.perf_name = perf_name;
         this.parent_perf_ref = parent_perf_ref;
 
@@ -84,7 +85,7 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
             return;
         }
 
-        let parent_perf = VarNodePerfElementVO.get_perf_by_ref(parent_perf_ref);
+        let parent_perf = ((!!parent_perf_ref.node_name) && (parent_perf_ref.node_name == this.node_name)) ? node.perfs[parent_perf_ref.perf_name] as VarNodePerfElementVO : VarNodePerfElementVO.get_perf_by_ref(parent_perf_ref);
         if (!parent_perf) {
             return;
         }

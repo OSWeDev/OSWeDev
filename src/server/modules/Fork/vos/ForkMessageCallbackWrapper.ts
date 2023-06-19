@@ -13,6 +13,10 @@ export default class ForkMessageCallbackWrapper {
     public constructor(
         public resolver: (result: any) => any,
         public thrower: (result: any) => any,
+
+        public task_uid: string, // principalement pour du debug quand il y a un timeout
+        public task_params: any,
+
         public timeout: number = 3600) {
 
         this.creation_time = Dates.now();

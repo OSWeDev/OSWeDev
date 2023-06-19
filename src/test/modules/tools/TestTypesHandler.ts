@@ -5,7 +5,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 import { expect } from 'chai';
 import 'mocha';
 import TypesHandler from '../../../shared/tools/TypesHandler';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('TypesHandler', () => {
     it('test isMoment', () => {

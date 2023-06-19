@@ -187,11 +187,11 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
         if (copy_it) {
             this.$emit('reload_widgets');
         } else {
-            this.delete_widget();
+            await this.delete_widget();
         }
 
         // Fermeture de la modale
-        this.cancel();
+        await this.cancel();
     }
 
     private async do_copy_widget() {

@@ -53,6 +53,10 @@ mixin var_data_content()
                                     i.fa-duotone.fa-cloud-download.text-default.import_marker_var(aria-hidden="true")
                                 template(v-if='var_data_value_is_denied')
                                     i.fa-duotone.fa-exclamation-triangle.text-danger.denied_marker_var(aria-hidden="true")
+        template(v-else)
+            .var_data_ref(:class='{"is_show_public_tooltip": is_show_public_tooltip && !!var_data_value_tooltip}' v-tooltip.top='var_data_value_tooltip')
+                | -
+
 
 
 

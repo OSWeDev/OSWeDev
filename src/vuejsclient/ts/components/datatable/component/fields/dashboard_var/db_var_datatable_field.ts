@@ -77,9 +77,11 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private dashboard: DashboardVO = null;
     private is_loading: boolean = true;
 
+    private var_param_no_value_or_param_is_invalid: boolean = false;
+
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
+        return ObjectHandler.hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
     }
 
     @Watch('dashboard_id', { immediate: true })
@@ -150,6 +152,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.dashboard = null;
             this.var_param = null;
             this.is_loading = false;
+            this.var_param_no_value_or_param_is_invalid = false;
             return;
         }
 
@@ -198,6 +201,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             custom_filters,
             this.dashboard.api_type_ids,
             this.get_discarded_field_paths);
+
+        if (!this.var_param) {
+            this.var_param_no_value_or_param_is_invalid = true;
+        } else {
+            this.var_param_no_value_or_param_is_invalid = false;
+        }
 
         this.is_loading = false;
     }

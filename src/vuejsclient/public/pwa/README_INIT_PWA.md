@@ -9,7 +9,7 @@ npm i workbox-webpack-plugin --save-dev
 ----------------------------------------------------------------------------------------------------------------------------------
 2. Modifier fichier webpack_common.config.ts
 Ajouter l'import suivant en haut du fichier :
-import WebpackPwaManifest = require('webpack-pwa-manifest');
+import WebpackPwaManifest from 'webpack-pwa-manifest';
 
 Ajouter les lignes suivantes pour remplir le common_plugins :
 if (config.ACTIVATE_PWA) {
@@ -53,7 +53,7 @@ Dans notre cas : src/client/public/img/logo_pwa.png
 ----------------------------------------------------------------------------------------------------------------------------------
 4. Modifier fichier webpack_client.config.ts
 Ajouter l'import suivant en haut du fichier :
-import WorkboxPlugin = require('workbox-webpack-plugin');
+import WorkboxPlugin from 'workbox-webpack-plugin';
 
 Créer une variable plugins_client pour pouvoir remplir le default plugins avec des conditions
 Exemple :
@@ -89,7 +89,7 @@ plugins: plugins_client.concat(common_plugins),
 ----------------------------------------------------------------------------------------------------------------------------------
 5. Modifier fichier webpack_login.config.ts
 Ajouter l'import suivant en haut du fichier :
-import WorkboxPlugin = require('workbox-webpack-plugin');
+import WorkboxPlugin from 'workbox-webpack-plugin';
 
 Créer une variable plugins_login pour pouvoir remplir le default plugins avec des conditions
 Exemple :

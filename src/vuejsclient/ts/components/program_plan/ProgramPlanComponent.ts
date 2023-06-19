@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { EventObjectInput, View } from 'fullcalendar';
 import debounce from 'lodash/debounce';
-import * as  moment from 'moment';
+import moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -324,7 +324,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             let timeout: number = 20;
             async function tryOpenModal() {
 
-                if ((!!self.getRdvsByIds) && (ObjectHandler.getInstance().hasAtLeastOneAttribute(self.getRdvsByIds))) {
+                if ((!!self.getRdvsByIds) && (ObjectHandler.hasAtLeastOneAttribute(self.getRdvsByIds))) {
 
                     if ((!self.selected_rdv_id) || (!self.getRdvsByIds[self.selected_rdv_id])) {
                         self.$router.push(self.route_path);
@@ -532,7 +532,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     }
 
                     managers = await query(this.program_plan_shared_module.manager_type_id)
-                        .filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids))
+                        .filter_by_ids(ObjectHandler.getNumberMapIndexes(ids))
                         .select_vos<IPlanManager>();
                 } else {
                     managers = await query(this.program_plan_shared_module.manager_type_id)
@@ -601,7 +601,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 }
 
                 facilitators = await query(this.program_plan_shared_module.facilitator_type_id)
-                    .filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids))
+                    .filter_by_ids(ObjectHandler.getNumberMapIndexes(ids))
                     .select_vos<IPlanFacilitator>();
             } else {
                 facilitators = await query(this.program_plan_shared_module.facilitator_type_id)
@@ -638,7 +638,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 }
 
                 context_query = query(this.program_plan_shared_module.target_type_id);
-                // .filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids));
+                // .filter_by_ids(ObjectHandler.getNumberMapIndexes(ids));
 
             } else {
                 context_query = query(this.program_plan_shared_module.target_type_id);
@@ -684,8 +684,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!this.program_plan_shared_module.target_facilitator_type_id) {
             promises.push((async () => {
 
-                let facilitators_ids: number[] = ObjectHandler.getInstance().getNumberMapIndexes(self.getFacilitatorsByIds);
-                let targets_ids: number[] = ObjectHandler.getInstance().getNumberMapIndexes(self.getTargetsByIds);
+                let facilitators_ids: number[] = ObjectHandler.getNumberMapIndexes(self.getFacilitatorsByIds);
+                let targets_ids: number[] = ObjectHandler.getNumberMapIndexes(self.getTargetsByIds);
 
                 if ((!targets_ids) || (!targets_ids.length)) {
                     return;
@@ -720,7 +720,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 }
 
                 let enseignes: IPlanEnseigne[] = await query(this.program_plan_shared_module.enseigne_type_id)
-                    .filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids))
+                    .filter_by_ids(ObjectHandler.getNumberMapIndexes(ids))
                     .select_vos<IPlanEnseigne>();
 
                 let enseignes_by_ids: { [id: number]: IPlanEnseigne } = {};
@@ -1845,7 +1845,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(rdvs);
         self.addRdvsByIds(rdvs_by_ids);
 
-        let rdvs_ids: number[] = ObjectHandler.getInstance().getNumberMapIndexes(rdvs_by_ids);
+        let rdvs_ids: number[] = ObjectHandler.getNumberMapIndexes(rdvs_by_ids);
 
         let promises: Array<Promise<any>> = [];
 

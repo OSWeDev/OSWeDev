@@ -10,10 +10,10 @@ import './VarsManagerComponent.scss';
     template: require('./VarsManagerComponent.pug'),
     components: {
         //"var-desc-registrations": VarDescRegistrationsComponent,
-        Varsdatasexplorercomponent: () => import(/* webpackChunkName: "VarsDatasExplorerComponent" */ '../explorer/VarsDatasExplorerComponent'),
-        Draggablewindowcomponent: () => import(/* webpackChunkName: "DraggableWindowComponent" */ '../../../draggable_window/DraggableWindowComponent'),
+        Varsdatasexplorercomponent: () => import('../explorer/VarsDatasExplorerComponent'),
+        Draggablewindowcomponent: () => import('../../../draggable_window/DraggableWindowComponent'),
 
-        // "perfmon-funcstats": () => import(/* webpackChunkName: "FuncStatsComponent" */ '../../../PerfMon/components/funcStats/FuncStatsComponent')
+        // "perfmon-funcstats": () => import('../../../PerfMon/components/funcStats/FuncStatsComponent')
     }
 })
 export default class VarsManagerComponent extends VueComponentBase {

@@ -12,6 +12,8 @@ import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
+import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -19,7 +21,6 @@ import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import StatsServerController from '../../Stats/StatsServerController';
 import VarsDatasProxy from '../../Var/VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import ModuleDataImportServer from '../ModuleDataImportServer';
@@ -61,7 +62,7 @@ export default class DataImportBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('DataImportBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('DataImportBGThread', 'work', 'IN');
 
             /**
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
@@ -201,16 +202,15 @@ export default class DataImportBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('DataImportBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('DataImportBGThread.work.' + activity + '.OUT.time', time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('DataImportBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async prepare_reimports() {
 
         let time_in = Dates.now_ms();
 
-        StatsServerController.register_stat('DataImportBGThread.prepare_reimports.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'IN');
 
         let dihs = await query(DataImportHistoricVO.API_TYPE_ID)
             .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
@@ -227,9 +227,8 @@ export default class DataImportBGThread implements IBGThread {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('DataImportBGThread.prepare_reimports.ok.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('DataImportBGThread.prepare_reimports.ok.OUT.time', time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'OUT');
+        StatsController.register_stat_DUREE('DataImportBGThread', 'prepare_reimports', 'OUT', time_out - time_in);
     }
 
     private async handleImportHistoricProgression(importHistoric: DataImportHistoricVO): Promise<boolean> {

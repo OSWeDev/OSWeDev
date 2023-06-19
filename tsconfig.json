@@ -1,50 +1,27 @@
 {
-    // "compilerOptions": {
-    //     "target": "es6",
-    //     "sourceMap": true,
-    //     "module": "commonjs",
-    //     "importHelpers": true,
-    //     "allowJs": true,
-    //     "outDir": "../../dist/",
-    //     "lib": [
-    //         "es6",
-    //         "dom"
-    //     ],
-    //     "moduleResolution": "node",
-    //     "types": [
-    //         "node"
-    //     ],
-    //     "emitDecoratorMetadata": true,
-    //     "experimentalDecorators": true
-    // },
     "compilerOptions": {
-        "target": "es5",
+        "target": "es2020",
+        "rootDir": "src",
+        "outDir": "dist",
         "sourceMap": true,
         "strict": false,
-        "module": "commonjs",
+        "module": "CommonJS",
         "importHelpers": true,
-        // "outDir": "../../dist/client",
         "lib": [
             "es2020",
             "es2015",
-            "dom"
+            "dom",
+            "ESNext"
         ],
-        // "target": "es6",
-        // "sourceMap": true,
-        // "module": "commonjs",
-        // "importHelpers": true,
-        // "lib": [
-        //     "es6",
-        //     "dom"
-        // ],
         "moduleResolution": "node",
         "types": [
             "node"
         ],
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "removeComments": false,
-        "outDir": "dist",
         "declaration": true
     },
     "include": [

@@ -1,4 +1,4 @@
-import * as socketIO from 'socket.io';
+import socketIO from 'socket.io';
 
 export default class SocketWrapper {
 

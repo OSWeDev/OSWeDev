@@ -876,7 +876,7 @@ export default class ContextFilterVOManager {
             return false;
         }
 
-        if ((context_filter_tree_root == context_filter_to_find) || ObjectHandler.getInstance().are_equal(context_filter_tree_root, context_filter_to_find)) {
+        if ((context_filter_tree_root == context_filter_to_find) || ObjectHandler.are_equal(context_filter_tree_root, context_filter_to_find)) {
             return true;
         }
 

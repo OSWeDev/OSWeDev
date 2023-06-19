@@ -1,7 +1,7 @@
 
 import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
-import JSONTransport = require('nodemailer/lib/json-transport');
+import JSONTransport from 'nodemailer/lib/json-transport';
 import CRUD from '../../../shared/modules/DAO/vos/CRUD';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -61,7 +61,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
         while (throttle > 0) {
             ConsoleHandler.error("Received KILL SIGN from parent - KILL in " + throttle);
-            await ThreadHandler.sleep(1000);
+            await ThreadHandler.sleep(1000, 'ModuleForkServer.kill_process');
             throttle--;
         }
         ConsoleHandler.error("Received KILL SIGN from parent - KILL");

@@ -2,6 +2,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -19,6 +20,8 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 
 export default class DAOServerController {
+
+    public static GLOBAL_UPDATE_BLOCKER: boolean = false;
 
     /**
      * Global application cache - Brocasted CUD - Local R -----
@@ -58,7 +61,9 @@ export default class DAOServerController {
      *  - Une fois qu'on a un droit de principe, on peut préciser le droit d'usage d'un type pour un utilisateur donné ou un contexte donné
      *      en utilisant un context_access_hook, qui est un contextQuery généré en fonction du user lançant la requête et appliqué à toutes les
      *      requêtes qui passent par le type du hook
-     *  - On peut aussi préciser le droit de faire un update ou un delete, via un trigger preupdate ou predelete cette fois qui permettra en renvoyant
+     *  - FIXME c'est ici qu'il faut modifier le comportement pour reprendre les IContextHookFilterVos sur chaque Access_type et du
+     *      coup pas avoir besoin d'un trigger pre update ou pre create et donc peut-être pas avoir besoin de update 1 à 1 les vos via context queries :
+     *      On peut aussi préciser le droit de faire un update ou un delete, via un trigger preupdate ou predelete cette fois qui permettra en renvoyant
      *      false de refuser une demande précise, or droit de principe d'insérer/updater des éléments dans la table
      *  - On peut ensuite détailler par champs, pour en bloquer certains, via des policies, 1 par champs, en Select ou en Update, et le contextQuery
      *      filtrera en fonction de ces droits => les filtres (droit Select) les fields du Select (droit Select) le field édité par un Update (droit Update)
@@ -226,7 +231,7 @@ export default class DAOServerController {
     }
 
     public get_inherited_right(DAO_ACCESS_TYPE: string, inherit_rights_from_vo_type: string): AccessPolicyVO {
-        return AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
+        return AccessPolicyServerController.get_registered_policy(DAOController.getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
     }
 
     public get_dao_dependency_default_denied(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {

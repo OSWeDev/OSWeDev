@@ -7,9 +7,9 @@ import './VarDescExplainDepComponent.scss';
 @Component({
     template: require('./VarDescExplainDepComponent.pug'),
     components: {
-        Vardesccontrollercomponent: () => import(/* webpackChunkName: "VarDescControllerComponent" */ '../../controller/VarDescControllerComponent'),
-        Vardescparamfieldscomponent: () => import(/* webpackChunkName: "VarDescParamFieldsComponent" */ '../../param_fields/VarDescParamFieldsComponent'),
-        Vardescexplaindepparamcomponent: () => import(/* webpackChunkName: "VarDescExplainDepParamComponent" */ './param/VarDescExplainDepParamComponent'),
+        Vardesccontrollercomponent: () => import('../../controller/VarDescControllerComponent'),
+        Vardescparamfieldscomponent: () => import('../../param_fields/VarDescParamFieldsComponent'),
+        Vardescexplaindepparamcomponent: () => import('./param/VarDescExplainDepParamComponent'),
     }
 })
 export default class VarDescExplainDepComponent extends VueComponentBase {

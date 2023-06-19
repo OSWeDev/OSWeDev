@@ -8,7 +8,7 @@ import HourHandler from '../../../shared/tools/HourHandler';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 
-// import * as moment from 'moment';
+// import moment from 'moment';
 
 describe('HourHandler', () => {
     it('test: formatHourForIHM', () => {

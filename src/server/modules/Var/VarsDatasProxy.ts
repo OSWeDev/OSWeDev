@@ -106,7 +106,7 @@ export default class VarsDatasProxy {
             for (let i in this.vars_datas_buffer_wrapped_indexes) {
                 let var_data_wrapper = this.vars_datas_buffer_wrapped_indexes[i];
 
-                if (!VarsServerController.getInstance().has_valid_value(var_data_wrapper.var_data)) {
+                if (!VarsServerController.has_valid_value(var_data_wrapper.var_data)) {
                     resolve(true);
                     return;
                 }
@@ -144,7 +144,7 @@ export default class VarsDatasProxy {
             let vars_data_to_prepend: VarDataBaseVO[] = [];
 
             varsdata.forEach((vardata) => {
-                if (VarsServerController.getInstance().has_valid_value(vardata)) {
+                if (VarsServerController.has_valid_value(vardata)) {
 
                     if (env.DEBUG_VARS) {
                         ConsoleHandler.log(
@@ -288,7 +288,7 @@ export default class VarsDatasProxy {
                 ConsoleHandler.warn('VarsDatasProxy:handle_buffer:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
-            await ThreadHandler.sleep(9);
+            await ThreadHandler.sleep(9, 'VarsDatasProxy.handle_buffer');
         }
         this.semaphore_handle_buffer = true;
 
@@ -311,7 +311,7 @@ export default class VarsDatasProxy {
                 let handle_var = wrapper.var_data;
 
                 // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage => surtout pas sinon on tourne en boucle
-                if (!VarsServerController.getInstance().has_valid_value(handle_var)) {
+                if (!VarsServerController.has_valid_value(handle_var)) {
                     continue;
                 }
 
@@ -389,7 +389,7 @@ export default class VarsDatasProxy {
                 }
             }
 
-            if (ObjectHandler.getInstance().hasAtLeastOneAttribute(to_insert_by_type)) {
+            if (ObjectHandler.hasAtLeastOneAttribute(to_insert_by_type)) {
 
                 let promises = [];
                 let result = true;
@@ -404,7 +404,7 @@ export default class VarsDatasProxy {
                     }
 
                     promises.push((async () => {
-                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert)) {
+                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert, null, true)) {
                             result = false;
                         }
 
@@ -416,7 +416,8 @@ export default class VarsDatasProxy {
                             let var_data = filtered_insert[i];
                             filtered_insert_by_index[var_data.index] = var_data;
                         }
-                        let inserted_vars: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).select_vos<VarDataBaseVO>();
+                        let inserted_vars: VarDataBaseVO[] = await query(api_type_id)
+                            .filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).exec_as_server().select_vos<VarDataBaseVO>();
 
                         for (let i in inserted_vars) {
                             let inserted_var = inserted_vars[i];
@@ -633,7 +634,7 @@ export default class VarsDatasProxy {
      * @returns true if there's at least one vardata waiting to be computed (having no valid value)
      */
     public has_vardata_waiting_for_computation(): boolean {
-        let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes).filter((v) => !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes).filter((v) => !VarsServerController.has_valid_value(v.var_data));
         return (!!vars_datas_buffer) && (vars_datas_buffer.length > 0);
     }
 
@@ -673,7 +674,7 @@ export default class VarsDatasProxy {
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
 
         let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes);
-        let vars_datas_wrapper = vars_datas_buffer ? vars_datas_buffer.filter((v) => !VarsServerController.getInstance().has_valid_value(v.var_data)) : [];
+        let vars_datas_wrapper = vars_datas_buffer ? vars_datas_buffer.filter((v) => !VarsServerController.has_valid_value(v.var_data)) : [];
         let vars_datas: VarDataBaseVO[] = vars_datas_wrapper.map((v) => v.var_data);
 
         if ((!vars_datas) || (!vars_datas.length)) {
@@ -718,7 +719,7 @@ export default class VarsDatasProxy {
          * - ni demandée par le serveur ni par un client
          * - qui n'ont pas besoin d'être mise en bdd
          */
-        if (unregistered_var_datas_wrappers_map && ObjectHandler.getInstance().hasAtLeastOneAttribute(unregistered_var_datas_wrappers_map)) {
+        if (unregistered_var_datas_wrappers_map && ObjectHandler.hasAtLeastOneAttribute(unregistered_var_datas_wrappers_map)) {
 
             let removed_vars: number = 0;
             for (let i in unregistered_var_datas_wrappers_map) {
@@ -791,10 +792,10 @@ export default class VarsDatasProxy {
             }
         }
 
-        let ordered_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => v.client_tab_id && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let ordered_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => v.client_tab_id && !VarsServerController.has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_client_vars_datas_buffer);
 
-        let ordered_non_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => (!v.client_tab_id) && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let ordered_non_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => (!v.client_tab_id) && !VarsServerController.has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_non_client_vars_datas_buffer);
 
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = ordered_client_vars_datas_buffer.concat(ordered_non_client_vars_datas_buffer);
@@ -846,8 +847,8 @@ export default class VarsDatasProxy {
                  * Si on demande avec un vardata quasi vide (sans valeur, sans value_ts) et que ça existe déjà dans le cache avec une valid value,
                  *  on demande de notifier directement la var_data du cache.
                  */
-                if ((!VarsServerController.getInstance().has_valid_value(var_data)) &&
-                    (VarsServerController.getInstance().has_valid_value(wrapper.var_data))) {
+                if ((!VarsServerController.has_valid_value(var_data)) &&
+                    (VarsServerController.has_valid_value(wrapper.var_data))) {
 
                     await VarsTabsSubsController.getInstance().notify_vardatas(
                         [new NotifVardatasParam([wrapper.var_data])]);
@@ -860,8 +861,8 @@ export default class VarsDatasProxy {
                  * Sinon, si on a dans le cache une version incomplète (sans valeur, sans value_ts) et que la demande est complète (avec valeur, avec value_ts),
                  * on met à jour la version du cache avec la demande
                  */
-                if ((!VarsServerController.getInstance().has_valid_value(wrapper.var_data)) &&
-                    (VarsServerController.getInstance().has_valid_value(var_data))) {
+                if ((!VarsServerController.has_valid_value(wrapper.var_data)) &&
+                    (VarsServerController.has_valid_value(var_data))) {
 
                     wrapper.var_data = var_data;
                 }
@@ -875,7 +876,7 @@ export default class VarsDatasProxy {
                 this.add_read_stat(wrapper);
 
                 // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
-                if (!VarsServerController.getInstance().has_valid_value(wrapper.var_data)) {
+                if (!VarsServerController.has_valid_value(wrapper.var_data)) {
                     VarsdatasComputerBGThread.getInstance().force_run_asap();
                 }
                 continue;
@@ -896,7 +897,7 @@ export default class VarsDatasProxy {
             res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index].var_data);
 
             // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
-            if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+            if (!VarsServerController.has_valid_value(var_data)) {
                 VarsdatasComputerBGThread.getInstance().force_run_asap();
             }
         }
@@ -940,8 +941,8 @@ export default class VarsDatasProxy {
 
             // On filtre en amont
             // // En tout premier les params qui nécessitent un calcul
-            // let valida = VarsServerController.getInstance().has_valid_value(a.var_data);
-            // let validb = VarsServerController.getInstance().has_valid_value(b.var_data);
+            // let valida = VarsServerController.has_valid_value(a.var_data);
+            // let validb = VarsServerController.has_valid_value(b.var_data);
             // if (valida && !validb) {
             //     return -1;
             // }

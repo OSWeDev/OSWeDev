@@ -49,7 +49,7 @@ export default class MenuAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "MenuOrganizerComponent" */ './organizer/MenuOrganizerComponent'),
+            component: () => import('./organizer/MenuOrganizerComponent'),
             props: (route) => ({
                 key: main_route_name
             })

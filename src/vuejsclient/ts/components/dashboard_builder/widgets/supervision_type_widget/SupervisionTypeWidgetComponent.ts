@@ -4,14 +4,13 @@ import SupervisionTypeWidgetManager from '../../../../../../shared/modules/Dashb
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 import VueComponentBase from '../../../VueComponentBase';
-import './SupervisionTypeWidgetComponent.scss';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),

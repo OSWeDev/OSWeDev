@@ -50,7 +50,7 @@ export default class ModuleMailer extends Module {
 
     private constructor() {
 
-        super("mailer", "MAILER");
+        super("mailer", "Mailer");
         this.forceActivationOnInstallation();
     }
 

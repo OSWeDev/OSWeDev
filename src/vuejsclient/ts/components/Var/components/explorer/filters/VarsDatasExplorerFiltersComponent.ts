@@ -18,9 +18,9 @@ import './VarsDatasExplorerFiltersComponent.scss';
 @Component({
     template: require('./VarsDatasExplorerFiltersComponent.pug'),
     components: {
-        Tsrangeinputcomponent: () => import(/* webpackChunkName: "TSRangeInputComponent" */ '../../../../tsrangeinput/TSRangeInputComponent'),
-        Hourrangeinputcomponent: () => import(/* webpackChunkName: "HourrangeInputComponent" */ '../../../../hourrangeinput/HourrangeInputComponent'),
-        Numrangeinputcomponent: () => import(/* webpackChunkName: "TSRangeInputComponent" */ '../../../../numrangeinput/NumRangeInputComponent'),
+        Tsrangeinputcomponent: () => import('../../../../tsrangeinput/TSRangeInputComponent'),
+        Hourrangeinputcomponent: () => import('../../../../hourrangeinput/HourrangeInputComponent'),
+        Numrangeinputcomponent: () => import('../../../../numrangeinput/NumRangeInputComponent'),
     }
 })
 export default class VarsDatasExplorerFiltersComponent extends VueComponentBase {

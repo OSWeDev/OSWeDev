@@ -12,9 +12,11 @@ import NFCTagVO from '../../../shared/modules/NFCConnect/vos/NFCTagVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
@@ -52,7 +54,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
@@ -203,28 +205,25 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private async connect(serial_number: string): Promise<boolean> {
 
-        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        let tag = await query(NFCTagVO.API_TYPE_ID).filter_by_text_eq(field_names<NFCTagVO>().name, serial_number).select_vo<NFCTagVO>();
+        if (!tag) {
+            ConsoleHandler.error('TAG inconnu:' + serial_number);
+            return false;
+        }
 
-            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
-            if (!tag) {
-                ConsoleHandler.error('TAG inconnu:' + serial_number);
-                return false;
-            }
+        let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).exec_as_server().select_vos<NFCTagUserVO>();
+        if ((!tags_user) || (tags_user.length != 1)) {
+            ConsoleHandler.error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
+            return false;
+        }
 
-            let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).select_vos<NFCTagUserVO>();
-            if ((!tags_user) || (tags_user.length != 1)) {
-                ConsoleHandler.error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
-                return false;
-            }
+        let tag_user = tags_user[0];
+        if (!tag_user.user_id) {
+            ConsoleHandler.error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
+            return false;
+        }
 
-            let tag_user = tags_user[0];
-            if (!tag_user.user_id) {
-                ConsoleHandler.error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
-                return false;
-            }
-
-            return await ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
-        });
+        return await ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
     }
 
     /**
@@ -235,25 +234,22 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
      */
     private async checktag_user(serial_number: string, user_id: number): Promise<boolean> {
 
-        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        let tag = await query(NFCTagVO.API_TYPE_ID).filter_by_text_eq(field_names<NFCTagVO>().name, serial_number).select_vo<NFCTagVO>();
+        if (!tag) {
+            return false;
+        }
 
-            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
-            if (!tag) {
-                return false;
-            }
+        let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).exec_as_server().select_vos<NFCTagUserVO>();
+        if ((!tags_user) || (tags_user.length != 1)) {
+            return false;
+        }
 
-            let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).select_vos<NFCTagUserVO>();
-            if ((!tags_user) || (tags_user.length != 1)) {
-                return false;
-            }
+        let tag_user = tags_user[0];
+        if (!tag_user.user_id) {
+            return false;
+        }
 
-            let tag_user = tags_user[0];
-            if (!tag_user.user_id) {
-                return false;
-            }
-
-            return tag_user.user_id != user_id;
-        });
+        return tag_user.user_id != user_id;
     }
 
     private async add_tag(serial_number: string): Promise<boolean> {
@@ -265,47 +261,44 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        let insertOrDeleteQueryResult = null;
+        let tag = await query(NFCTagVO.API_TYPE_ID).filter_by_text_eq(field_names<NFCTagVO>().name, serial_number).exec_as_server().select_vo<NFCTagVO>();
+        if (!tag) {
 
-            let insertOrDeleteQueryResult = null;
-            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
-            if (!tag) {
-
-                tag = new NFCTagVO();
-                tag.activated = true;
-                tag.name = serial_number;
-                insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(tag);
-                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-
-                    ConsoleHandler.error("Impossible de créer le nouveau tag. Abandon.");
-                    return false;
-                }
-                tag.id = insertOrDeleteQueryResult.id;
-            }
-
-            let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).select_vos<NFCTagUserVO>();
-            if ((tags_user) && (tags_user.length > 0)) {
-
-                if ((tags_user.length == 1) && (tags_user[0].user_id == user_id)) {
-                    // Tag déjà lié à cet utilisateur
-                    return true;
-                }
-                ConsoleHandler.error('TAG déjà lié à un utilisateur:' + serial_number);
-                return false;
-            }
-
-            let add_tag_user = new NFCTagUserVO();
-            add_tag_user.nfc_tag_id = tag.id;
-            add_tag_user.user_id = user_id;
-            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(add_tag_user);
+            tag = new NFCTagVO();
+            tag.activated = true;
+            tag.name = serial_number;
+            insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(tag);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
 
-                ConsoleHandler.error("Impossible de créer le nouveau tag user. Abandon.");
+                ConsoleHandler.error("Impossible de créer le nouveau tag. Abandon.");
                 return false;
             }
+            tag.id = insertOrDeleteQueryResult.id;
+        }
 
-            return true;
-        });
+        let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).exec_as_server().select_vos<NFCTagUserVO>();
+        if ((tags_user) && (tags_user.length > 0)) {
+
+            if ((tags_user.length == 1) && (tags_user[0].user_id == user_id)) {
+                // Tag déjà lié à cet utilisateur
+                return true;
+            }
+            ConsoleHandler.error('TAG déjà lié à un utilisateur:' + serial_number);
+            return false;
+        }
+
+        let add_tag_user = new NFCTagUserVO();
+        add_tag_user.nfc_tag_id = tag.id;
+        add_tag_user.user_id = user_id;
+        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(add_tag_user);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+
+            ConsoleHandler.error("Impossible de créer le nouveau tag user. Abandon.");
+            return false;
+        }
+
+        return true;
     }
 
     private async remove_user_tag(serial_number: string): Promise<boolean> {
@@ -317,23 +310,12 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        let insertOrDeleteQueryResult = await query(NFCTagVO.API_TYPE_ID).filter_by_text_eq('name', serial_number).exec_as_server().delete_vos();
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.length) || (!insertOrDeleteQueryResult[0].id)) {
+            ConsoleHandler.error("Impossible de supprimer le tag user. Abandon.");
+            return false;
+        }
 
-            let insertOrDeleteQueryResult = null;
-            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
-            if (!tag) {
-
-                ConsoleHandler.error("Impossible de supprimer le tag. Tag Introuvable.");
-                return false;
-            }
-
-            insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([tag]);
-            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                ConsoleHandler.error("Impossible de supprimer le tag user. Abandon.");
-                return false;
-            }
-
-            return true;
-        });
+        return true;
     }
 }

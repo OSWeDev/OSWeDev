@@ -1,7 +1,6 @@
 
-import { unitOfTime } from "moment";
-import * as moment from "moment";
-import * as screenfull from "screenfull";
+import moment from "moment";
+import screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
@@ -890,6 +889,9 @@ export default class VueComponentBase extends Vue
     }
 
     protected routeExists(url: string): boolean {
+        if (!url) {
+            return false;
+        }
 
         let resolved = this['$router'].resolve(url);
         if (resolved.route.name != '404') {

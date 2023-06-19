@@ -60,6 +60,7 @@ import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_link
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './TableWidgetKanbanComponent.scss';
+import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -1159,7 +1160,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return;
         }
 
-        this.can_create_kanban_column = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.kanban_column.api_type_id));
+        this.can_create_kanban_column = await ModuleAccessPolicy.getInstance().testAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.kanban_column.api_type_id));
     }
 
     @Watch('crud_activated_api_type', { immediate: true })
@@ -1174,7 +1175,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         if (this.can_delete_right == null) {
             this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
         }
 
         if (this.can_delete_all_right == null) {
@@ -1188,12 +1189,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         if (this.can_update_right == null) {
             this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
 
         if (this.can_create_right == null) {
             this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
     }
 
@@ -2179,7 +2180,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
         let promises = [
-            this.throttle_do_update_visible_options(),
+            this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
             this.update_filter_by_access_cache()
         ];
         await all_promises(promises);
@@ -2409,7 +2410,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
 
             res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
+                ObjectHandler.hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
                 this.get_active_field_filters);
         }
 

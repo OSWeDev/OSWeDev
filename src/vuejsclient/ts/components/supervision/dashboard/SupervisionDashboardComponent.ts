@@ -19,6 +19,7 @@ import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWi
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import { findIndex } from 'lodash';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import DAOController from '../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -244,7 +245,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             //récupération des sondes
             promises.push((async () => {
 
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                if (!await ModuleAccessPolicy.getInstance().testAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
                     return;
                 }
 
@@ -523,10 +524,12 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         if (Object.keys(this.supervised_item_selected).length == 0) {
             return;
         }
+        let promises = [];
         for (const e in this.supervised_item_selected) {
             let item_selected_for_delete = this.supervised_item_selected[e];
-            await this.add_item_to_unread(item_selected_for_delete);
+            promises.push(this.add_item_to_unread(item_selected_for_delete));
         }
+        await all_promises(promises);
         this.supervised_item_selected = {};
         this.valide = false;
     }

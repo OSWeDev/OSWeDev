@@ -1,5 +1,5 @@
 import { isArray } from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
@@ -21,8 +21,8 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VarDataBaseVO from './Var/vos/VarDataBaseVO';
+import cloneDeep from 'lodash/cloneDeep';
 import VOsTypesManager from './VO/manager/VOsTypesManager';
-import cloneDeep = require('lodash/cloneDeep');
 import ContextQueryInjectionCheckHandler from './ContextFilter/ContextQueryInjectionCheckHandler';
 
 
@@ -89,7 +89,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
      */
-    public static default_get_api_version<T extends IDistantVOBase>(e: T): any {
+    public static default_get_api_version<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true): any {
         if (!e) {
             return null;
         }
@@ -136,8 +136,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 continue;
             }
 
-            let new_id = fieldIdToAPIMap[field.field_id];
-            res[new_id] = table.default_get_field_api_version(e[field.field_id], field);
+            let new_id = translate_field_id ? fieldIdToAPIMap[field.field_id] : field.field_id;
+            res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_field_id);
         }
 
         return res;
@@ -380,6 +380,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             VOsTypesManager.registerModuleTable(this);
         }
     }
+
 
     /**
      * On ne peut segmenter que sur un field de type range ou ranges pour le moment
@@ -792,13 +793,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
     }
 
 
-    public default_get_field_api_version(e: any, field: ModuleTableField<any>): any {
+    public default_get_field_api_version(e: any, field: ModuleTableField<any>, translate_field_id: boolean = true): any {
         if ((!field) || (field.is_readonly)) {
             throw new Error('Should not ask for readonly fields');
         }
 
         /**
-         * Si le champ possible un custom_to_api
+         * Si le champ possède un custom_to_api
          */
         if (!!field.custom_translate_to_api) {
             return field.custom_translate_to_api(e);
@@ -822,7 +823,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 if (e && e._type) {
 
-                    let trans_plain_vo_obj = e ? ModuleTable.default_get_api_version(e) : null;
+                    let trans_plain_vo_obj = e ? ModuleTable.default_get_api_version(e, translate_field_id) : null;
                     return trans_plain_vo_obj ? JSON.stringify(trans_plain_vo_obj) : null;
 
                 } else if ((!!e) && isArray(e)) {
@@ -833,7 +834,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let trans_array = [];
                     for (let i in e) {
                         let e_ = e[i];
-                        trans_array.push(this.default_get_field_api_version(e_, field));
+                        trans_array.push(this.default_get_field_api_version(e_, field, translate_field_id));
                     }
                     return JSON.stringify(trans_array);
 

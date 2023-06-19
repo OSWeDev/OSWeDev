@@ -34,6 +34,7 @@ import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -181,7 +182,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         }
 
         this.has_access = await ModuleAccessPolicy.getInstance().testAccess(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
     }
 
     get api_type_id(): string {
@@ -329,7 +330,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if ((!this.fields) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.fields))) {
+        if ((!this.fields) || (!ObjectHandler.hasAtLeastOneAttribute(this.fields))) {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
@@ -483,15 +484,14 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                 try {
 
-                                    let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected));
+                                    let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected), false);
 
                                     let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
 
                                     await ModuleContextFilter.getInstance().update_vos(
-                                        context_query,
-                                        self.field_id_selected,
-                                        new_value
-                                    );
+                                        context_query, {
+                                        [self.field_id_selected]: new_value
+                                    });
 
                                     ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
 

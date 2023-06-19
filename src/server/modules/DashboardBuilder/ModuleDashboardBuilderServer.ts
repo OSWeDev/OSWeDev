@@ -1,3 +1,4 @@
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -7,7 +8,6 @@ import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -15,8 +15,8 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
@@ -41,9 +41,35 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Somme'
+        }, 'StatVO.AGGREGATOR_SUM'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Min'
+        }, 'StatVO.AGGREGATOR_MIN'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Moyenne'
+        }, 'StatVO.AGGREGATOR_MEAN'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Max'
+        }, 'StatVO.AGGREGATOR_MAX'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Graphique de var - Donut, Jauge ou Camembert'
         }, 'dashboards.widgets.icons_tooltips.varpiechart.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de la modification de la liaison'
+        }, 'TablesGraphEditFormComponent.switch_edge_acceptance.error.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': ''
+        }, 'dashboard_builder.tables_graph.message.error.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Il y a actuellement un bug sur le déplacement des cellules, qui ne peuvent être déplacées que au sein d\'elles mêmes, ou des autres cellules.\nPar ailleurs, lors de la suppression d\'une cellule, le graphique ne se met pas totalement à jour et la cellule reste visible, mais le type est bien supprimé. Recharger le graphique pour voir la modification.'
+        }, 'dashboard_builder.tables_graph.message.warning.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': ''
+        }, 'dashboard_builder.tables_graph.message.info.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquer pour éditer'
@@ -1038,19 +1064,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': '% de découpe'
         }, 'var_pie_chart_widget_options_component.cutout_percentage.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut'
+            'fr-fr': 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités en pourcentage. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut'
         }, 'var_pie_chart_widget_options_component.cutout_percentage.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Rotation'
         }, 'var_pie_chart_widget_options_component.rotation.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Point de départ du graphique en degrés. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+            'fr-fr': 'Point de départ du graphique en degrés. Entre 0 et 360. Exemple pour une jauge : 270'
         }, 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Circumference'
         }, 'var_pie_chart_widget_options_component.circumference.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Circumference du graphique. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+            'fr-fr': 'Circumference du graphique. Entre 0 et 360. Exemple pour une jauge : 180'
         }, 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Options des données'
@@ -1100,6 +1126,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Couleur de fond'
         }, 'var_pie_chart_widget_options_component.bg_color_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom de la variable principale'
+        }, 'var_pie_chart_widget_options_component.var_title_1.title_name_code_text.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Couleur de bordure'
         }, 'var_pie_chart_widget_options_component.border_color_1.___LABEL___'));
@@ -1665,6 +1694,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'adfd_desc.search_type.last'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "CAD - fin relative à aujourd'hui" },
+            'adfd_desc.search_type.ytd'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Dans le cas d\'un cumul à date, on peut sélectionner le segment de fin de la période relativement à la date du jour (le segment défini est inclu dans la sélection).' +
+                ' La date de début est le début de l\'année de la date de fin.'
+        }, 'advanced_date_filter_widget_opt.search_type_ytd.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher un calendrier" },
             'adfd_desc.search_type.custom'
         ));
@@ -2183,7 +2220,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'show_favorites_filters_widget_component.max_visible_options.___LABEL___'
         ));
 
-        let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
     }
@@ -2221,7 +2258,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let fo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -2234,7 +2271,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         front_access_dependency.src_pol_id = fo_access.id;
-        front_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        front_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         front_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
     }
 

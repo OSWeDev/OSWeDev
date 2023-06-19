@@ -1,9 +1,39 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
+import ModuleTable from '../modules/ModuleTable';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
+export const field_names: <T extends IDistantVOBase>(obj?: T) => { [P in keyof T]?: P } = <T extends IDistantVOBase>(obj?: T): { [P in keyof T]?: P } => {
+
+    return new Proxy({}, {
+        get: (_, prop) => prop,
+        set: () => {
+            throw Error('Set not supported');
+        },
+    }) as {
+            [P in keyof T]?: P;
+        };
+};
+
 export default class ObjectHandler {
+
+    /**
+     * Copie d'object VO. Pas opti mais fonctionnel
+     */
+    public static clone_vo<T extends IDistantVOBase>(vo: T): T {
+        return ModuleTable.default_from_api_version(ModuleTable.default_get_api_version(vo));
+    }
+
+    public static clone_vos<T extends IDistantVOBase>(vos: T[]): T[] {
+        let res: T[] = [];
+
+        for (let i in vos) {
+            res.push(ObjectHandler.clone_vo(vos[i]));
+        }
+
+        return res;
+    }
 
     public static empty_target(val) {
         return Array.isArray(val) ? [] : {};
@@ -180,16 +210,11 @@ export default class ObjectHandler {
         return ObjectHandler.instance;
     }
 
-    private static instance: ObjectHandler = null;
-
-    private constructor() {
-    }
-
-    public are_equal(a: any, b: any): boolean {
+    public static are_equal(a: any, b: any): boolean {
         return JSON.stringify(a) == JSON.stringify(b);
     }
 
-    public sortObjectByKey(obj: {}, sort_func = null): {} {
+    public static sortObjectByKey(obj: {}, sort_func = null): {} {
         let keys = [];
         let sorted_obj = {};
 
@@ -213,7 +238,7 @@ export default class ObjectHandler {
         return sorted_obj;
     }
 
-    public arrayFromMap<T>(map: { [i: number]: T }): T[] {
+    public static arrayFromMap<T>(map: { [i: number]: T }): T[] {
         let res: T[] = [];
 
         for (let i in map) {
@@ -222,7 +247,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public mapByNumberFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
+    public static mapByNumberFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
         let res: { [i: number]: T } = {};
 
         for (let i in a) {
@@ -232,7 +257,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public mapByStringFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: string]: T } {
+    public static mapByStringFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: string]: T } {
         let res: { [i: string]: T } = {};
 
         for (let i in a) {
@@ -242,7 +267,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public mapFromIdsArray(a: number[]): { [i: number]: boolean } {
+    public static mapFromIdsArray(a: number[]): { [i: number]: boolean } {
         let res: { [i: number]: boolean } = {};
 
         for (let i in a) {
@@ -251,7 +276,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public getIdsList(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): number[] {
+    public static getIdsList(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): number[] {
         let res: number[] = [];
 
         for (let i in vos) {
@@ -266,7 +291,7 @@ export default class ObjectHandler {
     /**
      * @param map The map of type {[index:number] : any} from which we want to extract the indexes as number[]
      */
-    public getNumberMapIndexes(map: { [index: number]: any }): number[] {
+    public static getNumberMapIndexes(map: { [index: number]: any }): number[] {
         let res: number[] = [];
 
         for (let i in map) {
@@ -279,7 +304,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public hasData(object): boolean {
+    public static hasData(object): boolean {
         return (object != null) && (typeof object != "undefined");
     }
 
@@ -287,7 +312,7 @@ export default class ObjectHandler {
      * Returns true if the object has an attribute, even if the attribute is valued to null
      * @param object
      */
-    public hasAtLeastOneAttribute(object): boolean {
+    public static hasAtLeastOneAttribute(object): boolean {
         for (let i in object) {
             return true;
         }
@@ -300,7 +325,7 @@ export default class ObjectHandler {
      * Returns true if the object has an attribute, even if the attribute is valued to null
      * @param object
      */
-    public hasOneAndOnlyOneAttribute(object): boolean {
+    public static hasOneAndOnlyOneAttribute(object): boolean {
 
         let res: boolean = false;
         for (let i in object) {
@@ -318,7 +343,7 @@ export default class ObjectHandler {
      * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a let we delete right next ...
      * @param object
      */
-    public shiftAttribute(object): any {
+    public static shiftAttribute(object): any {
         for (let i in object) {
             let res = object[i];
             delete object[i];
@@ -332,7 +357,7 @@ export default class ObjectHandler {
      * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a let we delete right next ...
      * @param object
      */
-    public getFirstAttributeName(object): any {
+    public static getFirstAttributeName(object): any {
         for (let i in object) {
             return i;
         }
@@ -343,7 +368,7 @@ export default class ObjectHandler {
     /**
      * Returns the path if exists in the object
      */
-    public getPathInObject(object, path: string): any {
+    public static getPathInObject(object, path: string): any {
 
         if ((!path) || (!object)) {
             return null;
@@ -365,7 +390,7 @@ export default class ObjectHandler {
     }
 
 
-    public filterVosIdsByNumRange<T>(elts_by_id: { [id: number]: T }, range: NumRange): { [id: number]: T } {
+    public static filterVosIdsByNumRange<T>(elts_by_id: { [id: number]: T }, range: NumRange): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
         for (let id in elts_by_id) {
@@ -381,7 +406,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public filterVosIdsByNumRanges<T>(elts_by_id: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
+    public static filterVosIdsByNumRanges<T>(elts_by_id: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
         for (let id in elts_by_id) {
@@ -394,4 +419,8 @@ export default class ObjectHandler {
 
         return res;
     }
+
+    private static instance: ObjectHandler = null;
+
+    private constructor() { }
 }

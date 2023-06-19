@@ -1,5 +1,5 @@
 
-import moment = require("moment");
+import moment from 'moment';
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import HourSegment from "../../DataRender/vos/HourSegment";
 import Dates from "./Dates";

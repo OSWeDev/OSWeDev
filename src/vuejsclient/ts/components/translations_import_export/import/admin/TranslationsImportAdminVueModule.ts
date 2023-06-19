@@ -41,7 +41,7 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "TranslationsImportComponent" */ './TranslationsImportComponent'),
+            component: () => import('./TranslationsImportComponent'),
             props: (route) => ({
                 key: main_route_name
             })
@@ -52,7 +52,7 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name + '__Modal',
-            component: () => import(/* webpackChunkName: "TranslationsImportComponent" */ './TranslationsImportComponent'),
+            component: () => import('./TranslationsImportComponent'),
             props: (route) => ({
                 key: main_route_name,
                 modal_show: true
