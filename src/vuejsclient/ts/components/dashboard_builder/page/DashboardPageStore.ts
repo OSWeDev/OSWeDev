@@ -1,19 +1,21 @@
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
-import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import IStoreModule from "../../../store/IStoreModule";
-import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
-import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
-
+import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
+import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { store_mutations_names } from '../../../store/StoreModuleBase';
-import VueComponentBase from "../../VueComponentBase";
-import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
-import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
 import SaveFavoritesFiltersModalComponent from "../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent";
 import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
+import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
+import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
+import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
+import SharedFiltersModalComponent from '../shared_filters/modal/SharedFiltersModalComponent';
+import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
+import VueComponentBase from "../../VueComponentBase";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -28,21 +30,25 @@ export interface IDashboardPageState {
      */
     page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
 
-    active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    active_field_filters: FieldFiltersVO;
 
     Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
+    Sharedfiltersmodalcomponent: SharedFiltersModalComponent;
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
     Supervisionitemmodal: SupervisionItemModalComponent;
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
     Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent;
 
+    dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
 
     page_history: DashboardPageVO[];
 
     custom_filters: string[];
     active_api_type_ids: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
     query_api_type_ids: string[]; // Setted from widget options to have custom|default query on specified vos api ids
+
+    shared_filters_map: SharedFiltersVO[]; // Shared filters map for all dashboard pages
 
     widgets_invisibility: { [w_id: number]: boolean };
 
@@ -133,13 +139,15 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             state.Crudcreatemodalcomponent = Crudcreatemodalcomponent;
         },
 
+        set_Sharedfiltersmodalcomponent(state: IDashboardPageState, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) {
+            state.Sharedfiltersmodalcomponent = Sharedfiltersmodalcomponent;
+        },
+
         set_Dashboardcopywidgetcomponent(state: IDashboardPageState, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
             state.Dashboardcopywidgetcomponent = Dashboardcopywidgetcomponent;
         },
 
-
-
-        set_active_field_filters(state: IDashboardPageState, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
+        set_active_field_filters(state: IDashboardPageState, active_field_filters: FieldFiltersVO) {
             state.active_field_filters = active_field_filters;
         },
 
@@ -215,124 +223,38 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             state.page_widgets.splice(store_i, 1);
         },
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        set_page_widgets_components_by_pwid(context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
-            commit_set_page_widgets_components_by_pwid(context, page_widgets_components_by_pwid);
-        },
-
-        set_discarded_field_paths(context: DashboardPageContext, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
-            commit_set_discarded_field_paths(context, discarded_field_paths);
-        },
-        set_widget_invisibility(context: DashboardPageContext, w_id: number) {
-            commit_set_widget_invisibility(context, w_id);
-        },
-        set_widget_visibility(context: DashboardPageContext, w_id: number) {
-            commit_set_widget_visibility(context, w_id);
-        },
-        set_widgets_invisibility(context: DashboardPageContext, widgets_invisibility: { [w_id: number]: boolean }) {
-            commit_set_widgets_invisibility(context, widgets_invisibility);
-        },
-        set_custom_filters(context: DashboardPageContext, custom_filters: string[]) {
-            commit_set_custom_filters(context, custom_filters);
-        },
-        set_active_api_type_ids(context: DashboardPageContext, active_api_type_ids: string[]) {
-            commit_set_active_api_type_ids(context, active_api_type_ids);
-        },
         set_dashboard_navigation_history(
-            context: DashboardPageContext,
+            state: IDashboardPageState,
             dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
         ) {
-            commit_set_dashboard_navigation_history(context, dashboard_navigation_history);
-        },
-        set_query_api_type_ids(context: DashboardPageContext, query_api_type_ids: string[]) {
-            commit_set_query_api_type_ids(context, query_api_type_ids);
-        },
-        set_shared_filters_map(context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) {
-            commit_set_shared_filters_map(context, shared_filters_map);
-        },
-        add_shared_filters_to_map(context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) {
-            commit_add_shared_filters_to_map(context, shared_filters_map);
-        },
-        set_page_history(context: DashboardPageContext, page_history: DashboardPageVO[]) {
-            commit_set_page_history(context, page_history);
-        },
-        add_page_history(context: DashboardPageContext, page_history: DashboardPageVO) {
-            commit_add_page_history(context, page_history);
-        },
-        pop_page_history(context: DashboardPageContext, fk) {
-            commit_pop_page_history(context, null);
-        },
-        set_Savefavoritesfiltersmodalcomponent(context: DashboardPageContext, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) {
-            commit_set_Savefavoritesfiltersmodalcomponent(context, Savefavoritesfiltersmodalcomponent);
-        },
-        set_Sharedfiltersmodalcomponent(context: DashboardPageContext, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) {
-            commit_set_Sharedfiltersmodalcomponent(context, Sharedfiltersmodalcomponent);
-        },
-        set_Crudupdatemodalcomponent(context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
-            commit_set_Crudupdatemodalcomponent(context, Crudupdatemodalcomponent);
-        },
-        set_Checklistitemmodalcomponent(context: DashboardPageContext, Checklistitemmodalcomponent: ChecklistItemModalComponent) {
-            commit_set_Checklistitemmodalcomponent(context, Checklistitemmodalcomponent);
-        },
-        set_Supervisionitemmodal(context: DashboardPageContext, Supervisionitemmodal: SupervisionItemModalComponent) {
-            commit_set_Supervisionitemmodal(context, Supervisionitemmodal);
+            state.dashboard_navigation_history = dashboard_navigation_history;
         },
 
-        set_Crudcreatemodalcomponent(context: DashboardPageContext, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
-            commit_set_Crudcreatemodalcomponent(context, Crudcreatemodalcomponent);
+        set_shared_filters_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
+            state.shared_filters_map = shared_filters_map;
         },
 
-        set_Dashboardcopywidgetcomponent(context: DashboardPageContext, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
-            commit_set_Dashboardcopywidgetcomponent(context, Dashboardcopywidgetcomponent);
-        },
+        add_shared_filters_to_map(state: IDashboardPageState, shared_filters_map: SharedFiltersVO[]) {
+            let _shared_filters_map = state.shared_filters_map;
 
-        set_active_field_filters(context: DashboardPageContext, active_field_filters: FieldFiltersVO) {
-            commit_set_active_field_filters(context, active_field_filters);
-        },
+            if (_shared_filters_map?.length > 0) {
+                _shared_filters_map = _shared_filters_map.concat(shared_filters_map);
+            } else {
+                _shared_filters_map = shared_filters_map;
+            }
 
-        set_active_field_filter(context: DashboardPageContext, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
-            commit_set_active_field_filter(context, param);
-        },
+            // Add shared filters to map
+            // Remove duplicates
+            state.shared_filters_map = _shared_filters_map.reduce((accumulator, shared_filter) => {
+                if (!accumulator.find((sf) => sf.id == shared_filter.id)) {
+                    accumulator.push(shared_filter);
+                }
 
-        remove_active_field_filter(context: DashboardPageContext, params: { vo_type: string, field_id: string }) {
-            commit_remove_active_field_filter(context, params);
-        },
-
-        clear_active_field_filters(context: DashboardPageContext, empty) {
-            commit_clear_active_field_filters(context, empty);
-        },
-
-        set_page_widgets(context: DashboardPageContext, page_widgets: DashboardPageWidgetVO[]) {
-            commit_set_page_widgets(context, page_widgets);
-        },
-
-        set_page_widget(context: DashboardPageContext, page_widget: DashboardPageWidgetVO) {
-            commit_set_page_widget(context, page_widget);
-        },
-
-        delete_page_widget(context: DashboardPageContext, page_widget: DashboardPageWidgetVO) {
-            commit_delete_page_widget(context, page_widget);
-        },
-
-        remove_page_widgets_components_by_pwid(context: DashboardPageContext, pwid: number) {
-            commit_remove_page_widgets_components_by_pwid(context, pwid);
-        },
-        set_page_widget_component_by_pwid(context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) {
-            commit_set_page_widget_component_by_pwid(context, param);
+                return accumulator;
+            }, []);
         },
     };
+
     public actions: ActionTree<IDashboardPageState, DashboardPageContext>;
     public namespaced: boolean = true;
 
@@ -347,13 +269,16 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             Checklistitemmodalcomponent: null,
             Supervisionitemmodal: null,
             Savefavoritesfiltersmodalcomponent: null,
+            Sharedfiltersmodalcomponent: null,
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
             Dashboardcopywidgetcomponent: null,
+            dashboard_navigation_history: { current_dashboard_id: null, previous_dashboard_id: null },
             page_history: [],
             custom_filters: [],
             active_api_type_ids: [],
             query_api_type_ids: [],
+            shared_filters_map: [],
             widgets_invisibility: {},
             discarded_field_paths: {}
         };
@@ -436,11 +361,15 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             add_page_history: (context: DashboardPageContext, page_history: DashboardPageVO) => context.commit(store_mutations_names(this).add_page_history, page_history),
             pop_page_history: (context: DashboardPageContext, fk) => context.commit(store_mutations_names(this).pop_page_history, null),
             set_Savefavoritesfiltersmodalcomponent: (context: DashboardPageContext, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) => context.commit(store_mutations_names(this).set_Savefavoritesfiltersmodalcomponent, Savefavoritesfiltersmodalcomponent),
+            set_Sharedfiltersmodalcomponent: (context: DashboardPageContext, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) => context.commit(store_mutations_names(this).set_Sharedfiltersmodalcomponent, Sharedfiltersmodalcomponent),
             set_Crudupdatemodalcomponent: (context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) => context.commit(store_mutations_names(this).set_Crudupdatemodalcomponent, Crudupdatemodalcomponent),
             set_Checklistitemmodalcomponent: (context: DashboardPageContext, Checklistitemmodalcomponent: ChecklistItemModalComponent) => context.commit(store_mutations_names(this).set_Checklistitemmodalcomponent, Checklistitemmodalcomponent),
             set_Supervisionitemmodal: (context: DashboardPageContext, Supervisionitemmodal: SupervisionItemModalComponent) => context.commit(store_mutations_names(this).set_Supervisionitemmodal, Supervisionitemmodal),
             set_Crudcreatemodalcomponent: (context: DashboardPageContext, Crudcreatemodalcomponent: CRUDCreateModalComponent) => context.commit(store_mutations_names(this).set_Crudcreatemodalcomponent, Crudcreatemodalcomponent),
             set_Dashboardcopywidgetcomponent: (context: DashboardPageContext, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) => context.commit(store_mutations_names(this).set_Dashboardcopywidgetcomponent, Dashboardcopywidgetcomponent),
+            set_dashboard_navigation_history: (context: DashboardPageContext, dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }) => context.commit(store_mutations_names(this).set_dashboard_navigation_history, dashboard_navigation_history),
+            add_shared_filters_to_map: (context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) => context.commit(store_mutations_names(this).add_shared_filters_to_map, shared_filters_map),
+            set_shared_filters_map: (context: DashboardPageContext, shared_filters_map: SharedFiltersVO[]) => context.commit(store_mutations_names(this).set_shared_filters_map, shared_filters_map),
             set_active_field_filters: (context: DashboardPageContext, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) => context.commit(store_mutations_names(this).set_active_field_filters, active_field_filters),
             set_active_field_filter: (context: DashboardPageContext, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => context.commit(store_mutations_names(this).set_active_field_filter, param),
             remove_active_field_filter: (context: DashboardPageContext, params: { vo_type: string, field_id: string }) => context.commit(store_mutations_names(this).remove_active_field_filter, params),
