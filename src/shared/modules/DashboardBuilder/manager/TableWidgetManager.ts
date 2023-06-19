@@ -84,10 +84,10 @@ export default class TableWidgetManager {
             );
 
             // The actual fields to be exported
-            let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
+            const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
 
             for (let i in widget_options_fields) {
-                let field = widget_options_fields[i];
+                const field = widget_options_fields[i];
                 fields[field.datatable_field_uid] = field;
             }
 
@@ -215,7 +215,9 @@ export default class TableWidgetManager {
             }
         }
 
-        let columns_by_field_id = TableWidgetManager.get_table_columns_by_field_id_by_widget_options(widget_options);
+        let columns_by_field_id = TableWidgetManager.get_table_columns_by_field_id_by_widget_options(
+            widget_options
+        );
 
         for (const field_id in columns_by_field_id) {
             const field = columns_by_field_id[field_id];

@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
+import SupervisionTypeWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -10,7 +11,6 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import VueComponentBase from '../../../VueComponentBase';
-import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -143,11 +143,11 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let options: SupervisionTypeWidgetOptions = null;
+        let options: SupervisionTypeWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptions;
-                options = options ? new SupervisionTypeWidgetOptions(
+                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptionsVO;
+                options = options ? new SupervisionTypeWidgetOptionsVO(
                     options.supervision_api_type_ids
                 ) : null;
             }
