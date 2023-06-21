@@ -31,16 +31,16 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return res;
     }
 
-    public static defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string): any {
-        if (this.computed_value && this.computed_value[datatable_field_uid]) {
-            return this.computed_value[datatable_field_uid](field_value, moduleTableField, vo, datatable_field_uid);
+    public dataToReadIHM(field_value: any, vo: IDistantVOBase): any {
+        if (DatatableField.computed_value && DatatableField.computed_value[this.datatable_field_uid]) {
+            return DatatableField.computed_value[this.datatable_field_uid](field_value, this.moduleTableField, vo, this.datatable_field_uid);
         }
         if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
         try {
-            switch (moduleTableField.field_type) {
+            switch (this.field_type) {
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                     return field_value;
 
@@ -58,12 +58,12 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return hourFilter.read(field_value);
 
                 case ModuleTableField.FIELD_TYPE_enum:
-                    return LocaleManager.getInstance().t(moduleTableField.enum_values[field_value]);
+                    return LocaleManager.getInstance().t(this.enum_values[field_value]);
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
 
-                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment.unix(this.getMomentDateFieldInclusif(field_value, moduleTableField, true)).utc());
+                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment.unix(this.getMomentDateFieldInclusif(field_value, true)).utc());
 
                 case ModuleTableField.FIELD_TYPE_month:
                     return Dates.format(field_value, 'MMM YYYY');
@@ -76,7 +76,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
 
                     let daterange_array = null;
-                    if (moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) {
+                    if (this.field_type == ModuleTableField.FIELD_TYPE_daterange) {
                         daterange_array = [field_value];
                     } else {
                         daterange_array = field_value;
@@ -97,7 +97,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         }
                         res += '-';
                         if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment.unix(this.getMomentDateFieldInclusif(moment(parts[1].trim()).utc(true).unix(), moduleTableField, true)).utc());
+                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment.unix(this.getMomentDateFieldInclusif(moment(parts[1].trim()).utc(true).unix(), true)).utc());
                         }
                     }
 
@@ -136,15 +136,15 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     res_hourrange += (res_hourrange == "") ? '' : ' + ';
 
                     res_hourrange += hourrange_.min_inclusiv ? '[' : '(';
-                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.min, moduleTableField.segmentation_type);
+                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.min, this.segmentation_type);
                     res_hourrange += ',';
-                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.max, moduleTableField.segmentation_type);
+                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.max, this.segmentation_type);
                     res_hourrange += hourrange_.max_inclusiv ? ']' : ')';
 
                     return res_hourrange;
 
                 case ModuleTableField.FIELD_TYPE_hour:
-                    return HourHandler.getInstance().formatHourForIHM(field_value, moduleTableField.segmentation_type);
+                    return HourHandler.getInstance().formatHourForIHM(field_value, this.segmentation_type);
 
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                     if (!field_value) {
@@ -159,9 +159,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         res_hourranges += (res_hourranges == "") ? '' : ' + ';
 
                         res_hourranges += hourrange.min_inclusiv ? '[' : '(';
-                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.min, moduleTableField.segmentation_type);
+                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.min, this.segmentation_type);
                         res_hourranges += ',';
-                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.max, moduleTableField.segmentation_type);
+                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.max, this.segmentation_type);
                         res_hourranges += hourrange.max_inclusiv ? ']' : ')';
                     }
 
@@ -195,20 +195,20 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let none: boolean = true;
 
-                    let min_period: number = RangeHandler.getSegmentedMin(field_value, TimeSegment.TYPE_DAY, 0, moduleTableField.return_min_value);
+                    let min_period: number = RangeHandler.getSegmentedMin(field_value, TimeSegment.TYPE_DAY, 0, this.return_min_value);
                     if (min_period) {
-                        res_tsrange.push(Dates.format_segment(min_period, moduleTableField.segmentation_type, moduleTableField.format_localized_time));
+                        res_tsrange.push(Dates.format_segment(min_period, this.segmentation_type, this.format_localized_time));
                         none = false;
                     } else {
                         res_tsrange.push('');
                     }
 
-                    let max_period: number = RangeHandler.getSegmentedMax(field_value, TimeSegment.TYPE_DAY, 0, moduleTableField.return_max_value);
+                    let max_period: number = RangeHandler.getSegmentedMax(field_value, TimeSegment.TYPE_DAY, 0, this.return_max_value);
 
                     if (max_period) {
                         // Si mon max est différent du min, j'ajoute, sinon ça ne sert à rien car ça affiche en double
                         if (max_period != min_period) {
-                            res_tsrange.push(Dates.format_segment(max_period, moduleTableField.segmentation_type, moduleTableField.format_localized_time));
+                            res_tsrange.push(Dates.format_segment(max_period, this.segmentation_type, this.format_localized_time));
                             none = false;
                         }
                     } else {
@@ -224,8 +224,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     const isStringDateRangeFormat = rgx.test(field_value);
 
                     if (isStringDateRangeFormat) {
-                        const new_field_value = RangeHandler.parseRangeBDD(TSRange.RANGE_TYPE, field_value, (moduleTableField.segmentation_type ?? TimeSegment.TYPE_SECOND));
-                        return SimpleDatatableFieldVO.defaultDataToReadIHM(new_field_value, moduleTableField, vo, datatable_field_uid);
+                        const new_field_value = RangeHandler.parseRangeBDD(TSRange.RANGE_TYPE, field_value, (this.segmentation_type ?? TimeSegment.TYPE_SECOND));
+                        return this.dataToReadIHM(new_field_value, vo);
                     }
 
                     return none ? '∞' : res_tsrange.join(' - ');
@@ -235,7 +235,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let none_number: boolean = true;
 
-                    let min_number: number = RangeHandler.getSegmentedMin(field_value, null, 0, moduleTableField.return_min_value);
+                    let min_number: number = RangeHandler.getSegmentedMin(field_value, null, 0, this.return_min_value);
                     if (min_number) {
                         res_numrange.push(min_number.toFixed(0));
                         none_number = false;
@@ -244,7 +244,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         res_numrange.push('');
                     }
 
-                    let max_number: number = RangeHandler.getSegmentedMax(field_value, null, 0, moduleTableField.return_max_value);
+                    let max_number: number = RangeHandler.getSegmentedMax(field_value, null, 0, this.return_max_value);
 
                     if (max_number) {
                         if (max_number.toFixed(0) != min_number.toFixed(0)) {
@@ -265,8 +265,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return field_value;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    let date = this.getMomentDateFieldInclusif(field_value, moduleTableField, true);
-                    return Dates.format_segment(date, moduleTableField.segmentation_type, moduleTableField.format_localized_time);
+                    let date = this.getMomentDateFieldInclusif(field_value, true);
+                    return Dates.format_segment(date, this.segmentation_type, this.format_localized_time);
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     let res_tstz_array = '';
@@ -278,8 +278,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                             res_tstz_array += ', ';
                         }
 
-                        let date_fv = this.getMomentDateFieldInclusif(fv, moduleTableField, true);
-                        res_tstz_array += Dates.format_segment(date_fv, moduleTableField.segmentation_type, moduleTableField.format_localized_time);
+                        let date_fv = this.getMomentDateFieldInclusif(fv, true);
+                        res_tstz_array += Dates.format_segment(date_fv, this.segmentation_type, this.format_localized_time);
                     }
                     return res_tstz_array;
 
@@ -289,8 +289,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
                         let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
-                        if (moduleTableField.field_type == tableFieldTypeController.name) {
-                            return tableFieldTypeController.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                        if (this.field_type == tableFieldTypeController.name) {
+                            return tableFieldTypeController.defaultDataToReadIHM(field_value, this.moduleTableField, vo);
                         }
                     }
 
@@ -302,13 +302,13 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string): any {
+    public dataToUpdateIHM(field_value: any, vo: IDistantVOBase): any {
         if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
         try {
-            switch (moduleTableField.field_type) {
+            switch (this.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                     return field_value;
@@ -320,16 +320,16 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return field_value;
 
                 case ModuleTableField.FIELD_TYPE_boolean:
-                    if (moduleTableField.field_required) {
+                    if (this.is_required) {
                         return (!field_value) ? false : true;
                     }
                     return field_value;
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-                    return DateHandler.getInstance().formatDayForVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true).unix(), moduleTableField, true));
+                    return DateHandler.getInstance().formatDayForVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true).unix(), true));
                 case ModuleTableField.FIELD_TYPE_month:
-                    return DateHandler.getInstance().formatMonthFromVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true).unix(), moduleTableField, true));
+                    return DateHandler.getInstance().formatMonthFromVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true).unix(), true));
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 case ModuleTableField.FIELD_TYPE_hourrange:
@@ -343,7 +343,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return field_value;
 
                 default:
-                    return SimpleDatatableFieldVO.defaultDataToReadIHM(field_value, moduleTableField, vo, datatable_field_uid);
+                    return this.dataToReadIHM(field_value, vo);
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -351,14 +351,14 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public static defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public ReadIHMToData(value: any, vo: IDistantVOBase): any {
         if ((value === null) || (typeof value == "undefined")) {
             return value;
         }
 
         try {
 
-            switch (moduleTableField.field_type) {
+            switch (this.field_type) {
                 case ModuleTableField.FIELD_TYPE_boolean:
                     if ((value === true) || (value === "true")) {
                         return true;
@@ -387,8 +387,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return (isNaN(eint)) ? null : eint;
 
                 case ModuleTableField.FIELD_TYPE_enum:
-                    for (let i in moduleTableField.enum_values) {
-                        if (LocaleManager.getInstance().i18n.t(moduleTableField.enum_values[i]) == value) {
+                    for (let i in this.enum_values) {
+                        if (LocaleManager.getInstance().i18n.t(this.enum_values[i]) == value) {
                             return i;
                         }
                     }
@@ -411,7 +411,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
                     res += ',';
                     if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                        res += DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim()).unix(), moduleTableField, false));
+                        res += DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim()).unix(), false));
                     }
                     res += ')';
 
@@ -419,7 +419,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-                    return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value).utc(true).unix(), moduleTableField, false)) : null;
+                    return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value).utc(true).unix(), false)) : null;
                 case ModuleTableField.FIELD_TYPE_month:
                     return value ? DateHandler.getInstance().formatDayForSQL(moment(value).utc(true).startOf('month').unix()) : null;
 
@@ -444,19 +444,19 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_html_array:
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    switch (moduleTableField.segmentation_type) {
+                    switch (this.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
                             return value ? Dates.startOf(value, TimeSegment.TYPE_MONTH) : null;
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_MONTH), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_MONTH), false) : null;
                         case TimeSegment.TYPE_WEEK:
-                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_WEEK), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_WEEK), false) : null;
                         case TimeSegment.TYPE_YEAR:
                             return value ? Dates.startOf(value, TimeSegment.TYPE_YEAR) : null;
                         case TimeSegment.TYPE_DAY:
-                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_DAY), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_DAY), false) : null;
                         default:
-                            return value ? this.getMomentDateFieldInclusif(value, moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(value, false) : null;
                     }
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -465,19 +465,19 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     for (let i in value) {
                         let v = value[i];
 
-                        switch (moduleTableField.segmentation_type) {
+                        switch (this.segmentation_type) {
                             case TimeSegment.TYPE_MONTH:
                                 res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_MONTH) : null);
                             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), false) : null);
                             case TimeSegment.TYPE_WEEK:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_WEEK), moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_WEEK), false) : null);
                             case TimeSegment.TYPE_YEAR:
                                 res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_YEAR) : null);
                             case TimeSegment.TYPE_DAY:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), false) : null);
                             default:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(v, moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(v, false) : null);
                         }
                     }
 
@@ -489,8 +489,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
                         let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
-                        if (moduleTableField.field_type == tableFieldTypeController.name) {
-                            return tableFieldTypeController.defaultReadIHMToData(value, moduleTableField, vo);
+                        if (this.field_type == tableFieldTypeController.name) {
+                            return tableFieldTypeController.defaultReadIHMToData(value, this.moduleTableField, vo);
                         }
                     }
 
@@ -502,14 +502,14 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public static defaultUpdateIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public UpdateIHMToData(value: any, vo: IDistantVOBase): any {
         if ((value === null) || (typeof value == "undefined")) {
             return value;
         }
 
         try {
 
-            switch (moduleTableField.field_type) {
+            switch (this.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                     return value;
@@ -518,25 +518,12 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return value;
 
                 default:
-                    return SimpleDatatableFieldVO.defaultReadIHMToData(value, moduleTableField, vo);
+                    return this.ReadIHMToData(value, vo);
             }
         } catch (error) {
             ConsoleHandler.error(error);
             return value;
         }
-    }
-
-    private static getMomentDateFieldInclusif(momentSrc: number, moduleTableField: ModuleTableField<any>, is_data_to_ihm: boolean): number {
-        let date = momentSrc;
-        if (moduleTableField.is_inclusive_data != moduleTableField.is_inclusive_ihm) {
-            if (moduleTableField.is_inclusive_data) {
-                date = Dates.add(date, is_data_to_ihm ? 1 : -1, moduleTableField.segmentation_type);
-            } else {
-                date = Dates.add(date, is_data_to_ihm ? -1 : 1, moduleTableField.segmentation_type);
-            }
-        }
-
-        return date;
     }
 
     get max_values(): number {
@@ -549,22 +536,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return this.moduleTableField.min_values;
     }
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableFieldVO.defaultDataToReadIHM(e, this.moduleTableField, vo, this.datatable_field_uid) as any;
-    }
-    public dataToUpdateIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableFieldVO.defaultDataToUpdateIHM(e, this.moduleTableField, vo, this.datatable_field_uid) as any;
-    }
     public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
         return this.dataToUpdateIHM(e, vo);
     }
 
-    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
-        return SimpleDatatableFieldVO.defaultReadIHMToData(e, this.moduleTableField, vo) as any;
-    }
-    public UpdateIHMToData(e: U, vo: IDistantVOBase): T {
-        return SimpleDatatableFieldVO.defaultUpdateIHMToData(e, this.moduleTableField, vo) as any;
-    }
     public CreateIHMToData(e: U, vo: IDistantVOBase): T {
         return this.UpdateIHMToData(e, vo);
     }
@@ -589,7 +564,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
             return null;
         }
 
-        return LocaleManager.getInstance().i18n.t(this.moduleTableField.enum_values[id]);
+        return LocaleManager.getInstance().i18n.t(this.enum_values[id]);
     }
 
     public enumIdToHumanReadableImage: (id: number) => string = (id: number) => {
@@ -609,7 +584,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     public dataToHumanReadableField(e: IDistantVOBase): U {
         let res = this.dataToReadIHM(e[this.datatable_field_uid], e);
 
-        if ((this.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (this.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+        if ((this.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (this.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
 
             // FIXME TODO si on est sur un boolean on voudrait voir idéalement OUI/NON et pas true /false mais ça dépend de la langue donc c'est pas si simple...
             return res;
@@ -620,5 +595,18 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
 
         return res;
+    }
+
+    private getMomentDateFieldInclusif(momentSrc: number, is_data_to_ihm: boolean): number {
+        let date = momentSrc;
+        if (this.is_inclusive_data != this.is_inclusive_ihm) {
+            if (this.is_inclusive_data) {
+                date = Dates.add(date, is_data_to_ihm ? 1 : -1, this.segmentation_type);
+            } else {
+                date = Dates.add(date, is_data_to_ihm ? -1 : 1, this.segmentation_type);
+            }
+        }
+
+        return date;
     }
 }

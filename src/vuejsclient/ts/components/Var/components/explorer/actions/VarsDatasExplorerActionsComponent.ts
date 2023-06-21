@@ -1,7 +1,6 @@
 import { Component } from 'vue-property-decorator';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import MatroidBaseController from '../../../../../../../shared/modules/Matroid/MatroidBaseController';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';

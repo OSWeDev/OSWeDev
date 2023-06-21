@@ -205,6 +205,12 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private hide_text_cliquable: boolean;
 
+    @Prop({ default: false })
+    private autofocus: boolean;
+
+    @Prop({ default: false })
+    private autoselect_on_focus: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private auto_validate_start: number = null;
@@ -243,7 +249,9 @@ export default class CRUDComponentField extends VueComponentBase
         this.inline_input_is_editing = this.force_input_is_editing;
         if (this.inline_input_mode && this.force_input_is_editing && this.$refs.input_elt && !!this.$refs.input_elt['focus']) {
             let self = this;
-            //this.$nextTick(() => self.$refs.input_elt['focus']()); -> Autofocus du curseur lors du changement de page - voir ticket focus_auto
+            if (this.autofocus) {
+                this.$nextTick(() => self.$refs.input_elt['focus']());
+            }
         }
 
         this.select_options_enabled_by_id = this.get_check_field_options_enabled(this.field);
@@ -445,14 +453,14 @@ export default class CRUDComponentField extends VueComponentBase
         let input_value: any = null;
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_html)) {
             input_value = input;
         } else {
             input_value = input.value;
         }
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) &&
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_boolean) &&
             this.field.is_required) {
             input_value = input.checked;
         }
@@ -464,7 +472,7 @@ export default class CRUDComponentField extends VueComponentBase
 
                 switch (this.field.type) {
                     case DatatableField.SIMPLE_FIELD_TYPE:
-                        switch ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type) {
+                        switch ((this.field as SimpleDatatableFieldVO<any, any>).field_type) {
                             case ModuleTableField.FIELD_TYPE_boolean:
                             case ModuleTableField.FIELD_TYPE_daterange:
                             case ModuleTableField.FIELD_TYPE_hourrange_array:
@@ -501,7 +509,7 @@ export default class CRUDComponentField extends VueComponentBase
             msg = this.t(error);
         }
         if ((this.field.type != DatatableField.SIMPLE_FIELD_TYPE) || ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type != ModuleTableField.FIELD_TYPE_html))) {
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type != ModuleTableField.FIELD_TYPE_html))) {
 
             input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
         }
@@ -552,7 +560,7 @@ export default class CRUDComponentField extends VueComponentBase
         // }
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_html)) {
             input = input.root.innerHTML;
         }
 
@@ -894,10 +902,10 @@ export default class CRUDComponentField extends VueComponentBase
         if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
             let simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
 
-            if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum) {
+            if (simpleField.field_type == ModuleTableField.FIELD_TYPE_enum) {
                 let newOptions: number[] = [];
 
-                for (let j in simpleField.moduleTableField.enum_values) {
+                for (let j in simpleField.enum_values) {
                     let id: number = parseInt(j.toString());
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[id] != null)) {
@@ -989,7 +997,7 @@ export default class CRUDComponentField extends VueComponentBase
         let simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
         let newOptions: number[] = [];
 
-        for (let i in simpleField.moduleTableField.enum_values) {
+        for (let i in simpleField.enum_values) {
 
             if (simpleField.enumIdToHumanReadable(parseInt(i)).toLowerCase().indexOf(query_str.toLowerCase()) >= 0) {
 
@@ -1500,6 +1508,9 @@ export default class CRUDComponentField extends VueComponentBase
 
     private on_focus($event) {
         this.has_focus = true;
+        if (this.autoselect_on_focus) {
+            $event.target.select();
+        }
     }
 
     private on_focus_select($event) {
@@ -1634,7 +1645,7 @@ export default class CRUDComponentField extends VueComponentBase
 
     get field_type(): string {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type;
+            return (this.field as SimpleDatatableFieldVO<any, any>).field_type;
         }
 
         return this.field.type;
@@ -1658,7 +1669,7 @@ export default class CRUDComponentField extends VueComponentBase
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
-            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum));
+            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.field_type == ModuleTableField.FIELD_TYPE_enum));
     }
 
     get hourrange_input_component() {
@@ -1674,8 +1685,8 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     get is_segmented_day_tsrange_array() {
-        let field = (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField;
-        if (!!field) {
+        let field = (this.field as SimpleDatatableFieldVO<any, any>);
+        if ((!!field) && (!!field.moduleTableField)) {
             return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
         }
     }

@@ -197,7 +197,7 @@ export default abstract class VueAppBase {
             messages: this.appController.ALL_LOCALES,
             fallbackLocale: this.appController.data_default_locale,
             missing: (locale, key, vm) => {
-                AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
+                VueAppController.getInstance().throttled_register_translation({
                     translation_code: key,
                     missing: true
                 });

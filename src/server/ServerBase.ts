@@ -520,6 +520,14 @@ export default abstract class ServerBase {
         this.app.use('/login/public', express.static('dist/public/login'));
         this.app.use('/vuejsclient/public', express.static('dist/public/vuejsclient'));
 
+        /**
+         * Pour le DEBUG en local
+         */
+        if (ConfigurationService.node_configuration.ISDEV) {
+            this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
+        }
+
+
         // Use this instead
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {

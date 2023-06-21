@@ -15,6 +15,8 @@ import { all_promises } from '../shared/tools/PromiseTools';
 import MenuController from './ts/components/menu/MenuController';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../shared/tools/ThrottleHelper';
+import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 
 export default abstract class VueAppController {
 
@@ -55,6 +57,7 @@ export default abstract class VueAppController {
     public has_access_to_feedback: boolean = false;
     public has_access_to_survey: boolean = false;
 
+    public throttled_register_translation = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.register_translation.bind(this), 1000);
 
     protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;
@@ -280,5 +283,9 @@ export default abstract class VueAppController {
         } else if (start_exact) {
             return start_exact.code_lang.toLowerCase();
         }
+    }
+
+    private register_translation(translations: Array<{ translation_code: string, missing: boolean }>) {
+        AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslations', translations);
     }
 }
