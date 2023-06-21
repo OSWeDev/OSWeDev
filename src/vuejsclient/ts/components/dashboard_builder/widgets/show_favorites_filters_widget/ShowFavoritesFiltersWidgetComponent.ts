@@ -29,6 +29,7 @@ import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilde
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import FavoritesFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -344,6 +345,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
                 }
             }
         }
+
         await all_promises(promises);
     }
 

@@ -302,6 +302,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.active_api_type_ids;
             },
 
+            get_dashboard_navigation_history(state: IDashboardPageState): { current_dashboard_id: number, previous_dashboard_id: number } {
+                return state.dashboard_navigation_history;
+            },
+
             get_query_api_type_ids(state: IDashboardPageState): string[] {
                 return state.query_api_type_ids;
             },
@@ -326,6 +330,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.Savefavoritesfiltersmodalcomponent;
             },
 
+            get_Sharedfiltersmodalcomponent(state: IDashboardPageState): SharedFiltersModalComponent {
+                return state.Sharedfiltersmodalcomponent;
+            },
+
             get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
                 return state.Crudupdatemodalcomponent;
             },
@@ -343,7 +351,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.page_widgets;
             },
 
-            get_active_field_filters(state: IDashboardPageState): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+            get_active_field_filters(state: IDashboardPageState): FieldFiltersVO {
                 return state.active_field_filters;
             },
         };

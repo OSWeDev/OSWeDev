@@ -2,18 +2,18 @@ import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
 import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
 import FieldFiltersVOManager from './FieldFiltersVOManager';
 import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
-import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
-import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import SupervisionController from "../../Supervision/SupervisionController";
 import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
 import DashboardVO from "../vos/DashboardVO";
+import { cloneDeep } from "lodash";
 
 /**
  * SupervisionWidgetManager

@@ -3847,8 +3847,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async getVosByRefFieldsIdsAndFieldsString<T extends IDistantVOBase>(
         API_TYPE_ID: string,
-        field_name1: string,
-        ids1: number[],
+        field_name1?: string,
+        ids1?: number[],
         field_name2: string = null,
         values2: string[] = null,
         field_name3: string = null,
