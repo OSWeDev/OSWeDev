@@ -134,6 +134,16 @@
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_limit_selectable.visible'), unchecked: label('table_widget_options_component.show_limit_selectable.hidden')}")
     
+    .can_apply_default_field_filters_without_validation
+        .input_label {{ label('table_widget_options_component.can_apply_default_field_filters_without_validation') }}
+        toggle-button(
+            @change="toggle_can_apply_default_field_filters_without_validation" 
+            :value="can_apply_default_field_filters_without_validation" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+        )
+        
     template(v-if="show_limit_selectable")
         .limit_selectable
             .input_label {{ label('table_widget_options_component.limit_selectable') }}

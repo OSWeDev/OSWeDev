@@ -4,7 +4,7 @@ import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import TableColumnDescVO from "./TableColumnDescVO";
 
 /**
- * @class TableWidgetOptionsVO
+ * TableWidgetOptionsVO
  */
 export default class TableWidgetOptionsVO extends AbstractVO {
 
@@ -43,6 +43,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         public archive_button?: boolean,
         public can_export_active_field_filters?: boolean,
         public can_export_vars_indicator?: boolean,
+        public can_apply_default_field_filters_without_validation?: boolean, // Case when we have configured default field_filters
     ) {
         super();
     }

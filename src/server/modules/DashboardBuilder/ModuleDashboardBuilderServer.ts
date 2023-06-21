@@ -1566,6 +1566,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.limit_selectable.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Appliquer les filtres par défaut sans valider" },
+            'table_widget_options_component.can_apply_default_field_filters_without_validation.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher sélecteur nombre d'éléments" },
             'table_widget_options_component.show_limit_selectable.___LABEL___'
         ));

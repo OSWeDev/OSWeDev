@@ -164,20 +164,20 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
-     * @deprecated use set_discard_field_path instead
+     * @deprecated use set_discarded_field_path instead
      */
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
-        return this.set_discard_field_path(vo_type, field_id);
+        return this.set_discarded_field_path(vo_type, field_id);
     }
 
     /**
-     * set_discard_field_path
+     * set_discarded_field_path
      *
      * @param {string} vo_type
      * @param {string} field_id
      * @returns {ContextQueryVO}
      */
-    public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+    public set_discarded_field_path(vo_type: string, field_id: string): ContextQueryVO {
 
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
@@ -899,7 +899,9 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         if (!this.filters) {
             this.filters = [];
         }
+
         this.filters = this.filters.concat(filters);
+
         this.update_active_api_type_ids_from_filters(filters);
 
         return this;

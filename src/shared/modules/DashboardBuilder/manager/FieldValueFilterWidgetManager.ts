@@ -33,7 +33,12 @@ export default class FieldValueFilterWidgetManager {
         } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], 'fieldvaluefilter');
 
         const res: {
-            [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [title_name_code: string]: {
+                widget_options: FieldValueFilterWidgetOptionsVO,
+                widget_name: string,
+                dashboard_page_id: number,
+                page_widget_id: number
+            }
         } = {};
 
         for (const key in valuetable_page_widgets) {
@@ -70,7 +75,7 @@ export default class FieldValueFilterWidgetManager {
             const discarded_field_paths_vo_type = discarded_field_paths[vo_type];
 
             for (const field_id in discarded_field_paths_vo_type) {
-                context_query.set_discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+                context_query.set_discarded_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
             }
         }
 
@@ -79,7 +84,7 @@ export default class FieldValueFilterWidgetManager {
 
     public static async get_overflowing_segmented_options_api_type_id_from_dashboard(
         dashboard: DashboardVO,
-        _query: ContextQueryVO,
+        context_query: ContextQueryVO,
         ignore_self_filter: boolean = true
     ): Promise<string> {
 
@@ -103,7 +108,11 @@ export default class FieldValueFilterWidgetManager {
 
                 has_segmented = true;
 
-                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, _query, ignore_self_filter);
+                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(
+                    api_type_id,
+                    context_query,
+                    ignore_self_filter
+                );
 
                 if (count_segmentations > 20) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + ') pour la table segmentée ' + overflowing_api_type_id + ', on ne filtre pas sur cette table');
@@ -116,7 +125,7 @@ export default class FieldValueFilterWidgetManager {
     }
 
     public static remove_overflowing_api_type_id_from_context_query(
-        _query: ContextQueryVO,
+        context_query: ContextQueryVO,
         api_type_id: string,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
     ) {
@@ -124,23 +133,26 @@ export default class FieldValueFilterWidgetManager {
         if (api_type_id?.length > 0) {
             let new_filters = [];
 
-            for (let i in _query.filters) {
-                let filter_: ContextFilterVO = _query.filters[i];
+            for (let i in context_query.filters) {
+                const context_filter: ContextFilterVO = context_query.filters[i];
 
-                if (filter_.vo_type == api_type_id) {
+                if (context_filter.vo_type == api_type_id) {
                     continue;
                 }
 
-                new_filters.push(filter_);
+                new_filters.push(context_filter);
             }
 
-            _query.filters = new_filters;
+            context_query.filters = new_filters;
 
-            _query.active_api_type_ids = _query.active_api_type_ids.filter((_api_type_id: string) => {
+            context_query.active_api_type_ids = context_query.active_api_type_ids.filter((_api_type_id: string) => {
                 return api_type_id != _api_type_id;
             });
 
-            FieldValueFilterWidgetManager.add_discarded_field_paths(_query, discarded_field_paths);
+            FieldValueFilterWidgetManager.add_discarded_field_paths(
+                context_query,
+                discarded_field_paths
+            );
 
             let segmented_moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
             let fields = segmented_moduletable.get_fields();
@@ -152,11 +164,11 @@ export default class FieldValueFilterWidgetManager {
                     continue;
                 }
 
-                _query.discard_field_path(api_type_id, field.field_id);
+                context_query.set_discarded_field_path(api_type_id, field.field_id);
             }
         }
 
-        return _query;
+        return context_query;
     }
 
     public static getInstance(): FieldValueFilterWidgetManager {
