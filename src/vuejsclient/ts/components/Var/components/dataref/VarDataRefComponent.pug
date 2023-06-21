@@ -27,6 +27,9 @@ mixin var_data_content()
                                     :inline_input_mode_input_only='true'
                                     :filter='filter'
                                     :filter_additional_params='filter_additional_params'
+
+                                    :autofocus='true'
+                                    :autoselect_on_focus='true'
                                 )
                             template(v-else)
                                 template(v-if='(!!var_data) && ((var_data_value != 0) || (!consider_zero_value_as_null)) && ((var_data_value != null) || null_value_replacement)')
@@ -61,8 +64,4 @@ mixin var_data_content()
 
 
 .var-data--intersector-wrapper
-    //- template(v-if='use_intersector')
-    //-     Intersect(@enter.once="intersect_in")
-    //-         +var_data_content()
-    //- template(v-else)
     +var_data_content()

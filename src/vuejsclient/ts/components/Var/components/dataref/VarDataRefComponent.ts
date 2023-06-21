@@ -21,6 +21,8 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
+import HourHandler from '../../../../../../shared/tools/HourHandler';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -134,6 +136,8 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     @Watch('var_param')
     private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
+
+        ConsoleHandler.log("onChangeVarParam:", new_var_param ? new_var_param.index : null);
 
         this.set_var_conf();
         this.set_editable_field();
@@ -407,7 +411,6 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         let res = SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
-
         if (this.filter_obj) {
             let filter_type: string = this.filter_obj.type;
 
@@ -416,13 +419,13 @@ export default class VarDataRefComponent extends VueComponentBase {
                     throw new Error('Not implemented');
 
                 case FilterObj.FILTER_TYPE_hour:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_hour;
+                    res.field_type = ModuleTableField.FIELD_TYPE_hour;
                     break;
                 case FilterObj.FILTER_TYPE_amount:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_amount;
+                    res.field_type = ModuleTableField.FIELD_TYPE_amount;
                     break;
                 case FilterObj.FILTER_TYPE_percent:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_prct;
+                    res.field_type = ModuleTableField.FIELD_TYPE_prct;
                     break;
                 case FilterObj.FILTER_TYPE_toFixedCeil:
                 case FilterObj.FILTER_TYPE_toFixedFloor:
@@ -430,16 +433,16 @@ export default class VarDataRefComponent extends VueComponentBase {
                 case FilterObj.FILTER_TYPE_padHour:
                 case FilterObj.FILTER_TYPE_positiveNumber:
                 case FilterObj.FILTER_TYPE_hideZero:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_float;
+                    res.field_type = ModuleTableField.FIELD_TYPE_float;
                     break;
                 case FilterObj.FILTER_TYPE_bignum:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_int;
+                    res.field_type = ModuleTableField.FIELD_TYPE_int;
                     break;
                 case FilterObj.FILTER_TYPE_boolean:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_boolean;
+                    res.field_type = ModuleTableField.FIELD_TYPE_boolean;
                     break;
                 case FilterObj.FILTER_TYPE_truncate:
-                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_string;
+                    res.field_type = ModuleTableField.FIELD_TYPE_string;
                     break;
             }
         }

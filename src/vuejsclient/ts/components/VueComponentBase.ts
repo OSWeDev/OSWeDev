@@ -320,7 +320,7 @@ export default class VueComponentBase extends Vue
         }
 
         if (VueAppController.getInstance().has_access_to_onpage_translation) {
-            AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
+            VueAppController.getInstance().throttled_register_translation({
                 translation_code: txt,
                 missing: false
             });
