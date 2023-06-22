@@ -9,7 +9,7 @@ import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/Time
 import TimeSegmentHandler from '../../../../../../../shared/tools/TimeSegmentHandler';
 import DataImportComponent from '../../../../data_import/component/DataImportComponent';
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
