@@ -1,6 +1,5 @@
-import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -8,15 +7,12 @@ import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImp
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
-import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import RangeHandler from '../../../../shared/tools/RangeHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
@@ -119,18 +115,14 @@ export default class DataImportBGThread implements IBGThread {
                  */
                 dih = await query(DataImportHistoricVO.API_TYPE_ID)
                     .add_filters([
-                        filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
-                            [
-                                RangeHandler.create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_IMPORTED, NumSegment.TYPE_INT),
-                                RangeHandler.create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, NumSegment.TYPE_INT)
-                            ]
-                        ).or(
-                            filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
-                                ModuleDataImport.IMPORTATION_STATE_FORMATTED
-                            ).and(
-                                filter(DataImportHistoricVO.API_TYPE_ID, 'autovalidate').is_true()
+                        filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_has([ModuleDataImport.IMPORTATION_STATE_IMPORTED, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT])
+                            .or(
+                                filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
+                                    ModuleDataImport.IMPORTATION_STATE_FORMATTED
+                                ).and(
+                                    filter(DataImportHistoricVO.API_TYPE_ID, 'autovalidate').is_true()
+                                )
                             )
-                        )
                     ])
                     .set_limit(1)
                     .select_vo();
@@ -427,36 +419,14 @@ export default class DataImportBGThread implements IBGThread {
          *  - status_before_reimport is null
          *  - last_up_date is older than 5 mninutes
          */
-        let filter_state = new ContextFilterVO();
-        filter_state.field_id = 'state';
-        filter_state.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_state.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-        filter_state.param_numeric = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
 
-        let filter_reimport_of_dih_id = new ContextFilterVO();
-        filter_reimport_of_dih_id.field_id = 'reimport_of_dih_id';
-        filter_reimport_of_dih_id.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_reimport_of_dih_id.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-
-        let filter_status_before_reimport = new ContextFilterVO();
-        filter_status_before_reimport.field_id = 'status_before_reimport';
-        filter_status_before_reimport.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_status_before_reimport.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-
-        let filter_status_of_last_reimport = new ContextFilterVO();
-        filter_status_of_last_reimport.field_id = 'status_of_last_reimport';
-        filter_status_of_last_reimport.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_status_of_last_reimport.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-
-        let filter_last_up_date = new ContextFilterVO();
-        filter_last_up_date.field_id = 'last_up_date';
-        filter_last_up_date.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_last_up_date.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ALL;
-        filter_last_up_date.param_numeric = Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE);
-
-        let query_context: ContextQueryVO = query(DataImportHistoricVO.API_TYPE_ID).add_filters([filter_state, filter_reimport_of_dih_id, filter_status_of_last_reimport, filter_last_up_date, filter_status_before_reimport]);
-
-        let dihs: DataImportHistoricVO[] = await ModuleContextFilter.getInstance().select_vos<DataImportHistoricVO>(query_context);
+        let dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DataImportHistoricVO>().state, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION)
+            .filter_is_null_or_empty(field_names<DataImportHistoricVO>().reimport_of_dih_id)
+            .filter_is_null_or_empty(field_names<DataImportHistoricVO>().status_before_reimport)
+            .filter_is_null_or_empty(field_names<DataImportHistoricVO>().status_of_last_reimport)
+            .filter_by_num_inf(field_names<DataImportHistoricVO>().last_up_date, Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE))
+            .select_vos<DataImportHistoricVO>();
 
         if ((!dihs) || (!dihs.length)) {
             return null;
