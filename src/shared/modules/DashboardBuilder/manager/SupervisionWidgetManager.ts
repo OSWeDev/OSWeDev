@@ -31,7 +31,7 @@ export default class SupervisionWidgetManager {
      * @param {SupervisionWidgetOptionsVO} widget_options
      * @param {FieldFiltersVO} active_field_filters
      * @param {string[]} active_api_type_ids api_type_ids that have been selected by the user
-     * @param {{ offset: number, limit?: number, sort_by_field_id?: string }} pagination Pagination options
+     * @param {{ offset: number, limit?: number, sorts?: SortByVO[] }} pagination Pagination options
      * @returns {Promise<ISupervisedItem[]>}
      */
     public static async find_supervision_probs_by_api_type_ids(
@@ -39,11 +39,11 @@ export default class SupervisionWidgetManager {
         widget_options: SupervisionWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         active_api_type_ids: string[],
-        pagination?: { offset: number, limit?: number, sort_by_field_id?: string },
+        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] },
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
         const self = SupervisionWidgetManager.getInstance();
 
-        let context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
+        const context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
 
         // We must check the access for each api_type_id
         // And then get the allowed api_type_ids
@@ -51,6 +51,7 @@ export default class SupervisionWidgetManager {
             widget_options,
             active_api_type_ids,
         );
+
         self.allowed_api_type_ids = allowed_api_type_ids;
 
         // We must update|standardize|normalize the active_field_filters for the given allowed_api_type_ids
@@ -106,6 +107,7 @@ export default class SupervisionWidgetManager {
             context_filters_by_api_type_id[api_type_id] = context_filters;
         }
 
+        // Select the supervision probs by api_type_id
         return await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
             dashboard,
             widget_options,
@@ -196,6 +198,7 @@ export default class SupervisionWidgetManager {
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     api_type_id
                 );
+
                 const has_access = await ModuleAccessPolicy.getInstance().testAccess(
                     access_policy_name
                 );
@@ -210,28 +213,36 @@ export default class SupervisionWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
-
         return allowed_api_type_ids;
     }
 
+    /**
+     * select_supervision_probs_by_api_type_id
+     *
+     * @param {DashboardVO} dashboard
+     * @param {SupervisionWidgetOptionsVO} widget_options
+     * @param {{ [api_type_id: string]: ContextFilterVO[] }} context_filters_by_api_type_id
+     * @param {{ offset: number, limit?: number, sorts?: SortByVO[] }} pagination
+     * @returns {Promise<{ items: ISupervisedItem[], total_count: number }>}
+     */
     private static async select_supervision_probs_by_api_type_id(
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
         context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
-        pagination?: { offset: number, limit?: number, sort_by_field_id?: string }
+        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] }
     ): Promise<{
         items: ISupervisedItem[],
         total_count: number,
     }> {
 
+        const limit: number = pagination?.limit ?? widget_options?.limit ?? 50;
+
         const pipeline_limit = Object.keys(context_filters_by_api_type_id).length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        const promise_pipeline = new PromisePipeline(pipeline_limit);
 
         // ContextQuery as a query builder
         let context_query: ContextQueryVO = null;
 
-        let limit: number = pagination?.limit ?? widget_options?.limit ?? 50;
         let items: ISupervisedItem[] = [];
         let total_count: number = 0;
 
@@ -240,10 +251,17 @@ export default class SupervisionWidgetManager {
             // We must have a single tree of context_filters using AND operator
             const context_filters: ContextFilterVO[] = context_filters_by_api_type_id[api_type_id];
 
+            // Sorts by field_id
+            const sorts = pagination?.sorts?.map((sort: SortByVO) => {
+                sort.vo_type = api_type_id;
+
+                return sort;
+            }) ?? [];
+
             const api_type_context_query = query(api_type_id)
                 .using(dashboard.api_type_ids)
                 .add_filters(context_filters)
-                .set_sort(new SortByVO(api_type_id, 'name', true));
+                .set_sorts(sorts);
 
             if (!context_query) {
                 // Main first query
@@ -255,11 +273,11 @@ export default class SupervisionWidgetManager {
         }
 
         await promise_pipeline.push(async () => {
-            const vo_context_query = cloneDeep(context_query);
+            const vos_context_query = cloneDeep(context_query);
 
-            vo_context_query.set_limit(limit, pagination?.offset ?? 0);
+            vos_context_query.set_limit(limit, pagination?.offset ?? 0);
 
-            items = await vo_context_query.select_vos();
+            items = await vos_context_query.select_vos();
         });
 
         await promise_pipeline.push(async () => {

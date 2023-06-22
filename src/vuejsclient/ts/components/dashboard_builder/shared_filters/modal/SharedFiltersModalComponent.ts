@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import IReadableFieldFilters from '../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableFieldFilters';
+import DashboardPageFieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageFieldFiltersVOManager';
 import DashboardPageVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import VOFieldRefVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
@@ -9,19 +10,17 @@ import DashboardVOManager from '../../../../../../shared/modules/DashboardBuilde
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import SharedFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ISelectionnableFieldFilters from '../interface/ISelectionnableFieldFilters';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../../../VueAppController';
 import VueComponentBase from '../../../VueComponentBase';
 import './SharedFiltersModalComponent.scss';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import DashboardPageFieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageFieldFiltersVOManager';
-
 @Component({
     template: require('./SharedFiltersModalComponent.pug'),
     components: {}
@@ -99,6 +98,9 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
 
         // We must set current dashboard selected by default
         this.selected_shared_from_dashboard_ids_numranges = RangeHandler.get_ids_ranges_from_list(
+            [this.dashboard_id]
+        );
+        this.selected_shared_with_dashboard_ids_numranges = RangeHandler.get_ids_ranges_from_list(
             [this.dashboard_id]
         );
 

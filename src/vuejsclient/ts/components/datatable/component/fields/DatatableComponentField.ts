@@ -84,7 +84,10 @@ export default class DatatableComponentField extends VueComponentBase {
     public async mounted() {
         if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
             this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type)
+                DAOController.getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
+                    (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type
+                )
             );
         }
 

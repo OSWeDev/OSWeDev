@@ -2500,7 +2500,7 @@ export default class ContextQueryServerController {
         for (let i in forbidden_fields) {
             let field = forbidden_fields[i];
 
-            context_query.set_discard_field_path(forbidden_api_type_id, field.field_id);
+            context_query.set_discarded_field_path(forbidden_api_type_id, field.field_id);
         }
 
         /**
@@ -2510,7 +2510,7 @@ export default class ContextQueryServerController {
             let discard_field_path = src_context_query.discarded_field_paths[api_type_id];
 
             for (let field_id in discard_field_path) {
-                context_query.set_discard_field_path(api_type_id, field_id);
+                context_query.set_discarded_field_path(api_type_id, field_id);
             }
         }
 

@@ -1720,10 +1720,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
 
         // TODO: define if we should update_visible_options (depend on if the page contains the validation_filter_widget)
-
+        const should_update_visible_options = this.should_apply_active_field_filters();
 
         let promises = [
-            this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
+            should_update_visible_options ? this.throttle_update_visible_options() : void 0, // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
             this.update_filter_by_access_cache()
         ];
 

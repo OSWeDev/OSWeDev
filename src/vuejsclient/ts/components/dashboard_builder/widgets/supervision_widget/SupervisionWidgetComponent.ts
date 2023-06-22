@@ -28,6 +28,7 @@ import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilt
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './SupervisionWidgetComponent.scss';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -174,7 +175,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
      * @param options
      * @returns {Promise<void>}
      */
-    private async update_visible_options() {
+    private async update_visible_options(): Promise<void> {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
         let rows: ISupervisedItem[] = [];
@@ -197,7 +198,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             {
                 offset: this.pagination_offset,
                 limit: this.limit,
-                sort_by_field_id: 'name'
+                sorts: [new SortByVO(null, 'name', true)]
             },
         );
 
