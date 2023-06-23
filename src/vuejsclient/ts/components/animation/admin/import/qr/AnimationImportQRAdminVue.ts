@@ -7,6 +7,7 @@ import { ModuleDataImportAction } from '../../../../data_import/store/DataImport
 import VueComponentBase from '../../../../VueComponentBase';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../../../../../shared/tools/TimeSegmentHandler';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DataImportComponent from '../../../../data_import/component/DataImportComponent';
 import AnimationQRVO from '../../../../../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
