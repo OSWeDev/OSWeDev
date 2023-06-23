@@ -40,6 +40,16 @@ export default class RegisteredVarDataWrapper {
                         }
                     }
                 }
+            } else {
+                if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_ALL)) {
+                    if (!!callback.callback) {
+                        await callback.callback(VarsClientController.cached_var_datas[this.var_param.index]);
+
+                        if (callback.type == VarUpdateCallback.TYPE_ONCE) {
+                            continue;
+                        }
+                    }
+                }
             }
 
             this.callbacks[uid] = callbacks[uid];
@@ -52,6 +62,7 @@ export default class RegisteredVarDataWrapper {
         for (let uid in callbacks) {
             delete this.callbacks[uid];
         }
+
         return this;
     }
 }

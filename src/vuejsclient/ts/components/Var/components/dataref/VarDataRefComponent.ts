@@ -21,8 +21,6 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
-import HourHandler from '../../../../../../shared/tools/HourHandler';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -30,10 +28,13 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
     public getDescSelectedVarParam: VarDataBaseVO;
+
     @ModuleVarAction
     public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
+
     @ModuleVarGetter
     public isDescMode: boolean;
+
     @ModuleVarGetter
     public is_show_public_tooltip: boolean;
 
@@ -112,8 +113,12 @@ export default class VarDataRefComponent extends VueComponentBase {
     private var_data_editing: VarDataValueResVO = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
+            this.var_data_updater.bind(this),
+            VarUpdateCallback.VALUE_TYPE_ALL
+        )
     };
+
     private aggregated_var_param: VarDataBaseVO = null;
 
     private var_data_value_is_imported: boolean = false;
@@ -290,17 +295,24 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (var_param || this.var_param) {
-            await VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(
+                [var_param ? var_param : this.var_param],
+                this.varUpdateCallbacks
+            );
 
             if (this.show_import_aggregated) {
-                await ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                await ModuleVar.getInstance().getAggregatedVarDatas(
+                    (var_param ? var_param : this.var_param)
+                ).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
                     let aggregated_var_param = null;
+
                     for (let var_data_index in datas) {
                         if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
                             aggregated_var_param = cloneDeep(datas[var_data_index]);
                             break;
                         }
                     }
+
                     this.aggregated_var_param = aggregated_var_param;
                 });
             }
@@ -315,7 +327,10 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.var_data = null;
 
         if (var_param || this.var_param) {
-            await VarsClientController.getInstance().unRegisterParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(
+                [var_param ? var_param : this.var_param],
+                this.varUpdateCallbacks
+            );
         }
     }
 

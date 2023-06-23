@@ -8,13 +8,13 @@ import VueComponentBase from '../../../../VueComponentBase';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../../../../../shared/tools/TimeSegmentHandler';
 import DataImportComponent from '../../../../data_import/component/DataImportComponent';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import AnimationQRVO from '../../../../../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./AnimationImportQRAdminVue.pug'),
