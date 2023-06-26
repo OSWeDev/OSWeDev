@@ -858,7 +858,11 @@ export default class ContextQueryServerController {
                         let is_ok = false;
                         await deps_promise_pipeline.push(async () => {
                             try {
-                                let count_links: number = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_server(context_query.is_server).select_count();
+                                let count_links: number = await query(dep.linked_type)
+                                    .filter_by_id(dep.linked_id)
+                                    .exec_as_server(context_query.is_server)
+                                    .select_count();
+
                                 if (!count_links) {
                                     is_ok = true;
                                     return;
@@ -988,9 +992,15 @@ export default class ContextQueryServerController {
                 /**
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
-                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
+                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type)
+                    .field('id')
+                    .set_query_distinct()
+                    .exec_as_server(context_query.is_server);
 
-                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_vos();
+                let ids_map: IDistantVOBase[] = await this
+                    .configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query)
+                    .select_vos();
+
                 let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
 
                 if (!ids || !ids.length) {
@@ -1098,10 +1108,18 @@ export default class ContextQueryServerController {
              */
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
 
+            // Check access to api_type_id
+            const has_access = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
+                context_query,
+                context_query.base_api_type_id,
+                context_query.fields,
+                access_type
+            );
+
             // Si on ignore_access_hook, on ignore les droits aussi
-            if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
-                return null;
-            }
+            // if ((!context_query.is_server) && !has_access) {
+            //     return null;
+            // }
 
             let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -1165,9 +1183,9 @@ export default class ContextQueryServerController {
                             access_type
                         );
 
-                        if (!has_access_api_type_id) {
-                            continue;
-                        }
+                        // if (!has_access_api_type_id) {
+                        //     continue;
+                        // }
 
                         const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -1320,11 +1338,12 @@ export default class ContextQueryServerController {
         for (const i in ids) {
             const id: number = ids[i];
 
-            const context_query_segmented: ContextQueryVO = cloneDeep(context_query)
-                .filter_by_id(
-                    id,
-                    moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
-                );
+            const context_query_segmented: ContextQueryVO = cloneDeep(context_query);
+
+            context_query_segmented.filter_by_id(
+                id,
+                moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
+            );
 
 
             // Build sub-query for the final db request to union
@@ -1899,7 +1918,12 @@ export default class ContextQueryServerController {
             /**
              * Check injection : OK
              */
-            await this.add_context_access_hooks(context_query, query_wrapper, tables_aliases_by_type_for_access_hooks, where_conditions);
+            await this.add_context_access_hooks(
+                context_query,
+                query_wrapper,
+                tables_aliases_by_type_for_access_hooks,
+                where_conditions
+            );
         }
 
         if (where_conditions?.length > 0) {
@@ -1938,6 +1962,13 @@ export default class ContextQueryServerController {
 
                 if (alias == 'label') {
                     alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
+                }
+
+                if (
+                    context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||
+                    context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN
+                ) {
+                    alias = context_field.field_id;
                 }
 
                 group_bys.push(alias ?
@@ -2140,10 +2171,18 @@ export default class ContextQueryServerController {
 
             if (selected_field) {
 
+                // Check access to field (if not, we don't join)
+                const has_access = ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(
+                    context_query,
+                    selected_field.api_type_id,
+                    selected_field.field_id,
+                    access_type
+                );
+
                 /**
                  * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
                  */
-                if ((!context_query.is_server) && !await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_id, access_type)) {
+                if ((!context_query.is_server) && !has_access) {
                     ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
                     return aliases_n;
                 }
@@ -2156,7 +2195,8 @@ export default class ContextQueryServerController {
                     context_query.filters,
                     joined_tables_by_vo_type,
                     tables_aliases_by_type,
-                    aliases_n);
+                    aliases_n
+                );
             } else {
                 // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                 return aliases_n;
@@ -2171,7 +2211,15 @@ export default class ContextQueryServerController {
         }
 
         return await ContextFilterServerController.getInstance().updates_jointures(
-            context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+            context_query,
+            context_query.query_tables_prefix,
+            jointures,
+            context_query.filters,
+            joined_tables_by_vo_type,
+            tables_aliases_by_type,
+            path,
+            aliases_n
+        );
     }
 
     /**
@@ -2191,7 +2239,8 @@ export default class ContextQueryServerController {
         jointures: string[],
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
-        aliases_n: number): Promise<number> {
+        aliases_n: number
+    ): Promise<number> {
 
         if (!filter) {
             return aliases_n;
@@ -2207,7 +2256,9 @@ export default class ContextQueryServerController {
                 context_query.use_technical_field_versioning,
                 context_query.active_api_type_ids,
                 Object.keys(tables_aliases_by_type),
-                filter.vo_type);
+                filter.vo_type
+            );
+
             if (!path) {
                 // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                 return aliases_n;
