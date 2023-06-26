@@ -162,8 +162,6 @@ export default class SupervisionWidgetManager {
         // Default api_type_ids (should be from widget_options)
         let available_api_type_ids: string[] = widget_options?.supervision_api_type_ids;
 
-        console.log('available_api_type_ids', available_api_type_ids);
-
         // available_api_type_ids
         if (active_api_type_ids?.length > 0) {
             // Setted api_type_ids (default or setted from filters)
@@ -172,8 +170,6 @@ export default class SupervisionWidgetManager {
                 return widget_options?.supervision_api_type_ids?.includes(api_type_id);
             });
         }
-
-        console.log('available_api_type_ids', available_api_type_ids);
 
         const registered_api_type_ids: string[] = [];
 
@@ -268,8 +264,8 @@ export default class SupervisionWidgetManager {
             const api_type_context_query = query(api_type_id)
                 .using(dashboard.api_type_ids)
                 .add_filters(context_filters)
-                .set_sorts(sorts)
-                .set_query_distinct();
+                .set_query_distinct()
+                .set_sorts(sorts);
 
             if (!context_query) {
                 // Main first query
