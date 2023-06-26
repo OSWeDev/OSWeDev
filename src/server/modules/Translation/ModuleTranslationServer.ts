@@ -49,7 +49,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
      * Local thread cache -----
      */
     public policy_group: AccessPolicyGroupVO = null;
-    private flat_translations: { [code_lang: string]: { [code_text: string]: string } } = null;
+    public flat_translations: { [code_lang: string]: { [code_text: string]: string } } = null;
     /**
      * ----- Local thread cache
      */

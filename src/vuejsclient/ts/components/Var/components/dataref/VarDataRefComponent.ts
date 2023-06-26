@@ -137,8 +137,6 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Watch('var_param')
     private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
-        ConsoleHandler.log("onChangeVarParam:", new_var_param ? new_var_param.index : null);
-
         this.set_var_conf();
         this.set_editable_field();
 
