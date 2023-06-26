@@ -178,7 +178,7 @@ export default class ServerAnonymizationController {
 
             if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id] &&
                 ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id][field_id]) {
-                this.anonymise_row_field(row, api_type_id, field_id, field.alias, uid);
+                this.anonymise_row_field(row, api_type_id, field_id, field.alias ? field.alias : field.field_id, uid);
             }
         }
 
