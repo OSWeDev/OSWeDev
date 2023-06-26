@@ -559,6 +559,15 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         for (let i in sendable_objects_by_request_num) {
             let sendable_objects = sendable_objects_by_request_num[i];
 
+            if (!sendable_objects.length) {
+                continue;
+            }
+
+            if (sendable_objects.length == 1) {
+                await this.resolve_non_wrappable_request(wrappable_requests_by_request_num[i][0]);
+                continue;
+            }
+
             await promise_pipeline.push(async () => {
                 await this.wrap_request_send(sendable_objects, wrappable_requests_by_request_num[i], correspondance_by_request_num[i]);
             });
