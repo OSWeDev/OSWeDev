@@ -1783,6 +1783,7 @@ export default class ContextQueryServerController {
             if (!active_api_type_id) {
                 continue;
             }
+
             if (query_wrapper.tables_aliases_by_type[active_api_type_id]) {
                 continue;
             }
@@ -1972,7 +1973,12 @@ export default class ContextQueryServerController {
             SORT_BY += ' ORDER BY ';
 
             for (let sort_byi in context_query.sort_by) {
-                let sort_by = context_query.sort_by[sort_byi];
+                const sort_by = context_query.sort_by[sort_byi];
+
+                // We must force the sort_by.vo_type to be the base_api_type_id
+                // We will use the base_api_type_id to get the field_id
+                // TODO: to validate if it's a good idea
+                sort_by.vo_type = context_query.base_api_type_id;
 
                 if (!first_sort_by) {
                     previous_sort_by = SORT_BY;
