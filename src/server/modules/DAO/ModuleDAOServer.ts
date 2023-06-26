@@ -5587,8 +5587,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         return;
                     }
 
-                    sqls.push(sql);
-                    bdd_versions.push(moduleTable.get_bdd_version(vo));
+                    sqls[i] = sql;
+                    bdd_versions[i] = moduleTable.get_bdd_version(vo);
                 });
             }
             await promise_pipeline.end();
