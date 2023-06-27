@@ -5,26 +5,18 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect, test } from '@playwright/test';
 import DAOUpdateVOHolder from '../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
-import VarCtrlDAGNode from '../../../src/server/modules/Var/controllerdag/VarCtrlDAGNode';
 import VarsDatasVoUpdateHandler from '../../../src/server/modules/Var/VarsDatasVoUpdateHandler';
-import VarServerControllerBase from '../../../src/server/modules/Var/VarServerControllerBase';
 import VarsServerController from '../../../src/server/modules/Var/VarsServerController';
 import IDistantVOBase from '../../../src/shared/modules/IDistantVOBase';
 import VarsController from '../../../src/shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import FakeDataHandler from './fakes/FakeDataHandler';
-import FakeDepsDataHandler from './fakes/FakeDepsDataHandler';
 import FakeDistantHandler from './fakes/FakeDistantHandler';
 import FakeEmpDayDataHandler from './fakes/FakeEmpDayDataHandler';
 import FakeEmpDistantHandler from './fakes/FakeEmpDistantHandler';
 import FakeVarControllerDeps from './fakes/FakeVarControllerDeps';
 import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
-import FakeDataVO from './fakes/vos/FakeDataVO';
-import FakeCyclicalDataHandler from './fakes/cyclical/FakeCyclicalDataHandler';
-import FakeVarControllerCyclA from './fakes/cyclical/FakeVarControllerCyclA';
-import FakeVarControllerCyclB from './fakes/cyclical/FakeVarControllerCyclB';
-import VarsCacheController from '../../../src/server/modules/Var/VarsCacheController';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 import ModuleVar from '../../../src/shared/modules/Var/ModuleVar';
 
@@ -630,6 +622,7 @@ test('VarsDatasVoUpdateHandler: test init_leaf_intersectors', async () => {
     VarsServerController.getInstance().clear_all_inits();
 
     FakeDataHandler.initializeFakeDataVO();
+    FakeEmpDayDataHandler.initializeFakeEmpDayDataVO();
     FakeDistantHandler.initializeFakeDistantVO();
     await ModuleVar.getInstance().initializeasync({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,

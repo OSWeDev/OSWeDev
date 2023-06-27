@@ -114,14 +114,18 @@ test('DAG: test add deps', async () => {
     expect(dagnodeB.is_aggregator).toStrictEqual(false);
     expect(dagnodeB.hasIncoming).toStrictEqual(true);
     expect(dagnodeB.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeB.incoming_deps).toStrictEqual({ AB: dep_ab });
+    expect(dagnodeB.incoming_deps["AB"].dep_name).toStrictEqual(dep_ab.dep_name);
+    expect((dagnodeB.incoming_deps["AB"].incoming_node as VarDAGNode).var_data._bdd_only_index).toStrictEqual(dagnodeA.var_data._bdd_only_index);
+    expect((dagnodeB.incoming_deps["AB"].outgoing_node as VarDAGNode).var_data._bdd_only_index).toStrictEqual(dagnodeB.var_data._bdd_only_index);
     expect(dagnodeB.outgoing_deps).toStrictEqual({});
 
     expect(dagnodeA.aggregated_datas).toStrictEqual({});
     expect(dagnodeA.is_aggregator).toStrictEqual(false);
     expect(dagnodeA.hasIncoming).toStrictEqual(false);
     expect(dagnodeA.hasOutgoing).toStrictEqual(true);
-    expect(dagnodeA.outgoing_deps).toStrictEqual({ AB: dep_ab });
+    expect(dagnodeA.outgoing_deps["AB"].dep_name).toStrictEqual(dep_ab.dep_name);
+    expect((dagnodeA.outgoing_deps["AB"].incoming_node as VarDAGNode).var_data._bdd_only_index).toStrictEqual(dagnodeA.var_data._bdd_only_index);
+    expect((dagnodeA.outgoing_deps["AB"].outgoing_node as VarDAGNode).var_data._bdd_only_index).toStrictEqual(dagnodeB.var_data._bdd_only_index);
     expect(dagnodeA.incoming_deps).toStrictEqual({});
 });
 
@@ -341,7 +345,9 @@ test('DAG: test visit top->bottom from node with condition', async () => {
     let visit_res: string = null;
     await DAGController.getInstance().visit_top_bottom_from_node(
         node_b,
-        async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
+        async (node: VarDAGNode) => {
+            visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index);
+        },
         (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()
     );
 

@@ -5,7 +5,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 import { expect, test } from '@playwright/test';
 import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
-import VarsServerController from '../../../src.server/modules/Var/VarsServerController';
+import VarsServerController from '../../../src/server/modules/Var/VarsServerController';
 import FakeVarControllerDeps from '../Var/fakes/FakeVarControllerDeps';
 import FakeVarControllerDsEmpDistant from '../Var/fakes/FakeVarControllerDsEmpDistant';
 import FakeVarControllerDsDistant from '../Var/fakes/FakeVarControllerDsDistant';
@@ -14,8 +14,8 @@ import FakeDataHandler from '../Var/fakes/FakeDataHandler';
 import ModuleVar from '../../../src/shared/modules/Var/ModuleVar';
 import VarsController from '../../../src/shared/modules/Var/VarsController';
 import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
-import VarsComputeController from '../../../src.server/modules/Var/VarsComputeController';
-import VarsdatasComputerBGThread from '../../../src.server/modules/Var/bgthreads/VarsdatasComputerBGThread';
+import VarsComputeController from '../../../src/server/modules/Var/VarsComputeController';
+import VarsdatasComputerBGThread from '../../../src/server/modules/Var/bgthreads/VarsdatasComputerBGThread';
 
 test('set nb_noeuds_global: updates when adding nodes', async () => {
 

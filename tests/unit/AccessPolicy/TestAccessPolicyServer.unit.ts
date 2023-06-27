@@ -1,21 +1,22 @@
-import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
-import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
-APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
-
 import { expect, test } from '@playwright/test';
 
-import AccessPolicyVO from '../../../src/shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import RoleVO from '../../../src/shared/modules/AccessPolicy/vos/RoleVO';
-import RolePolicyVO from '../../../src/shared/modules/AccessPolicy/vos/RolePolicyVO';
-import PolicyDependencyVO from '../../../src/shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
+
+import AccessPolicyServerController from '../../../src/server/modules/AccessPolicy/AccessPolicyServerController';
 import DAOServerController from '../../../src/server/modules/DAO/DAOServerController';
 import AccessPolicyGroupVO from '../../../src/shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../src/shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../src/shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RolePolicyVO from '../../../src/shared/modules/AccessPolicy/vos/RolePolicyVO';
+import RoleVO from '../../../src/shared/modules/AccessPolicy/vos/RoleVO';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
-import AccessPolicyServerController from '../../../src/server/modules/AccessPolicy/AccessPolicyServerController';
 
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 ConsoleHandler.init();
 
 test('AccessPolicyServer: test check access - denied by default to all but admin', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -119,6 +120,8 @@ test('AccessPolicyServer: test check access - denied by default to all but admin
 });
 
 test('AccessPolicyServer: test check access - role inherit : denied by default to all but admin', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -230,6 +233,8 @@ test('AccessPolicyServer: test check access - role inherit : denied by default t
 });
 
 test('AccessPolicyServer: test check access - inheritance test (ignore explicit policies) - no rp', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -312,6 +317,8 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 });
 
 test('AccessPolicyServer: test check access - inheritance test (ignore explicit policies) - rp anon', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -448,6 +455,8 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 });
 
 test('AccessPolicyServer: test check access - inheritance test (ignore explicit policies) - rp logged', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -542,6 +551,8 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 });
 
 test('AccessPolicyServer: test check access - inheritance test (ignore explicit policies) - rp inherit logged', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -636,6 +647,8 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 });
 
 test('AccessPolicyServer: test check access - inheritance test (ignore explicit policies) - dp granted', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -733,6 +746,8 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 });
 
 test('AccessPolicyServer: test check access - inheritance test (ignore explicit policies) - dp denied', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -830,6 +845,7 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 });
 
 test('AccessPolicyServer: test check access - policy explicit configuration', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -942,6 +958,7 @@ test('AccessPolicyServer: test check access - policy explicit configuration', ()
 });
 
 test('AccessPolicyServer: test check access - policy explicit inheritance', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -1016,6 +1033,7 @@ test('AccessPolicyServer: test check access - policy explicit inheritance', () =
 });
 
 test('AccessPolicyServer: test check access - policy explicit dependency', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -1251,6 +1269,7 @@ test('AccessPolicyServer: test check access - policy explicit dependency', () =>
 });
 
 test('AccessPolicyServer: test check access - policy multiple dependencies defaults GRANTED', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -1402,6 +1421,7 @@ test('AccessPolicyServer: test check access - policy multiple dependencies defau
 });
 
 test('AccessPolicyServer: test check access - policy multiple dependencies defaults DENIED', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -1553,6 +1573,7 @@ test('AccessPolicyServer: test check access - policy multiple dependencies defau
 });
 
 test('AccessPolicyServer: test check access - policy multiple dependencies different defaults', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -1704,6 +1725,7 @@ test('AccessPolicyServer: test check access - policy multiple dependencies diffe
 });
 
 test('AccessPolicyServer: test getUsersRoles', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
@@ -1787,6 +1809,8 @@ test('AccessPolicyServer: test getUsersRoles', () => {
 });
 
 test('AccessPolicyServer: test check access - inheritance test - complex - dont inherit role policy when dependency not validated', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -1937,6 +1961,8 @@ test('AccessPolicyServer: test check access - inheritance test - complex - dont 
 
 
 test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -2126,6 +2152,8 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
 
 
 test('AccessPolicyServer: test dao access - isAccessConfVoType', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -2262,6 +2290,8 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType', () => {
 
 
 test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;
@@ -2451,6 +2481,8 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
 
 
 test('AccessPolicyServer: test dao access - !isAccessConfVoType', () => {
+    APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
     AccessPolicyServerController.role_anonymous = new RoleVO();
     AccessPolicyServerController.role_anonymous.parent_role_id = null;
     AccessPolicyServerController.role_anonymous.id = 1;

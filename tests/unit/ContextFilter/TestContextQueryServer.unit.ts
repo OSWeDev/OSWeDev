@@ -14,9 +14,13 @@ import ParameterizedQueryWrapper from '../../../src/shared/modules/ContextFilter
 import SortByVO from '../../../src/shared/modules/ContextFilter/vos/SortByVO';
 import LangVO from '../../../src/shared/modules/Translation/vos/LangVO';
 import ContextFilterTestsTools from './tools/ContextFilterTestsTools';
+import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
+import ConfigurationService from '../../../src/server/env/ConfigurationService';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
+ConsoleHandler.init();
 ContextFilterTestsTools.getInstance().declare_modultables();
+ConfigurationService.setEnvParams({});
 
 //#region test_.build_select_query
 
@@ -234,7 +238,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++', async
     let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
-        "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( (( ((t0.firstname = 'a1') AND (t0.lastname = 'b1')) ) AND (t0.name = 'c1')) ) AND (t0.password = 'd1')) ) OR ( (( (( (( ((t0.firstname = 'a') AND (t0.lastname = 'b')) ) AND (t0.name = 'c')) ) AND (t0.password = 'd')) ) OR ( (( (( ((t0.firstname = 'a2') AND (t0.lastname = 'b2')) ) AND (t0.name = 'c2')) ) AND (t0.password = 'd2')) )) )) )  ORDER BY t0.name ASC "
+        "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( (( ((t0.firstname = 'a1') AND (t0.lastname = 'b1')) ) AND (t0.name = 'c1')) ) AND (t0.password = crypt('d1', t0.password))) ) OR ( (( (( (( ((t0.firstname = 'a') AND (t0.lastname = 'b')) ) AND (t0.name = 'c')) ) AND (t0.password = crypt('d', t0.password))) ) OR ( (( (( ((t0.firstname = 'a2') AND (t0.lastname = 'b2')) ) AND (t0.name = 'c2')) ) AND (t0.password = crypt('d2', t0.password))) )) )) )  ORDER BY t0.name ASC "
     );
     expect(request.params).toStrictEqual([]);
 });
@@ -268,7 +272,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++2', asyn
     let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
-        "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( (( ((t0.firstname = 'a1') OR (t0.lastname = 'b1')) ) OR (t0.name = 'c1')) ) OR (t0.password = 'd1')) ) AND ( (( (( (( ((t0.firstname = 'a') OR (t0.lastname = 'b')) ) OR (t0.name = 'c')) ) OR (t0.password = 'd')) ) AND ( (( (( ((t0.firstname = 'a2') OR (t0.lastname = 'b2')) ) OR (t0.name = 'c2')) ) OR (t0.password = 'd2')) )) )) )  ORDER BY t0.name ASC "
+        "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( ((t0.firstname = 'a1') OR (t0.lastname = 'b1')) ) OR (t0.name = 'c1')) ) OR (t0.password = crypt('d1', t0.password))) ) AND ( (( (( ((t0.firstname = 'a') OR (t0.lastname = 'b')) ) OR (t0.name = 'c')) ) OR (t0.password = crypt('d', t0.password))) ) AND ( (( (( ((t0.firstname = 'a2') OR (t0.lastname = 'b2')) ) OR (t0.name = 'c2')) ) OR (t0.password = crypt('d2', t0.password))) )  ORDER BY t0.name ASC "
     );
     expect(request.params).toStrictEqual([]);
 });

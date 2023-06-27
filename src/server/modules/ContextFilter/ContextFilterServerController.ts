@@ -2572,17 +2572,19 @@ export default class ContextFilterServerController {
 
 
             case ContextFilterVO.TYPE_FILTER_OR:
-                let conditions_OR: string[] = [];
-                await this.update_where_conditions(context_query, query_result, conditions_OR, context_filter.left_hook, tables_aliases_by_type);
-                await this.update_where_conditions(context_query, query_result, conditions_OR, context_filter.right_hook, tables_aliases_by_type);
-                where_conditions.push(' ((' + conditions_OR[0] + ') OR (' + conditions_OR[1] + ')) ');
+                let conditions_OR_left: string[] = [];
+                await this.update_where_conditions(context_query, query_result, conditions_OR_left, context_filter.left_hook, tables_aliases_by_type);
+                let conditions_OR_right: string[] = [];
+                await this.update_where_conditions(context_query, query_result, conditions_OR_right, context_filter.right_hook, tables_aliases_by_type);
+                where_conditions.push(' ((' + conditions_OR_left[0] + ') OR (' + conditions_OR_right[0] + ')) ');
                 break;
 
             case ContextFilterVO.TYPE_FILTER_AND:
-                let conditions_AND: string[] = [];
-                await this.update_where_conditions(context_query, query_result, conditions_AND, context_filter.left_hook, tables_aliases_by_type);
-                await this.update_where_conditions(context_query, query_result, conditions_AND, context_filter.right_hook, tables_aliases_by_type);
-                where_conditions.push(' ((' + conditions_AND[0] + ') AND (' + conditions_AND[1] + ')) ');
+                let conditions_AND_left: string[] = [];
+                await this.update_where_conditions(context_query, query_result, conditions_AND_left, context_filter.left_hook, tables_aliases_by_type);
+                let conditions_AND_right: string[] = [];
+                await this.update_where_conditions(context_query, query_result, conditions_AND_right, context_filter.right_hook, tables_aliases_by_type);
+                where_conditions.push(' ((' + conditions_AND_left[0] + ') AND (' + conditions_AND_right[0] + ')) ');
                 break;
 
             case ContextFilterVO.TYPE_FILTER_NOT:

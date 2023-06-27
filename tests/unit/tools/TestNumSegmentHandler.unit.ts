@@ -75,10 +75,12 @@ test('NumSegmentHandler: test get_segment_from_range_start', () => {
         NumSegment.TYPE_INT)).toStrictEqual(null);
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 0,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 0,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT),
         NumSegment.TYPE_INT)).toStrictEqual(null);
@@ -92,22 +94,28 @@ test('NumSegmentHandler: test get_segment_from_range_start', () => {
 
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: -1,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: -1,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: -1,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: -1,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 0,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 0,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT),
         NumSegment.TYPE_INT)).toStrictEqual(null);
@@ -115,28 +123,36 @@ test('NumSegmentHandler: test get_segment_from_range_start', () => {
 
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-2, 2, true, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: -2,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: -2,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-2, 2, false, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: -1,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: -1,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-2, 2, true, false, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: -2,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: -2,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_start(
         NumRange.createNew(-2, 2, false, false, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: -1,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: -1,
+                    type: NumSegment.TYPE_INT
+                }));
 });
 
 
@@ -146,10 +162,12 @@ test('NumSegmentHandler: test get_segment_from_range_end', () => {
         NumSegment.TYPE_INT)).toStrictEqual(null);
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 0,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 0,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT),
         NumSegment.TYPE_INT)).toStrictEqual(null);
@@ -163,22 +181,28 @@ test('NumSegmentHandler: test get_segment_from_range_end', () => {
 
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 0,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 0,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: -1,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: -1,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 0,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 0,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT),
         NumSegment.TYPE_INT)).toStrictEqual(null);
@@ -186,47 +210,58 @@ test('NumSegmentHandler: test get_segment_from_range_end', () => {
 
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-2, 2, true, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 2,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 2,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-2, 2, false, true, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 2,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 2,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-2, 2, true, false, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 1,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 1,
+                    type: NumSegment.TYPE_INT
+                }));
     expect(NumSegmentHandler.get_segment_from_range_end(
         NumRange.createNew(-2, 2, false, false, NumSegment.TYPE_INT),
-        NumSegment.TYPE_INT)).toStrictEqual({
-            index: 1,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 1,
+                    type: NumSegment.TYPE_INT
+                }));
 });
 
 test('NumSegmentHandler: test getAllDataNumSegments', () => {
     expect(NumSegmentHandler.getAllDataNumSegments(null, null, null)).toStrictEqual(null);
     expect(NumSegmentHandler.getAllDataNumSegments(1, 2, NumSegment.TYPE_INT)).toStrictEqual([
-        {
-            index: 1,
-            type: NumSegment.TYPE_INT
-        },
-        {
-            index: 2,
-            type: NumSegment.TYPE_INT
-        }
+        Object.assign(new NumSegment(),
+            {
+                index: 1,
+                type: NumSegment.TYPE_INT
+            }),
+        Object.assign(new NumSegment(),
+            {
+                index: 2,
+                type: NumSegment.TYPE_INT
+            })
     ]);
     expect(NumSegmentHandler.getAllDataNumSegments(1, 2, NumSegment.TYPE_INT, true)).toStrictEqual([
-        {
-            index: 1,
-            type: NumSegment.TYPE_INT
-        }
+        Object.assign(new NumSegment(),
+            {
+                index: 1,
+                type: NumSegment.TYPE_INT
+            })
     ]);
 });
 
@@ -234,7 +269,13 @@ test('NumSegmentHandler: test getCorrespondingNumSegments', () => {
     expect(NumSegmentHandler.getCorrespondingNumSegments(
         [0.5, 2, null], NumSegment.TYPE_INT, 2
     )).toStrictEqual(
-        [{ index: 2, type: NumSegment.TYPE_INT }, { index: 4, type: NumSegment.TYPE_INT }, { index: 2, type: NumSegment.TYPE_INT }]
+        [
+            Object.assign(new NumSegment(),
+                { index: 2, type: NumSegment.TYPE_INT }),
+            Object.assign(new NumSegment(),
+                { index: 4, type: NumSegment.TYPE_INT }),
+            Object.assign(new NumSegment(),
+                { index: 2, type: NumSegment.TYPE_INT })]
     );
 
     expect(NumSegmentHandler.getCorrespondingNumSegments(
@@ -247,28 +288,38 @@ test('NumSegmentHandler: test getCorrespondingNumSegments', () => {
 test('NumSegmentHandler: test getCorrespondingNumSegment', () => {
     expect(NumSegmentHandler.getCorrespondingNumSegment(
         0.5,
-        NumSegment.TYPE_INT, 2)).toStrictEqual({
-            index: 2,
-            type: NumSegment.TYPE_INT
-        });
+        NumSegment.TYPE_INT, 2)).toStrictEqual(
+            Object.assign(new NumSegment(),
+                {
+                    index: 2,
+                    type: NumSegment.TYPE_INT
+                }));
 
-    expect(NumSegmentHandler.getCorrespondingNumSegment(1, NumSegment.TYPE_INT)).toStrictEqual({
-        index: 1,
-        type: NumSegment.TYPE_INT
-    });
+    expect(NumSegmentHandler.getCorrespondingNumSegment(1, NumSegment.TYPE_INT)).toStrictEqual(
+        Object.assign(new NumSegment(),
+            {
+                index: 1,
+                type: NumSegment.TYPE_INT
+            }));
 
-    expect(NumSegmentHandler.getCorrespondingNumSegment(3, NumSegment.TYPE_INT)).toStrictEqual({
-        index: 3,
-        type: NumSegment.TYPE_INT
-    });
-    expect(NumSegmentHandler.getCorrespondingNumSegment(3, NumSegment.TYPE_INT, 1)).toStrictEqual({
-        index: 4,
-        type: NumSegment.TYPE_INT
-    });
-    expect(NumSegmentHandler.getCorrespondingNumSegment(3, NumSegment.TYPE_INT, -1)).toStrictEqual({
-        index: 2,
-        type: NumSegment.TYPE_INT
-    });
+    expect(NumSegmentHandler.getCorrespondingNumSegment(3, NumSegment.TYPE_INT)).toStrictEqual(
+        Object.assign(new NumSegment(),
+            {
+                index: 3,
+                type: NumSegment.TYPE_INT
+            }));
+    expect(NumSegmentHandler.getCorrespondingNumSegment(3, NumSegment.TYPE_INT, 1)).toStrictEqual(
+        Object.assign(new NumSegment(),
+            {
+                index: 4,
+                type: NumSegment.TYPE_INT
+            }));
+    expect(NumSegmentHandler.getCorrespondingNumSegment(3, NumSegment.TYPE_INT, -1)).toStrictEqual(
+        Object.assign(new NumSegment(),
+            {
+                index: 2,
+                type: NumSegment.TYPE_INT
+            }));
 });
 
 test('NumSegmentHandler: test get_nums', () => {
@@ -295,33 +346,45 @@ test('NumSegmentHandler: test getPreviousNumSegment', () => {
     expect(NumSegmentHandler.getPreviousNumSegment({
         index: 15,
         type: NumSegment.TYPE_INT
-    }, NumSegment.TYPE_INT)).toStrictEqual({
-        index: 14,
-        type: NumSegment.TYPE_INT
-    });
+    }, NumSegment.TYPE_INT)).toStrictEqual(
+        Object.assign(new NumSegment(),
+            {
+                index: 14,
+                type: NumSegment.TYPE_INT
+            }));
 
     expect(NumSegmentHandler.getPreviousNumSegment({
         index: 15,
         type: NumSegment.TYPE_INT
-    }, NumSegment.TYPE_INT, 2)).toStrictEqual({
-        index: 13,
-        type: NumSegment.TYPE_INT
-    });
+    }, NumSegment.TYPE_INT, 2)).toStrictEqual(
+        Object.assign(new NumSegment(),
+            {
+                index: 13,
+                type: NumSegment.TYPE_INT
+            }));
 
     expect(NumSegmentHandler.getPreviousNumSegment({
         index: 15,
         type: NumSegment.TYPE_INT
-    }, NumSegment.TYPE_INT, -1)).toStrictEqual({
-        index: 16,
-        type: NumSegment.TYPE_INT
-    });
+    }, NumSegment.TYPE_INT, -1)).toStrictEqual(
+        Object.assign(new NumSegment(),
+            {
+                index: 16,
+                type: NumSegment.TYPE_INT
+            }));
 });
 
 test('NumSegmentHandler: test getPreviousNumSegments', () => {
     expect(NumSegmentHandler.getPreviousNumSegments(
         [{ index: 16, type: NumSegment.TYPE_INT }, { index: 18, type: NumSegment.TYPE_INT }, { index: 14, type: NumSegment.TYPE_INT }], NumSegment.TYPE_INT
     )).toStrictEqual(
-        [{ index: 15, type: NumSegment.TYPE_INT }, { index: 17, type: NumSegment.TYPE_INT }, { index: 13, type: NumSegment.TYPE_INT }]
+        [
+            Object.assign(new NumSegment(),
+                { index: 15, type: NumSegment.TYPE_INT }),
+            Object.assign(new NumSegment(),
+                { index: 17, type: NumSegment.TYPE_INT }),
+            Object.assign(new NumSegment(),
+                { index: 13, type: NumSegment.TYPE_INT })]
     );
 
     expect(NumSegmentHandler.getPreviousNumSegments([], NumSegment.TYPE_INT)).toStrictEqual([]);
@@ -347,35 +410,42 @@ test('NumSegmentHandler: test get_num_ranges', () => {
             index: 0, type: NumSegment.TYPE_INT
         }]
     )).toStrictEqual(
-        [{
-            max: 1, max_inclusiv: false, min: 0, min_inclusiv: true, range_type: 1, segment_type: 0
-        },
-        {
-            max: 3, max_inclusiv: false, min: 2, min_inclusiv: true, range_type: 1, segment_type: 0
-        }, {
-            max: 5, max_inclusiv: false, min: 4, min_inclusiv: true, range_type: 1, segment_type: 0
-        }]);
+        [
+            Object.assign(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT),
+                {
+                    max: 1, max_inclusiv: false, min: 0, min_inclusiv: true, range_type: 1, segment_type: 0
+                }),
+            Object.assign(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT),
+                {
+                    max: 3, max_inclusiv: false, min: 2, min_inclusiv: true, range_type: 1, segment_type: 0
+                }),
+            Object.assign(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT),
+                {
+                    max: 5, max_inclusiv: false, min: 4, min_inclusiv: true, range_type: 1, segment_type: 0
+                })]);
 
     expect(NumSegmentHandler.get_num_ranges(null)).toStrictEqual(null);
 });
 
 test('NumSegmentHandler: test get_num_ranges_', () => {
     expect(NumSegmentHandler["get_num_ranges_"](
-        [{
-            index: 2, type: NumSegment.TYPE_INT
-        }, {
-            index: 4, type: NumSegment.TYPE_INT
-        }, {
-            index: 0, type: NumSegment.TYPE_INT
-        }]
+        [
+            {
+                index: 2, type: NumSegment.TYPE_INT
+            }, {
+                index: 4, type: NumSegment.TYPE_INT
+            }, {
+                index: 0, type: NumSegment.TYPE_INT
+            }]
     )).toStrictEqual(
-        [{
-            max: 3, max_inclusiv: false, min: 2, min_inclusiv: true, range_type: 1, segment_type: 0
-        }, {
-            max: 5, max_inclusiv: false, min: 4, min_inclusiv: true, range_type: 1, segment_type: 0
-        }, {
-            max: 1, max_inclusiv: false, min: 0, min_inclusiv: true, range_type: 1, segment_type: 0
-        }]);
+        [
+            Object.assign(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), {
+                max: 3, max_inclusiv: false, min: 2, min_inclusiv: true, range_type: 1, segment_type: 0
+            }), Object.assign(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), {
+                max: 5, max_inclusiv: false, min: 4, min_inclusiv: true, range_type: 1, segment_type: 0
+            }), Object.assign(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), {
+                max: 1, max_inclusiv: false, min: 0, min_inclusiv: true, range_type: 1, segment_type: 0
+            })]);
 
     expect(NumSegmentHandler["get_num_ranges_"](null)).toStrictEqual([]);
 });
@@ -384,9 +454,9 @@ test('NumSegmentHandler: test get_surrounding_ts_range', () => {
     expect(NumSegmentHandler.get_surrounding_ts_range(
         [{ index: 2, type: NumSegment.TYPE_INT }, { index: 4, type: NumSegment.TYPE_INT }, { index: 0, type: NumSegment.TYPE_INT }]
     )).toStrictEqual(
-        {
+        Object.assign(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), {
             max: 5, max_inclusiv: false, min: 0, min_inclusiv: true, range_type: 1, segment_type: 0
-        });
+        }));
 
     expect(NumSegmentHandler.get_num_ranges(null)).toStrictEqual(null);
 });

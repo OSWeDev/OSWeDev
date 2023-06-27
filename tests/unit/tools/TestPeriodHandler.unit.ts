@@ -85,7 +85,14 @@ test('PeriodHandler: hasLower', () => {
 test('PeriodHandler: split', () => {
 
     expect(PeriodHandler.getInstance().split(null, null)).toStrictEqual(null);
-    expect(PeriodHandler.getInstance().split("['2019-06-30','2019-07-01']")).toStrictEqual(["['2019-06-30','2019-07-01']", "[", "'2019-06-30'", "'2019-07-01'", "]"]);
+
+    let res = PeriodHandler.getInstance().split("['2019-06-30','2019-07-01']");
+    expect(res[0]).toStrictEqual("['2019-06-30','2019-07-01']");
+    expect(res[1]).toStrictEqual("[");
+    expect(res[2]).toStrictEqual("'2019-06-30'");
+    expect(res[3]).toStrictEqual("'2019-07-01'");
+    expect(res[4]).toStrictEqual("]");
+    expect(res[5]).toStrictEqual(undefined);
     expect(PeriodHandler.getInstance().split(null)).toStrictEqual(null);
 });
 

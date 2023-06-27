@@ -34,7 +34,7 @@ export default class DAOServerController {
      * ----- Global application cache - Brocasted CUD - Local R
      */
 
-    public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.getInstance().name + ".add_segmented_known_databases";
+    public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
 
     public static getInstance() {
         if (!DAOServerController.instance) {

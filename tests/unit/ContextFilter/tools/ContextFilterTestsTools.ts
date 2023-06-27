@@ -1,16 +1,16 @@
-import RoleVO from "../../../../shared/modules/AccessPolicy/vos/RoleVO";
-import UserRoleVO from "../../../../shared/modules/AccessPolicy/vos/UserRoleVO";
-import UserVO from "../../../../shared/modules/AccessPolicy/vos/UserVO";
-import AnonymizationFieldConfVO from "../../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO";
-import AnonymizationUserConfVO from "../../../../shared/modules/Anonymization/vos/AnonymizationUserConfVO";
-import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
-import ModuleTable from "../../../../shared/modules/ModuleTable";
-import ModuleTableField from "../../../../shared/modules/ModuleTableField";
-import DefaultTranslation from "../../../../shared/modules/Translation/vos/DefaultTranslation";
-import LangVO from "../../../../shared/modules/Translation/vos/LangVO";
-import TranslatableTextVO from "../../../../shared/modules/Translation/vos/TranslatableTextVO";
-import TranslationVO from "../../../../shared/modules/Translation/vos/TranslationVO";
-import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManager";
+import RoleVO from "../../../../src/shared/modules/AccessPolicy/vos/RoleVO";
+import UserRoleVO from "../../../../src/shared/modules/AccessPolicy/vos/UserRoleVO";
+import UserVO from "../../../../src/shared/modules/AccessPolicy/vos/UserVO";
+import AnonymizationFieldConfVO from "../../../../src/shared/modules/Anonymization/vos/AnonymizationFieldConfVO";
+import AnonymizationUserConfVO from "../../../../src/shared/modules/Anonymization/vos/AnonymizationUserConfVO";
+import TimeSegment from "../../../../src/shared/modules/DataRender/vos/TimeSegment";
+import ModuleTable from "../../../../src/shared/modules/ModuleTable";
+import ModuleTableField from "../../../../src/shared/modules/ModuleTableField";
+import DefaultTranslation from "../../../../src/shared/modules/Translation/vos/DefaultTranslation";
+import LangVO from "../../../../src/shared/modules/Translation/vos/LangVO";
+import TranslatableTextVO from "../../../../src/shared/modules/Translation/vos/TranslatableTextVO";
+import TranslationVO from "../../../../src/shared/modules/Translation/vos/TranslationVO";
+import VOsTypesManager from "../../../../src/shared/modules/VO/manager/VOsTypesManager";
 
 export default class ContextFilterTestsTools {
     public static getInstance(): ContextFilterTestsTools {

@@ -85,7 +85,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public static PARAM_NAME_insert_without_triggers_using_COPY: string = 'ModuleDAOServer.insert_without_triggers_using_COPY';
     public static PARAM_NAME_throttled_select_query_size_ms: string = 'ModuleDAOServer.throttled_select_query_size_ms';
 
-    public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.getInstance().name + ".add_segmented_known_databases";
+    public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
 
     public static getInstance() {
         if (!ModuleDAOServer.instance) {

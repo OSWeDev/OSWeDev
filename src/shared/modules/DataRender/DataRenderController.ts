@@ -53,7 +53,7 @@ export default class DataRenderController {
         }
 
         if (!TypesHandler.getInstance().isNumber(value_b)) {
-            return -value_a;
+            return value_a ? -value_a : 0;
         }
 
         return (value_b - value_a);

@@ -1,23 +1,17 @@
-import cloneDeep from 'lodash/cloneDeep';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import StatsController from '../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../shared/modules/Stats/vos/StatVO';
-import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import DataSourceControllerBase from './datasource/DataSourceControllerBase';
-import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
+import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
@@ -152,27 +146,27 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         return null;
     }
 
-    /**
-     * Fonction spécifique aux tests unitaires qui permet de tester la fonction getParamDependencies plus facilement
-     *  On fabrique un faux arbre pour appeler ensuite la fonction getParamDependencies
-     * @param param le var data / matroid qui sert à paramétrer le calcul
-     * @param datasources_values les datas de chaque datasource, par nom du datasource
-     * @param deps_values les valeurs des deps, par id de dep
-     */
-    public async UT__getParamDependencies(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number } = null): Promise<{ [dep_id: string]: VarDataBaseVO }> {
-        return this.getParamDependencies(await this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
-    }
+    // /**
+    //  * Fonction spécifique aux tests unitaires qui permet de tester la fonction getParamDependencies plus facilement
+    //  *  On fabrique un faux arbre pour appeler ensuite la fonction getParamDependencies
+    //  * @param param le var data / matroid qui sert à paramétrer le calcul
+    //  * @param datasources_values les datas de chaque datasource, par nom du datasource
+    //  * @param deps_values les valeurs des deps, par id de dep
+    //  */
+    // public async UT__getParamDependencies(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number } = null): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+    //     return this.getParamDependencies(await this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
+    // }
 
-    /**
-     * Fonction spécifique aux tests unitaires qui permet de tester la fonction getValue plus facilement
-     *  On fabrique un faux arbre pour appeler ensuite la fonction getValue
-     * @param param le var data / matroid qui sert à paramétrer le calcul
-     * @param datasources_values les datas de chaque datasource, par nom du datasource
-     * @param deps_values les valeurs des deps, par id de dep
-     */
-    public async UT__getValue(param: TData, datasources_values: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<number> {
-        return this.getValue(await this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
-    }
+    // /**
+    //  * Fonction spécifique aux tests unitaires qui permet de tester la fonction getValue plus facilement
+    //  *  On fabrique un faux arbre pour appeler ensuite la fonction getValue
+    //  * @param param le var data / matroid qui sert à paramétrer le calcul
+    //  * @param datasources_values les datas de chaque datasource, par nom du datasource
+    //  * @param deps_values les valeurs des deps, par id de dep
+    //  */
+    // public async UT__getValue(param: TData, datasources_values: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<number> {
+    //     return this.getValue(await this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
+    // }
 
     /**
      * Stats wrapper for get_invalid_params_intersectors_on_POST_C_POST_D_group
@@ -331,36 +325,36 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     protected abstract getValue(varDAGNode: VarDAGNode): number;
 
-    /**
-     * Fonction spécifique aux tests unitaires qui permet de créer un faux arbre pour avec les paramètres du test pour appeler
-     *  la fonction à tester beaucoup plus facilement
-     * @param param le var data / matroid qui sert à paramétrer le calcul
-     * @param datasources les datas de chaque datasource, par nom du datasource
-     * @param deps_values les valeurs des deps, par id de dep
-     */
-    private async UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<VarDAGNode> {
-        let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
+    // /**
+    //  * Fonction spécifique aux tests unitaires qui permet de créer un faux arbre pour avec les paramètres du test pour appeler
+    //  *  la fonction à tester beaucoup plus facilement
+    //  * @param param le var data / matroid qui sert à paramétrer le calcul
+    //  * @param datasources les datas de chaque datasource, par nom du datasource
+    //  * @param deps_values les valeurs des deps, par id de dep
+    //  */
+    // private async UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<VarDAGNode> {
+    //     let dag: VarDAG = new VarDAG();
+    //     let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
-        if (!varDAGNode) {
-            return null;
-        }
+    //     if (!varDAGNode) {
+    //         return null;
+    //     }
 
-        let deps = this.getParamDependencies(varDAGNode);
+    //     let deps = this.getParamDependencies(varDAGNode);
 
-        for (let i in deps) {
-            let dep_value = deps_values ? deps_values[i] : undefined;
+    //     for (let i in deps) {
+    //         let dep_value = deps_values ? deps_values[i] : undefined;
 
-            let var_dag_node_dep = await VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController, false);
-            if (!var_dag_node_dep) {
-                return null;
-            }
+    //         let var_dag_node_dep = await VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController, false);
+    //         if (!var_dag_node_dep) {
+    //             return null;
+    //         }
 
-            varDAGNode.addOutgoingDep(i, var_dag_node_dep);
-        }
+    //         varDAGNode.addOutgoingDep(i, var_dag_node_dep);
+    //     }
 
-        varDAGNode.datasources = datasources;
+    //     varDAGNode.datasources = datasources;
 
-        return varDAGNode;
-    }
+    //     return varDAGNode;
+    // }
 }

@@ -888,130 +888,145 @@ test('TSRangeHandler: test getMinSurroundingRange', () => {
     expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY));
     expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: zero,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: zero,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
     expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(null);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
 
 
@@ -1019,252 +1034,281 @@ test('TSRangeHandler: test getMinSurroundingRange', () => {
 
 
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: zero,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: zero,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
     expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(null);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
     expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(null);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
     expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(null);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
 
 
 
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
-    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual({
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange);
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
+    expect(RangeHandler.getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        } as TSRange));
 });
 
 test('TSRangeHandler: test getRangesUnion', () => {
@@ -1275,84 +1319,93 @@ test('TSRangeHandler: test getRangesUnion', () => {
     expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)]);
     expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)]);
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        })]);
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
     expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
-        {
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
             min: moins_un,
             min_inclusiv: true,
             max: zero,
@@ -1360,7 +1413,8 @@ test('TSRangeHandler: test getRangesUnion', () => {
             range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
 
-        } as TSRange, {
+        }),
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
             min: un,
             min_inclusiv: true,
             max: deux,
@@ -1368,54 +1422,59 @@ test('TSRangeHandler: test getRangesUnion', () => {
             range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
 
-        } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: zero,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: zero,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
     expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual(null);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
 
 
 
@@ -1479,153 +1538,169 @@ test('TSRangeHandler: test getRangesUnion', () => {
 
 
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
 
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: deux,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: zero,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: zero,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
-    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([{
-        min: moins_un,
-        min_inclusiv: true,
-        max: un,
-        max_inclusiv: false,
-        range_type: 2,
-        segment_type: TimeSegment.TYPE_DAY
+        })]);
+    expect(RangeHandler.getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).toStrictEqual([
+        Object.assign(TSRange.createNew(0, 0, true, true, TimeSegment.TYPE_DAY), {
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false,
+            range_type: 2,
+            segment_type: TimeSegment.TYPE_DAY
 
-    } as TSRange]);
+        })]);
 });
 
 test('TSRangeHandler: test getSegmentedMax', () => {
