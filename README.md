@@ -1,3 +1,5 @@
+[![Playwright Tests](https://github.com/OSWeDev/OSWeDev/actions/workflows/playwright.yml/badge.svg)](https://github.com/OSWeDev/OSWeDev/actions/workflows/playwright.yml)
+
 # OSWEDEV
 
 Solution OpenSource NodeJs, VueJS, Typescript. Les technologies utilisées sur les projets cibles :
@@ -7,6 +9,7 @@ Solution OpenSource NodeJs, VueJS, Typescript. Les technologies utilisées sur l
   - TypeScript
   - PostGreSQL
   - VueJS
+  - PlayWright
 
 Les projets sont découpés en différentes couches :
   - Un générateur de code - Typescript / NodeJS
