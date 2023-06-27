@@ -8,3 +8,6 @@ coverage
 test-reports.xml
 
 .trash/
+/test-results/
+/playwright-report/
+/playwright/.cache/
