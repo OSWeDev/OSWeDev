@@ -18,6 +18,7 @@ import FakeVarControllerDeps from './fakes/FakeVarControllerDeps';
 import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
 import FakeDataVO from './fakes/vos/FakeDataVO';
+import FakeVarsInit from './fakes/FakeVarsInit';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 // test('VarsImportsHandler: test load_imports_and_split_nodes', async () => {
@@ -33,11 +34,10 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () => {
 
-    VarsController.getInstance().clear_all_inits();
-    VarsServerController.getInstance().clear_all_inits();
+    // VarsController.getInstance().clear_all_inits();
+    // VarsServerController.getInstance().clear_all_inits();
 
-    FakeDataHandler.initializeFakeDataVO();
-    FakeDistantHandler.initializeFakeDistantVO();
+    await FakeVarsInit.initAll();
     await ModuleVar.getInstance().initializeasync({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
@@ -82,11 +82,10 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
 
 test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', async () => {
 
-    VarsController.getInstance().clear_all_inits();
-    VarsServerController.getInstance().clear_all_inits();
+    // VarsController.getInstance().clear_all_inits();
+    // VarsServerController.getInstance().clear_all_inits();
 
-    FakeDataHandler.initializeFakeDataVO();
-    FakeDistantHandler.initializeFakeDistantVO();
+    await FakeVarsInit.initAll();
     await ModuleVar.getInstance().initializeasync({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
@@ -117,21 +116,16 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', 
 
 test('VarsImportsHandler: test sort_matroids_per_cardinal_desc', async () => {
 
-    VarsController.getInstance().clear_all_inits();
-    VarsServerController.getInstance().clear_all_inits();
-
-    FakeDataHandler.initializeFakeDataVO();
-    FakeDistantHandler.initializeFakeDistantVO();
-
+    await FakeVarsInit.initAll();
     let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_A_A3(); // 3 jours
     let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2 jours
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 1 mois => pas de var déclarée donc on corrige pas auto le segment_type
+    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 1 mois => var déclarée donc on corrige auto le segment_type => 31 day
 
-    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_B)).toBeGreaterThanOrEqual(1);
+    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_B)).toBeLessThanOrEqual(-1);
     expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_A)).toStrictEqual(0);
-    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_B, var_data_A)).toBeLessThanOrEqual(-1);
-    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_C)).toBeGreaterThanOrEqual(1);
-    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_C, var_data_A)).toBeLessThanOrEqual(-1);
+    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_B, var_data_A)).toBeGreaterThanOrEqual(1);
+    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_C)).toBeLessThanOrEqual(-1);
+    expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_C, var_data_A)).toBeGreaterThanOrEqual(1);
     expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_B, var_data_C)).toBeGreaterThanOrEqual(1);
     expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_C, var_data_B)).toBeLessThanOrEqual(-1);
 });
@@ -139,11 +133,11 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc', async () => {
 
 test('VarsImportsHandler: test get_selection_imports', async () => {
 
-    VarsController.getInstance().clear_all_inits();
-    VarsServerController.getInstance().clear_all_inits();
+    // VarsController.getInstance().clear_all_inits();
+    // VarsServerController.getInstance().clear_all_inits();
 
-    FakeDataHandler.initializeFakeDataVO();
-    FakeDistantHandler.initializeFakeDistantVO();
+    await FakeVarsInit.initAll();
+
     await ModuleVar.getInstance().initializeasync({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,

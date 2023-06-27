@@ -1,12 +1,12 @@
 
 import moment from 'moment';
 import VarsComputeController from '../../../../src/server/modules/Var/VarsComputeController';
-import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../src/shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../src/shared/modules/ModuleTableField';
+import VarsInitController from '../../../../src/shared/modules/Var/VarsInitController';
 import VarDAG from '../../../../src/shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../../src/shared/modules/Var/graph/VarDAGNode';
-import VarsInitController from '../../../../src/shared/modules/Var/VarsInitController';
 import RangeHandler from '../../../../src/shared/tools/RangeHandler';
 import FakeDataVO from './vos/FakeDataVO';
 
@@ -121,7 +121,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_B_index() {
-        return "2|Lsy_M";
+        return "2|Lsy_M&LycR4";
     }
 
     public static get_var_data_C(): FakeDataVO {

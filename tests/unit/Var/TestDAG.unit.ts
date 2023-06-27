@@ -11,9 +11,11 @@ import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeDataVO from './fakes/vos/FakeDataVO';
 import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
 import VarsComputeController from '../../../src/server/modules/Var/VarsComputeController';
+import FakeVarsInit from './fakes/FakeVarsInit';
 
 test('DAG: test add nodes', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+
+    await FakeVarsInit.initAll();
 
     let dag: VarDAG = new VarDAG();
 
@@ -38,7 +40,7 @@ test('DAG: test add nodes', async () => {
     let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
     let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
 
-    expect(dagnodeB.var_data.index).toStrictEqual("2|Lsy_M");
+    expect(dagnodeB.var_data.index).toStrictEqual("2|Lsy_M&LycR4");
     expect(dagnodeB.aggregated_datas).toStrictEqual({});
     expect(dagnodeB.hasIncoming).toStrictEqual(false);
     expect(dagnodeB.hasOutgoing).toStrictEqual(false);
@@ -49,22 +51,22 @@ test('DAG: test add nodes', async () => {
     expect(dagnodeB.var_dag).toStrictEqual(dag);
 
     expect(dag.nb_nodes).toStrictEqual(2);
-    expect(dag.nodes).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M": dagnodeB });
-    expect(dag.leafs).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M": dagnodeB });
-    expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M": dagnodeB });
+    expect(dag.nodes).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
+    expect(dag.leafs).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
+    expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
 
     let dagnodeA_bis: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
     expect(dagnodeA_bis).toStrictEqual(dagnodeA);
 
     expect(dag.nb_nodes).toStrictEqual(2);
-    expect(dag.nodes).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M": dagnodeB });
-    expect(dag.leafs).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M": dagnodeB });
-    expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M": dagnodeB });
+    expect(dag.nodes).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
+    expect(dag.leafs).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
+    expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
 });
 
 test('DAG: test add deps', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     let dag: VarDAG = new VarDAG();
 
@@ -81,7 +83,7 @@ test('DAG: test add deps', async () => {
     expect(dag.leafs).toStrictEqual({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });
     expect(dag.roots).toStrictEqual({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });
 
-    expect(dagnodeB.var_data.index).toStrictEqual("2|Lsy_M");
+    expect(dagnodeB.var_data.index).toStrictEqual("2|Lsy_M&LycR4");
     expect(dagnodeB.aggregated_datas).toStrictEqual({});
     expect(dagnodeB.is_aggregator).toStrictEqual(false);
     expect(dagnodeB.hasIncoming).toStrictEqual(false);
@@ -130,7 +132,7 @@ test('DAG: test add deps', async () => {
 });
 
 test('DAG: test visit bottom->up to node', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple :
@@ -157,7 +159,7 @@ test('DAG: test visit bottom->up to node', async () => {
 });
 
 test('DAG: test visit top->bottom from node', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple :
@@ -184,7 +186,7 @@ test('DAG: test visit top->bottom from node', async () => {
 });
 
 test('DAG: test visit bottom->up from node', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple :
@@ -210,7 +212,7 @@ test('DAG: test visit bottom->up from node', async () => {
 });
 
 test('DAG: test visit top->bottom to node', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple :
@@ -236,7 +238,7 @@ test('DAG: test visit top->bottom to node', async () => {
 });
 
 test('DAG: test visit bottom->up through node', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple :
@@ -264,7 +266,7 @@ test('DAG: test visit bottom->up through node', async () => {
 });
 
 test('DAG: test visit top->bottom through node', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple :
@@ -296,7 +298,7 @@ test('DAG: test visit top->bottom through node', async () => {
 
 
 test('DAG: test visit bottom->up to node with condition', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple : (condition != 'E')
@@ -326,7 +328,7 @@ test('DAG: test visit bottom->up to node with condition', async () => {
 });
 
 test('DAG: test visit top->bottom from node with condition', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple : (condition != 'E')
@@ -358,7 +360,7 @@ test('DAG: test visit top->bottom from node with condition', async () => {
 });
 
 test('DAG: test visit bottom->up from node with condition', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple : (condition != 'A')
@@ -387,7 +389,7 @@ test('DAG: test visit bottom->up from node with condition', async () => {
 });
 
 test('DAG: test visit top->bottom to node with condition', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple : (condition != 'A')
@@ -416,7 +418,7 @@ test('DAG: test visit top->bottom to node with condition', async () => {
 });
 
 test('DAG: test visit bottom->up through node with condition', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple : (condition != 'E')
@@ -447,7 +449,7 @@ test('DAG: test visit bottom->up through node with condition', async () => {
 });
 
 test('DAG: test visit top->bottom through node with condition', async () => {
-    FakeDataHandler.initializeFakeDataVO();
+    await FakeVarsInit.initAll();
 
     /**
      * exemple : (condition != 'E')

@@ -3,38 +3,16 @@ import ServerAPIController from '../../../src/server/modules/API/ServerAPIContro
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import DAOUpdateVOHolder from '../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
 import VarServerControllerBase from '../../../src/server/modules/Var/VarServerControllerBase';
-import VarsServerController from '../../../src/server/modules/Var/VarsServerController';
-import IDistantVOBase from '../../../src/shared/modules/IDistantVOBase';
-import VarsController from '../../../src/shared/modules/Var/VarsController';
-import VarDataBaseVO from '../../../src/shared/modules/Var/vos/VarDataBaseVO';
-import FakeDataHandler from './fakes/FakeDataHandler';
-import FakeDistantHandler from './fakes/FakeDistantHandler';
-import FakeVarControllerDeps from './fakes/FakeVarControllerDeps';
-import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
-import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
 import VarsDatasProxy from '../../../src/server/modules/Var/VarsDatasProxy';
-import ModuleVar from '../../../src/shared/modules/Var/ModuleVar';
+import IDistantVOBase from '../../../src/shared/modules/IDistantVOBase';
+import VarDataBaseVO from '../../../src/shared/modules/Var/vos/VarDataBaseVO';
+import FakeVarsInit from './fakes/FakeVarsInit';
 
 test('VarsDatasVoUpdateHandler: test filter_var_datas_by_indexes', async () => {
-    FakeDataHandler.initializeFakeDataVO();
-    FakeDistantHandler.initializeFakeDistantVO();
-    await ModuleVar.getInstance().initializeasync({
-        [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
-        [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
-        [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
-    });
-    await FakeVarControllerDsDistant.getInstance().initialize();
-    await FakeVarControllerDsEmpDistant.getInstance().initialize();
-    await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
-        [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
-        [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
-        [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
-    });
-    VarsServerController.getInstance().init_varcontrollers_dag();
+    await FakeVarsInit.initAll();
 
     let vo_types: string[] = [];
     let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};

@@ -3,38 +3,17 @@ import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerW
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect, test } from '@playwright/test';
-import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
-import VarsServerController from '../../../src/server/modules/Var/VarsServerController';
-import FakeVarControllerDeps from '../Var/fakes/FakeVarControllerDeps';
-import FakeVarControllerDsEmpDistant from '../Var/fakes/FakeVarControllerDsEmpDistant';
-import FakeVarControllerDsDistant from '../Var/fakes/FakeVarControllerDsDistant';
-import FakeDistantHandler from '../Var/fakes/FakeDistantHandler';
-import FakeDataHandler from '../Var/fakes/FakeDataHandler';
-import ModuleVar from '../../../src/shared/modules/Var/ModuleVar';
-import VarsController from '../../../src/shared/modules/Var/VarsController';
-import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
 import VarsComputeController from '../../../src/server/modules/Var/VarsComputeController';
 import VarsdatasComputerBGThread from '../../../src/server/modules/Var/bgthreads/VarsdatasComputerBGThread';
+import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
+import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
+import FakeDataHandler from '../Var/fakes/FakeDataHandler';
+import FakeVarsInit from '../Var/fakes/FakeVarsInit';
+import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
 
 test('set nb_noeuds_global: updates when adding nodes', async () => {
 
-    FakeDataHandler.initializeFakeDataVO();
-    FakeDistantHandler.initializeFakeDistantVO();
-    await ModuleVar.getInstance().initializeasync({
-        [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
-        [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
-        [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
-    });
-    await FakeVarControllerDsDistant.getInstance().initialize();
-    await FakeVarControllerDsEmpDistant.getInstance().initialize();
-    await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
-        [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
-        [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
-        [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
-    });
-    VarsServerController.getInstance().init_varcontrollers_dag();
+    await FakeVarsInit.initAll();
 
     let var_dag: VarDAG = new VarDAG();
     VarsdatasComputerBGThread.getInstance().current_batch_id++;
