@@ -3,7 +3,6 @@ import DefaultTranslation from '../../../../shared/modules/Translation/vos/Defau
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../env/ConfigurationService';
 import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './DataSourceControllerBase';
