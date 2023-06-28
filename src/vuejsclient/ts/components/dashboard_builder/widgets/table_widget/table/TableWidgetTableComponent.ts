@@ -164,6 +164,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private table_columns: TableColumnDescVO[] = [];
 
+    private show_export_alert: boolean = false;
+
     get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
@@ -505,6 +507,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
+    }
+
+    get show_export_maintenance_alert(): boolean {
+        return this.widget_options && this.widget_options.has_export_maintenance_alert;
     }
 
     get can_export(): boolean {
@@ -1755,6 +1761,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.archive_button,
                     options.can_export_active_field_filters,
                     options.can_export_vars_indicator,
+                    options.show_bulk_edit,
+                    options.cb_bulk_actions,
+                    options.show_bulk_select_all,
+                    options.has_export_maintenance_alert,
                 ) : null;
             }
         } catch (error) {
@@ -2263,6 +2273,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
     }
 
+    private dismiss_export_alert() {
+        this.show_export_alert = false;
+    }
+
     /**
      * Export de toutes les données (en appliquant les filtrages)
      * @param limit_to_page se limiter à la page vue, ou renvoyer toutes les datas suivant les filtres actifs
@@ -2273,6 +2287,13 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         console.log('TableWidgetTableComponentdo_export_to_xlsx', JSON.stringify(param));
 
         if (!!param) {
+
+            this.show_export_alert = false;
+
+            if (this.show_export_maintenance_alert) {
+                this.show_export_alert = true;
+                return;
+            }
 
             await ModuleDataExport.getInstance().exportContextQueryToXLSX(
                 param.filename,

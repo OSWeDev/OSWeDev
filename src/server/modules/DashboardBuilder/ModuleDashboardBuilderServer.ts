@@ -2072,6 +2072,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'supervision_widget_options_component.show_bulk_edit.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Bulk Edit" },
+            'table_widget_options_component.show_bulk_edit.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Option Selectionner Tout" },
             'field_value_filter_widget_component.can_select_all_option.___LABEL___'
         ));
@@ -2099,6 +2103,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Nombre maximum d'éléments à afficher" },
             'show_favorites_filters_widget_component.max_visible_options.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Alerte de maintenance de l\'export'
+        }, 'table_widget_options_component.has_export_maintenance_alert.___LABEL___'));
+
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

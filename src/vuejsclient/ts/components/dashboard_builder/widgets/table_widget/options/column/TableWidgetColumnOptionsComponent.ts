@@ -523,6 +523,12 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.archive_button,
+                    options.can_export_active_field_filters,
+                    options.can_export_vars_indicator,
+                    options.show_bulk_edit,
+                    options.cb_bulk_actions,
+                    options.show_bulk_select_all,
+                    options.has_export_maintenance_alert,
                 ) : null;
             }
         } catch (error) {

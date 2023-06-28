@@ -43,6 +43,10 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         public archive_button?: boolean,
         public can_export_active_field_filters?: boolean,
         public can_export_vars_indicator?: boolean,
+        public show_bulk_edit?: boolean,
+        public cb_bulk_actions?: string[],
+        public show_bulk_select_all?: boolean,
+        public has_export_maintenance_alert?: boolean,
     ) {
         super();
     }

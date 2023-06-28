@@ -26,6 +26,12 @@ include ../../../../../../views/mixins/loading.pug
                         i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
                         | {{ label('crud.actions.create') }}
 
+            template(v-if='!!show_export_maintenance_alert')
+                .alert.alert-danger.mt-2(v-if="show_export_alert")
+                    span.span_dismiss_export_alert {{ label('exportContextQueryToXLSX.maintenance') }}
+                        button.btn_dismiss_export_alert(@click="dismiss_export_alert")
+                            i.fa-duotone.fa-times.fa-lg.btn_icon(aria-hidden="true")
+
             .kanban_header {{ table_header_title }}
             .kanban_wrapper
 

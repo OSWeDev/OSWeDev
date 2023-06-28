@@ -131,6 +131,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Export terminé'
         }, 'exportContextQueryToXLSX.file_ready.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cette fonctionnalité est actuellement en maintenance. Elle sera de retour prochainement.'
+        }, 'exportContextQueryToXLSX.maintenance.___LABEL___'));
     }
 
     public registerServerApiHandlers() {
