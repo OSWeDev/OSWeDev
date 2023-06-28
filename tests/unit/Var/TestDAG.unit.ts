@@ -3,7 +3,7 @@ import ServerAPIController from '../../../src/server/modules/API/ServerAPIContro
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import DAGController from '../../../src/shared/modules/Var/graph/dagbase/DAGController';
 import DAGNodeDep from '../../../src/shared/modules/Var/graph/dagbase/DAGNodeDep';
 import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 
 import moment from 'moment';
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';

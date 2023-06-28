@@ -1,8 +1,6 @@
-name: Playwright Tests
+name: Playwright Tests & Coverage
 on:
   push:
-    branches: '**'
-  pull_request:
     branches: '**'
 jobs:
   test:
@@ -15,8 +13,12 @@ jobs:
         node-version: 18
     - name: Install dependencies
       run: npm i
-    - name: Run Playwright unit tests
-      run: npm run test-ci
+    - name: Run Playwright unit tests with coverage
+      run: npm run test-coverage-ci
+    - name: Post code coverage results to Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/upload-artifact@v3
       if: always()
       with:

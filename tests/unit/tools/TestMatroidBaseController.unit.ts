@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 
 import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
 import ModuleTable from '../../../src/shared/modules/ModuleTable';
