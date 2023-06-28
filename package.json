@@ -21,7 +21,7 @@
         "lint-global": "tslint --project tsconfig.json",
         "check-deps": "depcruise --validate .dependency-cruiser.json src/**/*",
         "watch": "npm-watch",
-        "test-coverage-ci": "nyc node ./node_modules/@playwright/test/cli.js test --config=playwright-ci.config.ts > test-reports.xml",
+        "test-coverage-ci": "nyc node ./node_modules/@playwright/test/cli.js test --config=playwright-ci.config.ts",
         "test-ci": "playwright test --config=playwright-ci.config.ts",
         "test": "playwright test --config=playwright.config.ts",
         "test-coverage": "nyc node -r source-map-support/register ./node_modules/@playwright/test/cli.js test --config=playwright.config.ts > test-reports.xml",
