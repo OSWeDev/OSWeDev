@@ -1,4 +1,4 @@
-[![Playwright Tests](https://github.com/OSWeDev/OSWeDev/actions/workflows/playwright.yml/badge.svg)](https://github.com/OSWeDev/OSWeDev/actions/workflows/playwright.yml)
+[![Playwright Tests](https://github.com/OSWeDev/OSWeDev/actions/workflows/playwright.yml/badge.svg)](https://github.com/OSWeDev/OSWeDev/actions/workflows/playwright.yml) [![Coverage Status](https://coveralls.io/repos/github/OSWeDev/OSWeDev/badge.svg?branch=master)](https://coveralls.io/github/OSWeDev/OSWeDev?branch=master)
 
 # OSWEDEV
 

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
 import ImportTypeXLSXHandler from '../../../src/server/modules/DataImport/ImportTypeHandlers/ImportTypeXLSXHandler';
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';

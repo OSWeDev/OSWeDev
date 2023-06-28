@@ -11,4 +11,4 @@ test-reports.xml
 /test-results/
 /playwright-report/
 /playwright/.cache/
-playwright-report/index.html
+playwright-report/

@@ -2,7 +2,7 @@ import ServerAPIController from '../../../src/server/modules/API/ServerAPIContro
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import TextHandler from '../../../src/shared/tools/TextHandler';
 
 test('TextHandler: sanityze', () => {

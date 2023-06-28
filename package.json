@@ -21,7 +21,7 @@
         "lint-global": "tslint --project tsconfig.json",
         "check-deps": "depcruise --validate .dependency-cruiser.json src/**/*",
         "watch": "npm-watch",
-        "test-coverage-ci": "nyc node -r source-map-support/register ./node_modules/@playwright/test/cli.js test --config=playwright-ci.config.ts > test-reports.xml",
+        "test-coverage-ci": "nyc node ./node_modules/@playwright/test/cli.js test --config=playwright-ci.config.ts",
         "test-ci": "playwright test --config=playwright-ci.config.ts",
         "test": "playwright test --config=playwright.config.ts",
         "test-coverage": "nyc node -r source-map-support/register ./node_modules/@playwright/test/cli.js test --config=playwright.config.ts > test-reports.xml",
@@ -42,29 +42,6 @@
         "extension": [
             "ts"
         ]
-    },
-    "nyc": {
-        "check-coverage": false,
-        "per-file": true,
-        "extension": [
-            ".ts"
-        ],
-        "include": [
-            "src/generator/**/*.ts",
-            "src/server/**/*.ts",
-            "src/shared/**/*.ts"
-        ],
-        "require": [
-            "ts-node/register"
-        ],
-        "reporter": [
-            "cobertura",
-            "html"
-        ],
-        "cache": true,
-        "all": true,
-        "sourceMap": true,
-        "instrument": true
     },
     "author": "Wedev",
     "license": "Apache-2.0",
@@ -179,6 +156,7 @@
         "@types/express-fileupload": "1.1.3",
         "@types/mocha": "10.0.1",
         "@types/sharp": "0.29.1",
+        "babel-plugin-istanbul": "^6.1.1",
         "chai": "4.2.0",
         "concurrently": "7.0.0",
         "copyfiles": "2.4.1",
@@ -189,7 +167,8 @@
         "mocha": "10.2.0",
         "node": "19.8.1",
         "npm-watch": "0.11.0",
-        "nyc": "15.0.0",
+        "nyc": "^15.0.0",
+        "playwright-test-coverage": "^1.2.12",
         "source-map-support": "0.5.16",
         "ts-node": "8.8.2",
         "tsc-watch": "1.0.27",

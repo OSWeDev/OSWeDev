@@ -2,7 +2,7 @@ import ServerAPIController from '../../../src/server/modules/API/ServerAPIContro
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import ContextFilterVO, { filter } from '../../../src/shared/modules/ContextFilter/vos/ContextFilterVO';
 import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 import RangeHandler from '../../../src/shared/tools/RangeHandler';
