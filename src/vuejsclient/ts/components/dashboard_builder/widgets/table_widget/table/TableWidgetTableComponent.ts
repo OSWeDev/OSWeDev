@@ -2311,10 +2311,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private async do_export_to_xlsx(limit_to_page: boolean = true) {
         let param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
 
-        console.log('TableWidgetTableComponentdo_export_to_xlsx', JSON.stringify(param));
-
         if (!!param) {
-
             await ModuleDataExport.getInstance().exportContextQueryToXLSX(
                 param.filename,
                 param.context_query,

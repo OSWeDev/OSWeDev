@@ -652,8 +652,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
-        console.log('update_options', JSON.stringify(this.next_update_options));
-
         // this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
