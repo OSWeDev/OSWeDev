@@ -17,6 +17,7 @@ test('ResetDateHelper: test getClosestPreviousResetDate', async () => {
     expect(ResetDateHelper.getInstance().getClosestPreviousResetDate(moment('2020-01-01').startOf('day').utc(true).unix(), false, true, 1, 0)).toStrictEqual(moment('2019-01-01').startOf('day').utc(true).unix());
     expect(ResetDateHelper.getInstance().getClosestPreviousResetDate(moment('2020-01-01').startOf('day').utc(true).unix(), true, true, 2, 0)).toStrictEqual(moment('2019-01-02').startOf('day').utc(true).unix());
     expect(ResetDateHelper.getInstance().getClosestPreviousResetDate(moment('2020-01-01').startOf('day').utc(true).unix(), false, true, 2, 0)).toStrictEqual(moment('2019-01-02').startOf('day').utc(true).unix());
+    expect(ResetDateHelper.getInstance().getClosestPreviousResetDate(moment('2020-01-01').startOf('day').utc(true).unix(), false, true, 2, 0)).toStrictEqual(moment('2019-01-02').startOf('day').utc(true).unix());
 
     expect(ResetDateHelper.getInstance().getClosestPreviousResetDate(moment('2020-01-01').startOf('day').utc(true).unix(), true, true, 31, 4)).toStrictEqual(moment('2019-05-31').startOf('day').utc(true).unix());
     expect(ResetDateHelper.getInstance().getClosestPreviousResetDate(moment('2020-01-01').startOf('day').utc(true).unix(), false, true, 31, 4)).toStrictEqual(moment('2019-05-31').startOf('day').utc(true).unix());
