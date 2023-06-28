@@ -4,7 +4,7 @@ import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerW
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 
 import ResetDateHelper from '../../../src/shared/modules/Var/ResetDateHelper';
 import moment from 'moment';

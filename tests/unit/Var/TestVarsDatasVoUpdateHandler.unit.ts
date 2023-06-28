@@ -3,7 +3,7 @@ import ServerAPIController from '../../../src/server/modules/API/ServerAPIContro
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import DAOUpdateVOHolder from '../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
 import VarsDatasVoUpdateHandler from '../../../src/server/modules/Var/VarsDatasVoUpdateHandler';
 import VarsServerController from '../../../src/server/modules/Var/VarsServerController';

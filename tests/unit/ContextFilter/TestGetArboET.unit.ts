@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import ContextFilterVO from "../../../src/shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryServerController from "../../../src/server/modules/ContextFilter/ContextQueryServerController";
 import ConsoleHandler from "../../../src/shared/tools/ConsoleHandler";

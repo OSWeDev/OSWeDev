@@ -1,5 +1,5 @@
 /* tslint:disable:no-unused-expression */
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
 import VarsComputeController from '../../../src/server/modules/Var/VarsComputeController';
 import VarsImportsHandler from '../../../src/server/modules/Var/VarsImportsHandler';

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
 import ContextQueryServerController from '../../../src/server/modules/ContextFilter/ContextQueryServerController';
 import RoleVO from '../../../src/shared/modules/AccessPolicy/vos/RoleVO';

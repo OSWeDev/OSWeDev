@@ -1,7 +1,7 @@
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
-import { expect, test } from '@playwright/test';
+import { test, expect } from "playwright-test-coverage";
 
 import BooleanHandler from '../../../src/shared/tools/BooleanHandler';
 
