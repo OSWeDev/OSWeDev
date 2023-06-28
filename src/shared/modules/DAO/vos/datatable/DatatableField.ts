@@ -54,6 +54,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public return_min_value: boolean;
     public format_localized_time: boolean;
     public return_max_value: boolean;
+    public max_range_offset: number;
 
     public tooltip: string = null;
 
@@ -444,6 +445,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
             this.return_min_value = (this.return_min_value != null) ? this.return_min_value : this.moduleTableField.return_min_value;
             this.format_localized_time = (this.format_localized_time != null) ? this.format_localized_time : this.moduleTableField.format_localized_time;
             this.return_max_value = (this.return_max_value != null) ? this.return_max_value : this.moduleTableField.return_max_value;
+            this.max_range_offset = (this.max_range_offset != null) ? this.max_range_offset : this.moduleTableField.max_range_offset;
         }
     }
 }
