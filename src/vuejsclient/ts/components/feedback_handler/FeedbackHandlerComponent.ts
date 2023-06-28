@@ -88,11 +88,15 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     }
 
     @Watch('get_hidden', { immediate: true })
-    private onchange_get_hidden() {
+    private async onchange_get_hidden() {
         // If first time, store date + url
         if (!this.tmp_start_date) {
             this.tmp_start_date = Dates.now();
             this.tmp_start_url = this.$route.fullPath;
+        }
+
+        if (!this.get_hidden && this.$refs.ScreenshotComponent1) {
+            await (this.$refs.ScreenshotComponent1 as ScreenshotComponent).take_screenshot();
         }
     }
 
