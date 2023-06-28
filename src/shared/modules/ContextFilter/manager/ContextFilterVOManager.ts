@@ -1,6 +1,6 @@
 import RangeHandler from "../../../tools/RangeHandler";
 import TypesHandler from "../../../tools/TypesHandler";
-import VOFieldRefVOTypeHandler from "../../DashboardBuilder/handlers/VOFieldRefVOTypeHandler";
+import VOFieldRefVOHandler from "../../DashboardBuilder/handlers/VOFieldRefVOHandler";
 import BooleanFilterModel from "../../DashboardBuilder/models/BooleanFilterModel";
 import DashboardWidgetVO from "../../DashboardBuilder/vos/DashboardWidgetVO";
 import FieldValueFilterWidgetOptionsVO from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
@@ -71,7 +71,7 @@ export default class ContextFilterVOManager {
 
         let vo_field_ref = widget_options?.vo_field_ref;
 
-        if (VOFieldRefVOTypeHandler.is_type_boolean(vo_field_ref)) {
+        if (VOFieldRefVOHandler.is_type_boolean(vo_field_ref)) {
             const default_filters_options = widget_options?.default_boolean_values;
             context_filter = ContextFilterVOManager.create_context_filter_from_boolean_filter_types(
                 vo_field_ref,
@@ -79,7 +79,7 @@ export default class ContextFilterVOManager {
             );
         }
 
-        if (VOFieldRefVOTypeHandler.is_type_date(vo_field_ref)) {
+        if (VOFieldRefVOHandler.is_type_date(vo_field_ref)) {
             let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
             let field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
@@ -93,7 +93,7 @@ export default class ContextFilterVOManager {
             );
         }
 
-        if (VOFieldRefVOTypeHandler.is_type_enum(vo_field_ref)) {
+        if (VOFieldRefVOHandler.is_type_enum(vo_field_ref)) {
             let default_filters_options: DataFilterOption[] = [];
 
             for (let i in widget_options?.default_filter_opt_values) {
@@ -108,7 +108,7 @@ export default class ContextFilterVOManager {
             );
         }
 
-        if (VOFieldRefVOTypeHandler.is_type_number(vo_field_ref)) {
+        if (VOFieldRefVOHandler.is_type_number(vo_field_ref)) {
             let default_filters_options: DataFilterOption[] = [];
 
             for (let i in widget_options?.default_filter_opt_values) {
@@ -123,7 +123,7 @@ export default class ContextFilterVOManager {
             );
         }
 
-        if (VOFieldRefVOTypeHandler.is_type_string(vo_field_ref)) {
+        if (VOFieldRefVOHandler.is_type_string(vo_field_ref)) {
             let default_filters_options: DataFilterOption[] = [];
 
             for (let i in widget_options?.default_filter_opt_values) {

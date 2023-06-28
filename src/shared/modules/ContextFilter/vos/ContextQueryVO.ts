@@ -323,6 +323,58 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
+     * has_field
+     *  - Check if the given field_id is in the fields
+     */
+    public has_field(field_id: string): boolean {
+        if (!this.fields) {
+            return false;
+        }
+
+        return this.fields?.find((f) => f.field_id == field_id) != null;
+    }
+
+    /**
+     * replace_field
+     *  - Replace field from this fields by the given field
+     *
+     * @param field_id l'id du field à ajouter.
+     */
+    public replace_field(
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
+
+        const field = new ContextQueryFieldVO(
+            api_type_id ? api_type_id : this.base_api_type_id,
+            field_id,
+            alias,
+            aggregator,
+            modifier,
+            cast_with,
+        );
+
+        if (!this.fields) {
+            this.fields = [];
+        }
+
+        this.fields = this.fields.map((f) => {
+            if (f.field_id == field_id) {
+                return field;
+            }
+            return f;
+        });
+
+        this.update_active_api_type_ids_from_fields([field]);
+
+        return this;
+    }
+
+    /**
      * Ajouter des fields attendus en résultat de la requête
      *  Si on veut un vo complet il ne faut pas demander les fields
      * @param fields les fields à ajouter.

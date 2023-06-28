@@ -1751,6 +1751,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.default_value_or_exclude.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeurs affichées par défaut du filtre (pour la Supervision)" },
+            'field_value_filter_widget_component.default_showed_filter_opt_values.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valeurs par défaut du filtre" },
             'field_value_filter_widget_component.default_filter_opt_values.___LABEL___'
         ));

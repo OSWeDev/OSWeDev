@@ -356,6 +356,37 @@
                     )
 
 
+        .default_showed_filter_opt_values 
+            .input_label {{ label('field_value_filter_widget_component.default_showed_filter_opt_values') }}
+            .input_wrapper
+                template(v-if="is_type_string || is_type_number || is_type_enum")
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="can_select_multiple"
+                        :close-on-select="false"
+                        v-model="tmp_default_showed_filter_opt_values"
+                        :options="filter_visible_options"
+                        :custom-label="filter_visible_label"
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="false"
+                        :hide-selected="true"
+
+                        track-by="text_uid"
+                        
+                        :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                        
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                        @search-change="query_update_visible_options"
+                    )
+
+
         .default_filter_opt_values 
             .input_label {{ label('field_value_filter_widget_component.default_filter_opt_values') }}
             .input_wrapper

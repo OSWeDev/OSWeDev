@@ -3,14 +3,15 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
-import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -24,7 +25,6 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
-import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
 
 @Component({
@@ -79,7 +79,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private is_init: boolean = false;
 
     private actual_query: string = null;
-    private old_widget_options: FieldValueFilterWidgetOptions = null;
+    private old_widget_options: FieldValueFilterWidgetOptionsVO = null;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private last_calculation_cpt: number = 0;
@@ -105,18 +105,18 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      * Computed widget options
      *  - Happen on component|widget creation
      *
-     * @returns {FieldValueFilterWidgetOptions}
+     * @returns {FieldValueFilterWidgetOptionsVO}
      */
-    get widget_options(): FieldValueFilterWidgetOptions {
+    get widget_options(): FieldValueFilterWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: FieldValueFilterWidgetOptions = null;
+        let options: FieldValueFilterWidgetOptionsVO = null;
         try {
             if (this.page_widget.json_options?.length > 0) {
-                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
-                options = options ? new FieldValueFilterWidgetOptions().from(options) : null;
+                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                options = options ? new FieldValueFilterWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -319,6 +319,19 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         if (!(data_filter_options?.length > 0)) {
             data_filter_options = [];
+        }
+
+        const default_showed_filter_opt_values = this.widget_options.default_showed_filter_opt_values;
+
+        if (default_showed_filter_opt_values?.length > 0) {
+            // Add default_showed_filter_opt_values to data_filter_options (if not already in)
+            const filter_options_to_add = default_showed_filter_opt_values.filter(
+                (default_showed_filter_opt_value: DataFilterOption) => !data_filter_options.find(
+                    (data_filter_option: DataFilterOption) => data_filter_option.numeric_value == default_showed_filter_opt_value.numeric_value
+                )
+            );
+
+            data_filter_options = data_filter_options.concat(filter_options_to_add);
         }
 
         for (const i in data_filter_options) {
@@ -626,7 +639,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -694,7 +707,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      * @returns {VOFieldRefVO[]}
      */
     get vo_field_ref_multiple(): VOFieldRefVO[] {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
             return null;
@@ -710,7 +723,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     get default_values(): DataFilterOption[] {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if (!(options?.default_filter_opt_values?.length > 0)) {
             return null;
@@ -720,7 +733,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     get exclude_values(): DataFilterOption[] {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
             return null;

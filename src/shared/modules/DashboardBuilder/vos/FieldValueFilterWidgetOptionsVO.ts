@@ -103,6 +103,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public hide_btn_switch_advanced?: boolean,
         public hide_advanced_string_filter_type?: boolean,
         public vo_field_ref_multiple?: VOFieldRefVO[],
+        public default_showed_filter_opt_values?: DataFilterOption[], // Default filter options to show (supervision case by example)
         public default_filter_opt_values?: DataFilterOption[],
         public default_ts_range_values?: TSRange,
         public default_boolean_values?: number[],

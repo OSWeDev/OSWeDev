@@ -1345,7 +1345,6 @@ export default class ContextQueryServerController {
                 moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
             );
 
-
             // Build sub-query for the final db request to union
             const parameterized_query_wrapper = await this.build_moduletable_select_query(
                 context_query_segmented,
@@ -1532,6 +1531,10 @@ export default class ContextQueryServerController {
 
         query_wrapper.joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
 
+
+        const base_moduletable_fields = base_moduletable.get_fields();
+
+        // Set all base_moduletable_fields by default
         if (!(context_query.fields?.length > 0)) {
 
             // if (context_query.query_distinct) {
@@ -1543,28 +1546,54 @@ export default class ContextQueryServerController {
 
             context_query.field('id');
 
-            let fields = base_moduletable.get_fields();
-
-            for (const i in fields) {
-                const field = fields[i];
+            // Add all fields by default
+            for (const i in base_moduletable_fields) {
+                const field = base_moduletable_fields[i];
                 context_query.add_field(field.field_id);
             }
+        }
+
+        // Case when we need all_required_fields (the overflows fields shall be sets as null)
+        if (all_required_fields?.length > 0) {
+            // We should stick to the given fields_for_query (if any without overflow fields)
+            const fields_for_query = context_query.fields;
 
             // Fields which are in the in the all_required_fields
-            // But not in moduletable.get_fields()
+            // But not in moduletable_fields
             const field_ids_to_add: string[] = all_required_fields?.filter(
-                (required_field) => !fields.find(
+                (required_field) => !base_moduletable_fields.find(
                     (f) => f.field_id === required_field.field_id
                 )
             ).map((field) => field.field_id);
 
-            // Set all fields by default
             // Case when base_moduletable does not have field_to_add set select as null
             for (const i in field_ids_to_add) {
-                const field_id = field_ids_to_add[i];
+                const field_id_to_add = field_ids_to_add[i];
+
+                let should_add_field_for_query = false;
+
+                // We should only add fields that are in the fields_for_query
+                // If fields_for_query is empty, we should add all fields
+                if (fields_for_query?.length > 0) {
+                    const is_all_default_fields = base_moduletable_fields.every(
+                        (moduletable_field) => fields_for_query.find(
+                            (field) => field.field_id === moduletable_field.field_id
+                        )
+                    );
+
+                    const fields_for_query_in_field_to_add = fields_for_query.find(
+                        (field) => field.field_id === field_id_to_add
+                    ) != null;
+
+                    should_add_field_for_query = is_all_default_fields || fields_for_query_in_field_to_add;
+                }
+
+                if (!should_add_field_for_query) {
+                    continue;
+                }
 
                 const field_to_add = all_required_fields.find(
-                    (field) => field.field_id === field_id
+                    (field) => field.field_id === field_id_to_add
                 );
 
                 let cast_with = 'text';
@@ -1573,18 +1602,34 @@ export default class ContextQueryServerController {
                     cast_with = field_to_add.getPGSqlFieldType();
                 }
 
-                context_query.add_field(
-                    field_id,
-                    null,
-                    null,
-                    VarConfVO.NO_AGGREGATOR,
-                    ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
-                    cast_with
-                );
+                const has_field = context_query.has_field(field_id_to_add);
+
+                if (has_field) {
+                    context_query.replace_field(
+                        field_id_to_add,
+                        null,
+                        null,
+                        VarConfVO.NO_AGGREGATOR,
+                        ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
+                        cast_with
+                    );
+                } else {
+                    context_query.add_field(
+                        field_id_to_add,
+                        null,
+                        null,
+                        VarConfVO.NO_AGGREGATOR,
+                        ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
+                        cast_with
+                    );
+                }
             }
 
-            // We should order all fields in the same way of the given all_required_fields
-            if (all_required_fields?.length > 0) {
+            // No need to have explicit_api_type_id field
+            // if we have fields_for_query
+            if (!(fields_for_query?.length > 0)) {
+
+                // We should order all fields in the same way of the given all_required_fields
                 all_required_fields.push({ field_id: '_explicit_api_type_id' } as ModuleTableField<any>);
 
                 // We should also add|specify _explicit_api_type_id field to retrieve it later
@@ -1595,14 +1640,16 @@ export default class ContextQueryServerController {
                     VarConfVO.NO_AGGREGATOR,
                     ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID,
                 );
-
-                // We should order all fields in the same way of the given all_required_fields
-                context_query.fields = context_query.fields.sort((field_a: ContextQueryFieldVO, field_b: ContextQueryFieldVO) => {
-                    const all_required_field_ids = all_required_fields.map((field) => field.field_id);
-
-                    return all_required_field_ids.indexOf(field_a.field_id) - all_required_field_ids.indexOf(field_b.field_id);
-                });
             }
+
+            // We should order all fields in the same way of the given all_required_fields
+            context_query.fields = context_query.fields.sort((field_a: ContextQueryFieldVO, field_b: ContextQueryFieldVO) => {
+                const all_required_field_ids = all_required_fields.map(
+                    (field) => field.field_id
+                );
+
+                return all_required_field_ids.indexOf(field_a.field_id) - all_required_field_ids.indexOf(field_b.field_id);
+            });
         }
 
         let SELECT = "SELECT ";
@@ -1685,7 +1732,6 @@ export default class ContextQueryServerController {
             ) {
                 field_full_name = context_field.field_id;
             }
-
 
             let aggregator_prefix = '';
             let aggregator_suffix = '';
