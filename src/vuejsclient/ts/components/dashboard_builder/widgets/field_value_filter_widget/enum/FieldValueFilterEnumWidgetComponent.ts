@@ -348,18 +348,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             ));
         }
 
-        data_filter_options.sort((a, b) => {
-            return a.numeric_value - b.numeric_value;
-        });
-
         // We should keep all distinct filters
         this.filter_visible_options = [this.filter_visible_options, data_filter_options].reduce(
             (accumulator: DataFilterOption[], currentVal: DataFilterOption[]) => {
 
-                // Add all filters that are not in accumulator (by filter_label)
+                // Add all filters that are not in accumulator (by numeric_value)
                 const overflowing_filters = currentVal.filter(
                     (filter: DataFilterOption) => !accumulator.find(
-                        (acc_filter) => acc_filter.label === filter.label
+                        (acc_filter) => acc_filter.numeric_value === filter.numeric_value
                     )
                 );
 
@@ -367,6 +363,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 return accumulator.concat(overflowing_filters);
             }
         );
+
+        // Reorder filter_visible_options by numeric_value (ASC)
+        this.filter_visible_options.sort((a, b) => {
+            return a.numeric_value - b.numeric_value;
+        });
 
         // Si on doit afficher le compteur, on fait les requêtes nécessaires
         await this.set_count_value();
