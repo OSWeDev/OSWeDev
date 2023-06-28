@@ -239,6 +239,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Attribuer une option d\'export par défaut'
         }, 'table_widget_options_component.has_default_export_option.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Alerte de maintenance de l\'export'
+        }, 'table_widget_options_component.has_export_maintenance_alert.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer la suppression'
@@ -1128,6 +1131,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Composants'
         }, 'table_widget_column.new_column_select_type_component.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Actions'
+        }, 'table_widget_bulk.new_bulk_action.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Dashboards'
         }, 'menu.menuelements.admin.dashboard.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -1564,6 +1570,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher la popup" },
             'table_widget_column_conf.editable_column.show_tooltip.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sommer les datas" },
+            'table_widget_column_conf.editable_column.sum_numeral_datas.show.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ne somme pas les datas" },
+            'table_widget_column_conf.editable_column.sum_numeral_datas.hide.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Période fixe (calendrier)" },
@@ -2107,6 +2121,22 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Alerte de maintenance de l\'export'
         }, 'table_widget_options_component.has_export_maintenance_alert.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Tout sélectionner" },
+            'table_widget_component.select_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Tout déselectionner" },
+            'table_widget_component.unselect_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Bulk Edit" },
+            'table_widget_options_component.show_bulk_edit.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher boutons tout (dé)sélectionner" },
+            'table_widget_options_component.show_bulk_select_all.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

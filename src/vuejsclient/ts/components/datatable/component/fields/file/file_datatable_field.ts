@@ -2,9 +2,11 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
+import DatatableRowController from '../../DatatableRowController';
 import './file_datatable_field.scss';
 
 @Component({
@@ -26,6 +28,12 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
 
     @Prop({ default: false })
     public show_file_name: boolean;
+
+    @Prop()
+    private vo_id: number;
+
+    @Prop()
+    private field: DatatableField<any, any>;
 
 
     private file: FileVO = null;
@@ -73,6 +81,22 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
 
         if (!this.loaded) {
             this.loaded = true;
+        }
+    }
+
+    /**
+     * On appelle le callback si ça existe
+     */
+    private async cb_download() {
+        if (!this.vo_id || !this.field) {
+            return;
+        }
+
+        if (
+            DatatableRowController.cb_file_download[this.field.vo_type_id] &&
+            DatatableRowController.cb_file_download[this.field.vo_type_id][this.field.module_table_field_id]
+        ) {
+            await DatatableRowController.cb_file_download[this.field.vo_type_id][this.field.module_table_field_id](this.vo_id);
         }
     }
 }

@@ -35,9 +35,10 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
             TEAMS_HOST,
             webhook,
             msg,
-            {
-                'Content-Length': JSON.stringify(msg).length,
-            },
+            null,
+            true,
+            null,
+            false,
             true
         );
     }

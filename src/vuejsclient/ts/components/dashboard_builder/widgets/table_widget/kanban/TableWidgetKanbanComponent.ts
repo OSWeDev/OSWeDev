@@ -1882,6 +1882,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     }
                 } else if (column.is_nullable) {
                     aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
+                } else if (column.sum_numeral_datas) {
+                    aggregator = VarConfVO.SUM_AGGREGATOR;
                 }
             }
 
@@ -2604,7 +2606,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
      * On demande si on veut exporter tout en juste la page actuellement lue
      */
     private async choose_export_type() {
-
         let self = this;
 
         if (this.default_export_option) {

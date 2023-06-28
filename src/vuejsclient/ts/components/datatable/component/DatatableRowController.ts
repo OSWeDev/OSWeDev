@@ -1,6 +1,4 @@
 import { cloneDeep, isArray } from "lodash";
-import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import Datatable from "../../../../../shared/modules/DAO/vos/datatable/Datatable";
 import DatatableField from "../../../../../shared/modules/DAO/vos/datatable/DatatableField";
 import ManyToManyReferenceDatatableFieldVO from "../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO";
@@ -12,13 +10,14 @@ import IDistantVOBase from "../../../../../shared/modules/IDistantVOBase";
 import ModuleTableField from "../../../../../shared/modules/ModuleTableField";
 import TableFieldTypesManager from "../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
-import { all_promises } from "../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../shared/tools/RangeHandler";
 
 export default class DatatableRowController {
 
     public static ACTIONS_COLUMN_ID: string = "__actions_column__";
     public static MULTISELECT_COLUMN_ID: string = "__multiselect_column__";
+
+    public static cb_file_download: { [vo_type: string]: { [field_id: string]: (vo_id: number) => Promise<void> } } = {};
 
     public static getInstance(): DatatableRowController {
         if (!DatatableRowController.instance) {
@@ -302,5 +301,13 @@ export default class DatatableRowController {
             ConsoleHandler.error(error);
             resData[field.datatable_field_uid] = null;
         }
+    }
+
+    public set_cb_file_download(vo_type: string, field_id: string, cb: (vo_id: number) => Promise<void>) {
+        if (!DatatableRowController.cb_file_download[vo_type]) {
+            DatatableRowController.cb_file_download[vo_type] = {};
+        }
+
+        DatatableRowController.cb_file_download[vo_type][field_id] = cb;
     }
 }
