@@ -2266,10 +2266,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let nb_queries = promises ? promises.length : 0;
 
-            /**
-             * On gère les réponses disponibles dans le cache
-             */
-            this.handle_cached_responses(promises, throttled_select_query_params_by_fields_labels_by_index);
 
             /**
              * On veut utiliser efficacement les connexions vers la BDD
@@ -2279,7 +2275,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let nb_simultaneous_queries = ConfigurationService.node_configuration.TARGET_THROTTLED_QUERIES_CONNECTION_POOL;
 
             // On a déjà une requête par promises émises au dessus, et on va en créer une par index
-            nb_queries += (throttled_select_query_params_by_index ? Object.keys(throttled_select_query_params_by_index).length : 0);
+            nb_queries += (throttled_select_query_params_by_fields_labels_by_index ? Object.keys(throttled_select_query_params_by_fields_labels_by_index).length : 0);
 
             let nb_connexions_disponibles = Math.max(Math.min(nb_simultaneous_queries, nb_simultaneous_queries - nb_queries), 0);
 
@@ -2288,77 +2284,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
              */
             this.split_for_nb_connections(throttled_select_query_params_by_fields_labels_by_index, nb_connexions_disponibles);
 
-            for (let i in throttled_select_query_params_by_fields_labels_by_index) {
-                let throttled_select_query_params: { [index: number]: ThrottledSelectQueryParam } = throttled_select_query_params_by_fields_labels_by_index[i];
 
-                promises.push((async () => {
+            /**
+             * On gère les réponses disponibles dans le cache : on a toujours les requetes dans le throttled_select_query_params_by_fields_labels_by_index
+             *  mais le semaphore est à true si on a chargé depuis le cache
+             */
+            this.handle_cached_responses_and_db_queries(promises, throttled_select_query_params_by_fields_labels_by_index);
 
-                    let request: string = "";
-                    if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-                        ConsoleHandler.log('throttled_select_query:do_throttled_select_query:PREPARE:' + i);
-                    }
-
-                    let throttled_select_query_params_no_cache: { [index: number]: ThrottledSelectQueryParam } = {};
-                    for (let j in throttled_select_query_params) {
-                        let param = throttled_select_query_params[j];
-
-                        if (param.semaphore) {
-                            continue;
-                        }
-                        param.semaphore = true;
-
-                        /**
-                         * On ajoute la gestion du cache ici
-                         */
-                        if (param.context_query.max_age_ms && DAOCacheHandler.has_cache(param.parameterized_full_query, param.context_query.max_age_ms)) {
-                            let res = DAOCacheHandler.get_cache(param.parameterized_full_query);
-                            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-                                ConsoleHandler.log('throttled_select_query:do_throttled_select_query:cache:' + param.parameterized_full_query);
-                            }
-                            StatsController.register_stat_COMPTEUR('ModuleDAO', 'throttled_select_query', 'from_cache');
-
-                            let pms = [];
-                            for (let cbi in param.cbs) {
-                                let cb = param.cbs[cbi];
-
-                                pms.push(cb(res));
-                            }
-                            await all_promises(pms);
-                            continue;
-                        }
-                        throttled_select_query_params_no_cache[j] = param;
-                        StatsController.register_stat_COMPTEUR('ModuleDAO', 'throttled_select_query', 'not_from_cache');
-
-                        /**
-                         * On ne doit avoir que des select
-                         */
-                        if (!/^\(?select /i.test(param.parameterized_full_query)) {
-                            ConsoleHandler.error('Only select queries are allowed in throttled_select_query:' + param.parameterized_full_query);
-                            continue;
-                        }
-
-                        if (request != "") {
-                            request += " UNION ALL ";
-                        }
-
-                        let this_query = "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
-                        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-                            ConsoleHandler.log('throttled_select_query:do_throttled_select_query:this_query:' + this_query);
-                        }
-                        request += this_query;
-                    }
-
-                    if (request != "") {
-                        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-                            ConsoleHandler.log('throttled_select_query:do_throttled_select_query:START:' + i);
-                        }
-                        await this.do_throttled_select_query(request, null, throttled_select_query_params_no_cache);
-                        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-                            ConsoleHandler.log('throttled_select_query:do_throttled_select_query:END:' + i);
-                        }
-                    }
-                })());
-            }
             await all_promises(promises);
         }
     }
@@ -5824,9 +5756,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return promises;
     }
 
-    private handle_cached_responses(
+    private handle_cached_responses_and_db_queries(
         promises: Array<Promise<any>>,
         throttled_select_query_params_by_fields_labels_by_index: { [index: string]: { [field_label: string]: ThrottledSelectQueryParam } }) {
+
 
         for (let i in throttled_select_query_params_by_fields_labels_by_index) {
             let throttled_select_query_params: { [index: number]: ThrottledSelectQueryParam } = throttled_select_query_params_by_fields_labels_by_index[i];
@@ -5910,55 +5843,50 @@ export default class ModuleDAOServer extends ModuleServerBase {
         nb_connexions_disponibles: number
     ): void {
 
-        if (nb_connexions_disponibles <= 1) {
-            return;
-        }
+        while (nb_connexions_disponibles > 1) {
 
-        let new_throttled_select_query_params_by_fields_labels_by_index: { [fields_label: string]: { [index: string]: ThrottledSelectQueryParam } } = {};
-        let max_index = 0;
-        let actual_max = 0;
+            let max_index: string = null;
+            let actual_max = 0;
 
-        // si on a que des requêtes avec un seul index, on sort
-        let only_one_index = true;
+            // si on a que des requêtes avec un seul index, on sort
+            let only_one_index = true;
 
-        for (let i in throttled_select_query_params_by_fields_labels_by_index) {
-            let throttled_select_query_params: { [index: number]: ThrottledSelectQueryParam } = throttled_select_query_params_by_fields_labels_by_index[i];
+            for (let fields_label in throttled_select_query_params_by_fields_labels_by_index) {
+                let throttled_select_query_params: { [index: number]: ThrottledSelectQueryParam } = throttled_select_query_params_by_fields_labels_by_index[fields_label];
 
-            let nb_indexes = Object.keys(throttled_select_query_params).length;
-            if (nb_indexes > 1) {
-                only_one_index = false;
+                let nb_indexes = Object.keys(throttled_select_query_params).length;
+                if (nb_indexes > 1) {
+                    only_one_index = false;
+                }
+
+                if (nb_indexes > actual_max) {
+                    actual_max = nb_indexes;
+                    max_index = fields_label;
+                }
             }
 
-            if (nb_indexes > actual_max) {
-                actual_max = nb_indexes;
-                max_index = parseInt(i);
+            if (only_one_index) {
+                return;
             }
-        }
 
-        if (only_one_index) {
-            return;
-        }
+            let group_a: { [index: string]: ThrottledSelectQueryParam } = {};
+            let group_b: { [index: string]: ThrottledSelectQueryParam } = {};
+            let nb_group_a = 0;
 
-        let group_a: { [index: string]: ThrottledSelectQueryParam } = {};
-        let group_b: { [index: string]: ThrottledSelectQueryParam } = {};
-        let nb_group_a = 0;
-
-        for (let i in throttled_select_query_params_by_fields_labels_by_index[max_index]) {
-            if (nb_group_a < (actual_max / 2)) {
-                nb_group_a++;
-                group_a[i] = throttled_select_query_params_by_fields_labels_by_index[max_index][i];
-            } else {
-                group_b[i] = throttled_select_query_params_by_fields_labels_by_index[max_index][i];
+            for (let i in throttled_select_query_params_by_fields_labels_by_index[max_index]) {
+                if (nb_group_a < (actual_max / 2)) {
+                    nb_group_a++;
+                    group_a[i] = throttled_select_query_params_by_fields_labels_by_index[max_index][i];
+                } else {
+                    group_b[i] = throttled_select_query_params_by_fields_labels_by_index[max_index][i];
+                }
             }
-        }
 
-        throttled_select_query_params_by_fields_labels_by_index[max_index + '_a'] = group_a;
-        throttled_select_query_params_by_fields_labels_by_index[max_index + '_b'] = group_b;
+            throttled_select_query_params_by_fields_labels_by_index[max_index + '_a'] = group_a;
+            throttled_select_query_params_by_fields_labels_by_index[max_index + '_b'] = group_b;
+            delete throttled_select_query_params_by_fields_labels_by_index[max_index];
 
-        nb_connexions_disponibles--;
-
-        if (nb_connexions_disponibles > 1) {
-            this.split_for_nb_connections(throttled_select_query_params_by_fields_labels_by_index, nb_connexions_disponibles);
+            nb_connexions_disponibles--;
         }
     }
 }

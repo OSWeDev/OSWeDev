@@ -26,11 +26,11 @@
                                 
                         .col-12
                             template(v-for='filtered_data in get_filtered_datas')
-                                var-data.col-12(:var_param='filtered_data')
+                                var-data.col-12(:var_param='filtered_data' :show_tooltip='true' :show_import_aggregated='true' :show_import='true' :can_inline_edit='true')
     .row(v-if='!display_data')
         .col-md-12
             template(v-for='filtered_data in get_filtered_datas')
-                var-data(:var_param='filtered_data')
+                var-data(:var_param='filtered_data' :show_tooltip='true' :show_import_aggregated='true' :show_import='true' :can_inline_edit='true')
 
     .row
         .col-md-12
