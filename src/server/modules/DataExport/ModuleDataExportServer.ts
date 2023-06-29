@@ -1425,7 +1425,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let debug_uid: number = 0;
         let has_errors: boolean = false;
 
-        ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:nb rows:' + rows.length);
+        if (ConfigurationService.node_configuration.DEBUG_add_var_columns_values_for_xlsx_datas) {
+            ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:nb rows:' + rows.length);
+        }
         for (let j in rows) {
             let row = rows[j];
             let data_n: number = parseInt(j) + 1;
@@ -1434,7 +1436,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 break;
             }
 
-            ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:row:' + data_n + '/' + rows.length);
+            if (ConfigurationService.node_configuration.DEBUG_add_var_columns_values_for_xlsx_datas) {
+                ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:row:' + data_n + '/' + rows.length);
+            }
 
             for (let i in ordered_column_list) {
                 let row_field_name: string = ordered_column_list[i];
@@ -1471,10 +1475,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 let context = DashboardBuilderController.getInstance().add_table_row_context(current_active_field_filters, columns, row);
 
                 debug_uid++;
-                ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:PRE PIPELINE PUSH:nb :' + i + ':' + debug_uid);
                 await promise_pipeline.push(async () => {
-
-                    ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 1:nb :' + i + ':' + debug_uid);
 
                     /**
                      * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
@@ -1487,12 +1488,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         discarded_field_paths
                     );
                     if (!var_param) {
-                        ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 1.5:nb :' + i + ':' + debug_uid + ':');
                         row[row_field_name] = null;
                         return;
                     }
-
-                    ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 2:nb :' + i + ':' + debug_uid + ':' + var_param.index);
 
                     try {
 
@@ -1502,10 +1500,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         ConsoleHandler.error('add_var_columns_values_for_xlsx_datas:FAILED get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
                         has_errors = true;
                     }
-
-                    ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 3:nb :' + i + ':' + debug_uid);
                 });
-                ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:POST PIPELINE PUSH:nb :' + i + ':' + debug_uid);
             }
         }
 

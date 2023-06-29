@@ -26,6 +26,8 @@ export default interface IEnvParam {
     DEBUG_SLOW_QUERIES?: boolean;
     DEBUG_PARAM_QUERIES?: boolean;
     DEBUG_DB_QUERY_PERF?: boolean;
+    DEBUG_DB_QUERY_add_activated_many_to_many?: boolean;
+    DEBUG_add_var_columns_values_for_xlsx_datas?: boolean;
     DEBUG_FORKS?: boolean;
     DEBUG_VARS?: boolean;
     DEBUG_VARS_DB_PARAM_BUILDER?: boolean;

@@ -416,13 +416,15 @@ export default class VarsDatasProxy {
                             let var_data = filtered_insert[i];
                             filtered_insert_by_index[var_data.index] = var_data;
                         }
-                        let inserted_vars: VarDataBaseVO[] = await query(api_type_id)
-                            .filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).exec_as_server().select_vos<VarDataBaseVO>();
+                        let inserted_vars: Array<{ id: string, _bdd_only_index: string }> = await query(api_type_id)
+                            .field('id')
+                            .field('_bdd_only_index')
+                            .filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).exec_as_server().select_all();
 
                         for (let i in inserted_vars) {
                             let inserted_var = inserted_vars[i];
 
-                            filtered_insert_by_index[inserted_var.index].id = inserted_var.id;
+                            filtered_insert_by_index[inserted_var._bdd_only_index].id = parseInt(inserted_var.id);
                         }
                     })());
                 }
@@ -792,11 +794,16 @@ export default class VarsDatasProxy {
             }
         }
 
+        // JNE : TEST et à revoir : Intéressant de faire un ordre mais ça part en vrille sur les très grosses listes
         let ordered_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => v.client_tab_id && !VarsServerController.has_valid_value(v.var_data));
-        this.order_vars_datas_buffer(ordered_client_vars_datas_buffer);
+        // if (ordered_client_vars_datas_buffer && ordered_client_vars_datas_buffer.length && (ordered_client_vars_datas_buffer.length < 500)) {
+        //     this.order_vars_datas_buffer(ordered_client_vars_datas_buffer);
+        // }
 
         let ordered_non_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => (!v.client_tab_id) && !VarsServerController.has_valid_value(v.var_data));
-        this.order_vars_datas_buffer(ordered_non_client_vars_datas_buffer);
+        // if (ordered_non_client_vars_datas_buffer && ordered_non_client_vars_datas_buffer.length && (ordered_non_client_vars_datas_buffer.length < 500)) {
+        //     this.order_vars_datas_buffer(ordered_non_client_vars_datas_buffer);
+        // }
 
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = ordered_client_vars_datas_buffer.concat(ordered_non_client_vars_datas_buffer);
     }

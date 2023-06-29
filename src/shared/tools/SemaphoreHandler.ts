@@ -7,7 +7,7 @@ export default class SemaphoreHandler {
     public static async semaphore(key: string, cb: () => Promise<any>): Promise<any> {
 
         while (SemaphoreHandler.SEMAPHORES[key]) {
-            await ThreadHandler.sleep(10, 'SemaphoreHandler.semaphore');
+            await ThreadHandler.sleep(1, 'SemaphoreHandler.semaphore');
         }
 
         SemaphoreHandler.SEMAPHORES[key] = true;

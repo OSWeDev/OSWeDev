@@ -720,7 +720,7 @@ export default class ContextQueryServerController {
 
                         let bdd_version = moduleTable.get_bdd_version(vo_to_update);
                         let query_uid = ModuleDAOServer.getInstance().log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
-                        let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
+                        let db_result = await ModuleServiceBase.db.oneOrNone(sql, bdd_version).catch((reason) => {
                             ConsoleHandler.error('update_vos :' + reason);
                             failed = true;
                         });
@@ -915,7 +915,7 @@ export default class ContextQueryServerController {
 
             let db_time_in = Dates.now_ms();
 
-            await ModuleServiceBase.getInstance().db.tx(async (t) => {
+            await ModuleServiceBase.db.tx(async (t) => {
 
                 let qs = [];
                 for (let i in queries) {
@@ -2449,7 +2449,7 @@ export default class ContextQueryServerController {
             if (!has_inactive_relation) {
                 context_query.active_api_type_ids.push(nn_table.vo_type);
 
-                if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_PERF) {
+                if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_add_activated_many_to_many) {
                     ConsoleHandler.warn('add_activated_many_to_many:Ajout de :' + nn_table.vo_type + ': à la requête :');
                     context_query.log();
                 }

@@ -124,6 +124,8 @@ import ModuleGPTServer from './GPT/ModuleGPTServer';
 
 export default abstract class ModuleServiceBase {
 
+    public static db;
+
     public static getInstance(): ModuleServiceBase {
         return ModuleServiceBase.instance;
     }
@@ -132,8 +134,6 @@ export default abstract class ModuleServiceBase {
     /**
      * Local thread cache -----
      */
-    public db;
-
     public post_modules_installation_hooks: Array<() => void> = [];
 
     protected registered_child_modules: Module[] = [];
@@ -157,7 +157,7 @@ export default abstract class ModuleServiceBase {
         ModuleServiceBase.instance = null;
         ModuleServiceBase.instance = this;
 
-        this.db = {
+        ModuleServiceBase.db = {
             none: this.db_none.bind(this),
             oneOrNone: this.db_oneOrNone.bind(this),
             query: this.db_query.bind(this),
@@ -419,9 +419,9 @@ export default abstract class ModuleServiceBase {
 
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
-        await this.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
-        await this.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
-        await this.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
+        await ModuleServiceBase.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
+        await ModuleServiceBase.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
+        await ModuleServiceBase.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
     }
 
     private async install_modules() {
@@ -429,7 +429,7 @@ export default abstract class ModuleServiceBase {
             let registered_module = this.registered_modules[i];
 
             try {
-                await ModuleDBService.getInstance(this.db).module_install(
+                await ModuleDBService.getInstance(ModuleServiceBase.db).module_install(
                     registered_module
                 );
             } catch (e) {
@@ -453,7 +453,7 @@ export default abstract class ModuleServiceBase {
 
             try {
                 if (registered_module.actif) {
-                    await ModuleDBService.getInstance(this.db).module_configure(
+                    await ModuleDBService.getInstance(ModuleServiceBase.db).module_configure(
                         registered_module
                     );
                 }
