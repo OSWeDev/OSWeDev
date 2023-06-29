@@ -14,7 +14,7 @@ include ../../../../../../views/mixins/loading.pug
                 .bulk_actions_component
                     .show_bulk_edit.text-center.mb-2
                         template(v-for="action in cb_bulk_actions")
-                            .btn.btn-primary.display_inline_block.mr-2(@click="action.callback(selected_vos_true)") {{ t(action.translatable_title) }}
+                            .btn.btn-primary.display_inline_block.mr-2(@click="callback_action(action)") {{ t(action.translatable_title) }}
 
             .upper_pagination
                 Tablepaginationcomponent(

@@ -2503,6 +2503,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         await all_promises(promises);
     }
 
+    private async callback_action(action: BulkActionVO) {
+        if (!action) {
+            return;
+        }
+
+        await action.callback(this.selected_vos_true);
+
+        this.refresh();
+    }
+
     get dashboard_vo_action() {
         return this.$route.params.dashboard_vo_action;
     }
