@@ -207,7 +207,7 @@ export default abstract class GeneratorBase {
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
         console.log("configure_server_modules...");
-        await this.modulesService.configure_server_modules(null);
+        await this.modulesService.configure_server_modules(null, true);
 
         if (envParam.LAUNCH_INIT) {
             console.log("INIT post modules initialization workers...");

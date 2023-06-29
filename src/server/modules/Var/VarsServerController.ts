@@ -80,6 +80,7 @@ export default class VarsServerController {
     private _varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
 
     private preloadedVarConfs: boolean = false;
+    private preloadedVarCacheConfs_by_var_id: { [var_id: number]: VarCacheConfVO } = null;
     /**
      * ----- Global application cache - Brocasted CUD - Local R
      */
@@ -355,19 +356,25 @@ export default class VarsServerController {
 
     public async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
 
-        let existing_bdd_conf: VarCacheConfVO[] = await query(VarCacheConfVO.API_TYPE_ID).filter_by_num_eq('var_id', var_cache_conf.var_id).select_vos<VarCacheConfVO>();
-
-        if ((!!existing_bdd_conf) && existing_bdd_conf.length) {
-
-            if (existing_bdd_conf.length == 1) {
-                this._varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf[0];
-                if (!this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
-                    this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
-                }
-                this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf[0];
-                return existing_bdd_conf[0];
+        if (!this.preloadedVarCacheConfs_by_var_id) {
+            let varcacheconfs = await query(VarCacheConfVO.API_TYPE_ID).select_vos<VarCacheConfVO>();
+            this.preloadedVarCacheConfs_by_var_id = {};
+            for (let i in varcacheconfs) {
+                let varcacheconf = varcacheconfs[i];
+                this.preloadedVarCacheConfs_by_var_id[varcacheconf.var_id] = varcacheconf;
             }
-            return null;
+        }
+
+        let existing_bdd_conf: VarCacheConfVO = this.preloadedVarCacheConfs_by_var_id[var_conf.id];
+
+        if (!!existing_bdd_conf) {
+
+            this._varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf;
+            if (!this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
+                this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
+            }
+            this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf;
+            return existing_bdd_conf;
         }
 
         let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);

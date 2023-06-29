@@ -988,6 +988,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
      */
     public force_numeric_field(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
 
+        if (field.is_readonly) {
+            return;
+        }
+
         let field_id = field_alias ? field_alias : field.field_id;
         let field_value = src_vo[field_id.toLowerCase()] ? src_vo[field_id.toLowerCase()] : src_vo[field_id];
 
