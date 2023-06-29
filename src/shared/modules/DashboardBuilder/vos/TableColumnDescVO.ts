@@ -141,6 +141,8 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
      */
     public sum_numeral_datas: boolean;
 
+    public explicit_html: boolean;
+
     /**
      * Kanban conf : permet de définir la colonne kanban
      */

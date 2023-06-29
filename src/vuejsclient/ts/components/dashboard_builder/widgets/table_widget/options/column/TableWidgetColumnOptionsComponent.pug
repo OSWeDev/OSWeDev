@@ -95,7 +95,7 @@
                     .column_width
                         input(type='number' min='0' v-model='column_width' v-tooltip='label("table_widget_column_conf.column_width")')
 
-                    .editable_column(v-if='can_be_editable', v-tooltip='label("table_widget_column_conf.editable_column")')
+                    .editable_column(v-if='can_be_editable' v-tooltip='label("table_widget_column_conf.editable_column")')
                         toggle-button(
                             @change="switch_readonly" 
                             :value="!column.readonly" 
@@ -119,14 +119,14 @@
                             :width="75"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
 
-                    .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")', v-tooltip='label("table_widget_column_conf.can_filter_by_column")')
+                    .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")' v-tooltip='label("table_widget_column_conf.can_filter_by_column")')
                         toggle-button(
                             @change="switch_can_filter_by" 
                             :value="column.can_filter_by" 
                             :sync="true"
                             :width="100"
                             :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
-                    
+
                     .is_sticky_column(v-tooltip='label("table_widget_column_conf.is_sticky_column")')
                         toggle-button(
                             @change="switch_is_sticky"
@@ -176,6 +176,14 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.sum_numeral_datas.show'), unchecked: label('table_widget_column_conf.editable_column.sum_numeral_datas.hide')}")
 
+                    template(v-if='is_type_html')
+                        toggle-button(
+                            @change="switch_explicit_html" 
+                            :value="column.explicit_html" 
+                            :sync="true"
+                            :width="160"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.explicit_html.show'), unchecked: label('table_widget_column_conf.editable_column.explicit_html.hide')}")
+
                     template(v-if='column.type == 1')
                         .kanban_column
                             .input_label {{ label('table_widget_options_component.kanban_column') }}
@@ -218,7 +226,7 @@
                             :deselect-label='label("multiselect.deselectLabel")'
                             :deselect-group-label='label("multiselect.deselectGroupLabel")'
                         )
-                    
+
                     template(v-if="is_type_var_ref")
                         .do_not_user_filter_active_ids(v-tooltip='label("table_widget_column_conf.do_not_user_filter_active_ids")')
                             multiselect(

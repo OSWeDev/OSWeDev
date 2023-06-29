@@ -149,6 +149,17 @@ export default class DatatableComponentField extends VueComponentBase {
         //                 return this.vo[this.field.datatable_field_uid];
         //         }
         //     default:
+
+        // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
+        if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+            if (
+                (this.simple_field.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) ||
+                (this.simple_field.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array)
+            ) {
+                return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
+            }
+        }
+
         return this.vo[this.field.datatable_field_uid];
         // }
     }

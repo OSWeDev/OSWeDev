@@ -1580,6 +1580,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_column_conf.editable_column.sum_numeral_datas.hide.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "HTML avec mise en forme" },
+            'table_widget_column_conf.editable_column.explicit_html.show.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "HTML sans mise en forme" },
+            'table_widget_column_conf.editable_column.explicit_html.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Période fixe (calendrier)" },
             'adfd_desc.search_type.calendar'
         ));

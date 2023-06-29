@@ -281,6 +281,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('is_nullable', ModuleTableField.FIELD_TYPE_boolean, "La donnée peut-être null"),
             new ModuleTableField('show_tooltip', ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
             new ModuleTableField('sum_numeral_datas', ModuleTableField.FIELD_TYPE_boolean, "Somme les datas", false, true, false),
+            new ModuleTableField('explicit_html', ModuleTableField.FIELD_TYPE_boolean, "HTML avec mise en forme", false, true, false),
             new ModuleTableField('is_sticky', ModuleTableField.FIELD_TYPE_boolean, "Figer", false, true, false),
             new ModuleTableField('header_name', ModuleTableField.FIELD_TYPE_string, "Entête de colonne"),
 
