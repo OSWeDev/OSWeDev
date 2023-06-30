@@ -6,13 +6,10 @@ import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarBatchNodePerfVO from '../../../../shared/modules/Var/vos/VarBatchNodePerfVO';
-import VarBatchPerfVO from '../../../../shared/modules/Var/vos/VarBatchPerfVO';
 import VarBatchVarPerfVO from '../../../../shared/modules/Var/vos/VarBatchVarPerfVO';
 import VarComputeTimeLearnBaseVO from '../../../../shared/modules/Var/vos/VarComputeTimeLearnBaseVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
-import VarNodePerfElementVO from '../../../../shared/modules/Var/vos/VarNodePerfElementVO';
-import VarPerfElementVO from '../../../../shared/modules/Var/vos/VarPerfElementVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../../shared/tools/MatroidIndexHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
@@ -23,16 +20,32 @@ import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
-import VarDagPerfsServerController from '../VarDagPerfsServerController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
+import VarsProcessCompute from './processes/VarsProcessCompute';
+import VarsProcessDagCleaner from './processes/VarsProcessDagCleaner';
+import VarsProcessDeployDeps from './processes/VarsProcessDeployDeps';
+import VarsProcessLoadDatas from './processes/VarsProcessLoadDatas';
+import VarsProcessNotify from './processes/VarsProcessNotify';
+import VarsProcessUpdateDB from './processes/VarsProcessUpdateDB';
 
 export default class VarsdatasComputerBGThread implements IBGThread {
 
-    public static TASK_NAME_force_run_asap: string = 'VarsdatasComputerBGThread.force_run_asap';
-    // public static TASK_NAME_switch_force_1_by_1_computation: string = 'VarsdatasComputerBGThread.switch_force_1_by_1_computation';
-    public static TASK_NAME_switch_add_computation_time_to_learning_base: string = 'VarsdatasComputerBGThread.switch_add_computation_time_to_learning_base';
+    /**
+     * Le VarDAG du bgthread
+     */
+    public static current_vardag: VarDAG = new VarDAG();
+
+    /**
+     * Quand on veut invalider, le process d'invalidation doit indiquer qu'il attend un espace pour invalider (waiting_for_invalidation = true),
+     *  les autres process doivent indiquer qu'ils sont prêt pour l'invalidation dès que possible (processes_waiting_for_invalidation_end[process_name] = true) et
+     *  attendre la fin de l'invalidation. Le process d'invalidation doit indiquer qu'il a fini l'invalidation (waiting_for_invalidation = false).
+     *  Enfin les autres process doivent indiquer qu'ils ne sont plus en attente de l'invalidation (processes_waiting_for_invalidation_end[process_name] = false)
+     *  et reprendre leur travail.
+     */
+    public static waiting_for_invalidation: boolean = false;
+    public static processes_waiting_for_invalidation_end: { [process_name: string]: boolean } = {};
 
     public static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
     public static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
@@ -48,8 +61,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private static instance: VarsdatasComputerBGThread = null;
 
-    public current_timeout: number = 2;
-    public MAX_timeout: number = 2;
+    public current_timeout: number = 1;
+    public MAX_timeout: number = 1000000;
     public MIN_timeout: number = 1;
 
     public exec_in_dedicated_thread: boolean = true;
@@ -76,77 +89,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      */
     public current_batch_ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
-    /**
-     * Les VarDAGPerfs en attente d'enregistrement dans la base de données
-     */
-    public last_vardag_perfs: VarBatchPerfVO[] = [];
-
-    /**
-     * Marker à activer pour forcer l'exécution au plus vite du prochain calcul
-     */
-    public run_asap: boolean = true;
-
-    // /**
-    //  * Activate to force computation of 1 var at a time
-    //  */
-    // public force_1_by_1_computation: boolean = false;
-    /**
-     * Activate to save computation stats to the learning base
-     */
-    public add_computation_time_to_learning_base: boolean = false;
-
-    /**
-     * Par défaut, sans intervention extérieur, on a pas besoin de faire des calculs tellement souvent
-     */
-
-    public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 10, { leading: true, trailing: true });
     public semaphore: boolean = false;
-
-    /**
-     * Le VarDAG lié au batch actuel
-     */
-    private _current_batch_vardag: VarDAG = null;
-
-    private timeout_calculation: number = 30;
-    private last_calculation_unix: number = 0;
 
     private partial_clean_next_ms: number = 0;
 
     private constructor() {
-        // ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, this.switch_force_1_by_1_computation.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, this.switch_add_computation_time_to_learning_base.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_force_run_asap, this.force_run_asap.bind(this));
-    }
-
-    get current_batch_vardag(): VarDAG {
-        return this._current_batch_vardag;
-    }
-
-    set current_batch_vardag(vardag: VarDAG) {
-        this._current_batch_vardag = vardag;
-        VarNodePerfElementVO.current_var_dag = vardag ? vardag : VarNodePerfElementVO.current_var_dag;
-    }
-
-    public async switch_add_computation_time_to_learning_base(): Promise<boolean> {
-
-        return new Promise(async (resolve, reject) => {
-
-            let thrower = (error) => {
-                //TODO fixme do something to inform user
-                ConsoleHandler.error('failed switch_add_computation_time_to_learning_base' + error);
-                resolve(true);
-            };
-
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                thrower,
-                VarsdatasComputerBGThread.getInstance().name,
-                VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, resolve)) {
-                return;
-            }
-
-            this.add_computation_time_to_learning_base = !this.add_computation_time_to_learning_base;
-            resolve(true);
-        });
     }
 
     get name(): string {
@@ -164,47 +111,28 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         let time_in = Dates.now_ms();
 
         try {
-            StatsController.register_stat_COMPTEUR('VarsdatasComputerBGThread', 'work', 'IN');
 
             /**
-             * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
+             * On change de méthode, le bgthread ne fait rien d'autre que lancer les différents process de calculs/updates de l'arbre
              */
             if (this.semaphore) {
-                this.last_calculation_unix = Dates.now();
-                this.stats_out('inactive_semaphore', time_in);
-                return;
+                return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            let do_run: boolean = this.run_asap;
+            this.semaphore = true;
 
-            if (!do_run) {
-                if (Dates.now() > (this.last_calculation_unix + this.timeout_calculation)) {
-                    do_run = true;
-                }
-            }
-
-            if (do_run) {
-                await this.do_calculation_run();
-                this.last_calculation_unix = Dates.now();
-                this.stats_out('ok', time_in);
-            } else {
-                this.stats_out('inactive', time_in);
-            }
-
-            return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
+            // On lance les process
+            VarsProcessDeployDeps.getInstance().work();
+            VarsProcessLoadDatas.getInstance().work();
+            VarsProcessCompute.getInstance().work();
+            VarsProcessNotify.getInstance().work();
+            VarsProcessUpdateDB.getInstance().work();
+            VarsProcessDagCleaner.getInstance().work();
         } catch (error) {
             ConsoleHandler.error('VarsdatasComputerBGThread.work error : ' + error);
         }
 
-        this.stats_out('throws', time_in);
-        return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
-    }
-
-    private stats_out(activity: string, time_in: number) {
-
-        let time_out = Dates.now_ms();
-        StatsController.register_stat_COMPTEUR('VarsdatasComputerBGThread', 'work', activity + '_OUT');
-        StatsController.register_stat_DUREE('VarsdatasComputerBGThread', 'work', activity + '_OUT', time_out - time_in);
+        return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
     }
 
     private async do_calculation_run(): Promise<void> {
@@ -228,7 +156,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = null;
 
             let var_dag: VarDAG = new VarDAG();
-            VarsdatasComputerBGThread.getInstance().current_batch_vardag = var_dag;
+            VarsdatasComputerBGThread.getInstance().current_vardag = var_dag;
             var_dag.init_perfs(VarsdatasComputerBGThread.getInstance().current_batch_id);
 
             if (var_dag.perfs) {
@@ -435,17 +363,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         }
 
         await VarsComputeController.getInstance().compute(); // PERF OK
-        let indexes: string[] = [];
-        let human_readable_indexes: string[] = [];
-        if (this.add_computation_time_to_learning_base) {
-            for (let i in this.current_batch_vardag) {
-                let node = this.current_batch_vardag.nodes[i];
-                let var_data = node.var_data;
-                indexes.push(var_data.index);
-                human_readable_indexes.push(MatroidIndexHandler.get_human_readable_index(var_data));
-            }
-        }
-
         if (var_dag.perfs) {
             VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.computation_wrapper, 'computation_wrapper');
         }
@@ -455,17 +372,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         let did_something = var_dag && (var_dag.nb_nodes > 0);
         VarsdatasComputerBGThread.getInstance().is_computing = false;
         VarsdatasComputerBGThread.getInstance().current_batch_params = {};
-        VarsdatasComputerBGThread.getInstance().current_batch_vardag = null;
+        VarsdatasComputerBGThread.getInstance().current_vardag = null;
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = null;
-
-        if (this.add_computation_time_to_learning_base) {
-            let stat = new VarComputeTimeLearnBaseVO();
-            stat.indexes = indexes;
-            stat.human_readable_indexes = human_readable_indexes;
-            stat.computation_start_time = var_dag.perfs.computation_wrapper.start_time;
-            stat.computation_duration = var_dag.perfs.computation_wrapper.total_elapsed_time;
-            await ModuleDAO.getInstance().insertOrUpdateVO(stat);
-        }
 
         return did_something;
     }

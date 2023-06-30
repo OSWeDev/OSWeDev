@@ -3,6 +3,8 @@ import DAGNodeDep from './DAGNodeDep';
 
 export default abstract class DAGNodeBase {
 
+    public static TAG_TO_DELETE: string = 'TO_DELETE';
+
     /**
      * Les dépendances ascendantes.
      */
@@ -12,6 +14,10 @@ export default abstract class DAGNodeBase {
      * Les dépendances descendantes.
      */
     public outgoing_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> } = {};
+
+    public tags: { [tag_name: string]: boolean } = {};
+
+    protected constructor() { }
 
     /**
      * @returns true si le noeuds à des deps descendantes, false sinon => dans ce cas on parle de noeud feuille/leaf
@@ -32,4 +38,8 @@ export default abstract class DAGNodeBase {
      * @param dep DAGNodeDep dont les outgoings et le name sont défini, le reste n'est pas utile à ce stade
      */
     public abstract addOutgoingDep(dep_name: string, outgoing_node: DAGNodeBase);
+
+    get is_deletable(): boolean {
+        return this.tags[DAGNodeBase.TAG_TO_DELETE] && !this.hasIncoming;
+    }
 }

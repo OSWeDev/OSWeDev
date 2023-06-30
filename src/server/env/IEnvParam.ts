@@ -22,6 +22,9 @@ export default interface IEnvParam {
     SERVER_ENCODING: string;
     CONSOLE_LOG_TO_FILE: boolean;
 
+    MAX_VarsProcessDeployDeps?: number;
+    MAX_VarsProcessUpdateDB
+
     DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     DEBUG_SLOW_QUERIES?: boolean;
     DEBUG_PARAM_QUERIES?: boolean;

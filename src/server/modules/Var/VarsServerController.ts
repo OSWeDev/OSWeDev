@@ -5,7 +5,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -65,7 +65,7 @@ export default class VarsServerController {
      */
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
-    private _varcontrollers_dag: DAG<VarCtrlDAGNode> = null;
+    private _varcontrollers_dag: VarDAG = null;
     private _varcontrollers_dag_depths: { [var_id: number]: number } = null;
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
@@ -174,7 +174,7 @@ export default class VarsServerController {
                 let did_something = false;
                 let last_not_full = null;
                 for (let i in VarsServerController.getInstance().varcontrollers_dag.nodes) {
-                    let node = VarsServerController.getInstance().varcontrollers_dag.nodes[i];
+                    let node: VarDAGNode = VarsServerController.getInstance().varcontrollers_dag.nodes[i];
 
                     if (!!this._varcontrollers_dag_depths[node.var_controller.varConf.id]) {
                         continue;

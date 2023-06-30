@@ -882,10 +882,6 @@ export default class VarsDatasProxy {
 
                 this.add_read_stat(wrapper);
 
-                // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
-                if (!VarsServerController.has_valid_value(wrapper.var_data)) {
-                    VarsdatasComputerBGThread.getInstance().force_run_asap();
-                }
                 continue;
             }
 
