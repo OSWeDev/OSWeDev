@@ -415,14 +415,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return;
         }
 
-        let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
+        const translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
 
         await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
         // - Update to columns format (percent, toFixed etc...)
         const xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
 
-        let sheets: IExportableSheet[] = [];
+        const sheets: IExportableSheet[] = [];
 
         // Sheet for the actual datatable
         const datas_sheet: IExportableSheet = {
@@ -748,7 +748,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
-                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_id }
+                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_id },
+                    // TODO: get page id from to get the right translation
                 );
 
                 const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
