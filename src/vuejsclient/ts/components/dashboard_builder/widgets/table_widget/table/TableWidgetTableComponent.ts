@@ -1,4 +1,5 @@
 import { cloneDeep, debounce, isEqual } from 'lodash';
+import slug from 'slug';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -1966,7 +1967,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             export_name += 'Page-' + this.t(this.dashboard_page.translatable_name_code_text) + '-';
         }
 
-        export_name += Dates.now() + ".xlsx";
+        export_name += Dates.now();
+
+        export_name = slug(export_name, { lower: false }) + ".xlsx";
 
         // The actual fields to be exported
         let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};

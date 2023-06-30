@@ -146,7 +146,7 @@ export default class DashboardVOManager {
     private static instance: DashboardVOManager = null;
 
     public all_dashboards_loaded: boolean = false;
-    public dashboards: DashboardVO[] = null;
+    public dashboards: DashboardVO[] = [];
 
     protected constructor() { }
 

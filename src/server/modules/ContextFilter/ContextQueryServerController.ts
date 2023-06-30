@@ -1117,9 +1117,9 @@ export default class ContextQueryServerController {
             );
 
             // Si on ignore_access_hook, on ignore les droits aussi
-            // if ((!context_query.is_server) && !has_access) {
-            //     return null;
-            // }
+            if ((!context_query.is_server) && !has_access) {
+                return null;
+            }
 
             let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -1183,9 +1183,9 @@ export default class ContextQueryServerController {
                             access_type
                         );
 
-                        // if (!has_access_api_type_id) {
-                        //     continue;
-                        // }
+                        if (!has_access_api_type_id) {
+                            continue;
+                        }
 
                         const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -1558,6 +1558,13 @@ export default class ContextQueryServerController {
             // We should stick to the given fields_for_query (if any without overflow fields)
             const fields_for_query = context_query.fields;
 
+            // When it is all_default_fields, we should add all_required_fields
+            const have_all_default_fields = base_moduletable_fields.every(
+                (moduletable_field) => fields_for_query.find(
+                    (field) => field.field_id === moduletable_field.field_id
+                )
+            );
+
             // Fields which are in the in the all_required_fields
             // But not in moduletable_fields
             const field_ids_to_add: string[] = all_required_fields?.filter(
@@ -1575,17 +1582,12 @@ export default class ContextQueryServerController {
                 // We should only add fields that are in the fields_for_query
                 // If fields_for_query is empty, we should add all fields
                 if (fields_for_query?.length > 0) {
-                    const is_all_default_fields = base_moduletable_fields.every(
-                        (moduletable_field) => fields_for_query.find(
-                            (field) => field.field_id === moduletable_field.field_id
-                        )
-                    );
 
                     const fields_for_query_in_field_to_add = fields_for_query.find(
                         (field) => field.field_id === field_id_to_add
                     ) != null;
 
-                    should_add_field_for_query = is_all_default_fields || fields_for_query_in_field_to_add;
+                    should_add_field_for_query = have_all_default_fields || fields_for_query_in_field_to_add;
                 }
 
                 if (!should_add_field_for_query) {
@@ -1625,9 +1627,8 @@ export default class ContextQueryServerController {
                 }
             }
 
-            // No need to have explicit_api_type_id field
-            // if we have fields_for_query
-            if (!(fields_for_query?.length > 0)) {
+            // We should set the api_type_id explicitly for the given context_query
+            if (have_all_default_fields) {
 
                 // We should order all fields in the same way of the given all_required_fields
                 all_required_fields.push({ field_id: '_explicit_api_type_id' } as ModuleTableField<any>);
