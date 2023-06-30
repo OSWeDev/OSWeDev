@@ -2727,6 +2727,11 @@ export default class ContextQueryServerController {
 
         if (context_filter.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
 
+            if (!context_filter.left_hook || !context_filter.right_hook) {
+                ConsoleHandler.error('ContextQueryController.get_arbo_ET : Un chemin est null');
+                return null;
+            }
+
             if (context_filter.left_hook.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
                 let res_left = this.get_arbo_ET(context_filter.left_hook);
                 if (res_left) {

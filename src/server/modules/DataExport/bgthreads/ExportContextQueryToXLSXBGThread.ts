@@ -37,7 +37,6 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     }
 
     public async push_export_query(export_query: ExportContextQueryToXLSXQueryVO) {
-        // If (pseudo) Bg thread is not currently running do nothing.
         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(ExportContextQueryToXLSXBGThread.getInstance().name, ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query, export_query)) {
             return;
         }

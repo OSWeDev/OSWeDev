@@ -301,7 +301,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
-        if (!(filters.length > 0)) {
+        if ((!filters) || (!filters.length)) {
             return null;
         }
 
@@ -310,30 +310,21 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         }
 
         let res: ContextFilterVO = null;
-        let root_filter: ContextFilterVO = null;
+        let first_filter: ContextFilterVO = null;
+        for (let i = 0; i < (filters.length - 1); i++) {
+            let filter_ = filters[i];
 
-        // Construct the context_filter tree
-        // We have to combine all of the given context_filters by using the given clause type (AND, OR, XOR, UNION)
-        for (const key in filters) {
-            const context_filter = filters[key];
-
-            const operator = new ContextFilterVO(); // Type of the context_filter to apply
-
-            operator.filter_type = type; // Type of the context_filter to be in the three
-            operator.left_hook = context_filter; // Left hook of the context_filter will be the current filter
-
-            operator.right_hook = res; // Construct the context_filter deeply and mainly in the right_hook
-
-            if (!root_filter) {
-                root_filter = operator;
+            let tmp = new ContextFilterVO();
+            tmp.filter_type = type;
+            tmp.left_hook = filter_;
+            tmp.right_hook = res;
+            if (!first_filter) {
+                first_filter = tmp;
             }
-
-            res = operator;
+            res = tmp;
         }
 
-        // Last filter in the right hook
-        root_filter.right_hook = filters[filters.length - 1];
-
+        first_filter.right_hook = filters[filters.length - 1];
         return res;
     }
 

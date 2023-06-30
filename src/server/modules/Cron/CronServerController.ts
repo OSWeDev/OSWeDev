@@ -88,11 +88,11 @@ export default class CronServerController {
     private async handle_runcrons_message(msg: RunCronForkMessage): Promise<boolean> {
 
         if (!CronServerController.getInstance().run_crons) {
-            return;
+            return false;
         }
 
         if (CronServerController.getInstance().semaphore) {
-            return;
+            return false;
         }
         CronServerController.getInstance().semaphore = true;
 
