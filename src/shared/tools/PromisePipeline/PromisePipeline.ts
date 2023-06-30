@@ -1,3 +1,5 @@
+import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
+import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
 import EnvHandler from "../EnvHandler";
 
@@ -15,10 +17,25 @@ export default class PromisePipeline {
 
     private end_promise_resolve: () => void | PromiseLike<void> = null;
 
+    /**
+     * Pipeline de promesses, qui permet de limiter le nombre de promesses en parallèle, mais d'en ajouter
+     *  autant qu'on veut, et de les exécuter dès qu'il y a de la place dans le pipeline
+     * @param max_concurrent_promises Max number of concurrent promises. Defaults to 1
+     * @param stat_name Register stats for this Pipeline, using this sub category name
+     * @param stat_worker Register a worker that records pipeline current size every 10 seconds. BEWARE: This worker is not stopped when the pipeline is destroyed. Use only on permanent pipelines
+     */
     public constructor(
-        public max_concurrent_promises: number = 1 // Max number of concurrent promises
+        public max_concurrent_promises: number = 1,
+        public stat_name: string = null,
+        public stat_worker: boolean = true
     ) {
         this.uid = PromisePipeline.GLOBAL_UID++;
+
+        if (this.stat_name) {
+            setInterval(() => {
+                StatsController.register_stat_QUANTITE('PromisePipeline', this.stat_name, 'RUNNING', this.nb_running_promises);
+            }, 10000);
+        }
     }
 
     /**
@@ -33,6 +50,10 @@ export default class PromisePipeline {
 
         if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.push():PREPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
+        }
+
+        if (this.stat_name) {
+            StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'IN', 1);
         }
 
         if (this.has_free_slot()) {
@@ -54,8 +75,18 @@ export default class PromisePipeline {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():!has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
+            if (this.stat_name) {
+                StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'WAIT');
+            }
+
+            let time_in = Dates.now_ms();
+
             // Wait for a free slot, handle the fastest finished promise
             await Promise.race(Object.values(this.all_waiting_and_running_promises_by_cb_uid));
+
+            if (this.stat_name) {
+                StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'WAIT', Dates.now_ms() - time_in);
+            }
 
             if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():RACE END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
@@ -135,6 +166,9 @@ export default class PromisePipeline {
 
         // Remove the callback promise from the waitlist
         delete this.all_waiting_and_running_promises_by_cb_uid[cb_uid];
+        if (this.stat_name) {
+            StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'OUT', 1);
+        }
 
         if ((this.nb_running_promises === 0) && this.end_promise_resolve) {
 

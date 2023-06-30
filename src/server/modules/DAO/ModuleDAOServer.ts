@@ -5344,7 +5344,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //     }
     // }
 
-    private async do_select_query(request: string, values: any[], param: ThrottledSelectQueryParam) {
+    /**
+     *
+     * @param request la requête à exécuter avec potentiellement des paramètres qu'on retrouve dans le param values
+     * @param values les valeurs des paramètres de la requête
+     * @param param la configuration de la requête dans le système de gestion des requêtes en attente
+     * @param freeze_check_passed_and_refused pour indiquer qu'on ne doit pas utiliser les résultats de cette requête puisqu'ils ne sont pas freeze
+     * @param force_freeze si true, on force le freeze des résultats de la requête. Mis en place en particulier pour le cas d'une réponse attendue par plusieurs cbs, au niveau du dépilage des requêtes
+     * @returns le résultat de la requête
+     */
+    private async do_select_query(request: string, values: any[], param: ThrottledSelectQueryParam, freeze_check_passed_and_refused: { [full_parameterized_query: string]: boolean }, force_freeze: boolean = false) {
         let results = null;
 
         try {
@@ -5367,8 +5376,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
          *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
          * On freeze aussi si on a un max_age_ms, car on ne veut pas que les données changent quand on les met en cache
          */
-        if ((results && (param.cbs.length > 1)) || (param.context_query.max_age_ms)) {
+        if ((results && (param.cbs.length > 1)) || (param.context_query.max_age_ms) || force_freeze) {
             Object.freeze(results);
+        } else {
+            freeze_check_passed_and_refused[param.parameterized_full_query] = true;
         }
 
         /**
@@ -5887,7 +5898,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async shift_select_queries(): Promise<void> {
 
-        let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL);
+        let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL, 'ModuleDAOServer:shift_select_queries');
+        let force_freeze: { [index: string]: boolean } = {};
+        let freeze_check_passed_and_refused: { [index: string]: boolean } = {};
         let waiter = 1;
         while (true) {
 
@@ -5908,6 +5921,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             //  attend que la promise déjà construite soit terminée au lieu d'en faire encore une autre. ça nécessite de garder une trace des
             //  promises en cours
             if (this.current_select_query_promises[param.parameterized_full_query]) {
+
+                if (!!freeze_check_passed_and_refused[param.parameterized_full_query]) {
+                    // si on a bloqué l'usage du current_select_query_promises, on ne doit pas en relancer avec la même requête
+                    // on doit attendre la fin de la précédente. Donc on attend la suppression du current_select_query_promises
+                    this.throttled_select_query_params.push(param);
+                    continue;
+                }
+
+                force_freeze[param.parameterized_full_query] = true;
                 let results = await this.current_select_query_promises[param.parameterized_full_query];
                 let promises = [];
                 for (let cbi in param.cbs) {
@@ -5925,6 +5947,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let current_promise = new Promise(async (resolve, reject) => {
                 current_promise_resolver = resolve;
             });
+
             this.current_select_query_promises[param.parameterized_full_query] = current_promise;
 
             await promise_pipeline.push(async () => {
@@ -5960,10 +5983,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return;
                 }
 
-                let request = "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
+                // let request = "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
+                let results = await this.do_select_query(param.parameterized_full_query, null, param, freeze_check_passed_and_refused, force_freeze[param.parameterized_full_query]);
 
-                let results = await this.do_select_query(request, null, param);
-                current_promise_resolver(results);
+                delete this.current_select_query_promises[param.parameterized_full_query];
+                delete force_freeze[param.parameterized_full_query];
+                delete freeze_check_passed_and_refused[param.parameterized_full_query];
+                await current_promise_resolver(results);
             });
         }
     }
