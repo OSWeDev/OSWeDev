@@ -166,8 +166,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public async configure() {
 
-        VarDAG.injection_performance = performance;
-
         VarsTabsSubsController.getInstance();
         VarsServerCallBackSubsController.getInstance();
         ModuleBGThreadServer.getInstance().registerBGThread(VarsdatasComputerBGThread.getInstance());
@@ -465,10 +463,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] =
             VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache;
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base] =
-            VarsdatasComputerBGThread.getInstance().switch_add_computation_time_to_learning_base;
-        // ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_force_1_by_1_computation] =
-        //     VarsdatasComputerBGThread.getInstance().switch_force_1_by_1_computation;
 
         await ModuleVarServer.getInstance().load_slowvars();
     }

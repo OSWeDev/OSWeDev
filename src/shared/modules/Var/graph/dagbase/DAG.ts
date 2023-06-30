@@ -8,5 +8,7 @@ export default class DAG<T extends DAGNodeBase> {
     public roots: { [name: string]: T } = {};
     public leafs: { [name: string]: T } = {};
 
+    public tags: { [tag: string]: { [name: string]: T } } = {};
+
     public constructor() { }
 }
