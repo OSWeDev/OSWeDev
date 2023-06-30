@@ -2056,7 +2056,7 @@ export default class ContextQueryServerController {
                 // We must force the sort_by.vo_type to be the base_api_type_id
                 // We will use the base_api_type_id to get the field_id
                 // TODO: to validate if it's a good idea
-                sort_by.vo_type = context_query.base_api_type_id;
+                // sort_by.vo_type = context_query.base_api_type_id;
 
                 if (!first_sort_by) {
                     previous_sort_by = SORT_BY;

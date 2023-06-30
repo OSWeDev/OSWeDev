@@ -256,9 +256,10 @@ export default class SupervisionWidgetManager {
 
             // Sorts by field_id
             const sorts = pagination?.sorts?.map((sort: SortByVO) => {
-                sort.vo_type = api_type_id;
-
-                return sort;
+                return new SortByVO().from({
+                    ...sort,
+                    vo_type: api_type_id,
+                });
             }) ?? [];
 
             const api_type_context_query = query(api_type_id)
