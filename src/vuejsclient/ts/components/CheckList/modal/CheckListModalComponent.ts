@@ -122,14 +122,16 @@ export default class CheckListModalComponent extends VueComponentBase {
             }
 
             if (this.checkpoint) {
+                const checkpointIndex = this.get_checkpoint_index();
+
                 // On récupère le créneau juste avant et on vériifie si le step n'est pas disabled
-                if (this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) - 1)]) {
-                    has_previous_step = state_steps[this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) - 1)].name] != CheckPointVO.STATE_DISABLED;
+                if (this.ordered_checkpoints[(checkpointIndex - 1)]) {
+                    has_previous_step = state_steps[this.ordered_checkpoints[(checkpointIndex - 1)].name] != CheckPointVO.STATE_DISABLED;
                 }
 
                 // On récupère le créneau juste après et on vériifie si le step n'est pas disabled
-                if (this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) + 1)]) {
-                    has_next_step = state_steps[this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) + 1)].name] != CheckPointVO.STATE_DISABLED;
+                if (this.ordered_checkpoints[(checkpointIndex + 1)]) {
+                    has_next_step = state_steps[this.ordered_checkpoints[(checkpointIndex + 1)].name] != CheckPointVO.STATE_DISABLED;
                 }
             }
 
@@ -300,11 +302,25 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private previous_step() {
-        this.change_checkpoint(this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) - 1)]);
+        const checkpointIndex = this.get_checkpoint_index();
+
+        this.change_checkpoint(this.ordered_checkpoints[checkpointIndex - 1]);
     }
 
     private next_step() {
-        this.change_checkpoint(this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) + 1)]);
+        const checkpointIndex = this.get_checkpoint_index();
+
+        this.change_checkpoint(this.ordered_checkpoints[(checkpointIndex + 1)]);
+    }
+
+    private get_checkpoint_index(): number {
+        if (!this.checkpoint) {
+            return null;
+        }
+
+        return this.ordered_checkpoints.findIndex(
+            (cp) => cp.id == this.checkpoint.id
+        );
     }
 
     get editable_fields(): Array<DatatableField<any, any>> {
@@ -313,10 +329,13 @@ export default class CheckListModalComponent extends VueComponentBase {
             let max_fields: Array<DatatableField<any, any>> = [];
 
             for (let valid_field_name in this.valid_fields) {
-                let editable_field = this.all_editable_fields.find((ef) => ef.datatable_field_uid == valid_field_name);
+                let editable_field = this.all_editable_fields.find(
+                    (ef) => ef.datatable_field_uid == valid_field_name
+                );
 
                 max_fields.push(editable_field);
             }
+
             return max_fields;
         }
 

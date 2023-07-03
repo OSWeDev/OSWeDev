@@ -187,6 +187,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         set_page_widget(state: IDashboardPageState, page_widget: DashboardPageWidgetVO) {
             let store_i = null;
 
+            if (!page_widget) {
+                return;
+            }
+
             for (let i in state.page_widgets) {
                 let pw = state.page_widgets[i];
 

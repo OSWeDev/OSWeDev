@@ -1391,13 +1391,15 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
             let context_filter: ContextFilterVO = null;
 
-            const is_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
+            const is_valid_filtering = this.filtering_by_active_field_filter.vo_type && this.filtering_by_active_field_filter.field_id;
+
+            const is_field_filters_empty = is_valid_filtering ? FieldFiltersVOHandler.is_field_filters_empty(
                 {
                     api_type_id: this.filtering_by_active_field_filter.vo_type,
                     field_id: this.filtering_by_active_field_filter.field_id
                 },
                 this.get_active_field_filters,
-            );
+            ) : true;
 
             if (!is_field_filters_empty) {
                 context_filter = this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id];
