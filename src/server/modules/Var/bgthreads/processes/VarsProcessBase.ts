@@ -11,12 +11,14 @@ export default abstract class VarsProcessBase {
 
     /**
      * Si on a 0 workers, on ne fait pas de traitement en parallèle on part du principe que le traitement est synchrone (donc sans await, sans pipeline, ...)
+     * @param TAG_BY_PASS_NAME Tag qui permet de dire que si le noeud est valide pour execution, on ne le traite pas et on pose le tag out directement
      */
     protected constructor(
         protected name: string,
         protected TAG_IN_NAME: string,
         protected TAG_SELF_NAME: string,
         protected TAG_OUT_NAME: string,
+        protected TAG_BY_PASS_NAME: string,
         protected thread_sleep: number,
         protected as_batch: boolean = false,
         protected MAX_Workers: number = 0) { }
@@ -86,8 +88,8 @@ export default abstract class VarsProcessBase {
     private async handle_individual_worker(promise_pipeline: PromisePipeline, did_something: boolean): Promise<boolean> {
         let self = this;
 
-        for (let i in VarsdatasComputerBGThread.current_vardag.tags[this.TAG_IN_NAME]) {
-            let node = VarsdatasComputerBGThread.current_vardag.tags[this.TAG_IN_NAME][i];
+        for (let i in VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME]) {
+            let node = VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME][i];
 
             if (!node) {
                 return did_something;
@@ -95,6 +97,13 @@ export default abstract class VarsProcessBase {
 
             StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, this.TAG_IN_NAME);
             node.remove_tag(this.TAG_IN_NAME);
+
+            // Si on a un by pass, on ne fait rien et on pose le tag out directement
+            if (node.tags[this.TAG_BY_PASS_NAME]) {
+                node.add_tag(this.TAG_OUT_NAME);
+                continue;
+            }
+
             if (!node.add_tag(this.TAG_SELF_NAME)) {
                 // On a un refus, lié à une suppression en attente sur ce noeud, on arrête les traitements
                 continue;
@@ -143,8 +152,8 @@ export default abstract class VarsProcessBase {
 
         let batch_nodes: { [node_name: string]: VarDAGNode } = {};
 
-        for (let i in VarsdatasComputerBGThread.current_vardag.tags[this.TAG_IN_NAME]) {
-            let node = VarsdatasComputerBGThread.current_vardag.tags[this.TAG_IN_NAME][i];
+        for (let i in VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME]) {
+            let node = VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME][i];
 
             if (!node) {
                 continue;
@@ -152,6 +161,13 @@ export default abstract class VarsProcessBase {
 
             StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, this.TAG_IN_NAME);
             node.remove_tag(this.TAG_IN_NAME);
+
+            // Si on a un by pass, on ne fait rien et on pose le tag out directement
+            if (node.tags[this.TAG_BY_PASS_NAME]) {
+                node.add_tag(this.TAG_OUT_NAME);
+                continue;
+            }
+
             if (!node.add_tag(this.TAG_SELF_NAME)) {
                 // On a un refus, lié à une suppression en attente sur ce noeud, on arrête les traitements
                 continue;
@@ -186,4 +202,69 @@ export default abstract class VarsProcessBase {
 
         return did_something;
     }
+
+    // /**
+    //  * !FIXME à réfléchir ya des gros pbs de perfs & complexité liées à cette idée d'avoir des tags condition d'entrée, et qui resteraient.
+    //  * En supprimant le tag précédent à chaque avancée on évite de se redemander en permanence pour tous les noeuds si on peut avancer. Alors qu'on a déjà avancé.
+    //  * Cela dit lebypass est nécessaire. Mais à faire autrement.
+    //  * @returns Tous les noeuds qui ont tous les tags requis, mais pas le bypass (tag de sortie)
+    //  */
+    // * @param TAGS_IN_NAMES En fait le passage d'une étape à l'autre doit se faire en indiquant des tags prérequis. Le by_pass est le tag de sortie du process.
+    // * Si on a tous les tags prérequis, et pas le by_pass on peut faire l'étape.
+    // * On finira l'étape en posant le by_pass. Et ça déclenchera le process suivant si tous les prérequis sont ok.
+    // * Attention si il y a plusieurs tags il faut mettre les plus 'rares' en premier pour optimiser le process
+    // private get_valid_nodes(): VarDAGNode[] {
+
+    //     let res: VarDAGNode[] = null;
+
+    //     /**
+    //      * On initialise la liste des noeuds à traiter sur la base du premier tag, et dans la limite où on a pas le bypass
+    //      */
+    //     for (let i in this.TAGS_IN_NAMES) {
+    //         let TAG_IN_NAME = this.TAGS_IN_NAMES[i];
+
+    //         if (!res) {
+    //             res = Object.values(VarsdatasComputerBGThread.current_vardag.tags[TAG_IN_NAME]);
+    //         }
+
+    //         if (!res) {
+    //             break;
+    //         }
+    //     }
+
+    //     if ((!res) || (res.length == 0)) {
+    //         return [];
+    //     }
+
+    //     res = res.filter((node) => !node.tags[this.TAG_OUT_NAME]);
+
+    //     if (this.TAGS_IN_NAMES.length == 1) {
+    //         return res;
+    //     }
+
+    //     for (let i in res) {
+    //         let testnode = res[i];
+
+    //         if (!testnode) {
+    //             continue;
+    //         }
+
+    //         let is_valid = true;
+
+    //         for (let j = 1; j < this.TAGS_IN_NAMES.length; j++) {
+    //             let TAG_IN_NAME = this.TAGS_IN_NAMES[j];
+
+    //             if (!testnode.tags[TAG_IN_NAME]) {
+    //                 is_valid = false;
+    //                 break;
+    //             }
+    //         }
+
+    //         if (is_valid) {
+    //             res.push(testnode);
+    //         }
+    //     }
+
+    //     return res;
+    // }
 }

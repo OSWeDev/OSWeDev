@@ -35,6 +35,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
     /**
      * Les tags permanents pour indiquer un changement de statut du noeud
+     *  Ces tags servent aussi de by_pass : on refuse de poser un tag dont le bypass est déjà posé
      */
     // Créé
     public static TAG_0_CREATED: string = 'CREATED';
@@ -66,17 +67,19 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     public static STEP_TAGS_INDEXES: { [step_tag: string]: number } = {
         [VarDAGNode.TAG_0_CREATED]: 0,
-        [VarDAGNode.TAG_2_DEPLOYING]: 1,
-        [VarDAGNode.TAG_2_DEPLOYED]: 2,
-        [VarDAGNode.TAG_3_DATA_LOADING]: 3,
-        [VarDAGNode.TAG_3_DATA_LOADED]: 4,
-        [VarDAGNode.TAG_4_COMPUTING]: 5,
-        [VarDAGNode.TAG_4_COMPUTED]: 6,
-        [VarDAGNode.TAG_5_NOTIFYING_END]: 7,
-        [VarDAGNode.TAG_5_NOTIFIED_END]: 8,
-        [VarDAGNode.TAG_6_UPDATING_IN_DB]: 9,
-        [VarDAGNode.TAG_6_UPDATED_IN_DB]: 10,
-        [VarDAGNode.TAG_7_DELETING]: 11,
+        [VarDAGNode.TAG_1_NOTIFYING_START]: 1,
+        [VarDAGNode.TAG_1_NOTIFIED_START]: 2,
+        [VarDAGNode.TAG_2_DEPLOYING]: 3,
+        [VarDAGNode.TAG_2_DEPLOYED]: 4,
+        [VarDAGNode.TAG_3_DATA_LOADING]: 5,
+        [VarDAGNode.TAG_3_DATA_LOADED]: 6,
+        [VarDAGNode.TAG_4_COMPUTING]: 7,
+        [VarDAGNode.TAG_4_COMPUTED]: 8,
+        [VarDAGNode.TAG_5_NOTIFYING_END]: 9,
+        [VarDAGNode.TAG_5_NOTIFIED_END]: 10,
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: 11,
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: 12,
+        [VarDAGNode.TAG_7_DELETING]: 13,
     };
 
     /**
@@ -146,7 +149,7 @@ export default class VarDAGNode extends DAGNodeBase {
             if (VarsServerController.has_valid_value(node.var_data)) {
                 node.add_tag(VarDAGNode.TAG_4_COMPUTED);
                 // On ne doit pas update in DB du coup
-                node.by_pass_update_in_db = true;
+                node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
             } else {
                 node.add_tag(VarDAGNode.TAG_0_CREATED);
             }
@@ -182,7 +185,6 @@ export default class VarDAGNode extends DAGNodeBase {
         }
     }
 
-
     /**
      * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)
      *  qu'on va switcher sur un mode aggégateur et configurer des aggregated_nodes
@@ -208,9 +210,9 @@ export default class VarDAGNode extends DAGNodeBase {
     // public already_tried_loading_data_and_deploy: boolean = false;
 
     /**
-     * Bypass le update in DB
+     * L'étape actuelle du process de calcul du noeud (VarDAGNode.STEP_XXX)
      */
-    public by_pass_update_in_db: boolean = false;
+    private current_step: number = 0;
 
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
@@ -237,6 +239,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         this.var_dag.tags[tag][this.var_data.index] = this;
+        this.update_current_step_tag();
         return true;
     }
 
@@ -248,6 +251,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return;
         }
         delete this.var_dag.tags[tag][this.var_data.index];
+        this.update_current_step_tag();
     }
 
     /**
@@ -359,5 +363,30 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         return true;
+    }
+
+    private update_current_step_tag() {
+        let updated_current_step = null;
+
+        for (let step_tag_name in VarDAGNode.STEP_TAGS_INDEXES) {
+            if (this.tags[step_tag_name]) {
+                updated_current_step = VarDAGNode.STEP_TAGS_INDEXES[step_tag_name];
+                break;
+            }
+        }
+
+        if (this.current_step == updated_current_step) {
+            return;
+        }
+
+        if (this.current_step != null) {
+            delete this.var_dag.current_step_tags[this.current_step];
+        }
+
+        if (updated_current_step != null) {
+            this.var_dag.current_step_tags[updated_current_step][this.var_data.index] = this;
+        }
+
+        this.current_step = updated_current_step;
     }
 }
