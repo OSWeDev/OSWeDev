@@ -61,8 +61,8 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         this.batchs_vars_cache = {};
 
         let varcacheconfs = [];
-        for (let id_s in VarsController.getInstance().var_conf_by_id) {
-            let varconf = VarsController.getInstance().var_conf_by_id[id_s];
+        for (let id_s in VarsController.var_conf_by_id) {
+            let varconf = VarsController.var_conf_by_id[id_s];
             let varcacheconf = VarsServerController.getInstance().varcacheconf_by_var_ids[varconf.id];
 
             let last_x_perfs = await query(VarBatchVarPerfVO.API_TYPE_ID)

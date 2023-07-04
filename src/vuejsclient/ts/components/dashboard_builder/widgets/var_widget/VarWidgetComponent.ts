@@ -195,7 +195,7 @@ export default class VarWidgetComponent extends VueComponentBase {
          * Pour les dates il faut réfléchir....
          */
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
-            VarsController.getInstance().var_conf_by_id[this.var_id].name,
+            VarsController.var_conf_by_id[this.var_id].name,
             this.get_active_field_filters,
             custom_filters,
             this.dashboard.api_type_ids,

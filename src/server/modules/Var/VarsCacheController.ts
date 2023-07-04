@@ -141,7 +141,7 @@ export default class VarsCacheController {
         let min_third_earliest_read_days: number = 11;
 
         let max_thourth_earliest_read_days: number = 36;
-        let var_ids = Object.keys(VarsController.getInstance().var_conf_by_id);
+        let var_ids = Object.keys(VarsController.var_conf_by_id);
 
         while (performance.now() < timeout) {
 
@@ -150,7 +150,7 @@ export default class VarsCacheController {
             }
 
             let var_id = var_ids[this.partially_clean_bdd_cache_var_id_i];
-            let controller: VarConfVO = VarsController.getInstance().var_conf_by_id[var_id];
+            let controller: VarConfVO = VarsController.var_conf_by_id[var_id];
             let var_cache_conf: VarCacheConfVO = VarsServerController.getInstance().varcacheconf_by_var_ids[var_id];
 
             // anomalie constatée qui ne devrait pas arriver, je ne sais pas ce qui doit etre fait donc pour commencer je log

@@ -204,7 +204,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let var_param_type = VarsController.getInstance().var_conf_by_id[this.object_column.var_id].var_data_vo_type;
+        let var_param_type = VarsController.var_conf_by_id[this.object_column.var_id].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -465,7 +465,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     get vars_options(): string[] {
-        return Object.keys(VarsController.getInstance().var_conf_by_name);
+        return Object.keys(VarsController.var_conf_by_name);
     }
 
     get component_options(): string[] {
@@ -533,7 +533,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private var_label(var_name: string): string {
-        return VarsController.getInstance().var_conf_by_name[var_name].id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code(var_name));
+        return VarsController.var_conf_by_name[var_name].id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code(var_name));
     }
 
     private component_label(translatable_title: string): string {
@@ -584,7 +584,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
         let new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_var_ref;
-        new_column.var_id = VarsController.getInstance().var_conf_by_name[this.new_column_select_type_var_ref].id;
+        new_column.var_id = VarsController.var_conf_by_name[this.new_column_select_type_var_ref].id;
         new_column.var_unicity_id = Dates.now();
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;

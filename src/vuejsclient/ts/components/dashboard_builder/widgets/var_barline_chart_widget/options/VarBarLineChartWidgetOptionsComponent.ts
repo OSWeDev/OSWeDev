@@ -408,11 +408,11 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     // get fields_that_could_get_custom_filter_1(): string[] {
     //     let res: string[] = [];
 
-    //     if (!this.widget_options || (!this.widget_options.var_id_1) || (!VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1])) {
+    //     if (!this.widget_options || (!this.widget_options.var_id_1) || (!VarsController.var_conf_by_id[this.widget_options.var_id_1])) {
     //         return null;
     //     }
 
-    //     let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].var_data_vo_type;
+    //     let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id_1].var_data_vo_type;
     //     if (!var_param_type) {
     //         return null;
     //     }
@@ -444,7 +444,7 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     //         return null;
     //     }
 
-    //     let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_2].var_data_vo_type;
+    //     let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id_2].var_data_vo_type;
     //     if (!var_param_type) {
     //         return null;
     //     }
@@ -498,8 +498,8 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
 
     //     let res: string[] = [];
 
-    //     for (let i in VarsController.getInstance().var_conf_by_name) {
-    //         let var_conf = VarsController.getInstance().var_conf_by_name[i];
+    //     for (let i in VarsController.var_conf_by_name) {
+    //         let var_conf = VarsController.var_conf_by_name[i];
     //         res.push(var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id)));
     //     }
 

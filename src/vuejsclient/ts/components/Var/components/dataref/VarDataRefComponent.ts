@@ -394,12 +394,12 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private set_var_conf() {
         if ((!this.var_param) || (!this.var_param.var_id) ||
-            (!VarsController.getInstance().var_conf_by_id) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
+            (!VarsController.var_conf_by_id) || (!VarsController.var_conf_by_id[this.var_param.var_id])) {
             this.var_conf = null;
             return;
         }
 
-        this.var_conf = VarsController.getInstance().var_conf_by_id[this.var_param.var_id];
+        this.var_conf = VarsController.var_conf_by_id[this.var_param.var_id];
     }
 
     private set_editable_field() {

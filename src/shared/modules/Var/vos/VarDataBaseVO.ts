@@ -52,7 +52,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: IRange[][]): T {
 
-        let varConf = VarsController.getInstance().var_conf_by_name[var_name];
+        let varConf = VarsController.var_conf_by_name[var_name];
         let moduletable = VOsTypesManager.moduleTables_by_voType[varConf.var_data_vo_type];
 
         let res: T = moduletable.voConstructor();
@@ -199,7 +199,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public static cloneFieldsFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.getInstance().var_conf_by_name[var_name], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_name[var_name], clone_fields);
     }
 
     /**
@@ -210,7 +210,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public static cloneFieldsFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.getInstance().var_conf_by_id[var_id], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_id[var_id], clone_fields);
     }
 
     /**
@@ -226,7 +226,7 @@ export default class VarDataBaseVO implements IMatroid {
         }
 
         clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
-        varConf = varConf ? varConf : VarsController.getInstance().var_conf_by_id[param_to_clone.var_id];
+        varConf = varConf ? varConf : VarsController.var_conf_by_id[param_to_clone.var_id];
 
         let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
         if (!res) {
@@ -261,8 +261,6 @@ export default class VarDataBaseVO implements IMatroid {
     public value: number;
     public value_type: number;
     public value_ts: number;
-
-    public last_reads_ts: number[];
 
     private _index: string;
 
@@ -313,7 +311,7 @@ export default class VarDataBaseVO implements IMatroid {
             return false;
         }
 
-        if (!VarsController.getInstance().var_conf_by_id[this.var_id]) {
+        if (!VarsController.var_conf_by_id[this.var_id]) {
             return false;
         }
 

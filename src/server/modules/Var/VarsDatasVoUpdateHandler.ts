@@ -1074,7 +1074,7 @@ export default class VarsDatasVoUpdateHandler {
                     continue;
                 }
 
-                let conf = VarsController.getInstance().var_conf_by_id[unregistered_var_data.var_id];
+                let conf = VarsController.var_conf_by_id[unregistered_var_data.var_id];
                 if (conf.pixel_activated && conf.pixel_never_delete) {
 
                     // On remet en calcul les pixels, et uniquement les pixels

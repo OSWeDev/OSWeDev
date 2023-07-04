@@ -1308,7 +1308,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async getVarControllerDSDeps(text: string): Promise<string[]> {
-        if ((!text) || (!VarsController.getInstance().var_conf_by_name[text])) {
+        if ((!text) || (!VarsController.var_conf_by_name[text])) {
             return null;
         }
 
@@ -1319,7 +1319,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
 
     private async getVarControllerVarsDeps(text: string): Promise<{ [dep_name: string]: string }> {
-        if ((!text) || (!VarsController.getInstance().var_conf_by_name[text])) {
+        if ((!text) || (!VarsController.var_conf_by_name[text])) {
             return null;
         }
 
@@ -1344,7 +1344,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.getInstance().var_conf_by_id[param.var_id].name];
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.var_conf_by_id[param.var_id].name];
 
         if (!var_controller) {
             return null;
@@ -1368,6 +1368,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         return var_controller.getParamDependencies(varDAGNode);
     }
 
+    /**
+     * Appelé côté client et sur le main thread pour obtenir des infos sur les imports / données aggrégées de ce paramètre.
+     *  On ajoute à un arbre fictif, qui sera donc drop en sortant de la fonction.
+     * @param param
+     * @returns
+     */
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
         let var_dag: VarDAG = new VarDAG();
         let deployed_vars_datas: { [index: string]: boolean } = {};
@@ -1375,7 +1381,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             [param.index]: param
         };
 
-        let node = await VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
+        let node = await VarDAGNode.getInstance(var_dag, param, false);
 
         if (!node) {
             return null;
@@ -1383,7 +1389,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas);
         await VarsComputeController.getInstance().load_caches_and_imports_on_var_to_deploy(
-            param,
+            node,
             var_dag,
             deployed_vars_datas,
             vars_datas,
@@ -1400,7 +1406,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         /**
          * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
          */
-        let varconf = VarsController.getInstance().var_conf_by_id[param.var_id];
+        let varconf = VarsController.var_conf_by_id[param.var_id];
         if (varconf.pixel_activated) {
             let is_pixel = true;
             for (let i in varconf.pixel_fields) {
@@ -1429,7 +1435,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.getInstance().var_conf_by_id[param.var_id].name];
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.var_conf_by_id[param.var_id].name];
 
         if (!var_controller) {
             return null;
@@ -1509,7 +1515,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_conf = VarsController.getInstance().var_conf_by_name[var_name];
+        let var_conf = VarsController.var_conf_by_name[var_name];
         if (!var_conf) {
             return null;
         }
@@ -1560,7 +1566,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let active_api_type_ids = param.active_api_type_ids;
         let discarded_field_paths = param.discarded_field_paths;
         let accept_max_ranges = param.accept_max_ranges;
-        let var_conf = VarsController.getInstance().var_conf_by_name[var_name];
+        let var_conf = VarsController.var_conf_by_name[var_name];
         let resolve = param.resolve;
 
         let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_name);

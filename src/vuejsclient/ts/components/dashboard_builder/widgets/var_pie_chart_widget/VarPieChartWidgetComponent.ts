@@ -192,7 +192,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
 
         if (this.widget_options.has_dimension) {
-            if (this.widget_options.var_id_1 && VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+            if (this.widget_options.var_id_1 && VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
 
                 // tentative de faire un dégradé automatique de couleur pour les dimensions.
                 // à voir comment on peut proposer de paramétrer cette partie
@@ -223,7 +223,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 }
 
                 return new VarPieDataSetDescriptor(
-                    VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name,
+                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
                     .set_backgrounds(colors)
                     .set_bordercolors([this.widget_options.border_color_1])
@@ -231,9 +231,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             }
             return null;
         } else {
-            if (this.widget_options.var_id_1 && VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+            if (this.widget_options.var_id_1 && VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
                 return new VarPieDataSetDescriptor(
-                    VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name, // ?? flou le var_name à utiliser ici
+                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name, // ?? flou le var_name à utiliser ici
                     this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))) // ?? flou le label à utiliser ici
                     .set_backgrounds([this.widget_options.bg_color_1, this.widget_options.bg_color_2])
                     .set_bordercolors([this.widget_options.border_color_1, this.widget_options.border_color_2])
@@ -354,7 +354,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private async get_var_params_by_dimension_when_dimension_is_vo_field_ref(custom_filters_1: { [var_param_field_name: string]: ContextFilterVO })
         : Promise<{ [dimension_value: number]: VarDataBaseVO }> {
 
-        if ((!this.widget_options.var_id_1) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+        if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
             return null;
         }
 
@@ -424,7 +424,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 ).by_num_has([dimension_value]);
 
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                    VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name,
+                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
                     custom_filters_1,
                     this.dashboard.api_type_ids,
@@ -458,7 +458,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private async get_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters_1: { [var_param_field_name: string]: ContextFilterVO })
         : Promise<{ [dimension_value: number]: VarDataBaseVO }> {
 
-        if ((!this.widget_options.var_id_1) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+        if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
             return null;
         }
 
@@ -545,7 +545,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 }
 
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                    VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name,
+                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
                     update_custom_filters_1,
                     this.dashboard.api_type_ids,
@@ -698,8 +698,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         launch_cpt: number
     ) {
 
-        if (((!this.widget_options.var_id_1) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) ||
-            ((!this.widget_options.var_id_2) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_2])) {
+        if (((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) ||
+            ((!this.widget_options.var_id_2) || !VarsController.var_conf_by_id[this.widget_options.var_id_2])) {
             this.var_params_by_dimension = null;
             this.var_params_1_et_2 = null;
             return null;
@@ -716,7 +716,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         let var_2 = null;
         promises.push((async () => {
             var_1 = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name,
+                VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                 this.get_active_field_filters,
                 custom_filters_1,
                 this.dashboard.api_type_ids,
@@ -724,7 +724,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         })());
         promises.push((async () => {
             var_2 = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_2].name,
+                VarsController.var_conf_by_id[this.widget_options.var_id_2].name,
                 this.get_active_field_filters,
                 custom_filters_2,
                 this.dashboard.api_type_ids,

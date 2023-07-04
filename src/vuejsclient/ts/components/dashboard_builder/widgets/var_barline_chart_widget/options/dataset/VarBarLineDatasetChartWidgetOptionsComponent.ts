@@ -96,7 +96,7 @@ export default class VarBarLineDatasetChartWidgetOptionsComponent extends VueCom
             return null;
         }
 
-        let var_param_type = VarsController.getInstance().var_conf_by_id[this.dataset_options.var_id].var_data_vo_type;
+        let var_param_type = VarsController.var_conf_by_id[this.dataset_options.var_id].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -149,8 +149,8 @@ export default class VarBarLineDatasetChartWidgetOptionsComponent extends VueCom
 
         let res: string[] = [];
 
-        for (let i in VarsController.getInstance().var_conf_by_name) {
-            let var_conf = VarsController.getInstance().var_conf_by_name[i];
+        for (let i in VarsController.var_conf_by_name) {
+            let var_conf = VarsController.var_conf_by_name[i];
             res.push(var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id)));
         }
 

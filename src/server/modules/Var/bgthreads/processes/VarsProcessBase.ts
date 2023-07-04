@@ -1,3 +1,4 @@
+import e from 'express';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../../shared/modules/Stats/StatsController';
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
@@ -47,10 +48,10 @@ export default abstract class VarsProcessBase {
         }
     }
 
-    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<void>;
+    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean>;
 
-    protected abstract worker_async(node: VarDAGNode): Promise<void>;
-    protected abstract worker_sync(node: VarDAGNode): void;
+    protected abstract worker_async(node: VarDAGNode): Promise<boolean>;
+    protected abstract worker_sync(node: VarDAGNode): boolean;
 
     private async handle_invalidations(promise_pipeline: PromisePipeline, waiting_for_invalidation_time_in: number): Promise<number> {
 
@@ -105,23 +106,37 @@ export default abstract class VarsProcessBase {
                 await promise_pipeline.push(async () => {
 
                     let worker_time_in = Dates.now_ms();
-                    await self.worker_async(node);
-                    StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker", Dates.now_ms() - worker_time_in);
+                    let res = await self.worker_async(node);
 
                     node.remove_tag(this.TAG_SELF_NAME);
-                    node.add_tag(this.TAG_OUT_NAME);
+
+                    await self.handle_worker_result(res, worker_time_in, node);
                 });
             } else {
                 let worker_time_in = Dates.now_ms();
-                self.worker_sync(node);
+                let res = self.worker_sync(node);
                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
                 node.remove_tag(this.TAG_SELF_NAME);
-                node.add_tag(this.TAG_OUT_NAME);
+
+                await this.handle_worker_result(res, worker_time_in, node);
             }
         }
 
         return did_something;
+    }
+
+    private handle_worker_result(result: boolean, worker_time_in: number, node: VarDAGNode) {
+        // Si on a pas fait l'action, on retente plus tard
+        if (result) {
+            StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_ok");
+            StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_ok", Dates.now_ms() - worker_time_in);
+            node.add_tag(this.TAG_OUT_NAME);
+        } else {
+            StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_failed");
+            StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_failed", Dates.now_ms() - worker_time_in);
+            node.add_tag(this.TAG_IN_NAME);
+        }
     }
 
     private async handle_batch_worker(did_something: boolean): Promise<boolean> {
@@ -150,13 +165,22 @@ export default abstract class VarsProcessBase {
 
             // On peut vouloir traiter en mode batch
             let worker_time_in = Dates.now_ms();
-            await this.worker_async_batch(batch_nodes);
-            StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
+            let res = await this.worker_async_batch(batch_nodes);
 
             for (let i in batch_nodes) {
                 let node = batch_nodes[i];
                 node.remove_tag(this.TAG_SELF_NAME);
-                node.add_tag(this.TAG_OUT_NAME);
+
+                // Si on a pas fait l'action, on retente plus tard
+                if (res) {
+                    StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_ok");
+                    StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_ok", Dates.now_ms() - worker_time_in);
+                    node.add_tag(this.TAG_OUT_NAME);
+                } else {
+                    StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_failed");
+                    StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_failed", Dates.now_ms() - worker_time_in);
+                    node.add_tag(this.TAG_IN_NAME);
+                }
             }
         }
 

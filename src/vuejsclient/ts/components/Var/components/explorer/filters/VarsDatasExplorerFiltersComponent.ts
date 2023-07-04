@@ -61,7 +61,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     private async mounted() {
 
         VarsDatasExplorerFiltersComponent.instance = this;
-        let vars_confs = Object.values(VarsController.getInstance().var_conf_by_id);
+        let vars_confs = Object.values(VarsController.var_conf_by_id);
 
         // On en profite pour mettre à jour le fields_filters_is_valid
         // si on a 1 label_handler sur une var on considère que c'est un enum partout

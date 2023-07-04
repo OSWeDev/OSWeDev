@@ -329,7 +329,7 @@ export default class VarsDatasProxy {
 
                 let do_insert = false;
                 let controller = VarsServerController.getInstance().getVarControllerById(handle_var.var_id);
-                let conf = VarsController.getInstance().var_conf_by_id[handle_var.var_id];
+                let conf = VarsController.var_conf_by_id[handle_var.var_id];
 
                 /**
                  * Cas des pixels : on insere initialement, mais jamais ensuite. les infos de lecture on s'en fiche puisque le cache ne doit jamais être invalidé
@@ -479,55 +479,55 @@ export default class VarsDatasProxy {
         }
     }
 
-    /**
-     * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
-     *  'exceeds btree version 4 maximum 2704 for index'
-     * @param vardatas
-     * @returns
-     */
-    public async filter_var_datas_by_index_size_limit(vardatas: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
-        let res: VarDataBaseVO[] = [];
-        let vars_by_type: { [type: string]: VarDataBaseVO[] } = {};
+    // /**
+    //  * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
+    //  *  'exceeds btree version 4 maximum 2704 for index'
+    //  * @param vardatas
+    //  * @returns
+    //  */
+    // public async filter_var_datas_by_index_size_limit(vardatas: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
+    //     let res: VarDataBaseVO[] = [];
+    //     let vars_by_type: { [type: string]: VarDataBaseVO[] } = {};
 
-        // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
-        let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
+    //     // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
+    //     let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
 
-        for (let i in vardatas) {
-            let var_data = vardatas[i];
-            if (!vars_by_type[var_data._type]) {
-                vars_by_type[var_data._type] = [];
-            }
-            vars_by_type[var_data._type].push(var_data);
-        }
+    //     for (let i in vardatas) {
+    //         let var_data = vardatas[i];
+    //         if (!vars_by_type[var_data._type]) {
+    //             vars_by_type[var_data._type] = [];
+    //         }
+    //         vars_by_type[var_data._type].push(var_data);
+    //     }
 
-        for (let _type in vars_by_type) {
-            let vars = vars_by_type[_type];
+    //     for (let _type in vars_by_type) {
+    //         let vars = vars_by_type[_type];
 
-            let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(_type);
+    //         let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(_type);
 
-            for (let i in vars) {
-                let vardata = vars[i];
-                let refuse_var = false;
+    //         for (let i in vars) {
+    //             let vardata = vars[i];
+    //             let refuse_var = false;
 
-                for (let j in matroid_fields) {
-                    let matroid_field = matroid_fields[j];
+    //             for (let j in matroid_fields) {
+    //                 let matroid_field = matroid_fields[j];
 
-                    let matroid_field_value = vardata[matroid_field.field_id];
-                    let matroid_field_value_index = RangeHandler.translate_to_bdd(matroid_field_value);
-                    if (matroid_field_value_index && (matroid_field_value_index.length > limit)) {
-                        ConsoleHandler.warn('VarsDatasProxy:filter_var_datas_by_index_size_limit:Le champ ' + matroid_field.field_id + ' de la matrice ' + _type + ' est trop long pour être indexé par postgresql, on le supprime de la requête:index:' + vardata.index);
-                        refuse_var = true;
-                        break;
-                    }
-                }
+    //                 let matroid_field_value = vardata[matroid_field.field_id];
+    //                 let matroid_field_value_index = RangeHandler.translate_to_bdd(matroid_field_value);
+    //                 if (matroid_field_value_index && (matroid_field_value_index.length > limit)) {
+    //                     ConsoleHandler.warn('VarsDatasProxy:filter_var_datas_by_index_size_limit:Le champ ' + matroid_field.field_id + ' de la matrice ' + _type + ' est trop long pour être indexé par postgresql, on le supprime de la requête:index:' + vardata.index);
+    //                     refuse_var = true;
+    //                     break;
+    //                 }
+    //             }
 
-                if (!refuse_var) {
-                    res.push(vardata);
-                }
-            }
-        }
-        return res;
-    }
+    //             if (!refuse_var) {
+    //                 res.push(vardata);
+    //             }
+    //         }
+    //     }
+    //     return res;
+    // }
 
     /**
      * On a explicitement pas l'id à ce niveau donc on cherche par l'index plutôt
@@ -640,30 +640,30 @@ export default class VarsDatasProxy {
         return (!!vars_datas_buffer) && (vars_datas_buffer.length > 0);
     }
 
-    /**
-     * On force l'appel sur le thread du computer de vars
-     */
-    public async update_existing_buffered_older_datas(var_datas: VarDataBaseVO[], reason: string) {
+    // /**
+    //  * On force l'appel sur le thread du computer de vars
+    //  */
+    // public async update_existing_buffered_older_datas(var_datas: VarDataBaseVO[], reason: string) {
 
-        if ((!var_datas) || (!var_datas.length)) {
-            return;
-        }
+    //     if ((!var_datas) || (!var_datas.length)) {
+    //         return;
+    //     }
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, var_datas)) {
-            return;
-        }
+    //     if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, var_datas)) {
+    //         return;
+    //     }
 
-        for (let i in var_datas) {
-            let var_data = var_datas[i];
-            let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
-            if (!wrapper) {
-                continue;
-            }
+    //     for (let i in var_datas) {
+    //         let var_data = var_datas[i];
+    //         let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
+    //         if (!wrapper) {
+    //             continue;
+    //         }
 
-            wrapper.var_data = var_data;
-            wrapper.reason = reason;
-        }
-    }
+    //         wrapper.var_data = var_data;
+    //         wrapper.reason = reason;
+    //     }
+    // }
 
     /**
      * On ordonne toutes les demandes de calcul, et on met à jour au passage les registered si ya eu des désinscriptions entre temps :

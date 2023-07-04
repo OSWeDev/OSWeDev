@@ -106,7 +106,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      *  Si on est sur un noeud aggrégé, on calcul via la fonction d'aggrégat, sinon on calcul par la fonction getValue
      * @param varDAGNode
      */
-    public async computeValue(varDAGNode: VarDAGNode) {
+    public computeValue(varDAGNode: VarDAGNode) {
 
         StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'computeValue', this.varConf.name);
         let time_in = Dates.now_ms();
@@ -130,7 +130,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value = value;
         varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
         varDAGNode.var_data.value_ts = Dates.now();
-        await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
+        // await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
 
         let time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('VarServerControllerBase', 'computeValue', this.varConf.name, time_out - time_in);

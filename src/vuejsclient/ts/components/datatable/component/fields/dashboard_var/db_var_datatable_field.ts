@@ -195,7 +195,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, active_field_filters);
 
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
-            VarsController.getInstance().var_conf_by_id[this.var_id].name,
+            VarsController.var_conf_by_id[this.var_id].name,
             context,
             custom_filters,
             this.dashboard.api_type_ids,

@@ -95,7 +95,7 @@ export default class VarsImportsHandler {
      */
     public get_selection_imports(ordered_imports: VarDataBaseVO[], var_data: VarDataBaseVO): VarDataBaseVO[] {
 
-        if (!VarsController.getInstance().var_conf_by_id[var_data.var_id]) {
+        if (!VarsController.var_conf_by_id[var_data.var_id]) {
             throw new Error('VarsImportsHandler:get_selection_imports:Unknown var_data.var_id:' + var_data.var_id);
         }
 

@@ -841,7 +841,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                  * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
                  */
                 let var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                    VarsController.getInstance().var_conf_by_id[varcolumn_conf.var_id].name,
+                    VarsController.var_conf_by_id[varcolumn_conf.var_id].name,
                     current_active_field_filters,
                     this_custom_filters,
                     active_api_type_ids,
@@ -1481,7 +1481,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                      * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
                      */
                     let var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                        VarsController.getInstance().var_conf_by_id[this_varcolumn_conf.var_id].name,
+                        VarsController.var_conf_by_id[this_varcolumn_conf.var_id].name,
                         context,
                         this_custom_filters,
                         active_api_type_ids,

@@ -1573,7 +1573,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  *  et comme on a un bug visiblement en amont qui essaie d'insérer ce type de valeur, on rajoute un contrôle ici qui sera toujours plus rapide que de faire un update
                  */
                 if (VOsTypesManager.moduleTables_by_voType[vo._type].isMatroidTable) {
-                    let conf = VarsController.getInstance().var_conf_by_id[vo['var_id']];
+                    let conf = VarsController.var_conf_by_id[vo['var_id']];
                     if (conf && conf.pixel_activated && conf.pixel_never_delete) {
 
                         if (!check_pixel_update_vos_by_type[vo._type]) {

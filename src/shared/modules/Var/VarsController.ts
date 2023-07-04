@@ -9,6 +9,12 @@ export default class VarsController {
      */
     public static MANDATORY_DEP_ID_SUFFIX: string = '_._';
 
+    /**
+     * Les confs de var par nom, pour avoir les infos les plus importantes sur les vars partout
+     */
+    public static var_conf_by_name: { [name: string]: VarConfVO } = {};
+    public static var_conf_by_id: { [var_id: number]: VarConfVO } = {};
+
     public static getInstance(): VarsController {
         if (!VarsController.instance) {
             VarsController.instance = new VarsController();
@@ -19,25 +25,19 @@ export default class VarsController {
     private static VARS_DESC_TRANSLATABLE_PREFIXES: string = "var.desc.";
     private static instance: VarsController = null;
 
-    /**
-     * Les confs de var par nom, pour avoir les infos les plus importantes sur les vars partout
-     */
-    public var_conf_by_name: { [name: string]: VarConfVO } = {};
-    public var_conf_by_id: { [var_id: number]: VarConfVO } = {};
-
     protected constructor() {
     }
 
     public clear_all_inits() {
-        VarsController.getInstance().var_conf_by_id = {};
-        VarsController.getInstance().var_conf_by_name = {};
+        VarsController.var_conf_by_id = {};
+        VarsController.var_conf_by_name = {};
     }
 
     public async initializeasync(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
-        VarsController.getInstance().var_conf_by_id = var_conf_by_id;
-        for (let i in VarsController.getInstance().var_conf_by_id) {
-            let conf = VarsController.getInstance().var_conf_by_id[i];
-            VarsController.getInstance().var_conf_by_name[conf.name] = conf;
+        VarsController.var_conf_by_id = var_conf_by_id;
+        for (let i in VarsController.var_conf_by_id) {
+            let conf = VarsController.var_conf_by_id[i];
+            VarsController.var_conf_by_name[conf.name] = conf;
         }
     }
 
@@ -71,26 +71,26 @@ export default class VarsController {
     }
 
     public get_translatable_name_code_by_var_id(var_id: number): string {
-        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+        return (var_id && VarsController.var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public get_translatable_description_code_by_var_id(var_id: number): string {
-        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+        return (var_id && VarsController.var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public get_translatable_public_explaination_by_var_id(var_id: number): string {
-        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_public_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+        return (var_id && VarsController.var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_public_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public get_translatable_explaination_by_var_id(var_id: number): string {
-        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+        return (var_id && VarsController.var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
@@ -103,8 +103,8 @@ export default class VarsController {
     }
 
     public get_translatable_params_desc_code_by_var_id(var_id: number): string {
-        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+        return (var_id && VarsController.var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
             null;
     }
 

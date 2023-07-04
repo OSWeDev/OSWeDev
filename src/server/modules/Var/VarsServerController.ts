@@ -107,8 +107,8 @@ export default class VarsServerController {
     }
 
     public update_registered_varconf(id: number, conf: VarConfVO) {
-        VarsController.getInstance().var_conf_by_id[id] = conf;
-        VarsController.getInstance().var_conf_by_name[conf.name] = conf;
+        VarsController.var_conf_by_id[id] = conf;
+        VarsController.var_conf_by_name[conf.name] = conf;
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
@@ -116,9 +116,9 @@ export default class VarsServerController {
     }
 
     public delete_registered_varconf(id: number) {
-        let name = VarsController.getInstance().var_conf_by_id[id].name;
-        delete VarsController.getInstance().var_conf_by_id[id];
-        delete VarsController.getInstance().var_conf_by_name[name];
+        let name = VarsController.var_conf_by_id[id].name;
+        delete VarsController.var_conf_by_id[id];
+        delete VarsController.var_conf_by_name[name];
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
@@ -231,11 +231,11 @@ export default class VarsServerController {
     }
 
     public getVarConf(var_name: string): VarConfVO {
-        return VarsController.getInstance().var_conf_by_name ? (VarsController.getInstance().var_conf_by_name[var_name] ? VarsController.getInstance().var_conf_by_name[var_name] : null) : null;
+        return VarsController.var_conf_by_name ? (VarsController.var_conf_by_name[var_name] ? VarsController.var_conf_by_name[var_name] : null) : null;
     }
 
     public getVarConfById(var_id: number): VarConfVO {
-        return VarsController.getInstance().var_conf_by_id ? (VarsController.getInstance().var_conf_by_id[var_id] ? VarsController.getInstance().var_conf_by_id[var_id] : null) : null;
+        return VarsController.var_conf_by_id ? (VarsController.var_conf_by_id[var_id] ? VarsController.var_conf_by_id[var_id] : null) : null;
     }
 
     public getVarController(var_name: string): VarServerControllerBase<any> {
@@ -243,12 +243,12 @@ export default class VarsServerController {
     }
 
     public getVarControllerById(var_id: number): VarServerControllerBase<any> {
-        if ((!VarsController.getInstance().var_conf_by_id) || (!VarsController.getInstance().var_conf_by_id[var_id]) ||
+        if ((!VarsController.var_conf_by_id) || (!VarsController.var_conf_by_id[var_id]) ||
             (!this._registered_vars_controller)) {
             return null;
         }
 
-        let res = this._registered_vars_controller[VarsController.getInstance().var_conf_by_id[var_id].name];
+        let res = this._registered_vars_controller[VarsController.var_conf_by_id[var_id].name];
         return res ? res : null;
     }
 
@@ -318,7 +318,7 @@ export default class VarsServerController {
             await ModuleVar.getInstance().initializeasync();
         }
 
-        let daoVarConf: VarConfVO = VarsController.getInstance().var_conf_by_name ? VarsController.getInstance().var_conf_by_name[varConf.name] : null;
+        let daoVarConf: VarConfVO = VarsController.var_conf_by_name ? VarsController.var_conf_by_name[varConf.name] : null;
 
         // Pour les tests unitaires, on fournit l'id du varconf directement pour éviter cette étape
         if ((!daoVarConf) && (varConf.id != null) && (typeof varConf.id != 'undefined')) {
@@ -467,9 +467,9 @@ export default class VarsServerController {
     }
 
     private setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {
-        VarsController.getInstance().var_conf_by_name[varConf.name] = varConf;
+        VarsController.var_conf_by_name[varConf.name] = varConf;
         this._registered_vars_controller[varConf.name] = controller;
-        VarsController.getInstance().var_conf_by_id[varConf.id] = varConf;
+        VarsController.var_conf_by_id[varConf.id] = varConf;
 
         let dss: DataSourceControllerBase[] = this.get_datasource_deps_and_predeps(controller);
         dss = (!!dss) ? dss : [];

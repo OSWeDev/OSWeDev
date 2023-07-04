@@ -218,7 +218,7 @@ export default class MatroidIndexHandler {
         }
 
         let var_id: number = MatroidIndexHandler.base_76_txt_to_base_10_num(pieces[0]);
-        let var_conf = VarsController.getInstance().var_conf_by_id[var_id];
+        let var_conf = VarsController.var_conf_by_id[var_id];
 
         if (!var_conf) {
             return null;
@@ -245,7 +245,7 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let var_conf = VarsController.getInstance().var_conf_by_id[vardata.var_id];
+        let var_conf = VarsController.var_conf_by_id[vardata.var_id];
         let field_segmentations: { [field_id: string]: number } = VarDataBaseVO.get_varconf_segmentations(var_conf);
         VarDataBaseVO.adapt_param_to_varconf_segmentations(vardata, field_segmentations);
     }

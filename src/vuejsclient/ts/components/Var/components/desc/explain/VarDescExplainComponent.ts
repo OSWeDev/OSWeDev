@@ -122,7 +122,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         // Si on change de type de valeur on recharge les deps et les aggregated
         if (this.var_data && (!this.var_data.is_computing) && (old_value_type != null) && (old_value_type != this.var_data.value_type)) {
             promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
-            promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.getInstance().var_conf_by_id[this.var_param.var_id].name))());
+            promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
             promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
         }
 
@@ -134,7 +134,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
     }
 
     private var_id_from_name(name: string): number {
-        return VarsController.getInstance().var_conf_by_name[name].id;
+        return VarsController.var_conf_by_name[name].id;
     }
 
     get params_from_var_dep_id(): { [var_dep_id: string]: VarDataBaseVO[] } {
@@ -173,18 +173,18 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         this.limit_10_var_deps = true;
 
-        if ((!this.var_param) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
+        if ((!this.var_param) || (!VarsController.var_conf_by_id[this.var_param.var_id])) {
             this.var_conf = null;
             return;
         }
 
-        this.var_conf = VarsController.getInstance().var_conf_by_id[this.var_param.var_id];
+        this.var_conf = VarsController.var_conf_by_id[this.var_param.var_id];
         this.deps_loading = true;
 
         let promises = [];
 
         promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
-        promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.getInstance().var_conf_by_id[this.var_param.var_id].name))());
+        promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
         promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
         promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
 
