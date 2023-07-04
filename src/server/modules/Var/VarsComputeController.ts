@@ -906,66 +906,66 @@ export default class VarsComputeController {
         }
     }
 
-    /**
-     * On génère tous les pixels nécessaires, et à chaque fois, si on le trouve dans la liste des pixels connus, on ne crée pas le noeuds
-     *  puisque le résultat est déjà connu/inclut dans le aggregated_value
-     * On part en récursif, et à chaque fois on cherche un champs à pixellisé.
-     *      Si on en trouve plus (après le dernier champ pixellisé), on ajoute le pixel dans le aggregated_datas
-     *      Si on en trouve => on déploie cette dimension, et pour chaque valeur, si on la trouve dans le aggregated, on ignore,
-     *          sinon on recurse en clonant le var_data et en settant le field déployé
-     */
-    private populate_missing_pixels(
-        aggregated_datas: { [index: string]: VarDataBaseVO },
-        var_conf: VarConfVO,
-        var_data: VarDataBaseVO,
-        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
-        cloned_var_data: VarDataBaseVO,
-        current_pixellised_field_id: string = null) {
+    // /**
+    //  * On génère tous les pixels nécessaires, et à chaque fois, si on le trouve dans la liste des pixels connus, on ne crée pas le noeuds
+    //  *  puisque le résultat est déjà connu/inclut dans le aggregated_value
+    //  * On part en récursif, et à chaque fois on cherche un champs à pixellisé.
+    //  *      Si on en trouve plus (après le dernier champ pixellisé), on ajoute le pixel dans le aggregated_datas
+    //  *      Si on en trouve => on déploie cette dimension, et pour chaque valeur, si on la trouve dans le aggregated, on ignore,
+    //  *          sinon on recurse en clonant le var_data et en settant le field déployé
+    //  */
+    // private populate_missing_pixels(
+    //     aggregated_datas: { [index: string]: VarDataBaseVO },
+    //     var_conf: VarConfVO,
+    //     var_data: VarDataBaseVO,
+    //     pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+    //     cloned_var_data: VarDataBaseVO,
+    //     current_pixellised_field_id: string = null) {
 
-        let can_check_field = !current_pixellised_field_id;
-        for (let i in pixellised_fields_by_id) {
-            let pixellised_field = pixellised_fields_by_id[i];
+    //     let can_check_field = !current_pixellised_field_id;
+    //     for (let i in pixellised_fields_by_id) {
+    //         let pixellised_field = pixellised_fields_by_id[i];
 
-            if (!can_check_field) {
-                if (i == current_pixellised_field_id) {
-                    can_check_field = true;
-                    continue;
-                }
-            }
+    //         if (!can_check_field) {
+    //             if (i == current_pixellised_field_id) {
+    //                 can_check_field = true;
+    //                 continue;
+    //             }
+    //         }
 
-            let field = VOsTypesManager.moduleTables_by_voType[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_id);
-            let segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_id]) ? var_conf.segment_types[field.field_id] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
+    //         let field = VOsTypesManager.moduleTables_by_voType[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_id);
+    //         let segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_id]) ? var_conf.segment_types[field.field_id] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
 
-            RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
+    //         RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
 
-                let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, true);
-                new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.createNew(
-                    RangeHandler.getRangeType(field),
-                    pixel_value,
-                    pixel_value,
-                    true,
-                    true,
-                    segment_type
-                )];
-                if (!aggregated_datas[new_var_data.index]) {
-                    this.populate_missing_pixels(
-                        aggregated_datas,
-                        var_conf,
-                        var_data,
-                        pixellised_fields_by_id,
-                        new_var_data,
-                        i
-                    );
-                }
-            }, segment_type);
-            return;
-        }
+    //             let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, true);
+    //             new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.createNew(
+    //                 RangeHandler.getRangeType(field),
+    //                 pixel_value,
+    //                 pixel_value,
+    //                 true,
+    //                 true,
+    //                 segment_type
+    //             )];
+    //             if (!aggregated_datas[new_var_data.index]) {
+    //                 this.populate_missing_pixels(
+    //                     aggregated_datas,
+    //                     var_conf,
+    //                     var_data,
+    //                     pixellised_fields_by_id,
+    //                     new_var_data,
+    //                     i
+    //                 );
+    //             }
+    //         }, segment_type);
+    //         return;
+    //     }
 
-        if (aggregated_datas[cloned_var_data.index]) {
-            return;
-        }
-        aggregated_datas[cloned_var_data.index] = cloned_var_data;
-    }
+    //     if (aggregated_datas[cloned_var_data.index]) {
+    //         return;
+    //     }
+    //     aggregated_datas[cloned_var_data.index] = cloned_var_data;
+    // }
 
     // private async compute_wrapper(var_dag: VarDAG) {
     //     for (let i in var_dag.nodes) {
@@ -980,184 +980,184 @@ export default class VarsComputeController {
     //     }
     // }
 
-    /**
-     * si on est sur un pixel, inutile de chercher on a déjà fait une recherche identique et on doit pas découper un pixel
-     * sinon, on fait la fameuse requête de count + aggrégat et suivant que le count correspond bien au produit des cardinaux des dimensions
-     *  pixellisées, on découpe en pixel, ou pas. (En chargeant du coup la liste des pixels)
-     */
-    private async handle_pixellisation(node: VarDAGNode, varconf: VarConfVO, var_dag: VarDAG, limit_to_aggregated_datas: boolean, DEBUG_VARS: boolean) {
+    // /**
+    //  * si on est sur un pixel, inutile de chercher on a déjà fait une recherche identique et on doit pas découper un pixel
+    //  * sinon, on fait la fameuse requête de count + aggrégat et suivant que le count correspond bien au produit des cardinaux des dimensions
+    //  *  pixellisées, on découpe en pixel, ou pas. (En chargeant du coup la liste des pixels)
+    //  */
+    // private async handle_pixellisation(node: VarDAGNode, varconf: VarConfVO, var_dag: VarDAG, limit_to_aggregated_datas: boolean, DEBUG_VARS: boolean) {
 
-        let prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
+    //     let prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
-        if (prod_cardinaux == 1) {
-            // c'est un pixel, on ignore
-            if (DEBUG_VARS) {
-                ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':is pixel but with no exact cache (already tried)');
-            }
-        } else {
+    //     if (prod_cardinaux == 1) {
+    //         // c'est un pixel, on ignore
+    //         if (DEBUG_VARS) {
+    //             ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':is pixel but with no exact cache (already tried)');
+    //         }
+    //     } else {
 
-            let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-            for (let i in varconf.pixel_fields) {
-                let pixel_field = varconf.pixel_fields[i];
+    //         let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+    //         for (let i in varconf.pixel_fields) {
+    //             let pixel_field = varconf.pixel_fields[i];
 
-                pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
-            }
+    //             pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+    //         }
 
-            let pixel_query = query(varconf.var_data_vo_type)
-                .filter_by_num_eq('var_id', varconf.id)
-                .field('id', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
-                .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
+    //         let pixel_query = query(varconf.var_data_vo_type)
+    //             .filter_by_num_eq('var_id', varconf.id)
+    //             .field('id', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
+    //             .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
-            /**
-             * On ajoute les filtrages :
-             *      sur champs pixellisés : on veut les valeurs contenues,
-             *      sur les autres champs : on veut les valeurs exactes
-             */
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(varconf.var_data_vo_type);
-            for (let i in matroid_fields) {
-                let matroid_field = matroid_fields[i];
+    //         /**
+    //          * On ajoute les filtrages :
+    //          *      sur champs pixellisés : on veut les valeurs contenues,
+    //          *      sur les autres champs : on veut les valeurs exactes
+    //          */
+    //         let matroid_fields = MatroidController.getInstance().getMatroidFields(varconf.var_data_vo_type);
+    //         for (let i in matroid_fields) {
+    //             let matroid_field = matroid_fields[i];
 
-                let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+    //             let pixellised = pixellised_fields_by_id[matroid_field.field_id];
 
-                switch (matroid_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                        if (pixellised) {
-                            pixel_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                        } else {
-                            pixel_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                        }
-                        break;
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        if (pixellised) {
-                            pixel_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                        } else {
-                            pixel_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                        }
-                        break;
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    default:
-                        throw new Error('Not implemented');
-                }
-            }
+    //             switch (matroid_field.field_type) {
+    //                 case ModuleTableField.FIELD_TYPE_numrange_array:
+    //                 case ModuleTableField.FIELD_TYPE_refrange_array:
+    //                 case ModuleTableField.FIELD_TYPE_isoweekdays:
+    //                     if (pixellised) {
+    //                         pixel_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                     } else {
+    //                         pixel_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                     }
+    //                     break;
+    //                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
+    //                     if (pixellised) {
+    //                         pixel_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                     } else {
+    //                         pixel_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                     }
+    //                     break;
+    //                 case ModuleTableField.FIELD_TYPE_hourrange_array:
+    //                 default:
+    //                     throw new Error('Not implemented');
+    //             }
+    //         }
 
-            let pixel_cache: { counter: number, aggregated_value: number } = await pixel_query.select_one();
+    //         let pixel_cache: { counter: number, aggregated_value: number } = await pixel_query.select_one();
 
-            if (!pixel_cache) {
-                pixel_cache = {
-                    counter: 0,
-                    aggregated_value: 0
-                };
-            }
+    //         if (!pixel_cache) {
+    //             pixel_cache = {
+    //                 counter: 0,
+    //                 aggregated_value: 0
+    //             };
+    //         }
 
-            if (pixel_cache && (pixel_cache.counter == prod_cardinaux)) {
+    //         if (pixel_cache && (pixel_cache.counter == prod_cardinaux)) {
 
 
-                if (limit_to_aggregated_datas) {
-                    // On aura pas de données aggregées à ce stade
-                    node.successfully_deployed = true;
-                    return;
-                }
+    //             if (limit_to_aggregated_datas) {
+    //                 // On aura pas de données aggregées à ce stade
+    //                 node.successfully_deployed = true;
+    //                 return;
+    //             }
 
-                /**
-                 * Cas simple, on a la réponse complète tout va bien
-                 */
-                node.var_data.value_ts = Dates.now();
-                node.var_data.value = pixel_cache.aggregated_value;
-                node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+    //             /**
+    //              * Cas simple, on a la réponse complète tout va bien
+    //              */
+    //             node.var_data.value_ts = Dates.now();
+    //             node.var_data.value = pixel_cache.aggregated_value;
+    //             node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
 
-                if (DEBUG_VARS) {
-                    ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':FULL OK');
-                }
+    //             if (DEBUG_VARS) {
+    //                 ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':FULL OK');
+    //             }
 
-                // On notifie puisqu'on a le résultat
-                node.successfully_deployed = true;
-                await this.notify_var_data_post_deploy(node);
-            } else {
+    //             // On notifie puisqu'on a le résultat
+    //             node.successfully_deployed = true;
+    //             await this.notify_var_data_post_deploy(node);
+    //         } else {
 
-                /**
-                 * Si on a pas tout, on doit identifier les pixels qui sont déjà connus pour pas les refaire
-                 *  et en déduire ceux qui manquent
-                 */
-                let known_pixels_query = query(varconf.var_data_vo_type);
+    //             /**
+    //              * Si on a pas tout, on doit identifier les pixels qui sont déjà connus pour pas les refaire
+    //              *  et en déduire ceux qui manquent
+    //              */
+    //             let known_pixels_query = query(varconf.var_data_vo_type);
 
-                known_pixels_query.filter_by_num_eq('var_id', varconf.id);
+    //             known_pixels_query.filter_by_num_eq('var_id', varconf.id);
 
-                // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
-                //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
-                for (let i in matroid_fields) {
-                    let matroid_field = matroid_fields[i];
+    //             // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
+    //             //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
+    //             for (let i in matroid_fields) {
+    //                 let matroid_field = matroid_fields[i];
 
-                    let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+    //                 let pixellised = pixellised_fields_by_id[matroid_field.field_id];
 
-                    switch (matroid_field.field_type) {
-                        case ModuleTableField.FIELD_TYPE_numrange_array:
-                        case ModuleTableField.FIELD_TYPE_refrange_array:
-                        case ModuleTableField.FIELD_TYPE_isoweekdays:
-                            if (pixellised) {
-                                known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                            } else {
-                                known_pixels_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                            }
-                            break;
-                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            if (pixellised) {
-                                known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                            } else {
-                                known_pixels_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                            }
-                            break;
-                        case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        default:
-                            throw new Error('Not implemented');
-                    }
-                }
+    //                 switch (matroid_field.field_type) {
+    //                     case ModuleTableField.FIELD_TYPE_numrange_array:
+    //                     case ModuleTableField.FIELD_TYPE_refrange_array:
+    //                     case ModuleTableField.FIELD_TYPE_isoweekdays:
+    //                         if (pixellised) {
+    //                             known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                         } else {
+    //                             known_pixels_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                         }
+    //                         break;
+    //                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
+    //                         if (pixellised) {
+    //                             known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                         } else {
+    //                             known_pixels_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+    //                         }
+    //                         break;
+    //                     case ModuleTableField.FIELD_TYPE_hourrange_array:
+    //                     default:
+    //                         throw new Error('Not implemented');
+    //                 }
+    //             }
 
-                let known_pixels: VarDataBaseVO[] = await known_pixels_query.select_vos<VarDataBaseVO>();
-                let aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
+    //             let known_pixels: VarDataBaseVO[] = await known_pixels_query.select_vos<VarDataBaseVO>();
+    //             let aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
 
-                for (let i in known_pixels) {
-                    let known_pixel = known_pixels[i];
+    //             for (let i in known_pixels) {
+    //                 let known_pixel = known_pixels[i];
 
-                    aggregated_datas[known_pixel.index] = known_pixel;
-                }
+    //                 aggregated_datas[known_pixel.index] = known_pixel;
+    //             }
 
-                this.populate_missing_pixels(
-                    aggregated_datas,
-                    varconf,
-                    node.var_data,
-                    pixellised_fields_by_id,
-                    cloneDeep(node.var_data)
-                );
+    //             this.populate_missing_pixels(
+    //                 aggregated_datas,
+    //                 varconf,
+    //                 node.var_data,
+    //                 pixellised_fields_by_id,
+    //                 cloneDeep(node.var_data)
+    //             );
 
-                /**
-                 * On indique qu'on a déjà fait un chargement du cache complet pour les pixels
-                 */
-                for (let depi in aggregated_datas) {
-                    let aggregated_data = aggregated_datas[depi];
-                    let dep_node = await VarDAGNode.getInstance(node.var_dag, aggregated_data, false, true);
+    //             /**
+    //              * On indique qu'on a déjà fait un chargement du cache complet pour les pixels
+    //              */
+    //             for (let depi in aggregated_datas) {
+    //                 let aggregated_data = aggregated_datas[depi];
+    //                 let dep_node = await VarDAGNode.getInstance(node.var_dag, aggregated_data, false, true);
 
-                    if (!dep_node) {
-                        return;
-                    }
+    //                 if (!dep_node) {
+    //                     return;
+    //                 }
 
-                    if (VarsServerController.has_valid_value(dep_node.var_data)) {
-                        node.successfully_deployed = true;
-                        await this.notify_var_data_post_deploy(dep_node);
-                    }
-                }
+    //                 if (VarsServerController.has_valid_value(dep_node.var_data)) {
+    //                     node.successfully_deployed = true;
+    //                     await this.notify_var_data_post_deploy(dep_node);
+    //                 }
+    //             }
 
-                let nb_known_pixels = known_pixels ? known_pixels.length : 0;
-                let nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);
+    //             let nb_known_pixels = known_pixels ? known_pixels.length : 0;
+    //             let nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);
 
-                node.is_aggregator = true;
-                node.aggregated_datas = aggregated_datas;
+    //             node.is_aggregator = true;
+    //             node.aggregated_datas = aggregated_datas;
 
-                if (DEBUG_VARS) {
-                    ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':PIXELED:known:' + nb_known_pixels + ':' + nb_unknown_pixels + ':');
-                }
-            }
-        }
-    }
+    //             if (DEBUG_VARS) {
+    //                 ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':PIXELED:known:' + nb_known_pixels + ':' + nb_unknown_pixels + ':');
+    //             }
+    //         }
+    //     }
+    // }
 }
