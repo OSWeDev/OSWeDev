@@ -1,6 +1,6 @@
-.save_favorites_filters_modal_component_wrapper
-    #save_favorites_filters_modal_component.modal.fade.in(
-            ref="save_favorites_filters_modal_component",
+.favorites_filters_modal_component_wrapper
+    #favorites_filters_modal_component.modal.fade.in(
+            ref="favorites_filters_modal_component",
             tabindex='-1', 
             role='dialog'
         )
@@ -27,10 +27,12 @@
                                 a#selection_pill.nav-item.nav-link(
                                     @click="set_active_tab_view('selection_tab')"
                                 ) 1 - {{ label('dashboard_viewer.favorites_filters.selection_tab') }}
-                            li.col-md-6(:class="{'active': active_tab_view == 'export_tab'}")
-                                a#export_pill.nav-item.nav-link(
-                                    @click="set_active_tab_view('export_tab')"
-                                ) 2 - {{ label('dashboard_viewer.favorites_filters.export_tab') }}
+                            
+                            template(v-if="can_configure_export")
+                                li.col-md-6(:class="{'active': active_tab_view == 'export_tab'}")
+                                    a#export_pill.nav-item.nav-link(
+                                        @click="set_active_tab_view('export_tab')"
+                                    ) 2 - {{ label('dashboard_viewer.favorites_filters.export_tab') }}
 
                         .tab-content
                             #selection_tab(v-show="active_tab_view == 'selection_tab'")

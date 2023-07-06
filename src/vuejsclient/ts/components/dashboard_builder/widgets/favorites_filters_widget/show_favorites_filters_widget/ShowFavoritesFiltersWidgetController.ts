@@ -1,4 +1,4 @@
-import ThrottleHelper from "../../../../../../shared/tools/ThrottleHelper";
+import ThrottleHelper from "../../../../../../../shared/tools/ThrottleHelper";
 
 export default class ShowFavoritesFiltersWidgetController {
 

@@ -8,13 +8,16 @@ import FieldFiltersVOHandler from '../../../../../../../shared/modules/Dashboard
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import IExportFrequency from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
-import './SaveFavoritesFiltersModalComponent.scss';
+import './FavoritesFiltersModalComponent.scss';
+import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 
 export enum ExportFrequencyGranularity {
     DAY = "day",
@@ -28,16 +31,16 @@ export const ExportFrequencyGranularityLabel: { [granularity in ExportFrequencyG
     [ExportFrequencyGranularity.YEAR]: 'label.year',
 };
 
-
 @Component({
-    template: require('./SaveFavoritesFiltersModalComponent.pug'),
+    template: require('./FavoritesFiltersModalComponent.pug'),
     components: {}
 })
-export default class SaveFavoritesFiltersModalComponent extends VueComponentBase {
+export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
     private modal_initialized: boolean = false;
 
     private dashboard_page: DashboardPageVO = null;
+    private page_widget: DashboardPageWidgetVO;
 
     private is_modal_open: boolean = false;
     private active_tab_view: string = 'selection_tab';
@@ -88,6 +91,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     public open_modal_for_creation(
         props: {
             dashboard_page: DashboardPageVO,
+            page_widget: DashboardPageWidgetVO,
             selectionnable_active_field_filters: FieldFiltersVO,
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
         } = null,
@@ -97,6 +101,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         this.is_modal_open = true;
 
         this.dashboard_page = props.dashboard_page;
+        this.page_widget = props.page_widget;
 
         // Fields filters settings
         // Modal selectionnable filters
@@ -127,6 +132,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     public open_modal_for_update(
         props: {
             dashboard_page: DashboardPageVO,
+            page_widget: DashboardPageWidgetVO,
             selectionnable_active_field_filters: FieldFiltersVO,
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
             favorites_filters: FavoritesFiltersVO,
@@ -137,6 +143,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     ): void {
 
         this.dashboard_page = props.dashboard_page;
+        this.page_widget = props.page_widget;
 
         this.favorites_filters = props?.favorites_filters ?? null;
 
@@ -197,7 +204,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         this.$nextTick(async () => {
             if (!this.modal_initialized) {
                 this.modal_initialized = true;
-                $("#save_favorites_filters_modal_component").on("hidden.bs.modal", () => {
+                $("#favorites_filters_modal_component").on("hidden.bs.modal", () => {
                     this.is_modal_open = false;
                 });
             }
@@ -362,9 +369,9 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      */
     private handle_modal_state(): void {
         if (this.is_modal_open) {
-            $('#save_favorites_filters_modal_component').modal('show');
+            $('#favorites_filters_modal_component').modal('show');
         } else {
-            $('#save_favorites_filters_modal_component').modal('hide');
+            $('#favorites_filters_modal_component').modal('hide');
 
             if (typeof this.on_close_callback === 'function') {
                 this.on_close_callback();
@@ -388,6 +395,8 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         this.selected_exportable_data = null;
         this.favorites_filters_name = null;
         this.favorites_filters = null;
+        this.dashboard_page = null;
+        this.page_widget = null;
         this.reset_export_plan();
     }
 
@@ -586,6 +595,37 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
         for (const key in ExportFrequencyGranularityLabel) {
             options.push({ label: ExportFrequencyGranularityLabel[key], value: key });
+        }
+
+        return options;
+    }
+
+    get can_configure_export(): boolean {
+        if (!this.dashboard_page) {
+            return false;
+        }
+
+        return this.get_widget_options()?.can_configure_export ?? false;
+    }
+
+    /**
+     * Get widget_options
+     *
+     * @return {FavoritesFiltersWidgetOptionsVO}
+     */
+    private get_widget_options(): FavoritesFiltersWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: FavoritesFiltersWidgetOptionsVO = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
+                options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
         }
 
         return options;

@@ -1,5 +1,5 @@
-import { all_promises } from "../../../../../../shared/tools/PromiseTools";
-import ThrottleHelper from "../../../../../../shared/tools/ThrottleHelper";
+import { all_promises } from "../../../../../../../shared/tools/PromiseTools";
+import ThrottleHelper from "../../../../../../../shared/tools/ThrottleHelper";
 import SaveFavoritesFiltersCallUpdaters from "./SaveFavoritesFiltersCallUpdaters";
 
 /**

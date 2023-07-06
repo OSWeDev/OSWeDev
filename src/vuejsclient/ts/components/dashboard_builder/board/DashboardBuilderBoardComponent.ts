@@ -19,8 +19,8 @@ import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_i
 import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
-import SaveFavoritesFiltersModalComponent from '../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent';
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
+import FavoritesFiltersModalComponent from '../widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
@@ -39,7 +39,7 @@ import RangeHandler from '../../../../../shared/tools/RangeHandler';
         Griditem: GridItem,
         Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
-        Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent,
+        Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
         Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent,
         Checklistitemmodalcomponent: ChecklistItemModalComponent,
@@ -73,7 +73,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private set_Supervisionitemmodal: (Supervisionitemmodal: SupervisionItemModalComponent) => void;
 
     @ModuleDashboardPageAction
-    private set_Savefavoritesfiltersmodalcomponent: (Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) => void;
+    private set_Favoritesfiltersmodalcomponent: (Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) => void;
 
     @ModuleDashboardPageAction
     private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
@@ -193,7 +193,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
-        this.set_Savefavoritesfiltersmodalcomponent(this.$refs['Savefavoritesfiltersmodalcomponent'] as SaveFavoritesFiltersModalComponent);
+        this.set_Favoritesfiltersmodalcomponent(this.$refs['Favoritesfiltersmodalcomponent'] as FavoritesFiltersModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);

@@ -1,35 +1,35 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import VueComponentBase from '../../../VueComponentBase';
-import ShowFavoritesFiltersWidgetOptions from './options/ShowFavoritesFiltersWidgetOptions';
+import VueComponentBase from '../../../../VueComponentBase';
 import './ShowFavoritesFiltersWidgetComponent.scss';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import FavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
+import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { cloneDeep, isEmpty, isEqual } from 'lodash';
-import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
-import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
-import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import SaveFavoritesFiltersModalComponent from '../save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent';
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import MonthFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
-import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagerts';
-import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
-import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import FavoritesFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
+import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
+import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
+import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
+import MonthFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
+import YearFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagers';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -38,7 +38,7 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
+    private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -80,7 +80,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private is_initialized: boolean = false;
     private is_updating = false;
 
-    private old_widget_options: ShowFavoritesFiltersWidgetOptions = null;
+    private old_widget_options: FavoritesFiltersWidgetOptionsVO = null;
 
     private last_calculation_cpt: number = 0;
 
@@ -407,9 +407,10 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         const selectionnable_active_field_filters = await this.get_selectionnable_active_field_filters();
         const exportable_data = await this.get_exportable_xlsx_params();
 
-        this.get_Savefavoritesfiltersmodalcomponent.open_modal_for_update(
+        this.get_Favoritesfiltersmodalcomponent.open_modal_for_update(
             {
                 dashboard_page: this.dashboard_page,
+                page_widget: this.page_widget,
                 selectionnable_active_field_filters,
                 exportable_data,
                 favorites_filters
@@ -576,18 +577,18 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get widget_options
      *
-     * @return {ShowFavoritesFiltersWidgetOptions}
+     * @return {FavoritesFiltersWidgetOptionsVO}
      */
-    get widget_options(): ShowFavoritesFiltersWidgetOptions {
+    get widget_options(): FavoritesFiltersWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: ShowFavoritesFiltersWidgetOptions = null;
+        let options: FavoritesFiltersWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ShowFavoritesFiltersWidgetOptions;
-                options = options ? new ShowFavoritesFiltersWidgetOptions().from(options) : null;
+                options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
+                options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

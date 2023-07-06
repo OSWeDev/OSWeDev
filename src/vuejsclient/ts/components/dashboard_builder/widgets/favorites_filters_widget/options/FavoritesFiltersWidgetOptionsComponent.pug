@@ -1,4 +1,4 @@
-.show_favorites_filters_widget_options_component
+.favorites_filters_widget_options_component
     .page_widget_options(:id="'page_widget_options_' + page_widget.id" :key="'page_widget_options_' + page_widget.id")
         
         .field_ref 
@@ -18,3 +18,14 @@
                     type="number"
                     v-model.number="max_visible_options"
                 )
+
+        .can_configure_export
+            .input_label {{ label('favorites_filters_widget_component.can_configure_export') }}
+            .input_wrapper
+                toggle-button(
+                    @change="toggle_can_configure_export" 
+                    :value="can_configure_export" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 

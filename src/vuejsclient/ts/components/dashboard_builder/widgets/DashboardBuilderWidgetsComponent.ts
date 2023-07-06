@@ -6,8 +6,8 @@ import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/Dash
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
-import './DashboardBuilderWidgetsComponent.scss';
 import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
+import './DashboardBuilderWidgetsComponent.scss';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),

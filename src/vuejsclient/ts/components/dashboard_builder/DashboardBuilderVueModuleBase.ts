@@ -448,16 +448,16 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SaveFavoritesFilters.default_width = 2;
         SaveFavoritesFilters.name = DashboardWidgetVO.WIDGET_NAME_savefavoritesfilters;
         SaveFavoritesFilters.widget_component = 'Savefavoritesfilterswidgetcomponent';
-        SaveFavoritesFilters.options_component = 'Savefavoritesfilterswidgetoptionscomponent';
+        SaveFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         SaveFavoritesFilters.weight = 3;
         SaveFavoritesFilters.default_background = '#f5f5f5';
         SaveFavoritesFilters.icon_component = 'Savefavoritesfilterswidgeticoncomponent';
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(SaveFavoritesFilters, null, null);
 
-        Vue.component('Savefavoritesfilterswidgetcomponent', () => import('./widgets/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
-        Vue.component('Savefavoritesfilterswidgetoptionscomponent', () => import('./widgets/save_favorites_filters_widget/options/SaveFavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import('./widgets/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
+        Vue.component('Savefavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
+        Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import('./widgets/favorites_filters_widget/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ShowFavoritesFilters() {
@@ -467,16 +467,16 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ShowFavoritesFilters.default_width = 2;
         ShowFavoritesFilters.name = DashboardWidgetVO.WIDGET_NAME_showfavoritesfilters;
         ShowFavoritesFilters.widget_component = 'Showfavoritesfilterswidgetcomponent';
-        ShowFavoritesFilters.options_component = 'Showfavoritesfilterswidgetoptionscomponent';
+        ShowFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         ShowFavoritesFilters.weight = 3;
         ShowFavoritesFilters.default_background = '#f5f5f5';
         ShowFavoritesFilters.icon_component = 'Showfavoritesfilterswidgeticoncomponent';
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ShowFavoritesFilters, null, null);
 
-        Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
-        Vue.component('Showfavoritesfilterswidgetoptionscomponent', () => import('./widgets/show_favorites_filters_widget/options/ShowFavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import('./widgets/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
+        Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
+        Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ResetFilters() {

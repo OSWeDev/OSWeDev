@@ -8,7 +8,7 @@ import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { store_mutations_names } from '../../../store/StoreModuleBase';
-import SaveFavoritesFiltersModalComponent from "../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent";
+import FavoritesFiltersModalComponent from "../widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent";
 import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
 import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
 import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
@@ -32,7 +32,7 @@ export interface IDashboardPageState {
 
     active_field_filters: FieldFiltersVO;
 
-    Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
+    Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
     Sharedfiltersmodalcomponent: SharedFiltersModalComponent;
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
     Supervisionitemmodal: SupervisionItemModalComponent;
@@ -127,8 +127,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             state.Supervisionitemmodal = Supervisionitemmodal;
         },
 
-        set_Savefavoritesfiltersmodalcomponent(state: IDashboardPageState, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) {
-            state.Savefavoritesfiltersmodalcomponent = Savefavoritesfiltersmodalcomponent;
+        set_Favoritesfiltersmodalcomponent(state: IDashboardPageState, Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) {
+            state.Favoritesfiltersmodalcomponent = Favoritesfiltersmodalcomponent;
         },
 
         set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
@@ -272,7 +272,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             active_field_filters: {},
             Checklistitemmodalcomponent: null,
             Supervisionitemmodal: null,
-            Savefavoritesfiltersmodalcomponent: null,
+            Favoritesfiltersmodalcomponent: null,
             Sharedfiltersmodalcomponent: null,
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
@@ -330,8 +330,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.Supervisionitemmodal;
             },
 
-            get_Savefavoritesfiltersmodalcomponent(state: IDashboardPageState): SaveFavoritesFiltersModalComponent {
-                return state.Savefavoritesfiltersmodalcomponent;
+            get_Favoritesfiltersmodalcomponent(state: IDashboardPageState): FavoritesFiltersModalComponent {
+                return state.Favoritesfiltersmodalcomponent;
             },
 
             get_Sharedfiltersmodalcomponent(state: IDashboardPageState): SharedFiltersModalComponent {
@@ -372,7 +372,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_page_history: (context: DashboardPageContext, page_history: DashboardPageVO[]) => context.commit(store_mutations_names(this).set_page_history, page_history),
             add_page_history: (context: DashboardPageContext, page_history: DashboardPageVO) => context.commit(store_mutations_names(this).add_page_history, page_history),
             pop_page_history: (context: DashboardPageContext, fk) => context.commit(store_mutations_names(this).pop_page_history, null),
-            set_Savefavoritesfiltersmodalcomponent: (context: DashboardPageContext, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) => context.commit(store_mutations_names(this).set_Savefavoritesfiltersmodalcomponent, Savefavoritesfiltersmodalcomponent),
+            set_Favoritesfiltersmodalcomponent: (context: DashboardPageContext, Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent) => context.commit(store_mutations_names(this).set_Favoritesfiltersmodalcomponent, Favoritesfiltersmodalcomponent),
             set_Sharedfiltersmodalcomponent: (context: DashboardPageContext, Sharedfiltersmodalcomponent: SharedFiltersModalComponent) => context.commit(store_mutations_names(this).set_Sharedfiltersmodalcomponent, Sharedfiltersmodalcomponent),
             set_Crudupdatemodalcomponent: (context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) => context.commit(store_mutations_names(this).set_Crudupdatemodalcomponent, Crudupdatemodalcomponent),
             set_Checklistitemmodalcomponent: (context: DashboardPageContext, Checklistitemmodalcomponent: ChecklistItemModalComponent) => context.commit(store_mutations_names(this).set_Checklistitemmodalcomponent, Checklistitemmodalcomponent),

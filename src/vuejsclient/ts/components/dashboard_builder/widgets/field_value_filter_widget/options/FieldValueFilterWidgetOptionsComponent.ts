@@ -146,12 +146,14 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return;
         }
 
-        this.get_widget_options().fg_color_value = this.fg_color_value;
-        this.get_widget_options().fg_color_text = this.fg_color_text;
-        this.get_widget_options().bg_color = this.bg_color;
+        const widget_options: FieldValueFilterWidgetOptionsVO = this.get_widget_options();
+
+        widget_options.fg_color_value = this.fg_color_value;
+        widget_options.fg_color_text = this.fg_color_text;
+        widget_options.bg_color = this.bg_color;
 
         if (!this.next_update_options) {
-            this.next_update_options = cloneDeep(this.get_widget_options());
+            this.next_update_options = cloneDeep(widget_options);
         }
 
         await this.throttled_update_options();
@@ -593,10 +595,12 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return;
         }
 
-        this.get_widget_options().can_select_all = !this.can_select_all;
+        const widget_options: FieldValueFilterWidgetOptionsVO = this.get_widget_options();
+
+        widget_options.can_select_all = !this.can_select_all;
 
         if (!this.next_update_options) {
-            this.next_update_options = cloneDeep(this.get_widget_options());
+            this.next_update_options = cloneDeep(widget_options);
         }
 
         await this.throttled_update_options();
@@ -611,10 +615,12 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return;
         }
 
-        this.get_widget_options().can_select_none = !this.can_select_none;
+        const widget_options: FieldValueFilterWidgetOptionsVO = this.get_widget_options();
+
+        widget_options.can_select_none = !this.can_select_none;
 
         if (!this.next_update_options) {
-            this.next_update_options = cloneDeep(this.get_widget_options());
+            this.next_update_options = cloneDeep(widget_options);
         }
 
         await this.throttled_update_options();

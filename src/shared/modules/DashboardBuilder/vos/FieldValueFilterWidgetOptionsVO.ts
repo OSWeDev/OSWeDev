@@ -147,6 +147,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         if ((!this.vo_field_ref) || (!page_widget_id)) {
             return null;
         }
+
         return FieldValueFilterWidgetOptionsVO.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 

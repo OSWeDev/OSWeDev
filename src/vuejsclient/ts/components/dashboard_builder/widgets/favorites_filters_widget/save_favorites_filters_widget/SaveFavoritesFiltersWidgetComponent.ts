@@ -1,32 +1,30 @@
-import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import FavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
-import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
-import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
-import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
-import SaveFavoritesFiltersModalComponent from './modal/SaveFavoritesFiltersModalComponent';
-import SaveFavoritesFiltersWidgetOptions from './options/SaveFavoritesFiltersWidgetOptions';
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import FavoritesFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
-import MonthFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
-import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagerts';
-import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
-import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
+import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import YearFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
+import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import MonthFilterWidgetOptions from '../../month_filter_widget/options/MonthFilterWidgetOptions';
+import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
+import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
+import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
+import MonthFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
+import YearFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagers';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './SaveFavoritesFiltersWidgetComponent.scss';
 
 @Component({
@@ -36,7 +34,7 @@ import './SaveFavoritesFiltersWidgetComponent.scss';
 export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
+    private get_Favoritesfiltersmodalcomponent: FavoritesFiltersModalComponent;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -65,9 +63,10 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         const selectionnable_active_field_filters = await this.get_selectionnable_active_field_filters();
         const exportable_data = await this.get_exportable_xlsx_params();
 
-        this.get_Savefavoritesfiltersmodalcomponent.open_modal_for_creation(
+        this.get_Favoritesfiltersmodalcomponent.open_modal_for_creation(
             {
                 dashboard_page: this.dashboard_page,
+                page_widget: this.page_widget,
                 selectionnable_active_field_filters,
                 exportable_data,
             },
@@ -251,20 +250,20 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get widget_options
      *
-     * @return {SaveFavoritesFiltersWidgetOptions}
+     * @return {FavoritesFiltersWidgetOptionsVO}
      */
-    get widget_options(): SaveFavoritesFiltersWidgetOptions {
+    get widget_options(): FavoritesFiltersWidgetOptionsVO {
 
         if (!this.page_widget) {
             return null;
         }
 
-        let options: SaveFavoritesFiltersWidgetOptions = null;
+        let options: FavoritesFiltersWidgetOptionsVO = null;
 
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SaveFavoritesFiltersWidgetOptions;
-                options = options ? new SaveFavoritesFiltersWidgetOptions().from(options) : null;
+                options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
+                options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
