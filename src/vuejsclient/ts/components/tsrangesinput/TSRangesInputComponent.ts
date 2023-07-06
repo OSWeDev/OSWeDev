@@ -53,7 +53,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
             // Ca pose donc un soucis de comparaison pour v-date-picker
             // Il faut bien laisser utc(false)
             this.selectedDates.push(moment.unix(e).utc().startOf('day').toDate());
-        }, this.field.moduleTableField.segmentation_type);
+        }, this.field.segmentation_type);
     }
 
     @Watch('selectedDates')
@@ -63,7 +63,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
         for (let i in this.selectedDates) {
             let selectedDate = this.selectedDates[i];
 
-            new_value.push(RangeHandler.create_single_elt_TSRange(moment(selectedDate).utc(true).unix(), this.field.moduleTableField.segmentation_type));
+            new_value.push(RangeHandler.create_single_elt_TSRange(moment(selectedDate).utc(true).unix(), this.field.segmentation_type));
         }
         new_value = RangeHandler.getRangesUnion(new_value);
 

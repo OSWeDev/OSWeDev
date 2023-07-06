@@ -248,7 +248,7 @@ export default class TSTZInputComponent extends VueComponentBase {
 
     get segmentation_type(): number {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.segmentation_type;
+            return (this.field as SimpleDatatableFieldVO<any, any>).segmentation_type;
         }
 
         return null;
@@ -256,7 +256,7 @@ export default class TSTZInputComponent extends VueComponentBase {
 
     get format_localized_time(): boolean {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
+            return (this.field as SimpleDatatableFieldVO<any, any>).format_localized_time;
         }
 
         return null;

@@ -255,7 +255,7 @@ export default class ContextFilterVOHandler {
 
                     let value = field.dataToReadIHM(raw_data[module_table_field_id], raw_data);
                     // Limite à 300 cars si c'est du html et strip html
-                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
 
                         if (value) {
                             try {
@@ -278,7 +278,7 @@ export default class ContextFilterVOHandler {
                         }
                     }
 
-                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
 
                         for (let vi in value) {
                             let v = value[vi];

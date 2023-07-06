@@ -49,7 +49,7 @@ export default class IsoWeekDaysInputComponent extends VueComponentBase {
 
         RangeHandler.foreach_ranges_sync(this.value, (e: number) => {
             this.checkedDays.push(e.toString());
-        }, this.field.moduleTableField.segmentation_type);
+        }, this.field.segmentation_type);
     }
 
     @Watch('checkedDays')

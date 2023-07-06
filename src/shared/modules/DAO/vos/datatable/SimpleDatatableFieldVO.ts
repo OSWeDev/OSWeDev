@@ -245,7 +245,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         res_numrange.push('');
                     }
 
-                    let max_number: number = RangeHandler.getSegmentedMax(field_value, null, 0, this.return_max_value);
+                    let max_number: number = RangeHandler.getSegmentedMax(field_value, null, this.max_range_offset, this.return_max_value);
 
                     if (max_number) {
                         if (max_number.toFixed(0) != min_number.toFixed(0)) {

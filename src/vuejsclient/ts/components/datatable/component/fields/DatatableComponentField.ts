@@ -139,11 +139,11 @@ export default class DatatableComponentField extends VueComponentBase {
         // switch (this.field.type) {
         //     case DatatableField.SIMPLE_FIELD_TYPE:
 
-        //         switch (this.simple_field.moduleTableField.field_type) {
+        //         switch (this.simple_field.field_type) {
         //             case ModuleTableField.FIELD_TYPE_enum:
 
         //                 let enum_val = this.vo[this.field.datatable_field_uid];
-        //                 return this.t(this.simple_field.moduleTableField.enum_values[enum_val]);
+        //                 return this.t(this.simple_field.enum_values[enum_val]);
 
         //             default:
         //                 return this.vo[this.field.datatable_field_uid];
@@ -153,8 +153,8 @@ export default class DatatableComponentField extends VueComponentBase {
         // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
         if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
             if (
-                (this.simple_field.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) ||
-                (this.simple_field.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array)
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html) ||
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html_array)
             ) {
                 return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
             }
@@ -174,7 +174,7 @@ export default class DatatableComponentField extends VueComponentBase {
 
     get custom_field_types(): TableFieldTypeControllerBase {
         if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.moduleTableField.field_type];
+            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.field_type];
         }
 
         return null;
