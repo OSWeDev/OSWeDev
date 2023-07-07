@@ -28,7 +28,7 @@ export default class FakeVarsInit {
             [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
             [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
         });
-        VarsServerController.getInstance().init_varcontrollers_dag();
+        VarsServerController.init_varcontrollers_dag();
     }
 
     public static getInstance(): FakeVarsInit {

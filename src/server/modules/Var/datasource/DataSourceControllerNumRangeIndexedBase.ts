@@ -42,12 +42,12 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
         }
 
         node.datasources[this.name] = {};
-        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        if (!VarsdatasComputerBGThread.current_batch_ds_cache[this.name]) {
+            VarsdatasComputerBGThread.current_batch_ds_cache[this.name] = {};
         }
         await RangeHandler.foreach_ranges(data_index, async (i: number) => {
 
-            if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i] === 'undefined') {
+            if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name][i] === 'undefined') {
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
                 let time_in = Dates.now_ms();
@@ -62,14 +62,14 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
                     /**
                      * On ne change pas les datas qu'on avait déjà
                      */
-                    if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] === 'undefined') {
-                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
+                    if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name][j] === 'undefined') {
+                        VarsdatasComputerBGThread.current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
                     }
                 }
             }
 
-            if (VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i]) {
-                node.datasources[this.name][i] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i];
+            if (VarsdatasComputerBGThread.current_batch_ds_cache[this.name][i]) {
+                node.datasources[this.name][i] = VarsdatasComputerBGThread.current_batch_ds_cache[this.name][i];
             }
         });
 

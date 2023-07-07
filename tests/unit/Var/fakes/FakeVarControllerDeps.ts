@@ -77,8 +77,8 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_DsDistant = VarsServerController.getInstance().get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsDistant, 0);
-        let DEP_DsEmpDistant = VarsServerController.getInstance().get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsEmpDistant, 0);
+        let DEP_DsDistant = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsDistant, 0);
+        let DEP_DsEmpDistant = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsEmpDistant, 0);
 
         return DEP_DsDistant * DEP_DsEmpDistant;
     }

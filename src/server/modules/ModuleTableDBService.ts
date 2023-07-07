@@ -285,7 +285,7 @@ export default class ModuleTableDBService {
             await this.chec_indexes(moduleTable, database_name, table_name);
 
             if (segmented_value != null) {
-                await ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
+                await ForkedTasksController.broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
             }
         } else {
             res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);

@@ -18,7 +18,6 @@ import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import APIGetVarDataByIndexParamVO from './params/APIGetVarDataByIndexParamVO';
 import VarsController from './VarsController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
-import SlowVarVO from './vos/SlowVarVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfAutoDepVO from './vos/VarConfAutoDepVO';
 import VarConfIds from './vos/VarConfIds';
@@ -163,11 +162,8 @@ export default class ModuleVar extends Module {
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
         this.initializeVarPerfVO();
-        this.initializeSlowVarVO();
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base] = null;
-        // ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_force_1_by_1_computation] = null;
     }
 
     public registerApis() {
@@ -383,23 +379,6 @@ export default class ModuleVar extends Module {
     public async hook_module_configure(): Promise<boolean> {
         await this.initializeasync();
         return true;
-    }
-
-    private initializeSlowVarVO() {
-
-        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Index du param').unique();
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true);
-
-        let datatable_fields = [
-            labelField,
-            var_id,
-            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, SlowVarVO.TYPE_NEEDS_TEST).setEnumValues(SlowVarVO.TYPE_LABELS),
-            new ModuleTableField('perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'perfs', false),
-        ];
-
-        let datatable = new ModuleTable(this, SlowVarVO.API_TYPE_ID, () => new SlowVarVO(), datatable_fields, labelField);
-        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
-        this.datatables.push(datatable);
     }
 
     private initializeVarPixelFieldConfVO() {

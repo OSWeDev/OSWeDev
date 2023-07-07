@@ -57,7 +57,7 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
 
     public async get_data(param: VarDataBaseVO): Promise<number> {
 
-        let varconf: VarConfVO = VarsServerController.getInstance().getVarConfById(param.var_id);
+        let varconf: VarConfVO = VarsServerController.getVarConfById(param.var_id);
 
         let query_res = await query(varconf.auto_vofieldref_api_type_id)
             .field(varconf.auto_vofieldref_field_id, 'ds_result', varconf.auto_vofieldref_api_type_id, varconf.aggregator, varconf.auto_vofieldref_modifier)

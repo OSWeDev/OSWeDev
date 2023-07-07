@@ -23,7 +23,7 @@ export default class I18nextInit {
 
     private constructor(ALL_LOCALES) {
 
-        // ForkedTasksController.getInstance().assert_is_main_process();
+        // ForkedTasksController.assert_is_main_process();
 
         const envParam: EnvParam = ConfigurationService.node_configuration;
 

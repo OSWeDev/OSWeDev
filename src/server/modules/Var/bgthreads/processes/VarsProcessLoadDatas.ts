@@ -1,5 +1,10 @@
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
+import VarsServerController from '../../VarsServerController';
+import DataSourceControllerBase from '../../datasource/DataSourceControllerBase';
+import DataSourcesController from '../../datasource/DataSourcesController';
 import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessLoadDatas extends VarsProcessBase {
@@ -25,7 +30,21 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
     }
 
     protected async worker_async(node: VarDAGNode): Promise<boolean> {
-        TODO
+
+        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+
+        let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
+
+        if ((!dss) || (!dss.length)) {
+            return true;
+        }
+
+        await DataSourcesController.getInstance().load_node_datas(dss, node);
+
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
+        }
+
         return true;
     }
 }

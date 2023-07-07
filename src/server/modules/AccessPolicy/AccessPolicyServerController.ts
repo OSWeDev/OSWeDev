@@ -66,22 +66,22 @@ export default class AccessPolicyServerController {
     public static hook_user_login: (email: string, password: string) => Promise<UserVO> = null;
 
     public static init_tasks() {
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, AccessPolicyServerController.set_registered_user_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, AccessPolicyServerController.delete_registered_user_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, AccessPolicyServerController.set_registered_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, AccessPolicyServerController.set_policy_dependency);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, AccessPolicyServerController.set_role_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, AccessPolicyServerController.reload_access_matrix);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, AccessPolicyServerController.update_registered_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, AccessPolicyServerController.update_policy_dependency);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, AccessPolicyServerController.update_role_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role, AccessPolicyServerController.update_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_user_role, AccessPolicyServerController.update_user_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, AccessPolicyServerController.delete_registered_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, AccessPolicyServerController.delete_registered_policy_dependency);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, AccessPolicyServerController.delete_registered_role_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, AccessPolicyServerController.delete_registered_role);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, AccessPolicyServerController.set_registered_user_role);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, AccessPolicyServerController.delete_registered_user_role);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, AccessPolicyServerController.set_registered_policy);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, AccessPolicyServerController.set_policy_dependency);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, AccessPolicyServerController.set_role_policy);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, AccessPolicyServerController.reload_access_matrix);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, AccessPolicyServerController.update_registered_policy);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, AccessPolicyServerController.update_policy_dependency);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, AccessPolicyServerController.update_role_policy);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_role, AccessPolicyServerController.update_role);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_user_role, AccessPolicyServerController.update_user_role);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, AccessPolicyServerController.delete_registered_policy);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, AccessPolicyServerController.delete_registered_policy_dependency);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, AccessPolicyServerController.delete_registered_role_policy);
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, AccessPolicyServerController.delete_registered_role);
     }
 
     public static getInstance() {
@@ -1208,7 +1208,7 @@ export default class AccessPolicyServerController {
             // On ajoute la session au bgthread d'invalidation si on a un sid
             let session: IServerUserSession = StackContext.get('SESSION');
             if (session && session.sid) {
-                ForkedTasksController.getInstance().exec_self_on_bgthread(
+                ForkedTasksController.exec_self_on_bgthread(
                     AccessPolicyDeleteSessionBGThread.getInstance().name,
                     AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids,
                     session

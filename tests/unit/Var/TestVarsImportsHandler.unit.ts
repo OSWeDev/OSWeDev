@@ -35,7 +35,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () => {
 
     // VarsController.getInstance().clear_all_inits();
-    // VarsServerController.getInstance().clear_all_inits();
+    // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
     await ModuleVar.getInstance().initializeasync({
@@ -83,7 +83,7 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
 test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', async () => {
 
     // VarsController.getInstance().clear_all_inits();
-    // VarsServerController.getInstance().clear_all_inits();
+    // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
     await ModuleVar.getInstance().initializeasync({
@@ -134,7 +134,7 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc', async () => {
 test('VarsImportsHandler: test get_selection_imports', async () => {
 
     // VarsController.getInstance().clear_all_inits();
-    // VarsServerController.getInstance().clear_all_inits();
+    // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
 

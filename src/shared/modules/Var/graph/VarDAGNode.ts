@@ -1,9 +1,7 @@
-import e from 'express';
-import ConfigurationService from '../../../../server/env/ConfigurationService';
-import VarsDatasProxy from '../../../../server/modules/Var/VarsDatasProxy';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
-import ObjectHandler from '../../../tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../tools/ObjectHandler';
+import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import MatroidController from '../../Matroid/MatroidController';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
 import VarDAG from './VarDAG';
@@ -11,9 +9,6 @@ import VarDAGNodeDep from './VarDAGNodeDep';
 import DAGNodeBase from './dagbase/DAGNodeBase';
 
 export default class VarDAGNode extends DAGNodeBase {
-
-    public static TAG_CLIENT: string = 'CLIENT';
-    public static TAG_SERVER: string = 'SERVER';
 
     /**
      * Les tags pendant le traitement d'un noeud
@@ -124,7 +119,6 @@ export default class VarDAGNode extends DAGNodeBase {
             return var_dag.nodes[var_data.index];
         }
 
-        let self = this;
         return new Promise(async (resolve, reject) => {
 
             /**
@@ -139,7 +133,11 @@ export default class VarDAGNode extends DAGNodeBase {
 
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
             if (!already_tried_load_cache_complet) {
-                await self.try_load_cache_complet(node);
+                let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>().index, node.var_data.index).select_vo();
+                if (!!db_data) {
+                    node.var_data = db_data;
+                    already_tried_load_cache_complet = true;
+                }
             }
 
             /**
@@ -158,32 +156,32 @@ export default class VarDAGNode extends DAGNodeBase {
         });
     }
 
-    private static async try_load_cache_complet(node: VarDAGNode) {
+    // private static async try_load_cache_complet(node: VarDAGNode) {
 
-        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
+    //     let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
-        let cache_complet = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(node.var_data, false, 'try_load_cache_complet');
-        let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[node.var_data.index];
+    //     let cache_complet = await VarsDatasProxy.get_exact_param_from_buffer_or_bdd(node.var_data, false, 'try_load_cache_complet');
+    //     let wrapper = VarsDatasProxy.vars_datas_buffer_wrapped_indexes[node.var_data.index];
 
-        if (!cache_complet) {
-            if (DEBUG_VARS) {
-                ConsoleHandler.log('try_load_cache_complet:' + node.var_data.index + ':aucun cache complet' +
-                    ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
-            }
+    //     if (!cache_complet) {
+    //         if (DEBUG_VARS) {
+    //             ConsoleHandler.log('try_load_cache_complet:' + node.var_data.index + ':aucun cache complet' +
+    //                 ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+    //         }
 
-            return;
-        }
+    //         return;
+    //     }
 
-        // NOTE : On peut éditer directement la vardata ici puisque celle en cache a déjà été mise à jour par get_exact_param_from_buffer_or_bdd au besoin
-        node.var_data.id = cache_complet.id;
-        node.var_data.value = cache_complet.value;
-        node.var_data.value_ts = cache_complet.value_ts;
-        node.var_data.value_type = cache_complet.value_type;
-        if (DEBUG_VARS) {
-            ConsoleHandler.log('try_load_cache_complet:' + node.var_data.index + ':OK:' + cache_complet.value + ':' + cache_complet.value_ts + ':' + cache_complet.id +
-                ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
-        }
-    }
+    //     // NOTE : On peut éditer directement la vardata ici puisque celle en cache a déjà été mise à jour par get_exact_param_from_buffer_or_bdd au besoin
+    //     node.var_data.id = cache_complet.id;
+    //     node.var_data.value = cache_complet.value;
+    //     node.var_data.value_ts = cache_complet.value_ts;
+    //     node.var_data.value_type = cache_complet.value_type;
+    //     if (DEBUG_VARS) {
+    //         ConsoleHandler.log('try_load_cache_complet:' + node.var_data.index + ':OK:' + cache_complet.value + ':' + cache_complet.value_ts + ':' + cache_complet.id +
+    //             ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+    //     }
+    // }
 
     /**
      * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)

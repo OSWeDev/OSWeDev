@@ -42,8 +42,8 @@ export default class DataSourcesController {
         for (let i in dss) {
             let ds = dss[i];
 
-            if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name]) {
-                VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name] = {};
+            if (!VarsdatasComputerBGThread.current_batch_ds_cache[ds.name]) {
+                VarsdatasComputerBGThread.current_batch_ds_cache[ds.name] = {};
             }
 
             // Si on est sur du perf monitoring on doit faire les appels séparément...

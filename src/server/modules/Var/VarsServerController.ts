@@ -14,11 +14,39 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import VarCtrlDAG from './controllerdag/VarCtrlDAG';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarServerControllerBase from './VarServerControllerBase';
 
 export default class VarsServerController {
+
+    /**
+     * Global application cache - Brocasted CUD - Local R -----
+     */
+
+    // NO CUD during run, just init in each thread - no multithreading special handlers needed
+    public static varcontrollers_dag: VarCtrlDAG = null;
+    public static varcontrollers_dag_depths: { [var_id: number]: number } = null;
+
+    // NO CUD during run, just init in each thread - no multithreading special handlers needed
+    public static registered_vars_controller_by_var_id: { [name: string]: VarServerControllerBase<any> } = {};
+    public static registered_vars_controller: { [name: string]: VarServerControllerBase<any> } = {};
+    public static registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
+
+    // TODO FIXME est-ce que tout n'est pas en cache à ce stade, si on demande toujours en insérant en base ?
+    public static registered_vars_controller_by_api_type_id: { [api_type_id: string]: Array<VarServerControllerBase<any>> } = {};
+
+    // CUD during run, broadcasting CUD
+    public static varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
+    public static varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
+
+    public static preloadedVarConfs: boolean = false;
+    public static preloadedVarCacheConfs_by_var_id: { [var_id: number]: VarCacheConfVO } = null;
+    /**
+     * ----- Global application cache - Brocasted CUD - Local R
+     */
+
 
     /**
      * ATTENTION : Si on est client on doit pas utiliser cette méthode par ce qu'elle ne voit pas les
@@ -47,66 +75,18 @@ export default class VarsServerController {
         return false;
     }
 
-    /**
-     * Multithreading notes :
-     *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
-     */
-    public static getInstance(): VarsServerController {
-        if (!VarsServerController.instance) {
-            VarsServerController.instance = new VarsServerController();
-        }
-        return VarsServerController.instance;
+    public static clear_all_inits() {
+        VarsServerController.varcontrollers_dag = null;
+        VarsServerController.varcontrollers_dag_depths = null;
+        VarsServerController.registered_vars_controller = {};
+        VarsServerController.registered_vars_controller_by_var_id = {};
+        VarsServerController.registered_vars_by_datasource = {};
+        VarsServerController.registered_vars_controller_by_api_type_id = {};
+        VarsServerController.varcacheconf_by_var_ids = {};
+        VarsServerController.varcacheconf_by_api_type_ids = {};
     }
 
-    private static instance: VarsServerController = null;
-
-    /**
-     * Global application cache - Brocasted CUD - Local R -----
-     */
-
-    // NO CUD during run, just init in each thread - no multithreading special handlers needed
-    private _varcontrollers_dag: VarDAG = null;
-    private _varcontrollers_dag_depths: { [var_id: number]: number } = null;
-
-    // NO CUD during run, just init in each thread - no multithreading special handlers needed
-    private _registered_vars_controller: { [name: string]: VarServerControllerBase<any> } = {};
-    private _registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
-
-    // TODO FIXME est-ce que tout n'est pas en cache à ce stade, si on demande toujours en insérant en base ?
-    private _registered_vars_controller_by_api_type_id: { [api_type_id: string]: Array<VarServerControllerBase<any>> } = {};
-
-    // CUD during run, broadcasting CUD
-    private _varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
-    private _varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
-
-    private preloadedVarConfs: boolean = false;
-    private preloadedVarCacheConfs_by_var_id: { [var_id: number]: VarCacheConfVO } = null;
-    /**
-     * ----- Global application cache - Brocasted CUD - Local R
-     */
-
-    protected constructor() {
-    }
-
-    public clear_all_inits() {
-        VarsServerController.getInstance()._varcontrollers_dag = null;
-        VarsServerController.getInstance()._varcontrollers_dag_depths = null;
-        VarsServerController.getInstance()._registered_vars_controller = {};
-        VarsServerController.getInstance()._registered_vars_by_datasource = {};
-        VarsServerController.getInstance()._registered_vars_controller_by_api_type_id = {};
-        VarsServerController.getInstance()._varcacheconf_by_var_ids = {};
-        VarsServerController.getInstance()._varcacheconf_by_api_type_ids = {};
-    }
-
-    get varcontrollers_dag() {
-        return this._varcontrollers_dag;
-    }
-
-    get varcontrollers_dag_depths() {
-        return this._varcontrollers_dag_depths;
-    }
-
-    public update_registered_varconf(id: number, conf: VarConfVO) {
+    public static update_registered_varconf(id: number, conf: VarConfVO) {
         VarsController.var_conf_by_id[id] = conf;
         VarsController.var_conf_by_name[conf.name] = conf;
 
@@ -115,7 +95,7 @@ export default class VarsServerController {
         }
     }
 
-    public delete_registered_varconf(id: number) {
+    public static delete_registered_varconf(id: number) {
         let name = VarsController.var_conf_by_id[id].name;
         delete VarsController.var_conf_by_id[id];
         delete VarsController.var_conf_by_name[name];
@@ -125,47 +105,47 @@ export default class VarsServerController {
         }
     }
 
-    public update_registered_varcacheconf(var_id: number, cacheconf: VarCacheConfVO) {
-        this._varcacheconf_by_var_ids[var_id] = cacheconf;
+    public static update_registered_varcacheconf(var_id: number, cacheconf: VarCacheConfVO) {
+        VarsServerController.varcacheconf_by_var_ids[var_id] = cacheconf;
 
-        let conf = this.getVarConfById(cacheconf.var_id);
+        let conf = VarsServerController.getVarConfById(cacheconf.var_id);
         if (!conf) {
             return;
         }
 
-        if (!this.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
-            this.varcacheconf_by_api_type_ids[conf.var_data_vo_type] = {};
+        if (!VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
+            VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type] = {};
         }
-        this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
+        VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
 
-    public delete_registered_varcacheconf(var_id: number) {
-        let cacheconf = this._varcacheconf_by_var_ids[var_id];
-        delete this._varcacheconf_by_var_ids[var_id];
+    public static delete_registered_varcacheconf(var_id: number) {
+        let cacheconf = VarsServerController.varcacheconf_by_var_ids[var_id];
+        delete VarsServerController.varcacheconf_by_var_ids[var_id];
 
-        let conf = this.getVarConfById(cacheconf.var_id);
+        let conf = VarsServerController.getVarConfById(cacheconf.var_id);
         if (!conf) {
             return;
         }
 
-        if (!this.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
+        if (!VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
             return;
         }
-        delete this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
+        delete VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
 
-    public init_varcontrollers_dag_depths() {
+    public static init_varcontrollers_dag_depths() {
 
-        if ((!this._varcontrollers_dag_depths) && this.varcontrollers_dag) {
-            this._varcontrollers_dag_depths = {};
+        if ((!VarsServerController.varcontrollers_dag_depths) && VarsServerController.varcontrollers_dag) {
+            VarsServerController.varcontrollers_dag_depths = {};
 
             let needs_again = true;
             while (needs_again) {
@@ -173,21 +153,21 @@ export default class VarsServerController {
 
                 let did_something = false;
                 let last_not_full = null;
-                for (let i in VarsServerController.getInstance().varcontrollers_dag.nodes) {
-                    let node: VarDAGNode = VarsServerController.getInstance().varcontrollers_dag.nodes[i];
+                for (let i in VarsServerController.varcontrollers_dag.nodes) {
+                    let node: VarCtrlDAGNode = VarsServerController.varcontrollers_dag.nodes[i];
 
-                    if (!!this._varcontrollers_dag_depths[node.var_controller.varConf.id]) {
+                    if (!!VarsServerController.varcontrollers_dag_depths[node.var_controller.varConf.id]) {
                         continue;
                     }
 
-                    let depth = this.get_max_depth(node, false);
+                    let depth = VarsServerController.get_max_depth(node, false);
                     if (depth === null) {
                         last_not_full = node;
                         needs_again = true;
                         continue;
                     }
 
-                    this._varcontrollers_dag_depths[node.var_controller.varConf.id] = depth;
+                    VarsServerController.varcontrollers_dag_depths[node.var_controller.varConf.id] = depth;
                     did_something = true;
                 }
 
@@ -197,67 +177,41 @@ export default class VarsServerController {
                         throw new Error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
                     }
 
-                    let depth = this.get_max_depth(last_not_full, true);
+                    let depth = VarsServerController.get_max_depth(last_not_full, true);
                     if (depth === null) {
                         ConsoleHandler.error('depth===null on !did_something in init_varcontrollers_dag_depths');
                         throw new Error('depth===null on !did_something in init_varcontrollers_dag_depths');
                     }
 
-                    this._varcontrollers_dag_depths[last_not_full.var_controller.varConf.id] = depth;
+                    VarsServerController.varcontrollers_dag_depths[last_not_full.var_controller.varConf.id] = depth;
                 }
             }
         }
-        return this._varcontrollers_dag_depths;
+        return VarsServerController.varcontrollers_dag_depths;
     }
 
-    get registered_vars_controller_(): { [name: string]: VarServerControllerBase<any> } {
-        return this._registered_vars_controller;
-    }
-
-    get registered_vars_by_datasource(): { [datasource_id: string]: Array<VarServerControllerBase<any>> } {
-        return this._registered_vars_by_datasource;
-    }
-
-    get varcacheconf_by_api_type_ids(): { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } {
-        return this._varcacheconf_by_api_type_ids;
-    }
-
-    get varcacheconf_by_var_ids(): { [var_id: number]: VarCacheConfVO } {
-        return this._varcacheconf_by_var_ids;
-    }
-
-    get registered_vars_controller_by_api_type_id(): { [api_type_id: string]: Array<VarServerControllerBase<any>> } {
-        return this._registered_vars_controller_by_api_type_id;
-    }
-
-    public getVarConf(var_name: string): VarConfVO {
+    public static getVarConf(var_name: string): VarConfVO {
         return VarsController.var_conf_by_name ? (VarsController.var_conf_by_name[var_name] ? VarsController.var_conf_by_name[var_name] : null) : null;
     }
 
-    public getVarConfById(var_id: number): VarConfVO {
+    public static getVarConfById(var_id: number): VarConfVO {
         return VarsController.var_conf_by_id ? (VarsController.var_conf_by_id[var_id] ? VarsController.var_conf_by_id[var_id] : null) : null;
     }
 
-    public getVarController(var_name: string): VarServerControllerBase<any> {
-        return this._registered_vars_controller ? (this._registered_vars_controller[var_name] ? this._registered_vars_controller[var_name] : null) : null;
+    public static getVarController(var_name: string): VarServerControllerBase<any> {
+        return VarsServerController.registered_vars_controller ? (VarsServerController.registered_vars_controller[var_name] ? VarsServerController.registered_vars_controller[var_name] : null) : null;
     }
 
-    public getVarControllerById(var_id: number): VarServerControllerBase<any> {
-        if ((!VarsController.var_conf_by_id) || (!VarsController.var_conf_by_id[var_id]) ||
-            (!this._registered_vars_controller)) {
-            return null;
-        }
-
-        let res = this._registered_vars_controller[VarsController.var_conf_by_id[var_id].name];
-        return res ? res : null;
+    public static getVarControllerById(var_id: number): VarServerControllerBase<any> {
+        return VarsServerController.registered_vars_controller_by_var_id ? (VarsServerController.registered_vars_controller_by_var_id[var_id] ? VarsServerController.registered_vars_controller_by_var_id[var_id] : null) : null;
     }
 
-    public init_varcontrollers_dag() {
+    public static init_varcontrollers_dag() {
 
-        let varcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
+        let varcontrollers_dag: VarCtrlDAG = new VarCtrlDAG();
 
-        for (let i in VarsServerController.getInstance().registered_vars_controller_) {
-            let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_controller_[i];
+        for (let i in VarsServerController.registered_vars_controller) {
+            let var_controller: VarServerControllerBase<any> = VarsServerController.registered_vars_controller[i];
 
             let node = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_controller);
 
@@ -272,14 +226,14 @@ export default class VarsServerController {
             }
         }
 
-        this._varcontrollers_dag = varcontrollers_dag;
+        VarsServerController.varcontrollers_dag = varcontrollers_dag;
     }
 
     /**
      * Renvoie les datasources dont la var est une dépendance.
      * @param controller
      */
-    public get_datasource_deps_and_predeps(controller: VarServerControllerBase<any>): DataSourceControllerBase[] {
+    public static get_datasource_deps_and_predeps(controller: VarServerControllerBase<any>): DataSourceControllerBase[] {
         let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
         datasource_deps = (!!datasource_deps) ? datasource_deps : [];
 
@@ -299,8 +253,8 @@ export default class VarsServerController {
      * Renvoie le nom des datasources dont la var est une dépendance.
      * @param controller
      */
-    public get_datasource_deps_and_predeps_names(controller: VarServerControllerBase<any>): string[] {
-        let datasource_deps: DataSourceControllerBase[] = this.get_datasource_deps_and_predeps(controller);
+    public static get_datasource_deps_and_predeps_names(controller: VarServerControllerBase<any>): string[] {
+        let datasource_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(controller);
         let datasource_deps_names: string[] = [];
         for (let i in datasource_deps) {
             let ds = datasource_deps[i];
@@ -309,7 +263,7 @@ export default class VarsServerController {
         return datasource_deps_names;
     }
 
-    public async registerVar(varConf: VarConfVO, controller: VarServerControllerBase<any>): Promise<VarConfVO> {
+    public static async registerVar(varConf: VarConfVO, controller: VarServerControllerBase<any>): Promise<VarConfVO> {
         if ((!varConf) || (!controller)) {
             return null;
         }
@@ -339,7 +293,7 @@ export default class VarsServerController {
                 await ModuleDAO.getInstance().insertOrUpdateVO(daoVarConf);
             }
 
-            this.setVar(daoVarConf, controller);
+            VarsServerController.setVar(daoVarConf, controller);
             return daoVarConf;
         }
 
@@ -350,30 +304,30 @@ export default class VarsServerController {
 
         varConf.id = insertOrDeleteQueryResult.id;
 
-        this.setVar(varConf, controller);
+        VarsServerController.setVar(varConf, controller);
         return varConf;
     }
 
-    public async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
+    public static async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
 
-        if (!this.preloadedVarCacheConfs_by_var_id) {
+        if (!VarsServerController.preloadedVarCacheConfs_by_var_id) {
             let varcacheconfs = await query(VarCacheConfVO.API_TYPE_ID).select_vos<VarCacheConfVO>();
-            this.preloadedVarCacheConfs_by_var_id = {};
+            VarsServerController.preloadedVarCacheConfs_by_var_id = {};
             for (let i in varcacheconfs) {
                 let varcacheconf = varcacheconfs[i];
-                this.preloadedVarCacheConfs_by_var_id[varcacheconf.var_id] = varcacheconf;
+                VarsServerController.preloadedVarCacheConfs_by_var_id[varcacheconf.var_id] = varcacheconf;
             }
         }
 
-        let existing_bdd_conf: VarCacheConfVO = this.preloadedVarCacheConfs_by_var_id[var_conf.id];
+        let existing_bdd_conf: VarCacheConfVO = VarsServerController.preloadedVarCacheConfs_by_var_id[var_conf.id];
 
         if (!!existing_bdd_conf) {
 
-            this._varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf;
-            if (!this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
-                this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
+            VarsServerController.varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf;
+            if (!VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
+                VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
             }
-            this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf;
+            VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf;
             return existing_bdd_conf;
         }
 
@@ -386,11 +340,11 @@ export default class VarsServerController {
 
         var_cache_conf.id = insert_or_update_result.id;
 
-        this._varcacheconf_by_var_ids[var_conf.id] = var_cache_conf;
-        if (!this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
-            this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
+        VarsServerController.varcacheconf_by_var_ids[var_conf.id] = var_cache_conf;
+        if (!VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
+            VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
         }
-        this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
+        VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
         return var_cache_conf;
     }
 
@@ -400,7 +354,7 @@ export default class VarsServerController {
      * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? sum : ignore)
      * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
      */
-    public get_outgoing_deps_sum(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 0) {
+    public static get_outgoing_deps_sum(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 0) {
         let res: number = start_value;
 
         for (let i in varDAGNode.outgoing_deps) {
@@ -438,7 +392,7 @@ export default class VarsServerController {
      * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? and : ignore)
      * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
      */
-    public get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1) {
+    public static get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1) {
         let res: number = start_value;
 
         if (!res) {
@@ -466,12 +420,13 @@ export default class VarsServerController {
         return 1;
     }
 
-    private setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {
+    private static setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {
         VarsController.var_conf_by_name[varConf.name] = varConf;
-        this._registered_vars_controller[varConf.name] = controller;
+        VarsServerController.registered_vars_controller[varConf.name] = controller;
+        VarsServerController.registered_vars_controller_by_var_id[varConf.id] = controller;
         VarsController.var_conf_by_id[varConf.id] = varConf;
 
-        let dss: DataSourceControllerBase[] = this.get_datasource_deps_and_predeps(controller);
+        let dss: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(controller);
         dss = (!!dss) ? dss : [];
         if (dss && dss.length) {
             dss.forEach((datasource_dep) => {
@@ -483,26 +438,26 @@ export default class VarsServerController {
         for (let i in dss) {
             let ds = dss[i];
 
-            if (!this._registered_vars_by_datasource[ds.name]) {
-                this._registered_vars_by_datasource[ds.name] = [];
+            if (!VarsServerController.registered_vars_by_datasource[ds.name]) {
+                VarsServerController.registered_vars_by_datasource[ds.name] = [];
             }
-            this._registered_vars_by_datasource[ds.name].push(controller);
+            VarsServerController.registered_vars_by_datasource[ds.name].push(controller);
 
             for (let j in ds.vo_api_type_ids) {
                 let vo_api_type_id = ds.vo_api_type_ids[j];
 
-                if (!this._registered_vars_controller_by_api_type_id[vo_api_type_id]) {
-                    this._registered_vars_controller_by_api_type_id[vo_api_type_id] = [];
+                if (!VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id]) {
+                    VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id] = [];
                 }
-                this._registered_vars_controller_by_api_type_id[vo_api_type_id].push(controller);
+                VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id].push(controller);
             }
         }
 
         // On enregistre les defaults translations
-        this.register_var_default_translations(varConf.name, controller);
+        VarsServerController.register_var_default_translations(varConf.name, controller);
     }
 
-    private register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {
+    private static register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {
         if (!!controller.var_name_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_name_default_translations,
@@ -537,7 +492,7 @@ export default class VarsServerController {
         }
     }
 
-    private get_max_depth(node: VarCtrlDAGNode, ignore_incomplete: boolean) {
+    private static get_max_depth(node: VarCtrlDAGNode, ignore_incomplete: boolean) {
         let is_complete = true;
         let depth = 1;
 
@@ -548,11 +503,11 @@ export default class VarsServerController {
                 continue;
             }
 
-            if (!this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id]) {
+            if (!VarsServerController.varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id]) {
                 is_complete = false;
                 break;
             }
-            depth = Math.max(depth, this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id] + 1);
+            depth = Math.max(depth, VarsServerController.varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id] + 1);
         }
 
         if ((!is_complete) && (!ignore_incomplete)) {
@@ -560,5 +515,8 @@ export default class VarsServerController {
         }
 
         return depth;
+    }
+
+    protected constructor() {
     }
 }

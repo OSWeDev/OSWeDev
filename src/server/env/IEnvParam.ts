@@ -23,7 +23,8 @@ export default interface IEnvParam {
     CONSOLE_LOG_TO_FILE: boolean;
 
     MAX_VarsProcessDeployDeps?: number;
-    MAX_VarsProcessUpdateDB
+    MAX_VarsProcessLoadDatas?: number;
+    MAX_Vars_invalidators?: number;
 
     DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     DEBUG_SLOW_QUERIES?: boolean;

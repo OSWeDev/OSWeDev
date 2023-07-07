@@ -37,23 +37,23 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
         let time_load_node_data_in = Dates.now_ms();
 
-        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        if (!VarsdatasComputerBGThread.current_batch_ds_cache[this.name]) {
+            VarsdatasComputerBGThread.current_batch_ds_cache[this.name] = {};
         }
 
-        if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'] === 'undefined') {
+        if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name]['c'] === 'undefined') {
 
             this.nodes_waiting_for_semaphore[node.var_data.index] = node;
 
             /**
              * On ajoute un sémaphore pour éviter de faire 10 fois la requête sur un batch
              */
-            if (VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['semaphore'] === true) {
+            if (VarsdatasComputerBGThread.current_batch_ds_cache[this.name]['semaphore'] === true) {
                 return new Promise((resolve, reject) => {
                     this.promises_waiting_for_semaphore[node.var_data.index] = resolve;
                 });
             }
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['semaphore'] = true;
+            VarsdatasComputerBGThread.current_batch_ds_cache[this.name]['semaphore'] = true;
 
             StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
 
@@ -63,10 +63,10 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
             // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
             StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'] = ((typeof data === 'undefined') ? null : data);
+            VarsdatasComputerBGThread.current_batch_ds_cache[this.name]['c'] = ((typeof data === 'undefined') ? null : data);
 
             for (let i in this.nodes_waiting_for_semaphore) {
-                this.nodes_waiting_for_semaphore[i].datasources[this.name] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'];
+                this.nodes_waiting_for_semaphore[i].datasources[this.name] = VarsdatasComputerBGThread.current_batch_ds_cache[this.name]['c'];
 
                 let cb = this.promises_waiting_for_semaphore[i];
                 if (!!cb) {
@@ -81,7 +81,7 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
             return;
         }
 
-        node.datasources[this.name] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'];
+        node.datasources[this.name] = VarsdatasComputerBGThread.current_batch_ds_cache[this.name]['c'];
 
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_FROM_CACHE');
     }

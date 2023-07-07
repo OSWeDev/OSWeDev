@@ -42,7 +42,7 @@ export default class VarsProcessNotifyStart extends VarsProcessBase {
             }
         }
 
-        await VarsTabsSubsController.getInstance().notify_vardatas(notifVardatasParams);
+        await VarsTabsSubsController.notify_vardatas(notifVardatasParams);
         return true;
     }
 }

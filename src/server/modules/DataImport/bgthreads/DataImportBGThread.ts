@@ -66,7 +66,7 @@ export default class DataImportBGThread implements IBGThread {
             let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true, 180000);
             try {
                 if (wait_for_empty_vars_vos_cud) {
-                    if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
+                    if (await VarsDatasVoUpdateHandler.has_vos_cud()) {
                         ConsoleHandler.log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
                         this.waiting_for_empty_vars_vos_cud = true;
                         this.stats_out('waiting_for_empty_vars_vos_cud', time_in);
@@ -345,28 +345,28 @@ export default class DataImportBGThread implements IBGThread {
 
             case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
 
-                /**
-                 * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
-                 */
-                let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true, 180000);
-                try {
-                    if (wait_for_empty_cache_vars_waiting_for_compute) {
-                        if (await VarsDatasProxy.getInstance().has_cached_vars_waiting_for_compute()) {
-                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
-                            this.waiting_for_empty_cache_vars_waiting_for_compute = true;
-                            return false;
-                        }
+                // /**
+                //  * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
+                //  */
+                // let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true, 180000);
+                // try {
+                //     if (wait_for_empty_cache_vars_waiting_for_compute) {
+                //         if (await VarsDatasProxy.has_cached_vars_waiting_for_compute()) {
+                //             ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
+                //             this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                //             return false;
+                //         }
 
-                        if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
-                            this.waiting_for_empty_cache_vars_waiting_for_compute = false;
-                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
-                        }
-                    }
-                } catch (error) {
-                    ConsoleHandler.error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
-                    this.waiting_for_empty_cache_vars_waiting_for_compute = true;
-                    return false;
-                }
+                //         if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
+                //             this.waiting_for_empty_cache_vars_waiting_for_compute = false;
+                //             ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
+                //         }
+                //     }
+                // } catch (error) {
+                //     ConsoleHandler.error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
+                //     this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                //     return false;
+                // }
 
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATING;
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);

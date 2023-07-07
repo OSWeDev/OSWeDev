@@ -860,7 +860,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 try {
 
-                    let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'create_vars_indicator_xlsx_sheet: exporting data');
+                    let var_data = await VarsServerCallBackSubsController.get_var_data(var_param, 'create_vars_indicator_xlsx_sheet: exporting data');
                     let value = var_data ? var_data.value : null;
                     let format: XlsxCellFormatByFilterType = null;
 
@@ -1494,7 +1494,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                     try {
 
-                        let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'add_var_columns_values_for_xlsx_datas: exporting data');
+                        let var_data = await VarsServerCallBackSubsController.get_var_data(var_param, 'add_var_columns_values_for_xlsx_datas: exporting data');
                         row[row_field_name] = var_data?.value ?? null;
                     } catch (error) {
                         ConsoleHandler.error('add_var_columns_values_for_xlsx_datas:FAILED get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);

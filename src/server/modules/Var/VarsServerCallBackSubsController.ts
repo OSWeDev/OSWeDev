@@ -11,40 +11,42 @@ export default class VarsServerCallBackSubsController {
     public static TASK_NAME_notify_vardatas: string = 'VarsServerCallBackSubsController.notify_vardatas';
     public static TASK_NAME_get_vars_datas: string = 'VarsServerCallBackSubsController.get_vars_datas';
     public static TASK_NAME_get_var_data: string = 'VarsServerCallBackSubsController.get_var_data';
+    public static TASK_NAME_get_subs_indexs: string = 'VarsServerCallBackSubsController.get_subs_indexs';
 
     /**
      * Multithreading notes :
      *  - On force tout sur le main thread
      */
-    public static getInstance(): VarsServerCallBackSubsController {
-        if (!VarsServerCallBackSubsController.instance) {
-            VarsServerCallBackSubsController.instance = new VarsServerCallBackSubsController();
-        }
-        return VarsServerCallBackSubsController.instance;
+    public static notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        VarsServerCallBackSubsController.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
+
+    public static init() {
+        ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, VarsServerCallBackSubsController.notify_vardatas.bind(this));
+        ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, VarsServerCallBackSubsController.get_vars_datas.bind(this));
+        ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_get_var_data, VarsServerCallBackSubsController.get_var_data.bind(this));
+        ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_get_subs_indexs, VarsServerCallBackSubsController.get_subs_indexs.bind(this));
     }
 
-    private static instance: VarsServerCallBackSubsController = null;
+    public static async get_subs_indexs(): Promise<string[]> {
 
-    public notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
-        this.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
+        let self = this;
 
-    /**
-     * Les callbacks à appeler dès que possible
-     *  ATTENTION les callbacks sont sur le main thread obligatoirement !!
-     */
-    private _cb_subs: { [var_index: string]: Array<(var_data: VarDataBaseVO) => any> } = {};
+        return new Promise(async (resolve, reject) => {
 
-    protected constructor() {
-        ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, this.get_vars_datas.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_get_var_data, this.get_var_data.bind(this));
+            if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                reject, VarsServerCallBackSubsController.TASK_NAME_get_subs_indexs, resolve)) {
+
+                return null;
+            }
+
+            resolve(Object.keys(self._cb_subs));
+        });
     }
 
-    public async get_vars_datas(params: VarDataBaseVO[], reason: string): Promise<{ [index: string]: VarDataBaseVO }> {
+    public static async get_vars_datas(params: VarDataBaseVO[], reason: string): Promise<{ [index: string]: VarDataBaseVO }> {
         let res: { [index: string]: VarDataBaseVO } = {};
 
         let notifyable_vars: VarDataBaseVO[] = [];
-        let needs_computation: VarDataBaseVO[] = [];
 
         if ((!params) || (!params.length)) {
             return null;
@@ -58,7 +60,7 @@ export default class VarsServerCallBackSubsController {
                 ConsoleHandler.log("get_vars_datas:IN:" + params.length);
             }
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
                 reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve, params, reason)) {
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
@@ -105,7 +107,7 @@ export default class VarsServerCallBackSubsController {
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("get_vars_datas:get_var_datas_or_ask_to_bgthread:IN:" + params.length);
             }
-            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, null, null, true, 'get_vars_datas:' + reason);
+            notifyable_vars = await VarsDatasProxy.get_var_datas_or_ask_to_bgthread(params);
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("get_vars_datas:get_var_datas_or_ask_to_bgthread:OUT:" + params.length);
             }
@@ -114,7 +116,7 @@ export default class VarsServerCallBackSubsController {
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:IN:" + params.length);
                 }
-                await this.notify_vardatas(notifyable_vars);
+                await VarsServerCallBackSubsController.notify_vardatas(notifyable_vars);
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:OUT:" + params.length);
                 }
@@ -122,9 +124,8 @@ export default class VarsServerCallBackSubsController {
         });
     }
 
-    public async get_var_data<T extends VarDataBaseVO>(param: T, reason: string): Promise<T> {
+    public static async get_var_data<T extends VarDataBaseVO>(param: T, reason: string): Promise<T> {
         let notifyable_vars: T[] = [];
-        let needs_computation: T[] = [];
 
         if (!param) {
             return null;
@@ -138,7 +139,7 @@ export default class VarsServerCallBackSubsController {
                 ConsoleHandler.log("get_var_data:IN:" + param.index);
             }
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
                 reject,
                 VarsServerCallBackSubsController.TASK_NAME_get_var_data,
                 resolve,
@@ -161,15 +162,7 @@ export default class VarsServerCallBackSubsController {
                 ConsoleHandler.log("get_var_data:get_var_datas_or_ask_to_bgthread:IN:" + param.index);
             }
 
-            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(
-                [param],
-                notifyable_vars,
-                needs_computation,
-                null,
-                null,
-                true,
-                'getvardata:' + reason
-            );
+            notifyable_vars = await VarsDatasProxy.get_var_datas_or_ask_to_bgthread([param]);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("get_var_data:get_var_datas_or_ask_to_bgthread:OUT:" + param.index);
@@ -180,7 +173,7 @@ export default class VarsServerCallBackSubsController {
                     ConsoleHandler.log("get_var_data:notify_vardatas:IN:" + param.index);
                 }
 
-                await this.notify_vardatas(notifyable_vars);
+                await VarsServerCallBackSubsController.notify_vardatas(notifyable_vars);
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("get_var_data:notify_vardatas:OUT:" + param.index);
@@ -196,7 +189,7 @@ export default class VarsServerCallBackSubsController {
      *  A la différence d'un abonnement permanent, on supprime le callback suite à l'appel
      * @param var_datas Tableau ou map (sur index) des vars datas
      */
-    public async notify_vardatas_throttled(var_datas: VarDataBaseVO[]): Promise<boolean> {
+    public static async notify_vardatas_throttled(var_datas: VarDataBaseVO[]): Promise<boolean> {
 
         if (!var_datas || !var_datas.length) {
             return true;
@@ -206,7 +199,7 @@ export default class VarsServerCallBackSubsController {
             ConsoleHandler.log("notify_vardatas_throttled:IN:" + var_datas.length);
         }
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("notify_vardatas_throttled:OUT not main process:" + var_datas.length);
             }
@@ -221,8 +214,8 @@ export default class VarsServerCallBackSubsController {
         for (let i in var_datas) {
             let var_data = var_datas[i];
 
-            let save_array_cbs = this._cb_subs[var_data.index];
-            delete this._cb_subs[var_data.index];
+            let save_array_cbs = VarsServerCallBackSubsController._cb_subs[var_data.index];
+            delete VarsServerCallBackSubsController._cb_subs[var_data.index];
 
             if ((!save_array_cbs) || (!save_array_cbs.length)) {
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
@@ -250,4 +243,10 @@ export default class VarsServerCallBackSubsController {
 
         return true;
     }
+
+    /**
+     * Les callbacks à appeler dès que possible
+     *  ATTENTION les callbacks sont sur le main thread obligatoirement !!
+     */
+    private static _cb_subs: { [var_index: string]: Array<(var_data: VarDataBaseVO) => any> } = {};
 }

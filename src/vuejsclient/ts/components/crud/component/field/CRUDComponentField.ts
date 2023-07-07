@@ -343,7 +343,7 @@ export default class CRUDComponentField extends VueComponentBase
 
     @Watch('inline_input_read_value', { immediate: true })
     private onchange_inline_input_read_value() {
-        if (!this.inline_input_mode) {
+        if ((!this.inline_input_mode) || (!this.field)) {
             return;
         }
         let tmp = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);

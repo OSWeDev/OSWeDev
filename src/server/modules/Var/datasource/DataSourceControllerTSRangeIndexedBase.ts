@@ -43,14 +43,14 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
         }
 
         node.datasources[this.name] = {};
-        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        if (!VarsdatasComputerBGThread.current_batch_ds_cache[this.name]) {
+            VarsdatasComputerBGThread.current_batch_ds_cache[this.name] = {};
         }
 
         await RangeHandler.foreach_ranges(data_index, async (date: number) => {
 
             let ms_i = date;
-            if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i] === 'undefined') {
+            if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name][ms_i] === 'undefined') {
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
                 let time_in = Dates.now_ms();
@@ -65,14 +65,14 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
                     /**
                      * On ne change pas les datas qu'on avait déjà
                      */
-                    if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] === 'undefined') {
-                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
+                    if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name][j] === 'undefined') {
+                        VarsdatasComputerBGThread.current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
                     }
                 }
             }
 
-            if (VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i]) {
-                node.datasources[this.name][ms_i] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i];
+            if (VarsdatasComputerBGThread.current_batch_ds_cache[this.name][ms_i]) {
+                node.datasources[this.name][ms_i] = VarsdatasComputerBGThread.current_batch_ds_cache[this.name][ms_i];
             }
         });
 

@@ -84,7 +84,7 @@ export default class DAOServerController {
      */
 
     private constructor() {
-        ForkedTasksController.getInstance().register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, this.add_segmented_known_databases.bind(this));
+        ForkedTasksController.register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, this.add_segmented_known_databases.bind(this));
     }
 
     /**

@@ -82,7 +82,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
 
-        ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
+        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
         AccessPolicyServerController.init_tasks();
     }
 
@@ -1160,9 +1160,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      */
     public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
 
-        ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
+        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
             return;
         }
 
@@ -1639,7 +1639,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_registered_policy, vo);
         return;
     }
 
@@ -1648,7 +1648,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_policy_dependency, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_policy_dependency, vo);
         return;
     }
 
@@ -1657,8 +1657,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_role_policy, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_role_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
@@ -1667,8 +1667,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_role, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_registered_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
@@ -1677,34 +1677,34 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_user_role, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_registered_user_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
     private async onUpdateAccessPolicyVO(vo_update_holder: DAOUpdateVOHolder<AccessPolicyVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdatePolicyDependencyVO(vo_update_holder: DAOUpdateVOHolder<PolicyDependencyVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateRolePolicyVO(vo_update_holder: DAOUpdateVOHolder<RolePolicyVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role_policy, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_role_policy, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateRoleVO(vo_update_holder: DAOUpdateVOHolder<RoleVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_role, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateUserRoleVO(vo_update_holder: DAOUpdateVOHolder<UserRoleVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_user_role, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_user_role, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onDeleteAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
@@ -1712,8 +1712,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1722,8 +1722,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1732,8 +1732,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1742,7 +1742,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role, vo);
         return true;
     }
 
@@ -1751,7 +1751,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, vo);
         return true;
     }
 

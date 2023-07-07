@@ -57,7 +57,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
     public async kill_process(throttle: number = 10) {
         this.is_killing = true;
-        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
 
         while (throttle > 0) {
             ConsoleHandler.error("Received KILL SIGN from parent - KILL in " + throttle);
@@ -85,8 +85,8 @@ export default class ModuleForkServer extends ModuleServerBase {
      * On cherche le callback à appeler dans le controller et on envoi le résultat
      */
     private async handle_taskresult_message(msg: TaskResultForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        if ((!msg.callback_id) || (!ForkedTasksController.getInstance().registered_task_result_wrappers) ||
-            (!ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id])) {
+        if ((!msg.callback_id) || (!ForkedTasksController.registered_task_result_wrappers) ||
+            (!ForkedTasksController.registered_task_result_wrappers[msg.callback_id])) {
 
             return false;
         }
@@ -94,18 +94,18 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (msg.throw_error) {
             ConsoleHandler.error('handle_taskresult_message:' + msg.throw_error + ':' +
                 msg.callback_id + ':' + msg.message_type + ':' + JSON.stringify(msg.message_content));
-            if (!!ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id]) {
+            if (!!ForkedTasksController.registered_task_result_wrappers[msg.callback_id]) {
 
-                let thrower = ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id].thrower;
+                let thrower = ForkedTasksController.registered_task_result_wrappers[msg.callback_id].thrower;
                 thrower(msg.throw_error);
-                delete ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id];
+                delete ForkedTasksController.registered_task_result_wrappers[msg.callback_id];
             }
             return true;
         }
 
-        let resolver = ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id].resolver;
+        let resolver = ForkedTasksController.registered_task_result_wrappers[msg.callback_id].resolver;
         resolver(msg.message_content);
-        delete ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id];
+        delete ForkedTasksController.registered_task_result_wrappers[msg.callback_id];
         return true;
     }
 
@@ -114,15 +114,15 @@ export default class ModuleForkServer extends ModuleServerBase {
      * On doit donc être sur le main process, on cherche juste la fonction qui a été demandée
      */
     private async handle_mainprocesstask_message(msg: MainProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        if ((!msg.message_content) || (!ForkedTasksController.getInstance().process_registered_tasks) ||
-            (!ForkedTasksController.getInstance().process_registered_tasks[msg.message_content])) {
+        if ((!msg.message_content) || (!ForkedTasksController.registered_tasks) ||
+            (!ForkedTasksController.registered_tasks[msg.message_content])) {
 
             return false;
         }
 
         let res;
         try {
-            res = await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
+            res = await ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params);
         } catch (error) {
             ConsoleHandler.error('handle_mainprocesstask_message:' + error);
         }
@@ -170,7 +170,7 @@ export default class ModuleForkServer extends ModuleServerBase {
                 }
                 resolve(res);
             };
-            await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params);
+            await ForkedTasksController.exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params);
         });
     }
 
@@ -178,8 +178,8 @@ export default class ModuleForkServer extends ModuleServerBase {
      * Si on est sur le bon thread on lance l'action
      */
     private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        if ((!msg.message_content) || (!ForkedTasksController.getInstance().process_registered_tasks) ||
-            (!ForkedTasksController.getInstance().process_registered_tasks[msg.message_content]) ||
+        if ((!msg.message_content) || (!ForkedTasksController.registered_tasks) ||
+            (!ForkedTasksController.registered_tasks[msg.message_content]) ||
             (!BGThreadServerController.getInstance().valid_bgthreads_names[msg.bgthread])) {
             return false;
         }
@@ -199,7 +199,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
         let res;
         try {
-            res = await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
+            res = await ForkedTasksController.registered_tasks[msg.message_content](...msg.message_content_params);
         } catch (error) {
             ConsoleHandler.error('handle_bgthreadprocesstask_message:' + error);
         }

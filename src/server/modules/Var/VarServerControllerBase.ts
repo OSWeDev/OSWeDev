@@ -52,17 +52,17 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * Pour les TUs passer un id au varconf et au varcacheconf
      */
     public async initialize() {
-        this.varConf = await VarsServerController.getInstance().registerVar(this.varConf, this);
+        this.varConf = await VarsServerController.registerVar(this.varConf, this);
         let var_cache_conf = this.getVarCacheConf();
-        this.var_cache_conf = (var_cache_conf && !var_cache_conf.id) ? await VarsServerController.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
+        this.var_cache_conf = (var_cache_conf && !var_cache_conf.id) ? await VarsServerController.configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
 
         if (var_cache_conf && var_cache_conf.id && this.varConf.id) {
             // Cas des tests unitaires par exemple, on doit quand même init le varcacheconf_by_var_ids du VarsServerController
-            VarsServerController.getInstance().varcacheconf_by_var_ids[this.varConf.id] = this.var_cache_conf;
-            if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type]) {
-                VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type] = {};
+            VarsServerController.varcacheconf_by_var_ids[this.varConf.id] = this.var_cache_conf;
+            if (!VarsServerController.varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type]) {
+                VarsServerController.varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type] = {};
             }
-            VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type][this.varConf.id] = this.var_cache_conf;
+            VarsServerController.varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type][this.varConf.id] = this.var_cache_conf;
         }
     }
 
@@ -130,7 +130,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value = value;
         varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
         varDAGNode.var_data.value_ts = Dates.now();
-        // await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
+        // await VarsDatasProxy.update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
 
         let time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('VarServerControllerBase', 'computeValue', this.varConf.name, time_out - time_in);

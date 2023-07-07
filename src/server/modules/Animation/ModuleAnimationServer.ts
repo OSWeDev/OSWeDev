@@ -372,7 +372,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
             let data = null;
             try {
-                data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
+                data = await VarsServerCallBackSubsController.get_var_data(ThemeModuleDataRangesVO.createNew(
                     VarDayPrctReussiteAnimationController.getInstance().varConf.name,
                     true,
                     theme_id_ranges,

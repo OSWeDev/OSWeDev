@@ -95,7 +95,8 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
-        ForkedTasksController.getInstance().assert_is_main_process();
+        ForkedTasksController.init();
+        ForkedTasksController.assert_is_main_process();
 
         // INIT Stats Server side
         StatsController.THREAD_NAME = 'main';
@@ -738,7 +739,7 @@ export default abstract class ServerBase {
                 api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.url);
             }
 
-            await ForkedTasksController.getInstance().exec_self_on_bgthread(
+            await ForkedTasksController.exec_self_on_bgthread(
                 AccessPolicyDeleteSessionBGThread.getInstance().name,
                 AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
                 api_req
@@ -1324,15 +1325,15 @@ export default abstract class ServerBase {
     // protected terminus() {
     //     ConsoleHandler.log('Server is starting cleanup');
     //     return all_promises([
-    //         VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
+    //         VarsDatasVoUpdateHandler.handle_buffer(null)
     //     ]);
     // }
 
     protected async exitHandler(options, exitCode, from) {
         ConsoleHandler.log('Server is starting cleanup: ' + from);
 
-        ConsoleHandler.log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
-        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        ConsoleHandler.log(JSON.stringify(VarsDatasVoUpdateHandler['ordered_vos_cud']));
+        await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
         if (options.cleanup) {
             console.log('clean');
         }

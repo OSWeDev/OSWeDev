@@ -32,7 +32,7 @@ export default class VarsProcessCompute extends VarsProcessBase {
             return false;
         }
 
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
         controller.computeValue(node);
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {

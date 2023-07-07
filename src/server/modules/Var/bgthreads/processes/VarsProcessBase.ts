@@ -1,4 +1,3 @@
-import e from 'express';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../../shared/modules/Stats/StatsController';
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
@@ -6,6 +5,7 @@ import PromisePipeline from '../../../../../shared/tools/PromisePipeline/Promise
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import VarsdatasComputerBGThread from '../VarsdatasComputerBGThread';
+import VarsClientsSubsCacheHandler from './VarsClientsSubsCacheHandler';
 
 export default abstract class VarsProcessBase {
 
@@ -18,7 +18,6 @@ export default abstract class VarsProcessBase {
         protected TAG_IN_NAME: string,
         protected TAG_SELF_NAME: string,
         protected TAG_OUT_NAME: string,
-        protected TAG_BY_PASS_NAME: string,
         protected thread_sleep: number,
         protected as_batch: boolean = false,
         protected MAX_Workers: number = 0) { }
@@ -26,7 +25,7 @@ export default abstract class VarsProcessBase {
     public async work(): Promise<void> {
 
         // On initialise le fait qu'on est pas en train d'attendre une invalidation
-        VarsdatasComputerBGThread.processes_waiting_for_invalidation_end[this.name] = false;
+        VarsdatasComputerBGThread.processes_waiting_for_computation_hole_end[this.name] = false;
 
         let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps, this.name, true);
         let waiting_for_invalidation_time_in = null;
@@ -39,9 +38,9 @@ export default abstract class VarsProcessBase {
             waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
 
             if (!this.as_batch) {
-                did_something = await this.handle_individual_worker(promise_pipeline, did_something);
+                did_something = await this.handle_individual_worker(promise_pipeline);
             } else {
-                did_something = await this.handle_batch_worker(did_something);
+                did_something = await this.handle_batch_worker();
             }
 
             if (!did_something) {
@@ -58,8 +57,8 @@ export default abstract class VarsProcessBase {
     private async handle_invalidations(promise_pipeline: PromisePipeline, waiting_for_invalidation_time_in: number): Promise<number> {
 
         // On checke une invalidation en attente
-        if (VarsdatasComputerBGThread.waiting_for_invalidation) {
-            if (!VarsdatasComputerBGThread.processes_waiting_for_invalidation_end[this.name]) {
+        if (VarsdatasComputerBGThread.waiting_for_computation_hole) {
+            if (!VarsdatasComputerBGThread.processes_waiting_for_computation_hole_end[this.name]) {
 
                 if (!!this.MAX_Workers) {
 
@@ -70,46 +69,28 @@ export default abstract class VarsProcessBase {
                 }
 
                 waiting_for_invalidation_time_in = Dates.now_ms();
-                VarsdatasComputerBGThread.processes_waiting_for_invalidation_end[this.name] = true;
+                VarsdatasComputerBGThread.processes_waiting_for_computation_hole_end[this.name] = true;
             }
             await ThreadHandler.sleep(this.thread_sleep, this.name);
             return waiting_for_invalidation_time_in;
         }
 
         // si on était en attente et que l'invalidation vient de se terminer, on indique qu'on reprend le travail
-        if (VarsdatasComputerBGThread.processes_waiting_for_invalidation_end[this.name]) {
-            VarsdatasComputerBGThread.processes_waiting_for_invalidation_end[this.name] = false;
+        if (VarsdatasComputerBGThread.processes_waiting_for_computation_hole_end[this.name]) {
+            VarsdatasComputerBGThread.processes_waiting_for_computation_hole_end[this.name] = false;
             StatsController.register_stat_DUREE('VarsProcessBase', this.name, "waiting_for_invalidation", Dates.now_ms() - waiting_for_invalidation_time_in);
         }
 
         return waiting_for_invalidation_time_in;
     }
 
-    private async handle_individual_worker(promise_pipeline: PromisePipeline, did_something: boolean): Promise<boolean> {
+    private async handle_individual_worker(promise_pipeline: PromisePipeline): Promise<boolean> {
         let self = this;
+        let valid_nodes = this.get_valid_nodes();
 
-        for (let i in VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME]) {
-            let node = VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME][i];
-
-            if (!node) {
-                return did_something;
-            }
-
-            StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, this.TAG_IN_NAME);
-            node.remove_tag(this.TAG_IN_NAME);
-
-            // Si on a un by pass, on ne fait rien et on pose le tag out directement
-            if (node.tags[this.TAG_BY_PASS_NAME]) {
-                node.add_tag(this.TAG_OUT_NAME);
-                continue;
-            }
-
-            if (!node.add_tag(this.TAG_SELF_NAME)) {
-                // On a un refus, lié à une suppression en attente sur ce noeud, on arrête les traitements
-                continue;
-            }
-
-            did_something = true;
+        let did_something = Object.keys(valid_nodes).length > 0;
+        for (let i in valid_nodes) {
+            let node = valid_nodes[i];
 
             if (!!this.MAX_Workers) {
                 await promise_pipeline.push(async () => {
@@ -148,12 +129,16 @@ export default abstract class VarsProcessBase {
         }
     }
 
-    private async handle_batch_worker(did_something: boolean): Promise<boolean> {
+    private get_valid_nodes(): { [node_name: string]: VarDAGNode } {
 
-        let batch_nodes: { [node_name: string]: VarDAGNode } = {};
+        /**
+         * Si on a des vars registered par le client on veut les prioriser, donc on ignorera les autres pour le moment
+         */
+        let nodes: { [node_name: string]: VarDAGNode } = this.filter_by_subs(VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME]);
+        let valid_nodes: { [node_name: string]: VarDAGNode } = {};
 
-        for (let i in VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME]) {
-            let node = VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME][i];
+        for (let i in nodes) {
+            let node = nodes[i];
 
             if (!node) {
                 continue;
@@ -162,9 +147,8 @@ export default abstract class VarsProcessBase {
             StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, this.TAG_IN_NAME);
             node.remove_tag(this.TAG_IN_NAME);
 
-            // Si on a un by pass, on ne fait rien et on pose le tag out directement
-            if (node.tags[this.TAG_BY_PASS_NAME]) {
-                node.add_tag(this.TAG_OUT_NAME);
+            // Si on a un by pass, on ne fait rien puisqu'on a déjà le tag out
+            if (node.tags[this.TAG_OUT_NAME]) {
                 continue;
             }
 
@@ -173,11 +157,18 @@ export default abstract class VarsProcessBase {
                 continue;
             }
 
-            batch_nodes[node.var_data.index] = node;
-            did_something = true;
+            valid_nodes[node.var_data.index] = node;
         }
 
-        if (did_something) {
+        return valid_nodes;
+    }
+
+    private async handle_batch_worker(): Promise<boolean> {
+
+        let batch_nodes: { [node_name: string]: VarDAGNode } = this.get_valid_nodes();
+        let has_something_to_do = Object.keys(batch_nodes).length > 0;
+
+        if (has_something_to_do) {
 
             // On peut vouloir traiter en mode batch
             let worker_time_in = Dates.now_ms();
@@ -200,7 +191,7 @@ export default abstract class VarsProcessBase {
             }
         }
 
-        return did_something;
+        return has_something_to_do;
     }
 
     // /**
@@ -267,4 +258,36 @@ export default abstract class VarsProcessBase {
 
     //     return res;
     // }
+
+    /**
+     * Filtrage des noeuds par subs clients. Pour prioriser les demandes clients. Si aucune en attente, on renvoie tous les noeuds.
+     * @param nodes
+     * @returns
+     */
+    private filter_by_subs(nodes: { [node_name: string]: VarDAGNode }): { [node_name: string]: VarDAGNode } {
+        let filtered_nodes: { [node_name: string]: VarDAGNode } = {};
+        let has_clients_subs = false;
+
+        for (let i in nodes) {
+            let node = nodes[i];
+
+            if (!node) {
+                continue;
+            }
+
+            if (!VarsClientsSubsCacheHandler.clients_subs_indexes_cache[node.var_data.index]) {
+                continue;
+            }
+
+            filtered_nodes[i] = node;
+
+            has_clients_subs = true;
+        }
+
+        if (!has_clients_subs) {
+            return nodes;
+        }
+
+        return filtered_nodes;
+    }
 }

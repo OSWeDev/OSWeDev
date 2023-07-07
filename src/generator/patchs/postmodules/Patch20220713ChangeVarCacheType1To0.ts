@@ -24,8 +24,8 @@ export default class Patch20220713ChangeVarCacheType1To0 implements IGeneratorWo
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        for (let i in VarsServerController.getInstance().varcacheconf_by_var_ids) {
-            let varcacheconf = VarsServerController.getInstance().varcacheconf_by_var_ids[i];
+        for (let i in VarsServerController.varcacheconf_by_var_ids) {
+            let varcacheconf = VarsServerController.varcacheconf_by_var_ids[i];
 
             if (varcacheconf.cache_startegy == VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_NONE) {
                 varcacheconf.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS;

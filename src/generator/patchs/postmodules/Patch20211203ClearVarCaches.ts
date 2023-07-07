@@ -1,9 +1,6 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
-import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
-import ModuleVarServer from '../../../server/modules/Var/ModuleVarServer';
-import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20211203ClearVarCaches implements IGeneratorWorker {
@@ -26,6 +23,6 @@ export default class Patch20211203ClearVarCaches implements IGeneratorWorker {
     public async work(db: IDatabase<any>) {
 
         // await ModuleVarServer.getInstance().delete_all_cache();
-        await ModuleDAOServer.getInstance().truncate(SlowVarVO.API_TYPE_ID);
+        // await ModuleDAOServer.getInstance().truncate(SlowVarVO.API_TYPE_ID);
     }
 }

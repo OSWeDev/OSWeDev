@@ -51,7 +51,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
     private aggregated_stats: StatClientWrapperVO[] = [];
 
     private constructor() {
-        ForkedTasksController.getInstance().register_task(StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, this.register_aggregated_stats.bind(this));
+        ForkedTasksController.register_task(StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, this.register_aggregated_stats.bind(this));
     }
 
     /**
@@ -74,7 +74,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 reject();
             };
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 thrower,
                 StatsUnstackerBGThread.getInstance().name,
                 StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, resolve,

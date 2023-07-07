@@ -56,7 +56,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
                 continue;
             }
 
-            res[AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i] = VarsServerController.getInstance().getVarControllerById(dep.var_id);
+            res[AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i] = VarsServerController.getVarControllerById(dep.var_id);
         }
         return res;
     }
@@ -113,7 +113,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
 
             switch (dep.type) {
                 case VarConfAutoDepVO.DEP_TYPE_VAR:
-                    let dep_value = VarsServerController.getInstance().get_outgoing_deps_sum(
+                    let dep_value = VarsServerController.get_outgoing_deps_sum(
                         varDAGNode, AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i + AutoVarServerController.DEP_SEPARATOR);
                     deps_values.push(dep_value);
                     break;
@@ -260,7 +260,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
     }
 
     private get_params_for_dep(varDAGNode: VarDAGNode, dep: VarConfAutoDepVO): VarDataBaseVO[] {
-        let target_varconf: VarConfVO = VarsServerController.getInstance().getVarConfById(dep.var_id);
+        let target_varconf: VarConfVO = VarsServerController.getVarConfById(dep.var_id);
 
         let res: VarDataBaseVO[] = [];
         let cloned = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO>(

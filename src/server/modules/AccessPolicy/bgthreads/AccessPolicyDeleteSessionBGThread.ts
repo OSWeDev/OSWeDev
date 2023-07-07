@@ -41,8 +41,8 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public MIN_timeout: number = 100;
 
     private constructor() {
-        ForkedTasksController.getInstance().register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
+        ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));
+        ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
     }
 
     get name(): string {
@@ -121,7 +121,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
                 }
 
                 // On supprime la session
-                await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, to_invalidate);
+                await ForkedTasksController.exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, to_invalidate);
             }
 
             this.stats_out('ok', time_in);
