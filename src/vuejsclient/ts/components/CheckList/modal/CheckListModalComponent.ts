@@ -144,8 +144,12 @@ export default class CheckListModalComponent extends VueComponentBase {
                     continue;
                 }
 
-                let checkpoint: ICheckPoint = this.ordered_checkpoints.find((c) => c.name == name);
-                checkpoint.item_field_ids.forEach((item) => valid_fields[item] = true);
+                const checkpoint: ICheckPoint = this.ordered_checkpoints.find(
+                    (c) => c.name == name
+                );
+                checkpoint.item_field_ids.forEach(
+                    (item) => valid_fields[item] = true
+                );
             }
         }
 
@@ -179,7 +183,10 @@ export default class CheckListModalComponent extends VueComponentBase {
             return null;
         }
 
-        return this.checklist_controller.get_tooltip_fields(this.checkpoint, this.checklist_item);
+        return this.checklist_controller.get_tooltip_fields(
+            this.checkpoint,
+            this.checklist_item
+        );
     }
 
     private async finalize_checklist() {

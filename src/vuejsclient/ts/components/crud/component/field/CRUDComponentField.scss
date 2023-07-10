@@ -1,5 +1,4 @@
 .field {
-
     textarea {
         min-width: 45em;
         min-height: 10em;
@@ -28,7 +27,6 @@
     .inline_input_is_editing,
     .inline_input_cancel_input,
     .inline_input_is_not_editing {
-
         padding: 5px;
         height: 1.85em;
         padding-top: 0.3em;
@@ -63,7 +61,7 @@
     .inline_input_is_not_editing.busy {
         opacity: 0.5;
         color: #888 !important;
-        background-color: #AAA !important;
+        background-color: #aaa !important;
         cursor: wait;
     }
 }
@@ -95,7 +93,6 @@
     }
 
     &.auto_validate_inline_input {
-
         input[type~="number"],
         input[type~="text"],
         input[type~="password"],
@@ -155,7 +152,7 @@
         display: none;
     }
 
-    .multiselect>.multiselect__tags>input {
+    .multiselect > .multiselect__tags > input {
         border: none !important;
         margin: 0;
     }
@@ -167,7 +164,6 @@
     }
 
     .quill-editor {
-
         width: calc(100% - 3.6em);
         min-width: 0;
         display: inline-block;
@@ -180,35 +176,34 @@
         background: white;
 
         .form-check label {
-
             margin-left: 0.3em;
             vertical-align: middle;
         }
     }
 
-    >label {
+    > label {
         margin-top: 3px;
         margin-bottom: 0;
         margin-left: 3px;
         margin-right: 3px;
     }
 
-    &:hover>i.inline_input_show_clear:hover,
-    &:hover>i.inline_input_hide_clear:hover,
-    &:hover>i.inline_input_is_not_editing:hover {
+    &:hover > i.inline_input_show_clear:hover,
+    &:hover > i.inline_input_hide_clear:hover,
+    &:hover > i.inline_input_is_not_editing:hover {
         opacity: 1;
     }
 
-    >i.inline_input_show_clear,
-    >i.inline_input_hide_clear,
-    >i.inline_input_is_not_editing {
+    > i.inline_input_show_clear,
+    > i.inline_input_hide_clear,
+    > i.inline_input_is_not_editing {
         opacity: 0;
         transition: opacity 0.4s ease-in-out;
     }
 
-    &:hover>i.inline_input_show_clear,
-    &:hover>i.inline_input_hide_clear,
-    &:hover>i.inline_input_is_not_editing {
+    &:hover > i.inline_input_show_clear,
+    &:hover > i.inline_input_hide_clear,
+    &:hover > i.inline_input_is_not_editing {
         opacity: 0.2;
     }
 }
@@ -233,7 +228,6 @@
 }
 
 .special_placeholder_field {
-
     .special_placeholder_label {
         transition: all 0.3s;
         opacity: 0;
