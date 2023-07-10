@@ -14,8 +14,13 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleParamsServer extends ModuleServerBase {
 
@@ -46,6 +51,14 @@ export default class ModuleParamsServer extends ModuleServerBase {
             { 'fr-fr': 'Paramètres' },
             'menu.menuelements.admin.ParamsAdminVueModule.___LABEL___'));
 
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostCreateParam);
+
+        let postUpateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUpateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostUpdateParam);
+
+        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        postDeleteTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostDeleteParam);
     }
 
     public registerServerApiHandlers() {
@@ -174,6 +187,25 @@ export default class ModuleParamsServer extends ModuleServerBase {
             default_if_undefined,
             max_cache_age_ms,
             false);
+    }
+
+    private async handleTriggerPostCreateParam(vo: ParamVO) {
+        this.handleTriggerParam(vo);
+    }
+
+    private async handleTriggerPostUpdateParam(update: DAOUpdateVOHolder<ParamVO>) {
+        this.handleTriggerParam(update.pre_update_vo);
+        this.handleTriggerParam(update.post_update_vo);
+    }
+
+    private async handleTriggerPostDeleteParam(vo: ParamVO) {
+        this.handleTriggerParam(vo);
+    }
+
+    private handleTriggerParam(vo: ParamVO) {
+        delete this.throttled_param_cache_value[vo.name];
+        delete this.throttled_param_cache_lastupdate_ms[vo.name];
+        delete this.semaphore_param[vo.name];
     }
 
     private async getParamValue(
