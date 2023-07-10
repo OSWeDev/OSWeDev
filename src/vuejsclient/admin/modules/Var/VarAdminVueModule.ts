@@ -1,6 +1,5 @@
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
-import SlowVarVO from '../../../../shared/modules/Var/vos/SlowVarVO';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import VarPerfVO from '../../../../shared/modules/Var/vos/VarPerfVO';
