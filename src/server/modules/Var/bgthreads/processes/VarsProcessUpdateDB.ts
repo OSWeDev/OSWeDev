@@ -29,7 +29,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
     private static instance: VarsProcessUpdateDB = null;
 
     private constructor() {
-        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 10000, true);
+        super('VarsProcessUpdateDB', VarDAGNode.TAG_5_NOTIFIED_END, VarDAGNode.TAG_6_UPDATING_IN_DB, VarDAGNode.TAG_6_UPDATED_IN_DB, 10, true);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {

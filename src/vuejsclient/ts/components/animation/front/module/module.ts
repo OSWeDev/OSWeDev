@@ -121,7 +121,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         })());
 
         promises.push((async () =>
-            this.prct_atteinte_seuil_module = VarsController.getInstance().getValueOrDefault(
+            this.prct_atteinte_seuil_module = VarsController.getValueOrDefault(
                 await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(
                     this.prct_atteinte_seuil_module_param
                 ) as ThemeModuleDataRangesVO,

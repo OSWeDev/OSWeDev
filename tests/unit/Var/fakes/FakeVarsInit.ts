@@ -23,7 +23,7 @@ export default class FakeVarsInit {
         await FakeVarControllerDsDistant.getInstance().initialize();
         await FakeVarControllerDsEmpDistant.getInstance().initialize();
         await FakeVarControllerDeps.getInstance().initialize();
-        await VarsController.getInstance().initializeasync({
+        await VarsController.initializeasync({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
             [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
             [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf

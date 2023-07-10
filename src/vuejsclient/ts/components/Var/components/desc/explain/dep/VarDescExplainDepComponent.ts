@@ -36,13 +36,13 @@ export default class VarDescExplainDepComponent extends VueComponentBase {
     }
 
     get dep_code() {
-        return '{' + VarsController.getInstance().get_sum_dep_code(this.dep_id) + '}';
+        return '{' + VarsController.get_sum_dep_code(this.dep_id) + '}';
     }
 
     get dep_name(): string {
         if (!this.dep_id) {
             return null;
         }
-        return this.t(VarsController.getInstance().get_translatable_dep_name(this.dep_id));
+        return this.t(VarsController.get_translatable_dep_name(this.dep_id));
     }
 }

@@ -561,7 +561,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_tooltip;
+        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_tooltip;
     }
 
     /**
@@ -572,7 +572,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id);
+        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id);
     }
 
     get is_selected_var(): boolean {

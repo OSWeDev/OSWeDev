@@ -1,4 +1,6 @@
+import { as } from "pg-promise";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import SemaphoreHandler from "../../../../../shared/tools/SemaphoreHandler";
 import ThrottleHelper from "../../../../../shared/tools/ThrottleHelper";
 import ForkedTasksController from "../../../Fork/ForkedTasksController";
 import VarsTabsSubsController from "../../VarsTabsSubsController";
@@ -33,36 +35,30 @@ export default class VarsClientsSubsCacheHandler {
 
     public static async update_clients_subs_indexes_cache(): Promise<void> {
 
-        if (VarsClientsSubsCacheHandler.update_clients_subs_indexes_cache_semaphore) {
-            return;
-        }
-        VarsClientsSubsCacheHandler.update_clients_subs_indexes_cache_semaphore = true;
+        await SemaphoreHandler.semaphore_async(
+            'VarsClientsSubsCacheHandler.update_clients_subs_indexes_cache_semaphore',
+            async () => {
+                try {
 
-        try {
+                    let subs_indexs = await VarsTabsSubsController.get_subs_indexs();
 
-            let subs_indexs = await VarsTabsSubsController.get_subs_indexs();
-
-            let new_cache = {};
-            for (let index of subs_indexs) {
-                new_cache[index] = true;
-            }
-            VarsClientsSubsCacheHandler.clients_subs_indexes_cache = new_cache;
-        } catch (error) {
-            ConsoleHandler.error('Error in update_clients_subs_indexes_cache');
-        }
-
-        VarsClientsSubsCacheHandler.update_clients_subs_indexes_cache_semaphore = false;
+                    let new_cache = {};
+                    for (let index of subs_indexs) {
+                        new_cache[index] = true;
+                    }
+                    VarsClientsSubsCacheHandler.clients_subs_indexes_cache = new_cache;
+                } catch (error) {
+                    ConsoleHandler.error('Error in update_clients_subs_indexes_cache');
+                }
+            });
     }
-
-    private static update_clients_subs_indexes_cache_semaphore: boolean = false;
 
     private static throttle_add_new_subs = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(VarsClientsSubsCacheHandler.throttled_add_new_subs.bind(VarsClientsSubsCacheHandler), 1);
     private static throttle_remove_subs = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(VarsClientsSubsCacheHandler.throttled_remove_subs.bind(VarsClientsSubsCacheHandler), 1);
 
+    /* istanbul ignore next */
     private static async throttled_add_new_subs(var_indexs: string[]): Promise<void> {
 
-        let self = VarsClientsSubsCacheHandler;
-
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_bgthread(
@@ -71,14 +67,18 @@ export default class VarsClientsSubsCacheHandler {
                 return;
             }
 
-            for (let i in var_indexs) {
-                self.clients_subs_indexes_cache[var_indexs[i]] = true;
-            }
+            VarsClientsSubsCacheHandler.throttled_add_new_subs_on_bg_thread(var_indexs);
+            resolve();
         });
     }
-    private static async throttled_remove_subs(var_indexs: string[]): Promise<void> {
+    private static throttled_add_new_subs_on_bg_thread(var_indexs: string[]) {
+        for (let i in var_indexs) {
+            VarsClientsSubsCacheHandler.clients_subs_indexes_cache[var_indexs[i]] = true;
+        }
+    }
 
-        let self = VarsClientsSubsCacheHandler;
+    /* istanbul ignore next */
+    private static async throttled_remove_subs(var_indexs: string[]): Promise<void> {
 
         return new Promise(async (resolve, reject) => {
 
@@ -88,9 +88,13 @@ export default class VarsClientsSubsCacheHandler {
                 return;
             }
 
-            for (let i in var_indexs) {
-                delete self.clients_subs_indexes_cache[var_indexs[i]];
-            }
+            VarsClientsSubsCacheHandler.throttled_remove_subs_on_bg_thread(var_indexs);
+            resolve();
         });
+    }
+    private static throttled_remove_subs_on_bg_thread(var_indexs: string[]) {
+        for (let i in var_indexs) {
+            delete VarsClientsSubsCacheHandler.clients_subs_indexes_cache[var_indexs[i]];
+        }
     }
 }

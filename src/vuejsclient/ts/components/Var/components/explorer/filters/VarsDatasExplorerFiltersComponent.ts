@@ -160,7 +160,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             return '';
         }
 
-        return var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id));
+        return var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id));
     }
 
     private set_filterable_vars_confs() {

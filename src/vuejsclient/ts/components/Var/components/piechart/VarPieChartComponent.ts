@@ -200,7 +200,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
             return;
         }
 
@@ -329,7 +329,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         let dataset = {
             label: (!!this.var_dataset_descriptor.label_translatable_code) ?
                 this.t(this.var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsController.getInstance().get_translatable_name_code(this.var_dataset_descriptor.var_name)),
+                this.t(VarsController.get_translatable_name_code(this.var_dataset_descriptor.var_name)),
             data: dataset_datas,
             backgroundColor: backgrounds,
             borderColor: bordercolors,
@@ -394,7 +394,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         let res = [];
 
         for (let i in this.var_params) {
-            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
         }
 
         return res;

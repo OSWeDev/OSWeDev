@@ -167,7 +167,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
         for (let i in VarsController.var_conf_by_name) {
             let var_conf = VarsController.var_conf_by_name[i];
-            res.push(var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id)));
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
         res.sort((a, b) => {
@@ -235,8 +235,8 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             return;
         }
 
-        if (this.tmp_selected_var_name != (this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id)))) {
-            this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
+        if (this.tmp_selected_var_name != (this.widget_options.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id)))) {
+            this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
         }
         if (this.custom_filter_names != (this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {})) {
             this.custom_filter_names = this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {};
@@ -322,6 +322,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
+        return this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
     }
 }

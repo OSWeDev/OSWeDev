@@ -34,7 +34,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () => {
 
-    // VarsController.getInstance().clear_all_inits();
+    // VarsController.clear_all_inits();
     // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
@@ -47,7 +47,7 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
+    await VarsController.initializeasync({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
@@ -69,7 +69,7 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
         [var_data_C, var_data_B],
         [var_data_F]);
 
-    let node_F = await VarDAGNode.getInstance(new VarDAG(), var_data_F, VarsComputeController, true);
+    let node_F = await VarDAGNode.getInstance(new VarDAG(), var_data_F, true);
     await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
     expect(node_F.is_aggregator).toStrictEqual(true);
     expect(node_F.aggregated_datas).toStrictEqual({
@@ -82,7 +82,7 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
 
 test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', async () => {
 
-    // VarsController.getInstance().clear_all_inits();
+    // VarsController.clear_all_inits();
     // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
@@ -95,7 +95,7 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', 
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
+    await VarsController.initializeasync({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
@@ -133,7 +133,7 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc', async () => {
 
 test('VarsImportsHandler: test get_selection_imports', async () => {
 
-    // VarsController.getInstance().clear_all_inits();
+    // VarsController.clear_all_inits();
     // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
@@ -147,7 +147,7 @@ test('VarsImportsHandler: test get_selection_imports', async () => {
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
+    await VarsController.initializeasync({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf

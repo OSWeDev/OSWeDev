@@ -1,11 +1,7 @@
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default abstract class DataSourceControllerMatroidIndexedBase extends DataSourceControllerBase {
@@ -34,23 +30,14 @@ export default abstract class DataSourceControllerMatroidIndexedBase extends Dat
             return;
         }
 
-        if (!VarsdatasComputerBGThread.current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.current_batch_ds_cache[this.name] = {};
-        }
+        StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
+        let time_in = Dates.now_ms();
+        let data = await this.get_data(node.var_data);
+        let time_out = Dates.now_ms();
+        // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
+        StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
-        let data_index: string = this.get_data_index(node.var_data) as string;
-        if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name][data_index] === 'undefined') {
-
-            StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
-            let time_in = Dates.now_ms();
-            let data = await this.get_data(node.var_data);
-            let time_out = Dates.now_ms();
-            // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
-            StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
-
-            VarsdatasComputerBGThread.current_batch_ds_cache[this.name][data_index] = ((typeof data === 'undefined') ? null : data);
-        }
-        node.datasources[this.name] = VarsdatasComputerBGThread.current_batch_ds_cache[this.name][data_index];
+        node.datasources[this.name] = ((typeof data === 'undefined') ? null : data);
 
         let time_load_node_data_out = Dates.now_ms();
         // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel

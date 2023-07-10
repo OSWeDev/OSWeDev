@@ -245,7 +245,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     get vo_ref_tooltip(): string {
         if (!this.field || !this.table) {
             if (this.column?.var_id) {
-                return 'VAR :var_id:' + this.column.var_id + ' :name: ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.column.var_id));
+                return 'VAR :var_id:' + this.column.var_id + ' :name: ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.column.var_id));
             }
             return null;
         }
@@ -533,7 +533,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private var_label(var_name: string): string {
-        return VarsController.var_conf_by_name[var_name].id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code(var_name));
+        return VarsController.var_conf_by_name[var_name].id + ' | ' + this.t(VarsController.get_translatable_name_code(var_name));
     }
 
     private component_label(translatable_title: string): string {
@@ -891,7 +891,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     return null;
                 }
 
-                return this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.object_column.var_id));
+                return this.t(VarsController.get_translatable_name_code_by_var_id(this.object_column.var_id));
             case TableColumnDescVO.TYPE_header:
                 if (!this.object_column.header_name) {
                     return null;

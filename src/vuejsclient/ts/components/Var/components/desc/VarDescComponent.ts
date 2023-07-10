@@ -98,7 +98,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id);
+        return VarsController.get_translatable_description_code_by_var_id(this.var_param.var_id);
     }
 
     get var_description(): string {

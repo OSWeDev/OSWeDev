@@ -1077,7 +1077,7 @@ export default class VarsDatasVoUpdateHandler {
     //         return;
     //     }
 
-    //     let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas_no_denied_and_no_import, registered_var_datas);
+    //     let unregistered_var_datas: VarDataBaseVO[] = VarsController.substract_vars_datas(var_datas_no_denied_and_no_import, registered_var_datas);
 
     //     let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true, 180000);
 

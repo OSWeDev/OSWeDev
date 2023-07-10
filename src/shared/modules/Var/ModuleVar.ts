@@ -365,9 +365,9 @@ export default class ModuleVar extends Module {
         this.initializedasync_VarsController = true;
 
         if (!var_conf_by_id) {
-            await VarsController.getInstance().initializeasync(VOsTypesManager.vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
+            await VarsController.initializeasync(VOsTypesManager.vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
         } else {
-            await VarsController.getInstance().initializeasync(var_conf_by_id);
+            await VarsController.initializeasync(var_conf_by_id);
         }
     }
 

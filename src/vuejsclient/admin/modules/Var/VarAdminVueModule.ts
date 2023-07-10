@@ -52,21 +52,6 @@ export default class VarAdminVueModule extends VueModuleBase {
         if (this.policies_loaded[ModuleVar.POLICY_BO_VARCONF_ACCESS]) {
 
             await CRUDComponentManager.getInstance().registerCRUD(
-                SlowVarVO.API_TYPE_ID,
-                null,
-                MenuElementVO.create_new(
-                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
-                    VueAppController.getInstance().app_name,
-                    "SlowVarVO",
-                    "fa-clock",
-                    10 + 2,
-                    null,
-                    null,
-                    menuBranch.id
-                ),
-                this.routes);
-
-            await CRUDComponentManager.getInstance().registerCRUD(
                 VarConfVO.API_TYPE_ID,
                 null,
                 MenuElementVO.create_new(

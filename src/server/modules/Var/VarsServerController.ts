@@ -461,19 +461,19 @@ export default class VarsServerController {
         if (!!controller.var_name_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_name_default_translations,
-                VarsController.getInstance().get_translatable_name_code(varConf_name)));
+                VarsController.get_translatable_name_code(varConf_name)));
         }
 
         if (!!controller.var_description_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_description_default_translations,
-                VarsController.getInstance().get_translatable_description_code(varConf_name)));
+                VarsController.get_translatable_description_code(varConf_name)));
         }
 
         if (!!controller.var_explaination_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_explaination_default_translations,
-                VarsController.getInstance().get_translatable_explaination(varConf_name)));
+                VarsController.get_translatable_explaination(varConf_name)));
         }
 
         if (!!controller.var_deps_names_default_translations) {
@@ -487,7 +487,7 @@ export default class VarsServerController {
                 }
                 DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                     controller.var_deps_names_default_translations[i],
-                    VarsController.getInstance().get_translatable_dep_name(i)));
+                    VarsController.get_translatable_dep_name(i)));
             }
         }
     }

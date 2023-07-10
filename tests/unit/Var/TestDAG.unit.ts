@@ -20,7 +20,7 @@ test('DAG: test add nodes', async () => {
     let dag: VarDAG = new VarDAG();
 
     let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-    let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
+    let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
     expect(dagnodeA.var_data.index).toStrictEqual("1|LmreE");
     expect(dagnodeA.aggregated_datas).toStrictEqual({});
@@ -38,7 +38,7 @@ test('DAG: test add nodes', async () => {
     expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA });
 
     let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
+    let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
 
     expect(dagnodeB.var_data.index).toStrictEqual("2|Lsy_M&LycR4");
     expect(dagnodeB.aggregated_datas).toStrictEqual({});
@@ -55,7 +55,7 @@ test('DAG: test add nodes', async () => {
     expect(dag.leafs).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
     expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
 
-    let dagnodeA_bis: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
+    let dagnodeA_bis: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
     expect(dagnodeA_bis).toStrictEqual(dagnodeA);
 
@@ -72,11 +72,11 @@ test('DAG: test add deps', async () => {
 
     let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
 
-    let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
+    let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
     let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
 
-    let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
+    let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
 
     expect(dag.nb_nodes).toStrictEqual(2);
     expect(dag.nodes).toStrictEqual({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });

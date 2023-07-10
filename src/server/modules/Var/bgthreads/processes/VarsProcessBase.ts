@@ -104,7 +104,7 @@ export default abstract class VarsProcessBase {
                 });
             } else {
                 let worker_time_in = Dates.now_ms();
-                let res = self.worker_sync(node);
+                let res = this.worker_sync(node);
                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
                 node.remove_tag(this.TAG_SELF_NAME);
@@ -119,12 +119,12 @@ export default abstract class VarsProcessBase {
     private handle_worker_result(result: boolean, worker_time_in: number, node: VarDAGNode) {
         // Si on a pas fait l'action, on retente plus tard
         if (result) {
-            StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_ok");
-            StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_ok", Dates.now_ms() - worker_time_in);
+            StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, "worker_ok");
+            StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker_ok", Dates.now_ms() - worker_time_in);
             node.add_tag(this.TAG_OUT_NAME);
         } else {
-            StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_failed");
-            StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_failed", Dates.now_ms() - worker_time_in);
+            StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, "worker_failed");
+            StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker_failed", Dates.now_ms() - worker_time_in);
             node.add_tag(this.TAG_IN_NAME);
         }
     }
@@ -133,8 +133,10 @@ export default abstract class VarsProcessBase {
 
         /**
          * Si on a des vars registered par le client on veut les prioriser, donc on ignorera les autres pour le moment
+         * Sinon on prend toutes les vars qui ont le tag in
          */
         let nodes: { [node_name: string]: VarDAGNode } = this.filter_by_subs(VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME]);
+        nodes = (nodes && Object.keys(nodes).length) ? nodes : VarsdatasComputerBGThread.current_vardag.current_step_tags[this.TAG_IN_NAME];
         let valid_nodes: { [node_name: string]: VarDAGNode } = {};
 
         for (let i in nodes) {
@@ -180,12 +182,12 @@ export default abstract class VarsProcessBase {
 
                 // Si on a pas fait l'action, on retente plus tard
                 if (res) {
-                    StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_ok");
-                    StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_ok", Dates.now_ms() - worker_time_in);
+                    StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, "worker_ok");
+                    StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker_ok", Dates.now_ms() - worker_time_in);
                     node.add_tag(this.TAG_OUT_NAME);
                 } else {
-                    StatsController.register_stat_COMPTEUR('VarsProcessBase', self.name, "worker_failed");
-                    StatsController.register_stat_DUREE('VarsProcessBase', self.name, "worker_failed", Dates.now_ms() - worker_time_in);
+                    StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, "worker_failed");
+                    StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker_failed", Dates.now_ms() - worker_time_in);
                     node.add_tag(this.TAG_IN_NAME);
                 }
             }

@@ -76,6 +76,23 @@ export default class VarDAGNode extends DAGNodeBase {
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: 12,
         [VarDAGNode.TAG_7_DELETING]: 13,
     };
+    public static ORDERED_STEP_TAGS_NAMES: string[] = [
+        VarDAGNode.TAG_0_CREATED,
+        VarDAGNode.TAG_1_NOTIFYING_START,
+        VarDAGNode.TAG_1_NOTIFIED_START,
+        VarDAGNode.TAG_2_DEPLOYING,
+        VarDAGNode.TAG_2_DEPLOYED,
+        VarDAGNode.TAG_3_DATA_LOADING,
+        VarDAGNode.TAG_3_DATA_LOADED,
+        VarDAGNode.TAG_4_COMPUTING,
+        VarDAGNode.TAG_4_COMPUTED,
+        VarDAGNode.TAG_5_NOTIFYING_END,
+        VarDAGNode.TAG_5_NOTIFIED_END,
+        VarDAGNode.TAG_6_UPDATING_IN_DB,
+        VarDAGNode.TAG_6_UPDATED_IN_DB,
+        VarDAGNode.TAG_7_DELETING
+    ];
+
 
     /**
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
@@ -89,13 +106,17 @@ export default class VarDAGNode extends DAGNodeBase {
         /**
          * On utilise une forme de sémaphore, qui utilise les promises pour éviter de créer plusieurs fois le même noeud
          */
-        if (!VarDAGNode.getInstance_semaphores[var_data.index]) {
-            VarDAGNode.getInstance_semaphores[var_data.index] = (async () => {
-                await VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
 
-                // On supprime le sémaphore après un certain temps pour éviter de supprimer avant l'affectation de la promise dans la map ...
-                setTimeout(() => delete VarDAGNode.getInstance_semaphores[var_data.index], 1000);
+        if (!VarDAGNode.getInstance_semaphores[var_data.index]) {
+            let promise = (async () => {
+                return await VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
             })();
+            VarDAGNode.getInstance_semaphores[var_data.index] = promise;
+            promise.then(() => {
+                delete VarDAGNode.getInstance_semaphores[var_data.index];
+            });
+
+            return await promise;
         }
 
         return await VarDAGNode.getInstance_semaphores[var_data.index];
@@ -133,7 +154,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
             if (!already_tried_load_cache_complet) {
-                let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>().index, node.var_data.index).select_vo();
+                let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, node.var_data.index).select_vo();
                 if (!!db_data) {
                     node.var_data = db_data;
                     already_tried_load_cache_complet = true;
@@ -210,7 +231,7 @@ export default class VarDAGNode extends DAGNodeBase {
     /**
      * L'étape actuelle du process de calcul du noeud (VarDAGNode.STEP_XXX)
      */
-    private current_step: number = 0;
+    private current_step: number = null;
 
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
@@ -236,6 +257,9 @@ export default class VarDAGNode extends DAGNodeBase {
             return true;
         }
 
+        if (!this.var_dag.tags[tag]) {
+            this.var_dag.tags[tag] = {};
+        }
         this.var_dag.tags[tag][this.var_data.index] = this;
         this.update_current_step_tag();
         return true;
@@ -343,46 +367,64 @@ export default class VarDAGNode extends DAGNodeBase {
         return this;
     }
 
+    /**
+     * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes
+     * et qu'il ait un tag courant >= VarDAGNode.TAG_6_UPDATED_IN_DB
+     */
     get is_deletable(): boolean {
-        return this.tags[VarDAGNode.TAG_6_UPDATED_IN_DB] && !this.hasIncoming;
+        return (this.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_6_UPDATED_IN_DB]) && !this.hasIncoming;
     }
 
+    /**
+     * On défini comme computable un noeud dont toutes les dépendances sortantes ont un tag courant >= VarDAGNode.TAG_4_COMPUTED
+     * et qui a un tag courrant >= VarDAGNode.TAG_3_DATA_LOADED
+     */
     get is_computable(): boolean {
-        if (!this.tags[VarDAGNode.TAG_3_DATA_LOADED]) {
+        if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) {
             return false;
         }
 
         for (let i in this.outgoing_deps) {
             let outgoing_dep = this.outgoing_deps[i];
 
-            if (!outgoing_dep.outgoing_node.tags[VarDAGNode.TAG_4_COMPUTED]) {
-                return false;
+            if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) {
+                if (!outgoing_dep.outgoing_node.tags[VarDAGNode.TAG_4_COMPUTED]) {
+                    return false;
+                }
             }
         }
-
         return true;
     }
 
     private update_current_step_tag() {
-        let updated_current_step = null;
+        let updated_current_step: number = null;
+        let updated_current_step_tag_name: string = null;
+        let current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
 
-        for (let step_tag_name in VarDAGNode.STEP_TAGS_INDEXES) {
+        for (let i in VarDAGNode.ORDERED_STEP_TAGS_NAMES) {
+            let step_tag_name = VarDAGNode.ORDERED_STEP_TAGS_NAMES[i];
             if (this.tags[step_tag_name]) {
                 updated_current_step = VarDAGNode.STEP_TAGS_INDEXES[step_tag_name];
+                updated_current_step_tag_name = step_tag_name;
                 break;
             }
         }
 
-        if (this.current_step == updated_current_step) {
+        if (this.current_step === updated_current_step) {
             return;
         }
 
         if (this.current_step != null) {
-            delete this.var_dag.current_step_tags[this.current_step];
+            if (!!this.var_dag.current_step_tags[current_step_tag_name]) {
+                delete this.var_dag.current_step_tags[current_step_tag_name][this.var_data.index];
+            }
         }
 
         if (updated_current_step != null) {
-            this.var_dag.current_step_tags[updated_current_step][this.var_data.index] = this;
+            if (!this.var_dag.current_step_tags[updated_current_step_tag_name]) {
+                this.var_dag.current_step_tags[updated_current_step_tag_name] = {};
+            }
+            this.var_dag.current_step_tags[updated_current_step_tag_name][this.var_data.index] = this;
         }
 
         this.current_step = updated_current_step;
