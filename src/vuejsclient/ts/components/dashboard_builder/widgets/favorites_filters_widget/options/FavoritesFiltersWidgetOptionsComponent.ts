@@ -62,13 +62,13 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     private last_calculation_cpt: number = 0;
 
     /**
-     * Watch on widget_options
-     *  - Shall happen first on component init or each time widget_options changes
+     * Watch on page_widget
+     *  - Shall happen first on component init or each time page_widget changes
      *
      * @returns {void}
      */
-    @Watch('widget_options', { immediate: true })
-    private onchange_widget_options(): void {
+    @Watch('page_widget', { immediate: true })
+    private onchange_page_widget(): void {
         if (!this.get_widget_options()) {
             this.max_visible_options = null;
             return;
@@ -239,12 +239,6 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
                 options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
-            } else {
-                // Defaults widget options
-                options = new FavoritesFiltersWidgetOptionsVO().from({
-                    vo_field_ref: this.vo_field_ref,
-                    max_visible_options: 50,
-                });
             }
         } catch (error) {
             ConsoleHandler.error(error);

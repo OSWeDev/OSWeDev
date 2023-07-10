@@ -2,7 +2,10 @@ import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -453,7 +456,16 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SaveFavoritesFilters.default_background = '#f5f5f5';
         SaveFavoritesFilters.icon_component = 'Savefavoritesfilterswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(SaveFavoritesFilters, null, null);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            SaveFavoritesFilters,
+            () => new FavoritesFiltersWidgetOptionsVO(
+                new VOFieldRefVO().from({
+                    api_type_id: FavoritesFiltersVO.API_TYPE_ID,
+                    field_id: "name"
+                }),
+            ),
+            null
+        );
 
         Vue.component('Savefavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
         Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
@@ -472,7 +484,16 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ShowFavoritesFilters.default_background = '#f5f5f5';
         ShowFavoritesFilters.icon_component = 'Showfavoritesfilterswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(ShowFavoritesFilters, null, null);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            ShowFavoritesFilters,
+            () => new FavoritesFiltersWidgetOptionsVO(
+                new VOFieldRefVO().from({
+                    api_type_id: FavoritesFiltersVO.API_TYPE_ID,
+                    field_id: "name"
+                }),
+            ),
+            null
+        );
 
         Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
         Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
