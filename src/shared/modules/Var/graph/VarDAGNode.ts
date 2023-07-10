@@ -106,13 +106,12 @@ export default class VarDAGNode extends DAGNodeBase {
         /**
          * On utilise une forme de sémaphore, qui utilise les promises pour éviter de créer plusieurs fois le même noeud
          */
-
         if (!VarDAGNode.getInstance_semaphores[var_data.index]) {
             let promise = (async () => {
                 return await VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
             })();
             VarDAGNode.getInstance_semaphores[var_data.index] = promise;
-            promise.then(() => {
+            promise.finally(() => {
                 delete VarDAGNode.getInstance_semaphores[var_data.index];
             });
 
@@ -153,6 +152,7 @@ export default class VarDAGNode extends DAGNodeBase {
             let node = new VarDAGNode(var_dag, var_data);
 
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
+            /* istanbul ignore next: impossible to test - await query */
             if (!already_tried_load_cache_complet) {
                 let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, node.var_data.index).select_vo();
                 if (!!db_data) {
@@ -165,6 +165,7 @@ export default class VarDAGNode extends DAGNodeBase {
              * Si on a une valid value, on passe directement à la notification de fin,
              * sinon on indique que le noeud est créé
              */
+            /* istanbul ignore next: impossible to test - linked to above query */
             if (VarsServerController.has_valid_value(node.var_data)) {
                 node.add_tag(VarDAGNode.TAG_4_COMPUTED);
                 // On ne doit pas update in DB du coup
@@ -243,16 +244,18 @@ export default class VarDAGNode extends DAGNodeBase {
 
     /**
      * Pour l'ajout des tags, on veille toujours à vérifier qu'on a pas un tag TO_DELETE, et la possibilité de supprimer le noeud.
-     *  Sinon on refuse l'ajout
+     *  Sinon on refuse l'ajout. On a pas non plus le droit de remettre un Tag déjà passé. On peut mettre des tags à venir, mais pas < au current_step
      * @param tag Le tag à ajouter
      */
     public add_tag(tag: string): boolean {
 
-        if (this.is_deletable) {
+        if (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step) {
             return false;
         }
+
         this.tags[tag] = true;
 
+        this.update_current_step_tag();
         if (!this.var_dag) {
             return true;
         }
@@ -261,7 +264,6 @@ export default class VarDAGNode extends DAGNodeBase {
             this.var_dag.tags[tag] = {};
         }
         this.var_dag.tags[tag][this.var_data.index] = this;
-        this.update_current_step_tag();
         return true;
     }
 
@@ -269,11 +271,11 @@ export default class VarDAGNode extends DAGNodeBase {
 
         delete this.tags[tag];
 
+        this.update_current_step_tag();
         if (!this.var_dag) {
             return;
         }
         delete this.var_dag.tags[tag][this.var_data.index];
-        this.update_current_step_tag();
     }
 
     /**
@@ -289,18 +291,9 @@ export default class VarDAGNode extends DAGNodeBase {
             return;
         }
 
-        let dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, outgoing_node);
+        let dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, this, outgoing_node);
 
-        dep.incoming_node = this;
-
-        if (!this.outgoing_deps) {
-            this.outgoing_deps = {};
-        }
         this.outgoing_deps[dep.dep_name] = dep;
-
-        if (!dep.outgoing_node.incoming_deps) {
-            dep.outgoing_node.incoming_deps = {};
-        }
         dep.outgoing_node.incoming_deps[dep.dep_name] = dep;
 
         if (!!this.var_dag.roots[dep.outgoing_node.var_data.index]) {
@@ -324,6 +317,17 @@ export default class VarDAGNode extends DAGNodeBase {
 
         delete dag.nodes[this.var_data.index];
         dag.nb_nodes--;
+        if (this.current_step != null) {
+            let current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
+            if (!!this.var_dag.current_step_tags[current_step_tag_name]) {
+                delete this.var_dag.current_step_tags[current_step_tag_name][this.var_data.index];
+            }
+        }
+        for (let i in this.var_dag.tags) {
+            if (!!this.var_dag.tags[i][this.var_data.index]) {
+                delete this.var_dag.tags[i][this.var_data.index];
+            }
+        }
 
         for (let i in this.incoming_deps) {
             let incoming_dep = this.incoming_deps[i];
@@ -338,7 +342,7 @@ export default class VarDAGNode extends DAGNodeBase {
             let outgoing_dep = this.outgoing_deps[i];
             delete outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
 
-            if (!ObjectHandler.hasAtLeastOneAttribute(outgoing_dep.outgoing_node.outgoing_deps)) {
+            if (!ObjectHandler.hasAtLeastOneAttribute(outgoing_dep.outgoing_node.incoming_deps)) {
                 dag.roots[(outgoing_dep.outgoing_node as VarDAGNode).var_data.index] = outgoing_dep.outgoing_node as VarDAGNode;
             }
         }
@@ -369,10 +373,10 @@ export default class VarDAGNode extends DAGNodeBase {
 
     /**
      * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes
-     * et qu'il ait un tag courant >= VarDAGNode.TAG_6_UPDATED_IN_DB
+     * et qu'il ait un tag courant >= VarDAGNode.TAG_7_DELETING
      */
     get is_deletable(): boolean {
-        return (this.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_6_UPDATED_IN_DB]) && !this.hasIncoming;
+        return (this.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_7_DELETING]) && !this.hasIncoming;
     }
 
     /**
@@ -380,17 +384,15 @@ export default class VarDAGNode extends DAGNodeBase {
      * et qui a un tag courrant >= VarDAGNode.TAG_3_DATA_LOADED
      */
     get is_computable(): boolean {
-        if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) {
+        if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTING]) {
             return false;
         }
 
         for (let i in this.outgoing_deps) {
             let outgoing_dep = this.outgoing_deps[i];
 
-            if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) {
-                if (!outgoing_dep.outgoing_node.tags[VarDAGNode.TAG_4_COMPUTED]) {
-                    return false;
-                }
+            if ((outgoing_dep.outgoing_node as VarDAGNode).current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
+                return false;
             }
         }
         return true;
@@ -414,17 +416,20 @@ export default class VarDAGNode extends DAGNodeBase {
             return;
         }
 
-        if (this.current_step != null) {
-            if (!!this.var_dag.current_step_tags[current_step_tag_name]) {
-                delete this.var_dag.current_step_tags[current_step_tag_name][this.var_data.index];
-            }
-        }
+        if (this.var_dag) {
 
-        if (updated_current_step != null) {
-            if (!this.var_dag.current_step_tags[updated_current_step_tag_name]) {
-                this.var_dag.current_step_tags[updated_current_step_tag_name] = {};
+            if (this.current_step != null) {
+                if (!!this.var_dag.current_step_tags[current_step_tag_name]) {
+                    delete this.var_dag.current_step_tags[current_step_tag_name][this.var_data.index];
+                }
             }
-            this.var_dag.current_step_tags[updated_current_step_tag_name][this.var_data.index] = this;
+
+            if (updated_current_step != null) {
+                if (!this.var_dag.current_step_tags[updated_current_step_tag_name]) {
+                    this.var_dag.current_step_tags[updated_current_step_tag_name] = {};
+                }
+                this.var_dag.current_step_tags[updated_current_step_tag_name][this.var_data.index] = this;
+            }
         }
 
         this.current_step = updated_current_step;

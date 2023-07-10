@@ -16,8 +16,9 @@ export default class DAGNodeDep<T extends DAGNodeBase> {
      * @param dep_name
      * @param outgoing_node
      */
-    public constructor(dep_name: string, outgoing_node: T) {
+    public constructor(dep_name: string, incoming_node: T, outgoing_node: T) {
         this.dep_name = dep_name;
         this.outgoing_node = outgoing_node;
+        this.incoming_node = incoming_node;
     }
 }

@@ -1,31 +1,22 @@
+import { Configuration, OpenAIApi } from "openai";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTAPIMessage from '../../../shared/modules/GPT/api/GPTAPIMessage';
 import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
 import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
-import MenuElementVO from '../../../shared/modules/Menu/vos/MenuElementVO';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
-import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import { OpenAIApi, Configuration } from "openai";
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import GPTAPIMessage from '../../../shared/modules/GPT/api/GPTAPIMessage';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -91,8 +82,9 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     public async generate_response(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTMessageVO> {
         try {
-            // const modelId = "gpt-4";
-            const modelId = "gpt-3.5-turbo";
+            // const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4", 60000);
+            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-3.5-turbo", 60000);
+            // const modelId = "gpt-3.5-turbo";
 
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");

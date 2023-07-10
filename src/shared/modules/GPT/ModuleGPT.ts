@@ -13,6 +13,8 @@ export default class ModuleGPT extends Module {
 
     public static MODULE_NAME: string = 'GPT';
 
+    public static PARAM_NAME_MODEL_ID: string = 'PARAM_NAME_MODEL_ID';
+
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleGPT.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".FO_ACCESS";

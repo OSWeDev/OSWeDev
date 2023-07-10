@@ -16,8 +16,14 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
+import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
+import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
+import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
+import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
+import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -30,9 +36,11 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
+import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
@@ -40,7 +48,11 @@ const { parse } = require('flatted/cjs');
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
+    public static FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS: string = 'FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS';
+
     public static FEEDBACK_TRELLO_LIST_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_LIST_ID';
+    public static TEAMS_WEBHOOK_PARAM_NAME: string = 'ModuleFeedbackServer.TEAMS_WEBHOOK';
+    public static DASHBOARD_FEEDBACK_ID_PARAM_NAME: string = 'ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID';
 
     public static FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_POSSIBLE_BUG_ID';
     public static FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID';
@@ -332,17 +344,24 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let idLabels: string[] = [];
             let trello_message = feedback.message + '\x0A' + '\x0A';
 
-            trello_message += await this.user_infos_to_string(feedback);
-            trello_message += await this.feedback_infos_to_string(feedback);
+            let user_infos = await this.user_infos_to_string(feedback);
+            trello_message += user_infos;
+            let feedback_infos = await this.feedback_infos_to_string(feedback);
+            trello_message += feedback_infos;
 
-            trello_message += await this.screen_captures_to_string(feedback);
-            trello_message += await this.attachments_to_string(feedback);
+            let screen_captures = await this.screen_captures_to_string(feedback);
+            trello_message += screen_captures;
+            let attachments = await this.attachments_to_string(feedback);
+            trello_message += attachments;
 
-            trello_message += await this.routes_to_string(feedback);
-            trello_message += await this.console_logs_to_string(feedback);
+            let routes = await this.routes_to_string(feedback);
+            trello_message += routes;
+            let console_logs_errors = await this.console_logs_to_string(feedback);
+            trello_message += console_logs_errors;
 
+            let api_logs = await this.api_logs_to_string(feedback);
             if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
-                trello_message += await this.api_logs_to_string(feedback);
+                trello_message += api_logs;
             }
             switch (feedback.feedback_type) {
                 case FeedbackVO.FEEDBACK_TYPE_BUG:
@@ -402,6 +421,48 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             feedback.id = ires.id;
+
+            let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, true, 60000);
+            if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
+                let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
+                    GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+                    uid,
+                    'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
+                    // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
+                    'Tu dois réaliser un résumé de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' +// du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+                    'Ci-après les éléments constituant le formulaire de contact client : {' +
+                    ' - Titre du formulaire : ' + feedback.title + ' ' +
+                    ' - Message : ' + feedback.message + ' ' +
+                    ' - Infos de l\'utilisateur : ' + user_infos +
+                    ' - feedback_infos : ' + feedback_infos +
+                    ' - screen_captures : ' + screen_captures +
+                    ' - attachments : ' + attachments +
+                    ' - routes : ' + routes +
+                    ' - console_logs_errors : ' + console_logs_errors +
+                    ' - api_logs : ' + api_logs
+                ));
+                let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
+                if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
+                    let teamsWebhookContent = new TeamsWebhookContentVO();
+                    teamsWebhookContent.title = 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
+                    teamsWebhookContent.summary = gtp_4_brief.content;
+
+                    teamsWebhookContent.sections.push(
+                        new TeamsWebhookContentSectionVO().set_text('<h2>' + feedback.title + '</h2>' +
+                            '<p>' + gtp_4_brief.content + '</p>'));
+
+                    // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
+                    let dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
+                    if ((!!feedback.id) && !!dashboard_feedback_id) {
+                        teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
+                            new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
+                                ConfigurationService.node_configuration.BASE_URL + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
+                    }
+
+                    let teams_res = await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
+                    ConsoleHandler.log("teams_res : " + teams_res);
+                }
+            }
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
