@@ -1,3 +1,5 @@
+/* istanbul ignore file : nothing to test in ParamVOs */
+
 import VarConfVO from '../vos/VarConfVO';
 import VarCacheConfVO from '../vos/VarCacheConfVO';
 import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';

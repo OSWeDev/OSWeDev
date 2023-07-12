@@ -14,6 +14,8 @@ export default class ConfigurationService {
 
     public static shared_params: any;
     public static node_configuration: EnvParam = null;
+
+    public static IS_UNIT_TEST_MODE: boolean = false;
     /**
      * ----- Local thread cache
      */

@@ -1,13 +1,10 @@
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
+import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default abstract class DataSourceControllerNumRangeIndexedBase extends DataSourceControllerBase {
@@ -42,12 +39,12 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
         }
 
         node.datasources[this.name] = {};
-        if (!VarsdatasComputerBGThread.current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.current_batch_ds_cache[this.name] = {};
+        if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]) {
+            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name] = {};
         }
         await RangeHandler.foreach_ranges(data_index, async (i: number) => {
 
-            if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name][i] === 'undefined') {
+            if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][i] === 'undefined') {
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
                 let time_in = Dates.now_ms();
@@ -62,14 +59,14 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
                     /**
                      * On ne change pas les datas qu'on avait déjà
                      */
-                    if (typeof VarsdatasComputerBGThread.current_batch_ds_cache[this.name][j] === 'undefined') {
-                        VarsdatasComputerBGThread.current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
+                    if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][j] === 'undefined') {
+                        CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
                     }
                 }
             }
 
-            if (VarsdatasComputerBGThread.current_batch_ds_cache[this.name][i]) {
-                node.datasources[this.name][i] = VarsdatasComputerBGThread.current_batch_ds_cache[this.name][i];
+            if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][i]) {
+                node.datasources[this.name][i] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][i];
             }
         });
 

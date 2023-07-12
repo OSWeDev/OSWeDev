@@ -1,8 +1,7 @@
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
+import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import VarsDatasVoUpdateHandler from '../../VarsDatasVoUpdateHandler';
-import VarsdatasComputerBGThread from '../VarsdatasComputerBGThread';
 import VarsComputationHole from './VarsComputationHole';
-import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessInvalidator {
 
@@ -46,7 +45,7 @@ export default class VarsProcessInvalidator {
 
             // On vide le cache des DataSources
             // OPTI POSSIBLE : invalider que le cache des datasources qui ont été invalidées (cf vos_cud et datasources_dependencies)
-            VarsdatasComputerBGThread.current_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
 
             // On génère les intersecteurs et on les applique
             await VarsDatasVoUpdateHandler.handle_buffer();

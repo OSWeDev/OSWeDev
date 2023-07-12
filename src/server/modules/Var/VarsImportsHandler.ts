@@ -5,6 +5,7 @@ import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import VarsServerController from './VarsServerController';
 
 export default class VarsImportsHandler {
@@ -41,7 +42,7 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         FOR_TU_imports: VarDataBaseVO[] = null) {
 
-        let imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null);
+        let imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
 
         if ((!imports) || (!imports.length)) {
             return;

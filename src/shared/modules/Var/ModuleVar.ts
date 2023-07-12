@@ -24,7 +24,6 @@ import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
-import VarPerfVO from './vos/VarPerfVO';
 import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
 
 export default class ModuleVar extends Module {
@@ -161,7 +160,6 @@ export default class ModuleVar extends Module {
         this.initializeVarConfVO();
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
-        this.initializeVarPerfVO();
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
     }
@@ -365,9 +363,9 @@ export default class ModuleVar extends Module {
         this.initializedasync_VarsController = true;
 
         if (!var_conf_by_id) {
-            await VarsController.initializeasync(VOsTypesManager.vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
+            VarsController.initialize(VOsTypesManager.vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
         } else {
-            await VarsController.initializeasync(var_conf_by_id);
+            VarsController.initialize(var_conf_by_id);
         }
     }
 
@@ -487,25 +485,5 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarDataValueResVO.API_TYPE_ID, () => new VarDataValueResVO(), datatable_fields, null);
         this.datatables.push(datatable);
-    }
-
-
-    private initializeVarPerfVO() {
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', false);
-        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-
-        let datatable_fields = [
-            var_id,
-            name,
-            new ModuleTableField('sum_ms', ModuleTableField.FIELD_TYPE_float, 'Tps total en ms', true, true, 0),
-            new ModuleTableField('nb_card', ModuleTableField.FIELD_TYPE_float, 'Total cadinaux'),
-            new ModuleTableField('nb_calls', ModuleTableField.FIELD_TYPE_float, 'Nombre d\'appels', true, true, 0),
-            new ModuleTableField('mean_per_call', ModuleTableField.FIELD_TYPE_float, 'Tps moyen / appel'),
-            new ModuleTableField('mean_per_cardinal_1000', ModuleTableField.FIELD_TYPE_float, 'Tps moyen / 1000 card'),
-        ];
-
-        let datatable = new ModuleTable(this, VarPerfVO.API_TYPE_ID, () => new VarPerfVO(), datatable_fields, name);
-        this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 }

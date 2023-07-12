@@ -61,17 +61,20 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import CurrentBatchDSCacheHolder from './CurrentBatchDSCacheHolder';
+import CurrentVarDAGHolder from './CurrentVarDAGHolder';
 import GetVarParamFromContextFiltersParam from './GetVarParamFromContextFiltersParam';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarServerControllerBase from './VarServerControllerBase';
+import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
+import VarsDeployDepsHandler from './VarsDeployDepsHandler';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
-import VarsProcessDeployDeps from './bgthreads/processes/VarsProcessDeployDeps';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
@@ -387,10 +390,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Performances'
-        }, 'menu.menuelements.admin.VarPerfVO.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher'
         }, 'var_desc_explain.show_help_tooltip.visible.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -494,7 +493,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 reject,
-                VarsdatasComputerBGThread.getInstance().name,
+                VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_c,
                 resolve,
                 vo)) {
@@ -520,7 +519,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 reject,
-                VarsdatasComputerBGThread.getInstance().name,
+                VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_d,
                 resolve,
                 vo)) {
@@ -543,7 +542,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 reject,
-                VarsdatasComputerBGThread.getInstance().name,
+                VarsBGThreadNameHolder.bgthread_name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_u,
                 resolve,
                 vo_update_handler)) {
@@ -911,8 +910,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
             }
 
-            VarsdatasComputerBGThread.current_vardag = new VarDAG();
-            VarsdatasComputerBGThread.current_batch_ds_cache = {};
+            CurrentVarDAGHolder.current_vardag = new VarDAG();
+            CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
         });
     }
 
@@ -1256,8 +1255,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas);
-        await VarsProcessDeployDeps.getInstance().load_caches_and_imports_on_var_to_deploy(
+        await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
             node,
             true);
 

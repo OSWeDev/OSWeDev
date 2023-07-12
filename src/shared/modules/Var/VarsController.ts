@@ -20,7 +20,7 @@ export default class VarsController {
         VarsController.var_conf_by_name = {};
     }
 
-    public static async initializeasync(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
+    public static initialize(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
         VarsController.var_conf_by_id = var_conf_by_id;
         for (let i in VarsController.var_conf_by_id) {
             let conf = VarsController.var_conf_by_id[i];

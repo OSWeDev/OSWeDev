@@ -4,7 +4,7 @@ import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../../env/ConfigurationService';
-import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
+import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default class DataSourcesController {
@@ -42,8 +42,8 @@ export default class DataSourcesController {
         for (let i in dss) {
             let ds = dss[i];
 
-            if (!VarsdatasComputerBGThread.current_batch_ds_cache[ds.name]) {
-                VarsdatasComputerBGThread.current_batch_ds_cache[ds.name] = {};
+            if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name]) {
+                CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name] = {};
             }
 
             // Si on est sur du perf monitoring on doit faire les appels séparément...

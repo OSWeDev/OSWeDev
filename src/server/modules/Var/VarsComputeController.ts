@@ -34,7 +34,7 @@ export default class VarsComputeController {
     //      *  L'index de donnée est défini par le datasource pour indiquer une clé unique de classement des datas dans le cache, et donc si on veut une clé déjà connue, on a pas besoin de redemander au
     //      *  datasource, on la récupère directement pour le donner à la var.
     //      */
-    //     VarsdatasComputerBGThread.current_batch_ds_cache = {};
+    //     CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
 
     //     // ConsoleHandler.log('VarsdatasComputerBGThread compute - create_tree OLD OK (' + (perf_old_end - perf_old_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
 
@@ -489,7 +489,7 @@ export default class VarsComputeController {
 
     // let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
-    // let var_dag: VarDAG = VarsdatasComputerBGThread.current_vardag;
+    // let var_dag: VarDAG = CurrentVarDAGHolder.current_vardag;
 
     // let all_selected_var_datas = [];
 

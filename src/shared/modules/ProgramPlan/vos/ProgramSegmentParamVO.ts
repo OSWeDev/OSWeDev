@@ -1,3 +1,5 @@
+/* istanbul ignore file : nothing to test in ParamVOs */
+
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../tools/TimeSegmentHandler';
 import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';

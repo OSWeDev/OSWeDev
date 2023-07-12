@@ -1,3 +1,4 @@
+import ConfigurationService from '../../../../server/env/ConfigurationService';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import ObjectHandler, { field_names } from '../../../tools/ObjectHandler';
@@ -112,10 +113,9 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
             let promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
-            VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise;
-            // promise.finally(() => {
-            //     delete VarDAGNode.getInstance_semaphores[var_data.index];
-            // });
+            VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise.finally(() => {
+                delete VarDAGNode.getInstance_semaphores[var_data.index];
+            });
 
             return promise;
         }
@@ -156,7 +156,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
             /* istanbul ignore next: impossible to test - await query */
-            if (!already_tried_load_cache_complet) {
+            if ((!already_tried_load_cache_complet) && (!ConfigurationService.IS_UNIT_TEST_MODE)) {
                 let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, node.var_data.index).select_vo();
                 if (!!db_data) {
                     node.var_data = db_data;

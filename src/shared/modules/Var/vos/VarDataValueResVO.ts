@@ -1,3 +1,4 @@
+/* istanbul ignore file : nothing to test in this VO */
 
 import VarDataBaseVO from './VarDataBaseVO';
 

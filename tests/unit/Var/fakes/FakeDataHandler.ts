@@ -189,6 +189,130 @@ export default class FakeDataHandler {
         return "5|LmreE";
     }
 
+    // public static get_var_data_A(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 1;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+    // public static get_expected_var_data_A_index() {
+    //     return "1|LmreE";
+    // }
+
+    // public static get_var_data_A2(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 1;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+
+    // public static get_var_data_A_A2(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 1;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+
+    // public static get_var_data_A_A3(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 1;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-05-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+
+    // public static get_var_data_B(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 2;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+    // public static get_expected_var_data_B_index() {
+    //     return "2|Lsy_M&LycR4";
+    // }
+
+    // public static get_var_data_C(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 2;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+    // public static get_expected_var_data_C_index() {
+    //     return "2|LycR4&LEkvc";
+    // }
+
+    // public static get_var_data_E(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 3;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+    // public static get_expected_var_data_E_index() {
+    //     return "3|Lsy_M";
+    // }
+
+    // public static get_var_data_F(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 3;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+    // public static get_expected_var_data_F_index() {
+    //     return "3|LycR4&LEkvc";
+    // }
+
+    // public static get_var_data_G(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 3;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+    // public static get_expected_var_data_G_index() {
+    //     return "3|LmreE&Lsy_M";
+    // }
+
+    // public static get_var_data_H(): FakeDataVO {
+    //     let var_data: FakeDataVO = new FakeDataVO();
+    //     var_data.var_id = 3;
+    //     var_data.ts_ranges = [
+    //         RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_YEAR)
+    //     ];
+    //     let a = var_data.index;
+    //     return var_data;
+    // }
+    // public static get_expected_var_data_H_index() {
+    //     return "3|LmreE&Mit=U";
+    // }
+
     public static get_var_data_F_moins_BC(): FakeDataVO {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;

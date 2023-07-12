@@ -7,7 +7,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
-import VarsClientsSubsCacheHandler from './bgthreads/processes/VarsClientsSubsCacheHandler';
+import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class VarsTabsSubsController {
@@ -75,7 +75,7 @@ export default class VarsTabsSubsController {
                 this._tabs_subs[param_index] = {};
 
                 // On ajoute un nouvel index, on prévient le thread des vars immédiatement
-                VarsClientsSubsCacheHandler.add_new_sub(param_index);
+                VarsClientsSubsCacheManager.add_new_sub(param_index);
             }
 
             if (!this._tabs_subs[param_index][user_id]) {
@@ -148,7 +148,7 @@ export default class VarsTabsSubsController {
             delete this._tabs_subs[param_index];
 
             // On supprime un nouvel index, on prévient le thread des vars immédiatement
-            VarsClientsSubsCacheHandler.remove_sub(param_index);
+            VarsClientsSubsCacheManager.remove_sub(param_index);
         }
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {

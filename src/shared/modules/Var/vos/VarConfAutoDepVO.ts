@@ -1,3 +1,5 @@
+/* istanbul ignore file : nothing to test in this VO */
+
 import IDistantVOBase from '../../IDistantVOBase';
 import VarParamFieldTransformStrategyVO from './VarParamFieldTransformStrategyVO';
 

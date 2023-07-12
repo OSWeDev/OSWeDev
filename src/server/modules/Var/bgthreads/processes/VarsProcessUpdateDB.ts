@@ -14,7 +14,7 @@ import VarsCacheController from '../../VarsCacheController';
 import VarsDatasProxy from '../../VarsDatasProxy';
 import VarsServerCallBackSubsController from '../../VarsServerCallBackSubsController';
 import VarsServerController from '../../VarsServerController';
-import VarsClientsSubsCacheHandler from './VarsClientsSubsCacheHandler';
+import VarsClientsSubsCacheHolder from './VarsClientsSubsCacheHolder';
 import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
@@ -155,7 +155,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
 
                 if (VarsCacheController.getInstance().BDD_do_cache_param_data(node.var_data,
                     VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id],
-                    VarsClientsSubsCacheHandler.clients_subs_indexes_cache[node.var_data.index] || server_subs_by_index[node.var_data.index])) {
+                    VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index] || server_subs_by_index[node.var_data.index])) {
 
                     if (!res_by_type[_type]) {
                         res_by_type[_type] = [];

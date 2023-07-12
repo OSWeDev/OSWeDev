@@ -29,6 +29,7 @@ test('DAG: test isDeletable', async () => {
     });
     expect(node_A.is_deletable).toStrictEqual(false);
 
+
     node_A.remove_tag(VarDAGNode.TAG_0_CREATED);
     node_A.add_tag(VarDAGNode.TAG_7_DELETING);
     expect(node_A.tags).toStrictEqual({
@@ -61,38 +62,90 @@ test('DAG: test isComputable', async () => {
 
     let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
     let node_A = dag.nodes[var_data_A.index];
+
+    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    let node_B = dag.nodes[var_data_B.index];
+
+    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
+    let node_C = dag.nodes[var_data_C.index];
+
+    let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
+    let node_E = dag.nodes[var_data_E.index];
+
+    let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
+    let node_F = dag.nodes[var_data_F.index];
+
+    let var_data_G: FakeDataVO = FakeDataHandler.get_var_data_G();
+    let node_G = dag.nodes[var_data_G.index];
+
+    let var_data_H: FakeDataVO = FakeDataHandler.get_var_data_H();
+    let node_H = dag.nodes[var_data_H.index];
+
     // Pas de TAG_4_COMPUTING, donc pas de calcul
     expect(node_A.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
     expect(node_A.is_computable).toStrictEqual(false);
+    expect(node_A['current_step']).toStrictEqual(VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_0_CREATED]);
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {
+            [var_data_A.index]: node_A,
+            [var_data_B.index]: node_B,
+            [var_data_C.index]: node_C,
+            [var_data_E.index]: node_E,
+            [var_data_F.index]: node_F,
+            [var_data_G.index]: node_G,
+            [var_data_H.index]: node_H
+        }
+    });
 
     // des outgoing deps qui ne sont pas calculées, donc pas de calcul
     node_A.remove_tag(VarDAGNode.TAG_0_CREATED);
+    expect(node_A['current_step']).toBeNull();
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {
+            [var_data_B.index]: node_B,
+            [var_data_C.index]: node_C,
+            [var_data_E.index]: node_E,
+            [var_data_F.index]: node_F,
+            [var_data_G.index]: node_G,
+            [var_data_H.index]: node_H
+        }
+    });
+
     node_A.add_tag(VarDAGNode.TAG_4_COMPUTING);
     expect(node_A.tags).toStrictEqual({
         [VarDAGNode.TAG_4_COMPUTING]: true
     });
     expect(node_A.is_computable).toStrictEqual(false);
+    expect(node_A['current_step']).toStrictEqual(VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTING]);
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {
+            [var_data_B.index]: node_B,
+            [var_data_C.index]: node_C,
+            [var_data_E.index]: node_E,
+            [var_data_F.index]: node_F,
+            [var_data_G.index]: node_G,
+            [var_data_H.index]: node_H
+        },
+        [VarDAGNode.TAG_4_COMPUTING]: {
+            [var_data_A.index]: node_A
+        }
+    });
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let node_B = dag.nodes[var_data_B.index];
+
     // Pas de tag updated_db, donc pas de suppression
     expect(node_B.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
     expect(node_B.is_computable).toStrictEqual(false);
 
-    let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
-    let node_E = dag.nodes[var_data_E.index];
     // Pas de tag updated_db, donc pas de suppression
     expect(node_E.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
     expect(node_E.is_computable).toStrictEqual(false);
 
-    let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-    let node_F = dag.nodes[var_data_F.index];
     // Pas de tag updated_db, donc pas de suppression
     expect(node_F.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
@@ -133,7 +186,6 @@ test('DAG: test isComputable', async () => {
     expect(node_E.is_computable).toStrictEqual(true);
     expect(node_F.is_computable).toStrictEqual(true);
 
-    let node_C = dag.nodes[FakeDataHandler.get_var_data_C().index];
     node_C.remove_tag(VarDAGNode.TAG_0_CREATED);
     node_C.add_tag(VarDAGNode.TAG_4_COMPUTED);
     expect(node_A.is_computable).toStrictEqual(true);

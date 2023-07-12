@@ -47,7 +47,7 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.initializeasync({
+    VarsController.initialize({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
@@ -95,7 +95,7 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', 
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.initializeasync({
+    VarsController.initialize({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
@@ -147,7 +147,7 @@ test('VarsImportsHandler: test get_selection_imports', async () => {
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.initializeasync({
+    VarsController.initialize({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf

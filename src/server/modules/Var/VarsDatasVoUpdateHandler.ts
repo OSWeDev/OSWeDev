@@ -1,44 +1,36 @@
-import { Module } from 'module';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../shared/modules/Stats/vos/StatVO';
-import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsController from '../../../shared/modules/Var/VarsController';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
-import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
-import VarsClientsSubsCacheHandler from './bgthreads/processes/VarsClientsSubsCacheHandler';
-import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
-import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
-import PixelVarDataController from './PixelVarDataController';
-import VarsDatasProxy from './VarsDatasProxy';
-import VarServerControllerBase from './VarServerControllerBase';
+import CurrentVarDAGHolder from './CurrentVarDAGHolder';
+import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
-import VarsTabsSubsController from './VarsTabsSubsController';
+import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
+import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
+import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 
 /**
  * On gère le buffer des mises à jour de vos en lien avec des vars pour invalider au plus vite les vars en cache en cas de modification d'un VO
@@ -90,7 +82,7 @@ export default class VarsDatasVoUpdateHandler {
 
     //         if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
     //             reject,
-    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsBGThreadNameHolder.bgthread_name,
     //             VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_intersectors,
     //             resolve,
     //             invalidate_intersectors)) {
@@ -112,7 +104,7 @@ export default class VarsDatasVoUpdateHandler {
 
     //         if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
     //             reject,
-    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsBGThreadNameHolder.bgthread_name,
     //             VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_matroids,
     //             resolve,
     //             invalidate_matroids)) {
@@ -139,7 +131,7 @@ export default class VarsDatasVoUpdateHandler {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 reject,
-                VarsdatasComputerBGThread.getInstance().name,
+                VarsBGThreadNameHolder.bgthread_name,
                 VarsDatasVoUpdateHandler.TASK_NAME_push_invalidators,
                 resolve,
                 invalidators)) {
@@ -390,7 +382,7 @@ export default class VarsDatasVoUpdateHandler {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 reject,
-                VarsdatasComputerBGThread.getInstance().name,
+                VarsBGThreadNameHolder.bgthread_name,
                 VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, resolve)) {
                 return;
             }
@@ -451,21 +443,21 @@ export default class VarsDatasVoUpdateHandler {
             for (let i in invalidated_pixels_never_delete) {
                 let invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
 
-                VarDAGNode.getInstance(VarsdatasComputerBGThread.current_vardag, invalidated_pixel_never_delete, true);
+                VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, invalidated_pixel_never_delete, true);
             }
         }
 
         // On réinsère les registers (clients et serveurs)
         // Clients
-        await VarsClientsSubsCacheHandler.update_clients_subs_indexes_cache();
-        for (let index in VarsClientsSubsCacheHandler.clients_subs_indexes_cache) {
-            VarDAGNode.getInstance(VarsdatasComputerBGThread.current_vardag, VarDataBaseVO.from_index(index), true);
+        await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache();
+        for (let index in VarsClientsSubsCacheHolder.clients_subs_indexes_cache) {
+            VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), true);
         }
 
         // Server
         let server_subs: string[] = await VarsServerCallBackSubsController.get_subs_indexs();
         for (let i in server_subs) {
-            VarDAGNode.getInstance(VarsdatasComputerBGThread.current_vardag, VarDataBaseVO.from_index(server_subs[i]), true);
+            VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(server_subs[i]), true);
         }
     }
 
@@ -569,7 +561,7 @@ export default class VarsDatasVoUpdateHandler {
 
     //         if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
     //             thrower,
-    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsBGThreadNameHolder.bgthread_name,
     //             VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection,
     //             resolve,
     //             api_type_id,
@@ -677,7 +669,7 @@ export default class VarsDatasVoUpdateHandler {
 
         if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT) {
 
-            let node: VarDAGNode = VarsdatasComputerBGThread.current_vardag.nodes[invalidator.var_data.index];
+            let node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[invalidator.var_data.index];
 
             if (!node) {
                 return null;
@@ -697,8 +689,8 @@ export default class VarsDatasVoUpdateHandler {
         let res: VarDAGNode[] = [];
 
 
-        for (let i in VarsdatasComputerBGThread.current_vardag.nodes) {
-            let node: VarDAGNode = VarsdatasComputerBGThread.current_vardag.nodes[i];
+        for (let i in CurrentVarDAGHolder.current_vardag.nodes) {
+            let node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[i];
 
             if (node.var_data._type != invalidator.var_data._type) {
                 continue;
@@ -746,7 +738,7 @@ export default class VarsDatasVoUpdateHandler {
 
     //         if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
     //             thrower,
-    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsBGThreadNameHolder.bgthread_name,
     //             VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids,
     //             resolve,
     //             matroids)) {
@@ -918,7 +910,7 @@ export default class VarsDatasVoUpdateHandler {
 
     //             for (let i in invalidators) {
     //                 let invalidator = invalidators[i];
-    //                 let cached_i: VarDAGNode = VarsdatasComputerBGThread.current_vardag.nodes[invalidator.var_data.index];
+    //                 let cached_i: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[invalidator.var_data.index];
 
     //                 if (!cached_i) {
     //                     continue;
@@ -1715,7 +1707,7 @@ export default class VarsDatasVoUpdateHandler {
 
     private static async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
 
-        if (!await ForkedTasksController.exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vos_cud)) {
+        if (!await ForkedTasksController.exec_self_on_bgthread(VarsBGThreadNameHolder.bgthread_name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vos_cud)) {
             return;
         }
 

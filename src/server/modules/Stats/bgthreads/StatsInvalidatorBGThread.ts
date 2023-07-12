@@ -4,11 +4,12 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsGroupSecDataRangesVO from '../../../../shared/modules/Stats/vars/vos/StatsGroupDayDataRangesVO';
+import VarDataInvalidatorVO from '../../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import ModuleVarServer from '../../Var/ModuleVarServer';
+import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import VarSecStatsGroupeController from '../vars/controllers/VarSecStatsGroupeController';
 
 export default class StatsInvalidatorBGThread implements IBGThread {
@@ -94,6 +95,8 @@ export default class StatsInvalidatorBGThread implements IBGThread {
             [RangeHandler.getMaxNumRange()],
             [ts_range]
         );
-        await ModuleVarServer.getInstance().invalidate_cache_intersection_and_parents([intersector]);
+        let invalidator = new VarDataInvalidatorVO(
+            intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
+        await VarsDatasVoUpdateHandler.push_invalidators([invalidator]);
     }
 }

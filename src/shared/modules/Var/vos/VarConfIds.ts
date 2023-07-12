@@ -1,3 +1,4 @@
+/* istanbul ignore file : nothing to test */
 
 export default class VarConfIds {
 

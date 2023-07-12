@@ -2,6 +2,7 @@ import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import VarsBGThreadNameHolder from '../VarsBGThreadNameHolder';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
 import VarsComputationHole from './processes/VarsComputationHole';
@@ -20,25 +21,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      */
     public static current_vardag: VarDAG = new VarDAG();
 
-    /**
-     * Quand on veut invalider, le process d'invalidation doit indiquer qu'il attend un espace pour invalider (waiting_for_invalidation = true),
-     *  les autres process doivent indiquer qu'ils sont prêt pour l'invalidation dès que possible (processes_waiting_for_invalidation_end[process_name] = true) et
-     *  attendre la fin de l'invalidation. Le process d'invalidation doit indiquer qu'il a fini l'invalidation (waiting_for_invalidation = false).
-     *  Enfin les autres process doivent indiquer qu'ils ne sont plus en attente de l'invalidation (processes_waiting_for_invalidation_end[process_name] = false)
-     *  et reprendre leur travail.
-     */
-    public static waiting_for_computation_hole: boolean = false;
-    public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
-
     public static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
     public static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
     public static PARAM_NAME_bg_min_nb_vars: string = 'VarsdatasComputerBGThread.bg_min_nb_vars';
     public static PARAM_NAME_client_request_min_nb_vars: string = 'VarsdatasComputerBGThread.client_request_min_nb_vars';
-
-    /**
-     * Le cache des datasources lié au batch actuel
-     */
-    public static current_batch_ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
     public static getInstance() {
         if (!VarsdatasComputerBGThread.instance) {
@@ -80,7 +66,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     }
 
     get name(): string {
-        return "VarsdatasComputerBGThread";
+        return VarsBGThreadNameHolder.bgthread_name;
     }
 
     /**

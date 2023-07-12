@@ -8,7 +8,8 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
-import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import CurrentVarDAGHolder from './CurrentVarDAGHolder';
+import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -71,7 +72,7 @@ export default class VarsDatasProxy {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 reject,
-                VarsdatasComputerBGThread.getInstance().name,
+                VarsBGThreadNameHolder.bgthread_name,
                 VarsDatasProxy.TASK_NAME_add_to_tree_if_necessary_and_return_datas_that_need_notification,
                 resolve,
                 indexs)) {
@@ -82,7 +83,7 @@ export default class VarsDatasProxy {
             for (let i in indexs) {
                 let index = indexs[i];
 
-                let node: VarDAGNode = await VarDAGNode.getInstance(VarsdatasComputerBGThread.current_vardag, VarDataBaseVO.from_index(index));
+                let node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index));
 
                 if ((!node) || (!node.var_data)) {
                     ConsoleHandler.error('VarsDatasProxy.add_to_tree_if_necessary_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
@@ -108,7 +109,7 @@ export default class VarsDatasProxy {
     //         return;
     //     }
 
-    //     if (!await ForkedTasksController.exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_append_var_datas, var_datas)) {
+    //     if (!await ForkedTasksController.exec_self_on_bgthread(VarsBGThreadNameHolder.bgthread_name, VarsDatasProxy.TASK_NAME_append_var_datas, var_datas)) {
     //         return;
     //     }
 
@@ -130,7 +131,7 @@ export default class VarsDatasProxy {
     //         ConsoleHandler.log("prepend_var_datas:IN:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
     //     }
 
-    //     if (!await ForkedTasksController.exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, client_user_id, client_tab_id, is_server_request, reason, does_not_need_insert_or_update)) {
+    //     if (!await ForkedTasksController.exec_self_on_bgthread(VarsBGThreadNameHolder.bgthread_name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, client_user_id, client_tab_id, is_server_request, reason, does_not_need_insert_or_update)) {
     //         if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
     //             ConsoleHandler.log("prepend_var_datas:OUT not bgthread:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
     //         }
@@ -151,7 +152,7 @@ export default class VarsDatasProxy {
     //  */
     // public static async handle_buffer(): Promise<void> {
 
-    //     if (!BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
+    //     if (!BGThreadServerController.getInstance().valid_bgthreads_names[VarsBGThreadNameHolder.bgthread_name]) {
     //         return;
     //     }
 
@@ -416,7 +417,7 @@ export default class VarsDatasProxy {
 
     //     let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
-    //     if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
+    //     if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsBGThreadNameHolder.bgthread_name]) {
     //         if (VarsDatasProxy.vars_datas_buffer_wrapped_indexes[var_data.index]) {
 
     //             // TODO On stocke l'info de l'accès
@@ -488,7 +489,7 @@ export default class VarsDatasProxy {
     //         }
 
     //         let e = null;
-    //         if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
+    //         if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsBGThreadNameHolder.bgthread_name]) {
     //             if (VarsDatasProxy.vars_datas_buffer_wrapped_indexes[var_data.index]) {
 
     //                 // Stocker l'info de lecture
@@ -558,7 +559,7 @@ export default class VarsDatasProxy {
     //         return;
     //     }
 
-    //     if (!await ForkedTasksController.exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, var_datas)) {
+    //     if (!await ForkedTasksController.exec_self_on_bgthread(VarsBGThreadNameHolder.bgthread_name, VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, var_datas)) {
     //         return;
     //     }
 
@@ -729,7 +730,7 @@ export default class VarsDatasProxy {
 
     //     let res: VarDataBaseVO[] = [];
 
-    //     if ((!BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) &&
+    //     if ((!BGThreadServerController.getInstance().valid_bgthreads_names[VarsBGThreadNameHolder.bgthread_name]) &&
     //         (reason != 'test filter_var_datas_by_indexes')) { // cas des tests unitaires
     //         throw new Error('VarsDatasProxy.filter_var_datas_by_indexes: invalid bgthread name');
     //     }

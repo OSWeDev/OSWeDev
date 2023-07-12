@@ -1,11 +1,21 @@
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ForkedTasksController from '../../../Fork/ForkedTasksController';
-import VarsdatasComputerBGThread from '../VarsdatasComputerBGThread';
+import VarsBGThreadNameHolder from '../../VarsBGThreadNameHolder';
 
 export default class VarsComputationHole {
 
     public static TASK_NAME_exec_in_computation_hole = 'Var.exec_in_computation_hole';
+
+    /**
+     * Quand on veut invalider, le process d'invalidation doit indiquer qu'il attend un espace pour invalider (waiting_for_invalidation = true),
+     *  les autres process doivent indiquer qu'ils sont prêt pour l'invalidation dès que possible (processes_waiting_for_invalidation_end[process_name] = true) et
+     *  attendre la fin de l'invalidation. Le process d'invalidation doit indiquer qu'il a fini l'invalidation (waiting_for_invalidation = false).
+     *  Enfin les autres process doivent indiquer qu'ils ne sont plus en attente de l'invalidation (processes_waiting_for_invalidation_end[process_name] = false)
+     *  et reprendre leur travail.
+     */
+    public static waiting_for_computation_hole: boolean = false;
+    public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
 
     public static init() {
         ForkedTasksController.register_task(VarsComputationHole.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
@@ -25,7 +35,7 @@ export default class VarsComputationHole {
 
             if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 reject,
-                VarsdatasComputerBGThread.getInstance().name,
+                VarsBGThreadNameHolder.bgthread_name,
                 VarsComputationHole.TASK_NAME_exec_in_computation_hole,
                 resolve,
                 cb)) {
@@ -59,13 +69,13 @@ export default class VarsComputationHole {
 
         this.currently_waiting_for_hole_semaphore = true;
 
-        VarsdatasComputerBGThread.waiting_for_computation_hole = true;
+        VarsComputationHole.waiting_for_computation_hole = true;
 
         await this.wait_for_everyone_to_be_ready();
 
         await this.handle_hole();
 
-        VarsdatasComputerBGThread.waiting_for_computation_hole = false;
+        VarsComputationHole.waiting_for_computation_hole = false;
     }
 
     private static async handle_hole() {
@@ -87,8 +97,8 @@ export default class VarsComputationHole {
         while (true) {
 
             let all_ready = true;
-            for (let i in VarsdatasComputerBGThread.processes_waiting_for_computation_hole_end) {
-                if (!VarsdatasComputerBGThread.processes_waiting_for_computation_hole_end[i]) {
+            for (let i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
+                if (!VarsComputationHole.processes_waiting_for_computation_hole_end[i]) {
                     all_ready = false;
                     break;
                 }

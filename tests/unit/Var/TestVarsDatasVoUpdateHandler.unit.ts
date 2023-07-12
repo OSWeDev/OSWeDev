@@ -16,6 +16,7 @@ import FakeDistantHandler from './fakes/FakeDistantHandler';
 import FakeEmpDayDataHandler from './fakes/FakeEmpDayDataHandler';
 import FakeEmpDistantHandler from './fakes/FakeEmpDistantHandler';
 import FakeVarsInit from './fakes/FakeVarsInit';
+import FakeCyclicalDataHandler from './fakes/cyclical/FakeCyclicalDataHandler';
 
 ConsoleHandler.init();
 
@@ -722,6 +723,7 @@ test('VarsDatasVoUpdateHandler: test init_leaf_intersectors', async () => {
     VarsDatasVoUpdateHandler['prepare_updates'](vos_update_buffer, vos_create_or_delete_buffer, vo_types);
     intersectors_by_index = await VarsDatasVoUpdateHandler['init_leaf_intersectors'](vo_types, vos_update_buffer, vos_create_or_delete_buffer);
     expect(intersectors_by_index).toStrictEqual({
-        [FakeEmpDayDataHandler.get_data_A_day().index]: FakeEmpDayDataHandler.get_data_A_day()
+        [FakeEmpDayDataHandler.get_data_A_day().index]: FakeEmpDayDataHandler.get_data_A_day(),
+        [FakeCyclicalDataHandler.get_data_A().index]: FakeCyclicalDataHandler.get_data_A()
     });
 });
