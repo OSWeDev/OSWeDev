@@ -121,7 +121,7 @@ export default class ModuleVar extends Module {
          */
 
         // On définit qu'on attend un custom param si on a du ts_ranges ou du hour_ranges pour le moment
-        let fields = MatroidController.getInstance().getMatroidFields(VarsController.var_conf_by_name[var_name].var_data_vo_type);
+        let fields = MatroidController.getMatroidFields(VarsController.var_conf_by_name[var_name].var_data_vo_type);
         if (!fields) {
             // très improbable...
             return true;

@@ -82,7 +82,7 @@ export default class VarsImportsHandler {
         }
 
         // on cut par les imports, et pour chaque résultat on crée un noeud fils du noeud actuel, et le noeud actuel devient un aggrégateur
-        let cut_result: VarDataBaseVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
+        let cut_result: VarDataBaseVO[] = MatroidController.matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
 
         // Pour chaque noeud restant, un fils à calculer, pour chaque noeud importé, un fils avec la valeur de l'import
         await this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result);
@@ -99,13 +99,13 @@ export default class VarsImportsHandler {
             throw new Error('VarsImportsHandler:get_selection_imports:Unknown var_data.var_id:' + var_data.var_id);
         }
 
-        let cardinal_max = MatroidController.getInstance().get_cardinal(var_data);
+        let cardinal_max = MatroidController.get_cardinal(var_data);
         let imports_valides: VarDataBaseVO[] = [];
 
         let i = 0;
 
         let tested_import = ordered_imports[i];
-        cardinal_max -= MatroidController.getInstance().get_cardinal(tested_import);
+        cardinal_max -= MatroidController.get_cardinal(tested_import);
         imports_valides.push(tested_import);
 
         /**
@@ -129,10 +129,10 @@ export default class VarsImportsHandler {
                 throw new Error('VarsImportsHandler:get_selection_imports:Import var_id different from var_data.var_id:' + tested_import.var_id + ':' + var_data.var_id);
             }
 
-            let tested_cardinal = MatroidController.getInstance().get_cardinal(tested_import);
+            let tested_cardinal = MatroidController.get_cardinal(tested_import);
 
-            if ((tested_cardinal <= cardinal_max) && (!MatroidController.getInstance().matroid_intersects_any_matroid(tested_import, imports_valides))) {
-                cardinal_max -= MatroidController.getInstance().get_cardinal(tested_import);
+            if ((tested_cardinal <= cardinal_max) && (!MatroidController.matroid_intersects_any_matroid(tested_import, imports_valides))) {
+                cardinal_max -= MatroidController.get_cardinal(tested_import);
                 imports_valides.push(tested_import);
             }
             i++;
@@ -181,8 +181,8 @@ export default class VarsImportsHandler {
      * @param b
      */
     private sort_matroids_per_cardinal_desc(a: VarDataBaseVO, b: VarDataBaseVO): number {
-        let card_a = MatroidController.getInstance().get_cardinal(a);
-        let card_b = MatroidController.getInstance().get_cardinal(b);
+        let card_a = MatroidController.get_cardinal(a);
+        let card_b = MatroidController.get_cardinal(b);
 
         return card_b - card_a;
     }

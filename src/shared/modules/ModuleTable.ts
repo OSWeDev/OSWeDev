@@ -117,7 +117,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
          */
         let ignore_fields: { [field_id: string]: boolean } = {};
         if (table.isMatroidTable) {
-            let ignore_fields_ = MatroidController.getInstance().getMatroidFields(table.vo_type);
+            let ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
             for (let i in ignore_fields_) {
                 let ignore_field_ = ignore_fields_[i];
                 ignore_fields[ignore_field_.field_id] = true;
@@ -179,7 +179,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             a._type = res._type;
             a.id = res.id;
             res = a;
-            let ignore_fields_ = MatroidController.getInstance().getMatroidFields(table.vo_type);
+            let ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
             for (let i in ignore_fields_) {
                 let ignore_field_ = ignore_fields_[i];
                 ignore_fields[ignore_field_.field_id] = true;

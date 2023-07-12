@@ -84,7 +84,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             }
             filtered_vo_types[var_conf.var_data_vo_type] = true;
 
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];
@@ -355,7 +355,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
          */
         let first: boolean = true;
         for (let vo_type in filtered_vo_types) {
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(vo_type);
 
             if (first) {
                 for (let j in matroid_fields) {
@@ -427,7 +427,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             let var_conf = this.real_filtered_vars_confs[i];
 
             let param = VarDataBaseVO.createNew(var_conf.name);
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];

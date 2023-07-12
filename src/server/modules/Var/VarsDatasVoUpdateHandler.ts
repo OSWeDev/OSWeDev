@@ -520,7 +520,7 @@ export default class VarsDatasVoUpdateHandler {
              *  Le reste de la conf est sensé être identique par définition donc ça devrait marcher.
              */
             let kept_invalidator = this_conf_invalidators[0];
-            let union_var_datas = MatroidController.getInstance().union(this_conf_invalidators.map((invalidator) => invalidator.var_data));
+            let union_var_datas = MatroidController.union(this_conf_invalidators.map((invalidator) => invalidator.var_data));
 
             for (let i in union_var_datas) {
                 let union_var_data = union_var_datas[i];
@@ -599,7 +599,7 @@ export default class VarsDatasVoUpdateHandler {
     //     let res: VarDataBaseVO[] = [];
 
     //     let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
-    //     let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+    //     let matroid_fields = MatroidController.getMatroidFields(matroid._type);
 
     //     if (!moduleTable) {
     //         return null;
@@ -716,7 +716,7 @@ export default class VarsDatasVoUpdateHandler {
                 continue;
             }
 
-            if ((invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED) && !MatroidController.getInstance().matroid_intersects_matroid(node.var_data, invalidator.var_data)) {
+            if ((invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED) && !MatroidController.matroid_intersects_matroid(node.var_data, invalidator.var_data)) {
                 continue;
             }
 
@@ -811,7 +811,7 @@ export default class VarsDatasVoUpdateHandler {
             case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
 
                 query_.filter_by_num_eq(field_names<VarDataBaseVO>().var_id, var_data.var_id);
-                let matroid_fields = MatroidController.getInstance().getMatroidFields(var_data._type);
+                let matroid_fields = MatroidController.getMatroidFields(var_data._type);
                 for (let j in matroid_fields) {
                     let matroid_field = matroid_fields[j];
                     query_.filter_by_num_x_ranges(matroid_field.field_id, var_data[matroid_field.field_id]);
@@ -1232,7 +1232,7 @@ export default class VarsDatasVoUpdateHandler {
     //             case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
 
     //                 invalidator_filters.push(filter(var_data._type, 'var_id').by_num_eq(var_data.var_id));
-    //                 let matroid_fields = MatroidController.getInstance().getMatroidFields(var_data._type);
+    //                 let matroid_fields = MatroidController.getMatroidFields(var_data._type);
     //                 for (let j in matroid_fields) {
     //                     let matroid_field = matroid_fields[j];
     //                     invalidator_filters.push(filter(var_data._type, matroid_field.field_id).by_num_x_ranges(var_data[matroid_field.field_id]));
@@ -1364,7 +1364,7 @@ export default class VarsDatasVoUpdateHandler {
     //             await VarsDatasVoUpdateHandler.compute_deps_intersectors_and_union(Nx, intersectors_by_var_id);
     //             let self = this;
 
-    //             await DAGController.getInstance().visit_bottom_up_from_node(Nx, async (Ny: VarCtrlDAGNode) => {
+    //             await DAGController.visit_bottom_up_from_node(Nx, async (Ny: VarCtrlDAGNode) => {
     //                 markers[Ny.var_controller.varConf.id]--;
 
     //                 if (!markers[Ny.var_controller.varConf.id]) {
@@ -1522,7 +1522,7 @@ export default class VarsDatasVoUpdateHandler {
     //     }
 
     //     intersectors = ObjectHandler.mapByStringFieldFromArray(
-    //         MatroidController.getInstance().union(Object.values(intersectors)), 'index');
+    //         MatroidController.union(Object.values(intersectors)), 'index');
 
     //     if ((!intersectors) || (!ObjectHandler.hasAtLeastOneAttribute(intersectors))) {
     //         return;

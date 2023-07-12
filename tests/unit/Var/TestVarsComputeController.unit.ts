@@ -33,7 +33,7 @@
 //     //     let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
 //     //     let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
 //     //     let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
-//     //     let remaning_calcs: FakeDataVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings([var_data_C, var_data_B], [var_data_F]);
+//     //     let remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings([var_data_C, var_data_B], [var_data_F]);
 
 //     //     let node_F = VarDAGNode.getInstance(new VarDAG(), var_data_F);
 //     //     VarsComputeController.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);

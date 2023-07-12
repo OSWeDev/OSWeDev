@@ -12,6 +12,7 @@ import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeDataVO from './fakes/vos/FakeDataVO';
 import RangeHandler from '../../../src/shared/tools/RangeHandler';
+import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 
 test('DAG: test semaphore getInstance()', async () => {
 
@@ -131,26 +132,64 @@ test('DAG: test semaphore getInstance()', async () => {
     expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA });
 });
 
-test('DAG: test getInstance() maxrange', async () => {
+// FIXME UNCOMMENT WHEN ISSUE https://github.com/microsoft/playwright/issues/24173 is solved
+// test('DAG: test getInstance() maxrange', async () => {
+//     ConsoleHandler.init();
 
-    await FakeVarsInit.initAll();
+//     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = new VarDAG();
+//     let dag: VarDAG = new VarDAG();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-    var_data_A.ts_ranges = [RangeHandler.getMaxTSRange()];
+//     let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+//     var_data_A.ts_ranges = [RangeHandler.getMaxTSRange()];
 
-    let dagnodeA: VarDAGNode = null;
+//     let node_A = null;
+//     let throws = false;
+//     try {
+//         node_A = await VarDAGNode.getInstance(dag, var_data_A, true);
+//         ConsoleHandler.error('Should not be able to create a node with a maxrange');
+//         throw new Error('Should not be able to create a node with a maxrange');
+//     } catch (error) {
+//         throws = true;
+//     }
+//     expect(throws).toStrictEqual(true);
+//     expect(node_A).toStrictEqual(null);
 
-    expect(async () => {
-        dagnodeA = await VarDAGNode.getInstance(dag, var_data_A, true);
-    }).toThrow();
+//     expect(dag.nb_nodes).toStrictEqual(0);
+// });
 
-    expect(dagnodeA).toBeNull();
+// FIXME DELETE WHEN ISSUE https://github.com/microsoft/playwright/issues/24173 is solved
+// test('Playwright promise rejection with finally', async () => {
+//     let p = new Promise((resolve, reject) => {
+//         reject('failed');
+//     });
 
-    expect(dag.nb_nodes).toStrictEqual(0);
-});
+//     p.finally(() => {
+//         console.log('finally');
+//     });
 
+//     let has_failed = false;
+//     try {
+//         await p;
+//     } catch (e) {
+//         has_failed = true;
+//     }
+//     expect(has_failed).toStrictEqual(true);
+// });
+
+// test('Playwright promise rejection without finally', async () => {
+//     let p = new Promise((resolve, reject) => {
+//         reject('failed');
+//     });
+
+//     let has_failed = false;
+//     try {
+//         await p;
+//     } catch (e) {
+//         has_failed = true;
+//     }
+//     expect(has_failed).toStrictEqual(true);
+// });
 
 test('DAG: test add nodes', async () => {
 
@@ -289,10 +328,10 @@ test('DAG: test visit bottom->up to node', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_bottom_up_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_bottom_up_to_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_to_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
 
     expect(visit_res).toStrictEqual(
         FakeDataHandler.get_expected_var_data_E_index() + ',' +
@@ -320,10 +359,10 @@ test('DAG: test visit top->bottom from node', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_top_bottom_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_top_bottom_from_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_from_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
 
     expect(visit_res).toStrictEqual(
         FakeDataHandler.get_expected_var_data_B_index() + ',' +
@@ -351,10 +390,10 @@ test('DAG: test visit bottom->up from node', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_bottom_up_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_bottom_up_from_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_from_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
 
     expect(visit_res).toStrictEqual(
         FakeDataHandler.get_expected_var_data_B_index() + ',' +
@@ -381,10 +420,10 @@ test('DAG: test visit top->bottom to node', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_top_bottom_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_top_bottom_to_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_to_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
 
     expect(visit_res).toStrictEqual(
         FakeDataHandler.get_expected_var_data_A_index() + ',' +
@@ -411,10 +450,10 @@ test('DAG: test visit bottom->up through node', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_bottom_up_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_bottom_up_through_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_through_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
 
     expect(visit_res).toStrictEqual(
         FakeDataHandler.get_expected_var_data_E_index() + ',' +
@@ -443,10 +482,10 @@ test('DAG: test visit top->bottom through node', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_top_bottom_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_top_bottom_through_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_through_node(node_b, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
 
     expect(visit_res).toStrictEqual(
         FakeDataHandler.get_expected_var_data_A_index() + ',' +
@@ -479,10 +518,10 @@ test('DAG: test visit bottom->up to node with condition', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_bottom_up_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_bottom_up_to_node(
+    await DAGController.visit_bottom_up_to_node(
         node_b,
         async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
         (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()
@@ -513,10 +552,10 @@ test('DAG: test visit top->bottom from node with condition', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_top_bottom_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_top_bottom_from_node(
+    await DAGController.visit_top_bottom_from_node(
         node_b,
         async (node: VarDAGNode) => {
             visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index);
@@ -549,10 +588,10 @@ test('DAG: test visit bottom->up from node with condition', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_bottom_up_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_from_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_bottom_up_from_node(
+    await DAGController.visit_bottom_up_from_node(
         node_b,
         async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
         (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_A_index()
@@ -582,10 +621,10 @@ test('DAG: test visit top->bottom to node with condition', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_top_bottom_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_to_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_top_bottom_to_node(
+    await DAGController.visit_top_bottom_to_node(
         node_b,
         async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
         (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_A_index()
@@ -615,10 +654,10 @@ test('DAG: test visit bottom->up through node with condition', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_bottom_up_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_bottom_up_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_bottom_up_through_node(
+    await DAGController.visit_bottom_up_through_node(
         node_b,
         async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
         (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()
@@ -650,10 +689,10 @@ test('DAG: test visit top->bottom through node with condition', async () => {
 
     let visit_res: string = null;
 
-    await DAGController.getInstance().visit_top_bottom_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+    await DAGController.visit_top_bottom_through_node(null, async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
     expect(visit_res).toBeNull();
 
-    await DAGController.getInstance().visit_top_bottom_through_node(
+    await DAGController.visit_top_bottom_through_node(
         node_b,
         async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
         (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()

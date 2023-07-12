@@ -952,7 +952,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             field_is_cardinal_supp_1[field_id] = !((!!matroid_field_range_by_datatable_field_id) && (matroid_field_range_by_datatable_field_id.length == 1));
         }
 
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid._type);
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(matroid._type);
         let matroid_fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
 
         for (let i in matroid_fields) {
@@ -1056,7 +1056,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
-        let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+        let matroid_fields = MatroidController.getMatroidFields(matroid._type);
 
         let first = true;
         for (let i in matroid_fields) {
@@ -3534,7 +3534,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
 
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(API_TYPE_ID);
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(API_TYPE_ID);
         let matroid_fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
 
         for (let i in matroid_fields) {
@@ -4347,7 +4347,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private get_matroid_fields_ranges_by_datatable_field_id(matroid: IMatroid, moduleTable: ModuleTable<any>, fields_ids_mapper: { [matroid_field_id: string]: string }): { [field_id: string]: IRange[] } {
 
-        let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+        let matroid_fields = MatroidController.getMatroidFields(matroid._type);
         let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: IRange[] } = {};
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
@@ -4618,7 +4618,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
                 }
 
-                let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+                let matroid_fields = MatroidController.getMatroidFields(matroid._type);
 
                 let first = true;
                 for (let i in matroid_fields) {

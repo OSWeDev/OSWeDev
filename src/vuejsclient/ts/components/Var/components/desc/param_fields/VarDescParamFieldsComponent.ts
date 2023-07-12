@@ -53,6 +53,6 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
             return null;
         }
 
-        return MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        return MatroidController.getMatroidFields(this.var_param._type);
     }
 }

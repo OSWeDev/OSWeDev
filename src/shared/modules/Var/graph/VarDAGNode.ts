@@ -106,22 +106,24 @@ export default class VarDAGNode extends DAGNodeBase {
         /**
          * On utilise une forme de sémaphore, qui utilise les promises pour éviter de créer plusieurs fois le même noeud
          */
-        if (!VarDAGNode.getInstance_semaphores[var_data.index]) {
-            let promise = (async () => {
-                return await VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
-            })();
-            VarDAGNode.getInstance_semaphores[var_data.index] = promise;
-            promise.finally(() => {
-                delete VarDAGNode.getInstance_semaphores[var_data.index];
-            });
-
-            return await promise;
+        if (!VarDAGNode.getInstance_semaphores[var_dag.uid]) {
+            VarDAGNode.getInstance_semaphores[var_dag.uid] = {};
         }
 
-        return await VarDAGNode.getInstance_semaphores[var_data.index];
+        if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
+            let promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
+            VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise;
+            // promise.finally(() => {
+            //     delete VarDAGNode.getInstance_semaphores[var_data.index];
+            // });
+
+            return promise;
+        }
+
+        return VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
     }
 
-    private static getInstance_semaphores: { [var_data_index: number]: Promise<VarDAGNode> } = {};
+    private static getInstance_semaphores: { [var_dag_uid: number]: { [var_data_index: number]: Promise<VarDAGNode> } } = {};
 
     /**
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
@@ -144,9 +146,10 @@ export default class VarDAGNode extends DAGNodeBase {
             /**
              * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
              */
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_data)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_data)) {
                 ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
                 reject('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
+                return;
             }
 
             let node = new VarDAGNode(var_dag, var_data);

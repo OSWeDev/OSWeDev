@@ -173,7 +173,7 @@ export default class MatroidIndexHandler {
         let res: string = vardata.var_id.toString();
 
         this.normalize_vardata_fields(vardata);
-        let fields = MatroidController.getInstance().getMatroidFields(vardata._type);
+        let fields = MatroidController.getMatroidFields(vardata._type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -192,7 +192,7 @@ export default class MatroidIndexHandler {
         let res: string = MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
 
         this.normalize_vardata_fields(vardata);
-        let fields = MatroidController.getInstance().getMatroidFields(vardata._type);
+        let fields = MatroidController.getMatroidFields(vardata._type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -227,7 +227,7 @@ export default class MatroidIndexHandler {
         let res: VarDataBaseVO = VOsTypesManager.moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
 
         res.var_id = var_id;
-        let fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+        let fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
         let matroid_segmentations = VarDataBaseVO.get_varconf_segmentations(var_conf);
 

@@ -934,7 +934,7 @@ export default class VarsComputeController {
     //         let node = var_dag.nodes[i];
 
     //         if (!VarsServerController.has_valid_value(node.var_data)) {
-    //             await DAGController.getInstance().visit_bottom_up_to_node(
+    //             await DAGController.visit_bottom_up_to_node(
     //                 node,
     //                 async (visited_node: VarDAGNode) => await this.compute_node(visited_node),
     //                 (next_node: VarDAGNode) => !VarsServerController.has_valid_value(next_node.var_data));
@@ -975,7 +975,7 @@ export default class VarsComputeController {
     //          *      sur champs pixellisés : on veut les valeurs contenues,
     //          *      sur les autres champs : on veut les valeurs exactes
     //          */
-    //         let matroid_fields = MatroidController.getInstance().getMatroidFields(varconf.var_data_vo_type);
+    //         let matroid_fields = MatroidController.getMatroidFields(varconf.var_data_vo_type);
     //         for (let i in matroid_fields) {
     //             let matroid_field = matroid_fields[i];
 

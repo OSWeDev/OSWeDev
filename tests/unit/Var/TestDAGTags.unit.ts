@@ -6,11 +6,14 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 import { expect, test } from "playwright-test-coverage";
 import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAGNodeDep from '../../../src/shared/modules/Var/graph/VarDAGNodeDep';
 import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeDataVO from './fakes/vos/FakeDataVO';
-import VarDataBaseVO from '../../../src/shared/modules/Var/vos/VarDataBaseVO';
-import VarDAGNodeDep from '../../../src/shared/modules/Var/graph/VarDAGNodeDep';
+import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
+import DAGNodeDep from '../../../src/shared/modules/Var/graph/dagbase/DAGNodeDep';
+
+ConsoleHandler.init();
 
 test('DAG: test isDeletable', async () => {
 
@@ -284,31 +287,19 @@ test('DAG: test addOutgoingDep', async () => {
     node_A.addOutgoingDep('DEP:A>B', node_B);
 
     expect(node_A.outgoing_deps).toStrictEqual({
-        'DEP:A>B': {
-            outgoing_node: node_B,
-            incoming_node: node_A
-        }
+        'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
     });
     expect(node_B.incoming_deps).toStrictEqual({
-        'DEP:A>B': {
-            outgoing_node: node_B,
-            incoming_node: node_A
-        }
+        'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
     });
 
     node_A.addOutgoingDep('DEP:A>B', node_B);
 
     expect(node_A.outgoing_deps).toStrictEqual({
-        'DEP:A>B': {
-            outgoing_node: node_B,
-            incoming_node: node_A
-        }
+        'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
     });
     expect(node_B.incoming_deps).toStrictEqual({
-        'DEP:A>B': {
-            outgoing_node: node_B,
-            incoming_node: node_A
-        }
+        'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
     });
 });
 

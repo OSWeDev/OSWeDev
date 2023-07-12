@@ -65,7 +65,7 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
     let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
     let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
     let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
-    let remaning_calcs: FakeDataVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(
+    let remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings(
         [var_data_C, var_data_B],
         [var_data_F]);
 

@@ -1060,7 +1060,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          * On check qu'on essaie pas d'ajouter une var avec un maxrange quelque part qui casserait tout
          */
         params = params.filter((param) => {
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(param)) {
+            if (!MatroidController.check_bases_not_max_ranges(param)) {
                 ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + param.index);
                 return false;
             }
@@ -1125,7 +1125,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(param._type);
+            let matroid_fields = MatroidController.getMatroidFields(param._type);
             if (!matroid_fields) {
                 continue;
             }
@@ -1427,7 +1427,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_name);
 
-        let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+        let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];
 
         let cleaned_active_field_filters = FieldFilterManager.clean_field_filters_for_request(get_active_field_filters);

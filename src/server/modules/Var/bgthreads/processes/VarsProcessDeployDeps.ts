@@ -196,7 +196,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
          *      sur champs pixellisés : on veut les valeurs contenues,
          *      sur les autres champs : on veut les valeurs exactes
          */
-        let matroid_fields = MatroidController.getInstance().getMatroidFields(varconf.var_data_vo_type);
+        let matroid_fields = MatroidController.getMatroidFields(varconf.var_data_vo_type);
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
 

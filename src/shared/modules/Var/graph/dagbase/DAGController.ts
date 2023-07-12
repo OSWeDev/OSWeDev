@@ -2,17 +2,6 @@ import DAGNodeBase from './DAGNodeBase';
 
 export default class DAGController {
 
-    public static getInstance(): DAGController {
-        if (!DAGController.instance) {
-            DAGController.instance = new DAGController();
-        }
-        return DAGController.instance;
-    }
-
-    private static instance: DAGController = null;
-
-    private constructor() { }
-
     /**
      * Visit bottom->up to node
      * exemple :
@@ -27,11 +16,15 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_to_node(
+    public static async visit_bottom_up_to_node(
         target_node: DAGNodeBase,
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
         visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (!target_node) {
+            return;
+        }
 
         if (visited.indexOf(target_node) >= 0) {
             return;
@@ -63,11 +56,15 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_from_node(
+    public static async visit_top_bottom_from_node(
         source_node: DAGNodeBase,
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
         visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (!source_node) {
+            return;
+        }
 
         if (visited.indexOf(source_node) >= 0) {
             return;
@@ -99,7 +96,7 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_from_node(
+    public static async visit_bottom_up_from_node(
         source_node: DAGNodeBase,
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
@@ -139,7 +136,7 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_to_node(
+    public static async visit_top_bottom_to_node(
         target_node: DAGNodeBase,
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
@@ -179,7 +176,7 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_through_node(
+    public static async visit_bottom_up_through_node(
         through_node: DAGNodeBase,
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
@@ -227,7 +224,7 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_through_node(
+    public static async visit_top_bottom_through_node(
         through_node: DAGNodeBase,
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
@@ -260,4 +257,6 @@ export default class DAGController {
             }
         }
     }
+
+    private constructor() { }
 }

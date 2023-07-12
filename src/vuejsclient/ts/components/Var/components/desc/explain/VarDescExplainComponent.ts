@@ -249,7 +249,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         let res = {
             self: this.var_data.value
         };
-        let matroid_bases = MatroidController.getInstance().getMatroidBases(this.var_param);
+        let matroid_bases = MatroidController.getMatroidBases(this.var_param);
         for (let i in matroid_bases) {
             let matroid_base = matroid_bases[i];
 

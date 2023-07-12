@@ -63,7 +63,7 @@ export default class VarDataBaseVO implements IMatroid {
             ConsoleHandler.error("VarDataBaseVO.createNew var_name :: " + var_name);
         }
 
-        let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
+        let fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
         let param_i: number = 0;
         for (let i in fields) {
             let field = fields[i];
@@ -120,7 +120,7 @@ export default class VarDataBaseVO implements IMatroid {
             return res;
         }
 
-        let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
+        let fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -228,7 +228,7 @@ export default class VarDataBaseVO implements IMatroid {
         clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
         varConf = varConf ? varConf : VarsController.var_conf_by_id[param_to_clone.var_id];
 
-        let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
+        let res: U = MatroidController.cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
         if (!res) {
             return null;
         }
@@ -315,7 +315,7 @@ export default class VarDataBaseVO implements IMatroid {
             return false;
         }
 
-        let fields = MatroidController.getInstance().getMatroidFields(this._type);
+        let fields = MatroidController.getMatroidFields(this._type);
 
         for (let i in fields) {
             let field = fields[i];

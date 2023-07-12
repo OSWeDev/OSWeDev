@@ -85,7 +85,7 @@ export default class VarsClientController {
                 continue;
             }
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
                 continue;
             }
@@ -121,7 +121,7 @@ export default class VarsClientController {
         for (let i in VarsClientController.registered_var_params) {
             let var_param_wrapper = VarsClientController.registered_var_params[i];
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param_wrapper.var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param_wrapper.var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param_wrapper.var_param.index);
                 continue;
             }
@@ -150,7 +150,7 @@ export default class VarsClientController {
                 continue;
             }
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
                 continue;
             }
@@ -219,7 +219,7 @@ export default class VarsClientController {
                 // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
             }
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
                 continue;
             }

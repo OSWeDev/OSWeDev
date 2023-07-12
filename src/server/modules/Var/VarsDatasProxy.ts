@@ -383,7 +383,7 @@ export default class VarsDatasProxy {
     //     for (let _type in vars_by_type) {
     //         let vars = vars_by_type[_type];
 
-    //         let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(_type);
+    //         let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(_type);
 
     //         for (let i in vars) {
     //             let vardata = vars[i];
@@ -823,7 +823,7 @@ export default class VarsDatasProxy {
 
     //     for (let i in vars_datas_buffer) {
     //         let var_wrapper = vars_datas_buffer[i];
-    //         cardinaux[var_wrapper.var_data.index] = MatroidController.getInstance().get_cardinal(var_wrapper.var_data);
+    //         cardinaux[var_wrapper.var_data.index] = MatroidController.get_cardinal(var_wrapper.var_data);
     //     }
 
     //     // Ensuite par hauteur dans l'arbre

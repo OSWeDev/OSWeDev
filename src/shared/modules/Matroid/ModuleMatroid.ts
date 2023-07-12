@@ -26,12 +26,12 @@ export default class ModuleMatroid extends Module {
     }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
-        await MatroidController.getInstance().initialize();
+        await MatroidController.initialize();
         return true;
     }
 
     public async hook_module_configure(): Promise<boolean> {
-        await MatroidController.getInstance().initialize();
+        await MatroidController.initialize();
         return true;
     }
 }

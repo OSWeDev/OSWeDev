@@ -105,7 +105,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         for (let _type in nodes_by_type) {
             let nodes = nodes_by_type[_type];
 
-            let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(_type);
+            let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(_type);
 
             for (let i in nodes) {
                 let node = nodes[i];

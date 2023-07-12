@@ -135,7 +135,7 @@ export default class VarDescComponent extends VueComponentBase {
 
         VarsDatasExplorerFiltersComponent.instance.fitered_vars_confs = [VarsController.var_conf_by_id[this.var_param.var_id]];
 
-        let matroid_fields = MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        let matroid_fields = MatroidController.getMatroidFields(this.var_param._type);
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
 
