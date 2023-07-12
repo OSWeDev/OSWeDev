@@ -351,7 +351,14 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return null;
         }
 
-        return Dates.startOf(Dates.add(moment(this.tsrange_end).utc(true).unix(), -this.field.max_range_offset, this.segmentation_type_), this.segmentation_type_);
+        let start_date_unix: number = moment(this.tsrange_start).utc(true).unix();
+        let end_date_unix: number = moment(this.tsrange_end).utc(true).unix();
+
+        if (start_date_unix == end_date_unix) {
+            return Dates.startOf(end_date_unix, this.segmentation_type_);
+        }
+
+        return Dates.startOf(Dates.add(end_date_unix, -this.field.max_range_offset, this.segmentation_type_), this.segmentation_type_);
     }
 
     /**
