@@ -403,6 +403,63 @@ test('DAG: test var process', async () => {
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
+    // On computer le premier étage
+    expect(node_a.tags).toStrictEqual({
+        [VarDAGNode.TAG_3_DATA_LOADED]: true
+    });
+    expect(node_b.tags).toStrictEqual({
+        [VarDAGNode.TAG_3_DATA_LOADED]: true
+    });
+    expect(node_c.tags).toStrictEqual({
+        [VarDAGNode.TAG_3_DATA_LOADED]: true
+    });
+    expect(node_e.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_f.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_g.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_h.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+
+    // On lance le process de notification de début de traitement
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
+    await promise_pipeline.end();
+    expect(did_something).toBeTruthy();
+
+    // On computer le second étage
+    expect(node_a.tags).toStrictEqual({
+        [VarDAGNode.TAG_3_DATA_LOADED]: true
+    });
+    expect(node_b.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_c.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_e.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_f.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_g.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+    expect(node_h.tags).toStrictEqual({
+        [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+
+    // On lance le process de notification de début de traitement
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
+    await promise_pipeline.end();
+    expect(did_something).toBeTruthy();
+
+    // On computer le troisième étage
     expect(node_a.tags).toStrictEqual({
         [VarDAGNode.TAG_4_COMPUTED]: true
     });
@@ -584,11 +641,40 @@ test('DAG: test var process', async () => {
     });
 
 
-    // On lance le process de notification de début de traitement
+    // On lance le process de suppression de l'arbre
     did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
+    // On nettoie le premier niveau de l'arbre
+    expect(dag.nodes[node_a.var_data.index]).toBeUndefined();
+    expect(dag.nodes[node_b.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_c.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_e.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_f.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_g.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_h.var_data.index]).toBeDefined();
+
+    // On lance le process de suppression de l'arbre
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
+    await promise_pipeline.end();
+    expect(did_something).toBeTruthy();
+
+    // On nettoie le premier niveau de l'arbre
+    expect(dag.nodes[node_a.var_data.index]).toBeUndefined();
+    expect(dag.nodes[node_b.var_data.index]).toBeUndefined();
+    expect(dag.nodes[node_c.var_data.index]).toBeUndefined();
+    expect(dag.nodes[node_e.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_f.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_g.var_data.index]).toBeDefined();
+    expect(dag.nodes[node_h.var_data.index]).toBeDefined();
+
+    // On lance le process de suppression de l'arbre
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
+    await promise_pipeline.end();
+    expect(did_something).toBeTruthy();
+
+    // On nettoie le premier niveau de l'arbre
     expect(dag.nodes[node_a.var_data.index]).toBeUndefined();
     expect(dag.nodes[node_b.var_data.index]).toBeUndefined();
     expect(dag.nodes[node_c.var_data.index]).toBeUndefined();
@@ -596,4 +682,5 @@ test('DAG: test var process', async () => {
     expect(dag.nodes[node_f.var_data.index]).toBeUndefined();
     expect(dag.nodes[node_g.var_data.index]).toBeUndefined();
     expect(dag.nodes[node_h.var_data.index]).toBeUndefined();
+
 });

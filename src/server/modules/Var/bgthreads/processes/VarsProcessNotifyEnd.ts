@@ -46,8 +46,10 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
             }
         }
 
-        await VarsTabsSubsController.notify_vardatas(notifVardatasParams);
-        await VarsServerCallBackSubsController.notify_vardatas(vardatas);
+        if (!ConfigurationService.IS_UNIT_TEST_MODE) {
+            await VarsTabsSubsController.notify_vardatas(notifVardatasParams);
+            await VarsServerCallBackSubsController.notify_vardatas(vardatas);
+        }
         return true;
     }
 }

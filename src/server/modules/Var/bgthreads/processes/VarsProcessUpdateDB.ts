@@ -8,6 +8,7 @@ import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import ConfigurationService from '../../../../env/ConfigurationService';
 import ModuleDAOServer from '../../../DAO/ModuleDAOServer';
 import PixelVarDataController from '../../PixelVarDataController';
 import VarsCacheController from '../../VarsCacheController';
@@ -55,9 +56,10 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
             nodes_by_type[node.var_data._type].push(node);
         }
 
-        nodes_by_type = await this.filter_var_datas_by_index_size_limit(nodes_by_type);
-
-        nodes_by_type = await this.filter_by_BDD_do_cache_param_data(nodes_by_type);
+        if (!ConfigurationService.IS_UNIT_TEST_MODE) {
+            nodes_by_type = await this.filter_var_datas_by_index_size_limit(nodes_by_type);
+            nodes_by_type = await this.filter_by_BDD_do_cache_param_data(nodes_by_type);
+        }
 
         let promises = [];
         let result = true;
@@ -70,11 +72,13 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
 
             let vars_datas: VarDataBaseVO[] = nodes_array.map((node: VarDAGNode) => node.var_data);
 
-            promises.push((async () => {
-                if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(vars_datas, null, true)) {
-                    result = false;
-                }
-            })());
+            if (!ConfigurationService.IS_UNIT_TEST_MODE) {
+                promises.push((async () => {
+                    if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(vars_datas, null, true)) {
+                        result = false;
+                    }
+                })());
+            }
         }
         await all_promises(promises);
 

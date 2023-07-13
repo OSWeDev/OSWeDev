@@ -88,7 +88,7 @@ export default abstract class VarsProcessBase {
         let self = this;
         let valid_nodes = this.get_valid_nodes();
 
-        let did_something = Object.keys(valid_nodes).length > 0;
+        let did_something = false;
         for (let i in valid_nodes) {
             let node = valid_nodes[i];
 
@@ -97,6 +97,8 @@ export default abstract class VarsProcessBase {
 
                     let worker_time_in = Dates.now_ms();
                     let res = await self.worker_async(node);
+                    did_something = did_something || res;
+                    StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
                     node.remove_tag(this.TAG_SELF_NAME);
 
@@ -105,6 +107,7 @@ export default abstract class VarsProcessBase {
             } else {
                 let worker_time_in = Dates.now_ms();
                 let res = this.worker_sync(node);
+                did_something = did_something || res;
                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
                 node.remove_tag(this.TAG_SELF_NAME);
@@ -175,6 +178,7 @@ export default abstract class VarsProcessBase {
             // On peut vouloir traiter en mode batch
             let worker_time_in = Dates.now_ms();
             let res = await this.worker_async_batch(batch_nodes);
+            StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
             for (let i in batch_nodes) {
                 let node = batch_nodes[i];

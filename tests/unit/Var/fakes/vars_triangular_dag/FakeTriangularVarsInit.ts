@@ -1,6 +1,6 @@
 import VarsServerController from "../../../../../src/server/modules/Var/VarsServerController";
 import ModuleVar from "../../../../../src/shared/modules/Var/ModuleVar";
-import FakeDataHandler from "../FakeDataHandler";
+import FakeTriangularValidDataHandler from "./FakeTriangularValidDataHandler";
 import FakeAVarController from "./ctrls/FakeAVarController";
 import FakeBVarController from "./ctrls/FakeBVarController";
 import FakeCVarController from "./ctrls/FakeCVarController";
@@ -13,7 +13,7 @@ export default class FakeTriangularVarsInit {
 
     public static async initAll() {
 
-        FakeDataHandler.initializeFakeDataVO();
+        FakeTriangularValidDataHandler.initializeFakeDataVO();
         await ModuleVar.getInstance().initializeasync({
             [FakeAVarController.getInstance().varConf.id]: FakeAVarController.getInstance().varConf,
             [FakeBVarController.getInstance().varConf.id]: FakeBVarController.getInstance().varConf,
