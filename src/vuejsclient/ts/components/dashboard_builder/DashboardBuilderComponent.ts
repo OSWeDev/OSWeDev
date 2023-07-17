@@ -553,10 +553,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         if (!this.dashboard_id) {
             await this.init_dashboard();
-            this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
-            this.show_build_page = this.can_build_page;
-            this.show_select_vos = !this.show_build_page;
-            this.show_menu_conf = false;
+            this.init_dashboard_tab();
             return;
         }
 
@@ -692,17 +689,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         if (!this.dashboard) {
             await this.init_dashboard();
-            this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
-            this.show_build_page = this.can_build_page;
-            this.show_select_vos = !this.show_build_page;
-            this.show_menu_conf = false;
+            this.init_dashboard_tab();
             return;
         }
 
-        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
-        this.show_build_page = this.can_build_page;
-        this.show_select_vos = !this.show_build_page;
-        this.show_menu_conf = false;
+        this.init_dashboard_tab();
 
         this.set_page_widgets_components_by_pwid({});
 
@@ -755,6 +746,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private added_widget_to_page(page_widget: DashboardPageWidgetVO) {
         this.set_page_widget(page_widget);
+    }
+
+    private close_widget_options() {
+        this.select_widget(null);
     }
 
     private select_page(page: DashboardPageVO) {
@@ -855,6 +850,18 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             WeightHandler.getInstance().sortByWeight(this.pages);
             this.page = this.pages[0];
         }
+    }
+
+    /**
+     * init_dashboard_tab
+     *  - Initialize the dashboard tab to show in case when the dashboard is loaded or changed
+     */
+    private init_dashboard_tab() {
+        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
+        this.show_build_page = this.can_build_page;
+        this.show_select_vos = !this.show_build_page;
+        this.show_shared_filters = false;
+        this.show_menu_conf = false;
     }
 
     get dashboard_name_code_text(): string {

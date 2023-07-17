@@ -237,7 +237,9 @@ export default class ContextFilterVOHandler {
     protected constructor() { }
 
     public async get_datatable_row_field_data_async(
-        raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>
+        raw_data: IDistantVOBase,
+        resData: any,
+        field: DatatableField<any, any>
     ): Promise<any> {
 
         try {
@@ -428,13 +430,14 @@ export default class ContextFilterVOHandler {
                     resData[field.datatable_field_uid] = [];
 
                     let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id :
+                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id + '__raw' : // We are waiting for the actual converted NumRange[] value
                         refField.srcField.field_id;
 
                     await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
                         let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
                             .filter_by_id(id)
                             .select_vo();
+
                         resData[field.datatable_field_uid].push({
                             id: id,
                             label: refField.dataToHumanReadable(ref_data)
@@ -449,6 +452,8 @@ export default class ContextFilterVOHandler {
             ConsoleHandler.error(error);
             resData[field.datatable_field_uid] = null;
         }
+
+        return resData;
     }
 
     public get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {

@@ -10,12 +10,10 @@ import InlineTranslatableText from '../../../../../InlineTranslatableText/Inline
 import VueComponentBase from '../../../../../VueComponentBase';
 import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
 import './TableWidgetColumnOptionsComponent.scss';
-import TableWidgetOptions from '../TableWidgetOptions';
 import TableWidgetController from '../../TableWidgetController';
 import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
 import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import NumRange from '../../../../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
 import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
@@ -25,6 +23,7 @@ import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/Wi
 import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
 import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import TableWidgetOptionsVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -486,44 +485,16 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res.map((c) => c.translatable_title);
     }
 
-    get widget_options(): TableWidgetOptions {
+    get widget_options(): TableWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: TableWidgetOptions = null;
+        let options: TableWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = options ? new TableWidgetOptions(
-                    options.columns,
-                    options.is_focus_api_type_id,
-                    options.limit,
-                    options.crud_api_type_id,
-                    options.vocus_button,
-                    options.delete_button,
-                    options.delete_all_button,
-                    options.create_button,
-                    options.update_button,
-                    options.refresh_button,
-                    options.export_button,
-                    options.can_filter_by,
-                    options.show_pagination_resumee,
-                    options.show_pagination_slider,
-                    options.show_pagination_form,
-                    options.show_limit_selectable,
-                    options.limit_selectable,
-                    options.show_pagination_list,
-                    options.nbpages_pagination_list,
-                    options.has_table_total_footer,
-                    options.hide_pagination_bottom,
-                    options.default_export_option,
-                    options.has_default_export_option,
-                    options.use_kanban_by_default_if_exists,
-                    options.use_kanban_column_weight_if_exists,
-                    options.use_for_count,
-                    options.archive_button,
-                ) : null;
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

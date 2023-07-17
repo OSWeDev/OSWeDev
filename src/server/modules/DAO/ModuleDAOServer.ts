@@ -2262,7 +2262,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throttled_select_query_params_by_parameterized_full_query,
                 throttled_select_query_params_by_index,
                 moduleTables_by_voType,
-                throttled_select_query_params_by_fields_labels_by_index);
+                throttled_select_query_params_by_fields_labels_by_index
+            );
 
             let nb_queries = promises ? promises.length : 0;
 

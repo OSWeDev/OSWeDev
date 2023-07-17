@@ -16,6 +16,10 @@
                 template(v-if="!selected_widget_type")
                     i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                 template(v-else) 
+                    .widget_options_header
+                        .widget_options_header_title {{ label('dashboard_builder_widgets.widget_options_header_title') }}: {{ selected_widget_type_label }}
+                        .widget_options_header_close(@click="close_widget_options") 
+                            i.fa-solid.fa-times.fa-fw.pull-right(aria-hidden="true")
                     .widget_options(
                         :is="selected_widget_type.options_component" 
                         :page_widget='selected_widget' 

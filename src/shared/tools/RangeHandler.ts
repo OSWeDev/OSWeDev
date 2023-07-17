@@ -1071,7 +1071,8 @@ export default class RangeHandler {
         min_inclusiv: number = null,
         max_inclusiv: number = null,
         batch_size: number = 50,
-        reverse: boolean = false) {
+        reverse: boolean = false
+    ) {
 
         if (reverse && ranges && ranges.length) {
             ranges = ranges.slice().reverse();
@@ -1081,7 +1082,13 @@ export default class RangeHandler {
         for (let i in ranges) {
 
             await promises_pipeline.push(async () => {
-                await RangeHandler.foreach_batch_await(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
+                await RangeHandler.foreach_batch_await(
+                    ranges[i],
+                    callback,
+                    segment_type,
+                    min_inclusiv,
+                    max_inclusiv
+                );
             });
         }
 

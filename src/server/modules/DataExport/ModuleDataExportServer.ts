@@ -415,7 +415,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return;
         }
 
-        const translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
+        // - Update to columns format (percent, toFixed etc...)
+        const translated_datas = await this.translate_context_query_fields_from_bdd(
+            datas_with_vars,
+            context_query,
+            context_query.fields?.length > 0
+        );
 
         await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
@@ -500,7 +505,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
     }
 
-    public async translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO, use_raw_field: boolean = false): Promise<any[]> {
+    public async translate_context_query_fields_from_bdd(
+        datas: any[],
+        context_query: ContextQueryVO,
+        use_raw_field: boolean = false
+    ): Promise<any[]> {
         if (!(datas?.length > 0)) {
             return null;
         }
@@ -512,27 +521,30 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let res = cloneDeep(datas);
 
         if (!(context_query?.fields?.length > 0)) {
+            const table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-            let table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
-            for (let j in res) {
-                let data = res[j];
+            for (const j in res) {
+                const data = res[j];
                 data._type = context_query.base_api_type_id;
             }
+
             res = table.forceNumerics(res);
-            for (let i in res) {
-                let e = res[i];
+
+            for (const i in res) {
+                const e = res[i];
                 res[i] = this.get_xlsx_version(table, e);
             }
+
             return res;
         }
 
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max);
+        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        const promise_pipeline = new PromisePipeline(max);
         for (let i in datas) {
             let data = datas[i];
 
             for (let j in context_query.fields) {
-                let field = context_query.fields[j];
+                const field = context_query.fields[j];
 
                 await promise_pipeline.push(async () => {
                     let table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
@@ -551,7 +563,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
 
                     table.force_numeric_field(table_field, data, res[i], field.alias);
-                    await this.field_to_xlsx(table_field, res[i], res[i], field.alias, use_raw_field);
+
+                    res[i] = await this.field_to_xlsx(
+                        table_field,
+                        res[i],
+                        cloneDeep(res[i]),
+                        field.alias,
+                        use_raw_field,
+                    );
                 });
             }
         }
@@ -1144,7 +1163,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
-    private async field_to_xlsx(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null, use_raw_field: boolean = false) {
+    private async field_to_xlsx(
+        field: ModuleTableField<any>,
+        src_vo: any,
+        dest_vo: any,
+        field_alias: string = null,
+        use_raw_field: boolean = false
+    ): Promise<any> {
 
         let src_field_id = (field_alias ? field_alias : field.field_id) + (use_raw_field ? '__raw' : '');
         let dest_field_id = (field_alias ? field_alias : field.field_id);
@@ -1177,9 +1202,30 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
                 }
                 break;
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+                const _src_field_id = (field_alias ? field_alias : field.field_id);
+
+                // Many to Many relation: we need to get the related vo
+                // and get the label field
+                const vo_field = src_vo[_src_field_id];
+                dest_vo[dest_field_id] = '';
+
+                for (let i in vo_field) {
+                    let related_vo = vo_field[i];
+                    if (!related_vo) {
+                        continue;
+                    }
+
+                    if (dest_vo[dest_field_id] != '') {
+                        dest_vo[dest_field_id] += ', ';
+                    }
+
+                    dest_vo[dest_field_id] += related_vo.label;
+                }
+
+                break;
 
             case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
                 let tab = src_vo[src_field_id];
@@ -1192,7 +1238,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         if (dest_vo[dest_field_id] != '') {
                             dest_vo[dest_field_id] += ', ';
                         }
-                        dest_vo[dest_field_id] += RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type);
+                        dest_vo[dest_field_id] += RangeHandler.getSegmentedMin(
+                            src_vo[src_field_id],
+                            src_vo[src_field_id].segment_type
+                        ) + ' - ' +
+                            RangeHandler.getSegmentedMax(
+                                src_vo[src_field_id],
+                                src_vo[src_field_id].segment_type
+                            );
                     }
                 }
                 break;
@@ -1272,6 +1325,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (typeof dest_vo[dest_field_id] === 'undefined') {
             delete dest_vo[dest_field_id];
         }
+
+        return dest_vo;
     }
 
     /**

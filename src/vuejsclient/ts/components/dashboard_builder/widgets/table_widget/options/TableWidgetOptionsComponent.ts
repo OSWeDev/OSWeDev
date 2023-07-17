@@ -479,6 +479,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private get_default_options(): TableWidgetOptionsVO {
         return new TableWidgetOptionsVO(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false);
     }
+
     private async add_column(add_column: TableColumnDescVO) {
 
         this.next_update_options = cloneDeep(this.widget_options);
@@ -511,6 +512,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         this.throttled_update_options();
     }
+
     get columns(): TableColumnDescVO[] {
         let options: TableWidgetOptionsVO = this.widget_options;
 

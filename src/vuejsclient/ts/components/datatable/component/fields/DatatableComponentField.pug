@@ -72,7 +72,7 @@
                         template(v-if="!disabled_many_to_one_link && routeExists(get_crud_link(field.targetModuleTable.vo_type, e.id)) && has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE")
                             router-link.many-router-links.btn.btn-sm.btn-info(:class='["many_to_many", "one_to_many"][field.type == "ManyToMany" ? 0 : 1]' :to="get_crud_link(field.targetModuleTable.vo_type, e.id)" :target="!is_dashboard_builder ? '_blank' : ''")
                                 img(:src='["/public/vuejsclient/img/many_to_many.svg", "/public/vuejsclient/img/one_to_many.svg"][field.type == "ManyToMany" ? 0 : 1]')
-                                | {{ e.label }}
+                                span.label | {{ e.label }}
                         template(v-else)
                             span {{ e.label }}
 

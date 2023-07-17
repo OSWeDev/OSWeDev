@@ -304,7 +304,12 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(
+                query_wrapper.query,
+                query_wrapper.params,
+                query_wrapper.fields,
+                context_query
+            );
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -373,7 +378,11 @@ export default class ContextQueryServerController {
                         columns_by_field_id[field_id].readonly)
                 ) {
                     await promise_pipeline.push(async () => {
-                        await ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(row, row, fields[field_id]);
+                        query_res[i] = await ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(
+                            row,
+                            cloneDeep(row), // Do not keep query result row as reference
+                            fields[field_id]
+                        );
                     });
                 }
             }

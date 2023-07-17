@@ -129,7 +129,8 @@ export default class CRUD<T extends IDistantVOBase> {
                 dt_field = RefRangesReferenceDatatableFieldVO.createNew(
                     field.field_id,
                     VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
-                    dt_fields).setValidatInputFunc(field.validate_input);
+                    dt_fields
+                ).setValidatInputFunc(field.validate_input);
             } else {
                 if (VOsTypesManager.isManyToManyModuleTable(field.module_table)) {
                     if (field.manyToOne_target_moduletable.default_label_field) {
@@ -159,11 +160,38 @@ export default class CRUD<T extends IDistantVOBase> {
                     dt_field = ManyToOneReferenceDatatableFieldVO.createNew(
                         field.field_id,
                         VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
-                        dt_fields).setValidatInputFunc(field.validate_input);
+                        dt_fields
+                    ).setValidatInputFunc(field.validate_input);
                 }
             }
         } else {
-            dt_field = SimpleDatatableFieldVO.createNew(field.field_id).setValidatInputFunc(field.validate_input);
+            dt_field = SimpleDatatableFieldVO.createNew(field.field_id)
+                .setValidatInputFunc(field.validate_input);
+
+            switch (field.field_type) {
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                    if (!field.manyToOne_target_moduletable) {
+                        return dt_field;
+                    }
+
+                    const dt_fields: Array<DatatableField<any, any>> = [
+                        ComputedDatatableFieldVO.createNew(
+                            field.field_id + '__target_label',
+                            ModuleDAO.getInstance().get_compute_function_uid(field.manyToOne_target_moduletable.vo_type)
+                        )
+                    ];
+
+                    dt_field = RefRangesReferenceDatatableFieldVO.createNew(
+                        field.field_id,
+                        VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                        dt_fields
+                    ).setValidatInputFunc(field.validate_input);
+                    break;
+
+                default:
+
+                    break;
+            }
         }
 
         return dt_field;

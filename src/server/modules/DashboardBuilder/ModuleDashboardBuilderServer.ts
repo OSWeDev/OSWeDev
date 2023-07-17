@@ -768,6 +768,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder_widgets.first_select_a_widget.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Composant sélectionné'
+        }, 'dashboard_builder_widgets.widget_options_header_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de l\'ajout du composant'
         }, 'DashboardBuilderBoardComponent.add_widget_to_page.ko.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

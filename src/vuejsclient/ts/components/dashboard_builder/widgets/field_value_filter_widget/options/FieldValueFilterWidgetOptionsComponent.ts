@@ -193,7 +193,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
     }
 
-    @Watch('widget_options', { immediate: true })
+    @Watch('page_widget', { immediate: true })
     private async onchange_widget_options() {
         if (!this.get_widget_options()) {
             this.max_visible_options = null;

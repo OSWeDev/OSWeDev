@@ -83,14 +83,25 @@
         input[type~="email"],
         .bool_field_inline_readonly_value,
         .html_field_inline_readonly_value {
-            width: 30em;
+            padding: 8px 8px 8px 8px;
             margin-left: 1em;
             background: white;
             border: solid 1px #e8e8e8;
-            padding: 7px 13px;
             text-align: left;
             vertical-align: middle;
-            width: 30em;
+            width: 26em;
+        }
+    }
+
+    .inline_input_mode,
+    .inline_input_mode.auto_validate_inline_input {
+        .tstz_input {
+            input[type~="text"] {
+                margin-left: 0px;
+                padding: 0px;
+                border: none;
+                width: 100%;
+            }
         }
     }
 }

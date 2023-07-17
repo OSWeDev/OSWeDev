@@ -1100,14 +1100,17 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
-                    let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
+
+                    const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                         column.id.toString(),
                         column.var_id,
                         column.filter_type,
                         column.filter_additional_params,
                         this.dashboard.id
                     ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+
                     res[column.id] = var_data_field;
+
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
                     let field = moduleTable.get_field_by_id(column.field_id);
