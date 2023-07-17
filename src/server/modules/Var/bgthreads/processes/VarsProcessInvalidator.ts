@@ -37,7 +37,7 @@ export default class VarsProcessInvalidator {
 
         // La première étape c'est voir si on a des invalidations à faire
         // et si oui, demander à tout le monde de se mettre en pause, les faire, remettre tout le monde en route
-        if (!await VarsDatasVoUpdateHandler.has_vos_cud()) {
+        if (!await VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors()) {
             return false;
         }
 

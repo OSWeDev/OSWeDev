@@ -1,24 +1,21 @@
 /* tslint:disable:no-unused-expression */
-import { test, expect } from "playwright-test-coverage";
+import { expect, test } from "playwright-test-coverage";
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
-import VarsComputeController from '../../../src/server/modules/Var/VarsComputeController';
 import VarsImportsHandler from '../../../src/server/modules/Var/VarsImportsHandler';
-import VarsServerController from '../../../src/server/modules/Var/VarsServerController';
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
-import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 import MatroidController from '../../../src/shared/modules/Matroid/MatroidController';
-import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../src/shared/modules/Var/ModuleVar';
 import VarsController from '../../../src/shared/modules/Var/VarsController';
+import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
+import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
 import FakeDataHandler from './fakes/FakeDataHandler';
-import FakeDistantHandler from './fakes/FakeDistantHandler';
 import FakeVarControllerDeps from './fakes/FakeVarControllerDeps';
 import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
-import FakeDataVO from './fakes/vos/FakeDataVO';
 import FakeVarsInit from './fakes/FakeVarsInit';
+import FakeDataVO from './fakes/vos/FakeDataVO';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 // test('VarsImportsHandler: test load_imports_and_split_nodes', async () => {

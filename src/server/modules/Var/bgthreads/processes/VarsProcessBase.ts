@@ -134,12 +134,20 @@ export default abstract class VarsProcessBase {
 
     private get_valid_nodes(): { [node_name: string]: VarDAGNode } {
 
+        if (!CurrentVarDAGHolder.current_vardag) {
+            return null;
+        }
+
         /**
          * Si on a des vars registered par le client on veut les prioriser, donc on ignorera les autres pour le moment
          * Sinon on prend toutes les vars qui ont le tag in
          */
-        let nodes: { [node_name: string]: VarDAGNode } = this.filter_by_subs(CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME]);
-        nodes = (nodes && Object.keys(nodes).length) ? nodes : CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME];
+        // ATTENTION : on a un pb avec le filter_by_sub : si A, sub, dépend de B, pas sub,
+        //  on arrive à bloquer le compute de A puisque B reste bloqué en data_loaded en attendant le compute de A qui est prioritaire
+        //  mais dépendant de B...
+        // let nodes: { [node_name: string]: VarDAGNode } = this.filter_by_subs(CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME]);
+        // nodes = (nodes && Object.keys(nodes).length) ? nodes : CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME];
+        let nodes: { [node_name: string]: VarDAGNode } = CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME];
         let valid_nodes: { [node_name: string]: VarDAGNode } = {};
 
         for (let i in nodes) {
@@ -199,71 +207,6 @@ export default abstract class VarsProcessBase {
 
         return has_something_to_do;
     }
-
-    // /**
-    //  * !FIXME à réfléchir ya des gros pbs de perfs & complexité liées à cette idée d'avoir des tags condition d'entrée, et qui resteraient.
-    //  * En supprimant le tag précédent à chaque avancée on évite de se redemander en permanence pour tous les noeuds si on peut avancer. Alors qu'on a déjà avancé.
-    //  * Cela dit lebypass est nécessaire. Mais à faire autrement.
-    //  * @returns Tous les noeuds qui ont tous les tags requis, mais pas le bypass (tag de sortie)
-    //  */
-    // * @param TAGS_IN_NAMES En fait le passage d'une étape à l'autre doit se faire en indiquant des tags prérequis. Le by_pass est le tag de sortie du process.
-    // * Si on a tous les tags prérequis, et pas le by_pass on peut faire l'étape.
-    // * On finira l'étape en posant le by_pass. Et ça déclenchera le process suivant si tous les prérequis sont ok.
-    // * Attention si il y a plusieurs tags il faut mettre les plus 'rares' en premier pour optimiser le process
-    // private get_valid_nodes(): VarDAGNode[] {
-
-    //     let res: VarDAGNode[] = null;
-
-    //     /**
-    //      * On initialise la liste des noeuds à traiter sur la base du premier tag, et dans la limite où on a pas le bypass
-    //      */
-    //     for (let i in this.TAGS_IN_NAMES) {
-    //         let TAG_IN_NAME = this.TAGS_IN_NAMES[i];
-
-    //         if (!res) {
-    //             res = Object.values(CurrentVarDAGHolder.current_vardag.tags[TAG_IN_NAME]);
-    //         }
-
-    //         if (!res) {
-    //             break;
-    //         }
-    //     }
-
-    //     if ((!res) || (res.length == 0)) {
-    //         return [];
-    //     }
-
-    //     res = res.filter((node) => !node.tags[this.TAG_OUT_NAME]);
-
-    //     if (this.TAGS_IN_NAMES.length == 1) {
-    //         return res;
-    //     }
-
-    //     for (let i in res) {
-    //         let testnode = res[i];
-
-    //         if (!testnode) {
-    //             continue;
-    //         }
-
-    //         let is_valid = true;
-
-    //         for (let j = 1; j < this.TAGS_IN_NAMES.length; j++) {
-    //             let TAG_IN_NAME = this.TAGS_IN_NAMES[j];
-
-    //             if (!testnode.tags[TAG_IN_NAME]) {
-    //                 is_valid = false;
-    //                 break;
-    //             }
-    //         }
-
-    //         if (is_valid) {
-    //             res.push(testnode);
-    //         }
-    //     }
-
-    //     return res;
-    // }
 
     /**
      * Filtrage des noeuds par subs clients. Pour prioriser les demandes clients. Si aucune en attente, on renvoie tous les noeuds.

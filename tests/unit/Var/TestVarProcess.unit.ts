@@ -397,6 +397,23 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_3_DATA_LOADED]: true
     });
 
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {
+            [node_a.var_data.index]: node_a,
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
+    });
 
     // On lance le process de notification de début de traitement
     did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
@@ -424,6 +441,27 @@ test('DAG: test var process', async () => {
     });
     expect(node_h.tags).toStrictEqual({
         [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {
+            [node_a.var_data.index]: node_a,
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c
+        },
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
     });
 
     // On lance le process de notification de début de traitement
@@ -454,6 +492,28 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_4_COMPUTED]: true
     });
 
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {
+            [node_a.var_data.index]: node_a
+        },
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
+    });
+
     // On lance le process de notification de début de traitement
     did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
     await promise_pipeline.end();
@@ -480,6 +540,28 @@ test('DAG: test var process', async () => {
     });
     expect(node_h.tags).toStrictEqual({
         [VarDAGNode.TAG_4_COMPUTED]: true
+    });
+
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {
+            [node_a.var_data.index]: node_a,
+
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
     });
 
     // Si on tente un autre process que le NOTIFYING_END sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
@@ -516,6 +598,27 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_4_COMPUTED]: true
     });
 
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {
+            [node_a.var_data.index]: node_a,
+
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
+    });
 
     // On lance le process de notification de début de traitement
     did_something = await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
@@ -542,6 +645,30 @@ test('DAG: test var process', async () => {
     });
     expect(node_h.tags).toStrictEqual({
         [VarDAGNode.TAG_5_NOTIFIED_END]: true
+    });
+
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {},
+        [VarDAGNode.TAG_5_NOTIFYING_END]: {},
+        [VarDAGNode.TAG_5_NOTIFIED_END]: {
+            [node_a.var_data.index]: node_a,
+
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
     });
 
     // Si on tente un autre process que le UPDATING_IN_DB sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
@@ -578,6 +705,29 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_5_NOTIFIED_END]: true
     });
 
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {},
+        [VarDAGNode.TAG_5_NOTIFYING_END]: {},
+        [VarDAGNode.TAG_5_NOTIFIED_END]: {
+            [node_a.var_data.index]: node_a,
+
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
+    });
 
     // On lance le process de notification de début de traitement
     did_something = await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
@@ -604,6 +754,32 @@ test('DAG: test var process', async () => {
     });
     expect(node_h.tags).toStrictEqual({
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: true
+    });
+
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {},
+        [VarDAGNode.TAG_5_NOTIFYING_END]: {},
+        [VarDAGNode.TAG_5_NOTIFIED_END]: {},
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
+            [node_a.var_data.index]: node_a,
+
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
     });
 
     // Si on tente un autre process que le DELETING sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
@@ -640,6 +816,31 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: true
     });
 
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {},
+        [VarDAGNode.TAG_5_NOTIFYING_END]: {},
+        [VarDAGNode.TAG_5_NOTIFIED_END]: {},
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
+            [node_a.var_data.index]: node_a,
+
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        }
+    });
 
     // On lance le process de suppression de l'arbre
     did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
@@ -655,6 +856,31 @@ test('DAG: test var process', async () => {
     expect(dag.nodes[node_g.var_data.index]).toBeDefined();
     expect(dag.nodes[node_h.var_data.index]).toBeDefined();
 
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {},
+        [VarDAGNode.TAG_5_NOTIFYING_END]: {},
+        [VarDAGNode.TAG_5_NOTIFIED_END]: {},
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c,
+
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        },
+        [VarDAGNode.TAG_7_DELETING]: {},
+    });
+
     // On lance le process de suppression de l'arbre
     did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
     await promise_pipeline.end();
@@ -669,6 +895,29 @@ test('DAG: test var process', async () => {
     expect(dag.nodes[node_g.var_data.index]).toBeDefined();
     expect(dag.nodes[node_h.var_data.index]).toBeDefined();
 
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {},
+        [VarDAGNode.TAG_5_NOTIFYING_END]: {},
+        [VarDAGNode.TAG_5_NOTIFIED_END]: {},
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
+            [node_e.var_data.index]: node_e,
+            [node_f.var_data.index]: node_f,
+            [node_g.var_data.index]: node_g,
+            [node_h.var_data.index]: node_h
+        },
+        [VarDAGNode.TAG_7_DELETING]: {},
+    });
+
+
     // On lance le process de suppression de l'arbre
     did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
     await promise_pipeline.end();
@@ -682,5 +931,22 @@ test('DAG: test var process', async () => {
     expect(dag.nodes[node_f.var_data.index]).toBeUndefined();
     expect(dag.nodes[node_g.var_data.index]).toBeUndefined();
     expect(dag.nodes[node_h.var_data.index]).toBeUndefined();
+
+    expect(dag.current_step_tags).toStrictEqual({
+        [VarDAGNode.TAG_0_CREATED]: {},
+        [VarDAGNode.TAG_1_NOTIFYING_START]: {},
+        [VarDAGNode.TAG_1_NOTIFIED_START]: {},
+        [VarDAGNode.TAG_2_DEPLOYING]: {},
+        [VarDAGNode.TAG_2_DEPLOYED]: {},
+        [VarDAGNode.TAG_3_DATA_LOADING]: {},
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_COMPUTING]: {},
+        [VarDAGNode.TAG_4_COMPUTED]: {},
+        [VarDAGNode.TAG_5_NOTIFYING_END]: {},
+        [VarDAGNode.TAG_5_NOTIFIED_END]: {},
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: {},
+        [VarDAGNode.TAG_7_DELETING]: {},
+    });
 
 });

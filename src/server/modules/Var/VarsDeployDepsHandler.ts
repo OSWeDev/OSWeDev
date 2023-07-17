@@ -411,7 +411,7 @@ export default class VarsDeployDepsHandler {
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
-                ConsoleHandler.warn('VarsComputeController:handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                ConsoleHandler.warn('handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
             let dep = deps_as_array[deps_i];

@@ -317,18 +317,23 @@ export default class VarDAGNode extends DAGNodeBase {
             return;
         }
         let dag = this.var_dag;
+        this.var_dag = null;
+
+        if (!dag.nodes[this.var_data.index]) {
+            return;
+        }
 
         delete dag.nodes[this.var_data.index];
         dag.nb_nodes--;
         if (this.current_step != null) {
             let current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
-            if (!!this.var_dag.current_step_tags[current_step_tag_name]) {
-                delete this.var_dag.current_step_tags[current_step_tag_name][this.var_data.index];
+            if (!!dag.current_step_tags[current_step_tag_name]) {
+                delete dag.current_step_tags[current_step_tag_name][this.var_data.index];
             }
         }
-        for (let i in this.var_dag.tags) {
-            if (!!this.var_dag.tags[i][this.var_data.index]) {
-                delete this.var_dag.tags[i][this.var_data.index];
+        for (let i in dag.tags) {
+            if (!!dag.tags[i][this.var_data.index]) {
+                delete dag.tags[i][this.var_data.index];
             }
         }
 
@@ -365,6 +370,9 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     public linkToDAG(): VarDAGNode {
 
+        if (!!this.var_dag.nodes[this.var_data.index]) {
+            return this.var_dag.nodes[this.var_data.index];
+        }
         this.var_dag.nodes[this.var_data.index] = this;
         this.var_dag.nb_nodes++;
 

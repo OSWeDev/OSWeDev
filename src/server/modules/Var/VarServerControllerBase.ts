@@ -324,37 +324,4 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param varDAGNode Le noeud à calculer
      */
     protected abstract getValue(varDAGNode: VarDAGNode): number;
-
-    // /**
-    //  * Fonction spécifique aux tests unitaires qui permet de créer un faux arbre pour avec les paramètres du test pour appeler
-    //  *  la fonction à tester beaucoup plus facilement
-    //  * @param param le var data / matroid qui sert à paramétrer le calcul
-    //  * @param datasources les datas de chaque datasource, par nom du datasource
-    //  * @param deps_values les valeurs des deps, par id de dep
-    //  */
-    // private async UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<VarDAGNode> {
-    //     let dag: VarDAG = new VarDAG();
-    //     let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
-
-    //     if (!varDAGNode) {
-    //         return null;
-    //     }
-
-    //     let deps = this.getParamDependencies(varDAGNode);
-
-    //     for (let i in deps) {
-    //         let dep_value = deps_values ? deps_values[i] : undefined;
-
-    //         let var_dag_node_dep = await VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController, false);
-    //         if (!var_dag_node_dep) {
-    //             return null;
-    //         }
-
-    //         varDAGNode.addOutgoingDep(i, var_dag_node_dep);
-    //     }
-
-    //     varDAGNode.datasources = datasources;
-
-    //     return varDAGNode;
-    // }
 }

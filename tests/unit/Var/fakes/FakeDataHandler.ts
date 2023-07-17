@@ -1,6 +1,5 @@
 
 import moment from 'moment';
-import VarsComputeController from '../../../../src/server/modules/Var/VarsComputeController';
 import TSRange from '../../../../src/shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../src/shared/modules/ModuleTableField';

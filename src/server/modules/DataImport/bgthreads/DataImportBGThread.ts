@@ -66,7 +66,7 @@ export default class DataImportBGThread implements IBGThread {
             let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true, 180000);
             try {
                 if (wait_for_empty_vars_vos_cud) {
-                    if (await VarsDatasVoUpdateHandler.has_vos_cud()) {
+                    if (await VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors()) {
                         ConsoleHandler.log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
                         this.waiting_for_empty_vars_vos_cud = true;
                         this.stats_out('waiting_for_empty_vars_vos_cud', time_in);
