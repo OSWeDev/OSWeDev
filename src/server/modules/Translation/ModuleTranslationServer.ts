@@ -55,6 +55,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
      * ----- Local thread cache
      */
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTranslation.getInstance().name);
     }

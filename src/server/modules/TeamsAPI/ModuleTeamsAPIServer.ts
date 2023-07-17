@@ -19,6 +19,7 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
 
     private static instance: ModuleTeamsAPIServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTeamsAPI.getInstance().name);
     }

@@ -33,6 +33,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     private throttled_param_cache_lastupdate_ms: { [param_name: string]: number } = {};
     private semaphore_param: { [param_name: string]: Promise<any> } = {};
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleParams.getInstance().name);
     }

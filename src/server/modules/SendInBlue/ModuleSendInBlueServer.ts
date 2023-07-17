@@ -33,6 +33,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
     private static instance: ModuleSendInBlueServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSendInBlue.getInstance().name);
     }

@@ -31,6 +31,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     private static instance: ModuleDashboardBuilderServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDashboardBuilder.getInstance().name);
     }

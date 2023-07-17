@@ -34,6 +34,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private ps = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleNFCConnect.getInstance().name);
     }

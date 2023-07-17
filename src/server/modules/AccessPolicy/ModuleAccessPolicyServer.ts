@@ -80,6 +80,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private debug_check_access: boolean = false;
     private rights_have_been_preloaded: boolean = false;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
 

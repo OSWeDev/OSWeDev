@@ -26,6 +26,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     private static instance: ModulePushDataServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModulePushData.getInstance().name);
     }

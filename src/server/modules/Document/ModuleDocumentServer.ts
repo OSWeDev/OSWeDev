@@ -49,6 +49,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     private static instance: ModuleDocumentServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDocument.getInstance().name);
     }

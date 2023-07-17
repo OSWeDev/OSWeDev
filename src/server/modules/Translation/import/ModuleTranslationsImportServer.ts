@@ -36,6 +36,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
 
     private static instance: ModuleTranslationsImportServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTranslationsImport.getInstance().name);
     }

@@ -19,6 +19,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private static instance: ModuleSASSSkinConfiguratorServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSASSSkinConfigurator.getInstance().name);
     }

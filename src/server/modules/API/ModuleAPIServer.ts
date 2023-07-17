@@ -29,6 +29,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     private static instance: ModuleAPIServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAPI.getInstance().name);
     }

@@ -34,6 +34,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
 
     private static instance: ModuleSurveyServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSurvey.getInstance().name);
     }

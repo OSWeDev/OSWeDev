@@ -20,6 +20,7 @@ export default class ModuleUserLogVarsServer extends ModuleServerBase {
 
     private static instance: ModuleUserLogVarsServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleUserLogVars.getInstance().name);
     }

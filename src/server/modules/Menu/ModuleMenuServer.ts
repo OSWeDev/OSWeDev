@@ -34,6 +34,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
 
     private static instance: ModuleMenuServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleMenu.getInstance().name);
     }

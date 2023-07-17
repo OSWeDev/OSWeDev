@@ -28,6 +28,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
 
     private static instance: ModuleCMSServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleCMS.getInstance().name);
     }

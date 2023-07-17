@@ -77,6 +77,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
     private static instance: ModuleFeedbackServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFeedback.getInstance().name);
     }

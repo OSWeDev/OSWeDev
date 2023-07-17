@@ -26,6 +26,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
     private static instance: ModuleContextFilterServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleContextFilter.getInstance().name);
     }

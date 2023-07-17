@@ -17,6 +17,7 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     private static instance: ModulePlayWrightServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModulePlayWright.getInstance().name);
     }

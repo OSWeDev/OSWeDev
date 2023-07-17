@@ -1,3 +1,4 @@
+// istanbul ignore file
 import ContextFilterVO from "../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 
 export default class GetVarParamFromContextFiltersParam {

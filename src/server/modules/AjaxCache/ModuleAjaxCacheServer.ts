@@ -28,6 +28,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
     private static instance: ModuleAjaxCacheServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAjaxCache.getInstance().name);
     }

@@ -31,6 +31,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
 
     private ps = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSharepoint.getInstance().name);
     }

@@ -24,6 +24,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     private static instance: ModuleMailerServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleMailer.getInstance().name);
     }

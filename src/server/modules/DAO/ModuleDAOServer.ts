@@ -128,6 +128,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 10, { leading: false, trailing: true });
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDAO.getInstance().name);
         setTimeout(() => {

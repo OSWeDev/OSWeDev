@@ -14,6 +14,7 @@ export default class ModuleExpressDBSessionServer extends ModuleServerBase {
 
     private static instance: ModuleExpressDBSessionServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleExpressDBSessions.getInstance().name);
     }

@@ -39,6 +39,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
     private static instance: ModuleImageFormatServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleImageFormat.getInstance().name);
     }

@@ -80,6 +80,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
     private static instance: ModuleDataExportServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDataExport.getInstance().name);
     }

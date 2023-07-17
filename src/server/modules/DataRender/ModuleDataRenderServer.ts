@@ -32,6 +32,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     private static instance: ModuleDataRenderServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDataRender.getInstance().name);
     }

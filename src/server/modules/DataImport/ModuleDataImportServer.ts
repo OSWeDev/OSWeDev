@@ -67,6 +67,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private has_preloaded_difs_by_uid: boolean = false;
     private preloaded_difs_by_uid: { [uid: string]: DataImportFormatVO } = {};
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDataImport.getInstance().name);
     }

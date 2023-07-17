@@ -27,6 +27,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
     private static instance: ModuleAnimationImportThemeServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnimationImportTheme.getInstance().name);
     }

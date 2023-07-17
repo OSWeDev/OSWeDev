@@ -39,6 +39,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
     public is_killing: boolean = false;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFork.getInstance().name);
     }

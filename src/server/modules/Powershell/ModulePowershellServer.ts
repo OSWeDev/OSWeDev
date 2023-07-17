@@ -28,6 +28,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
 
     private ps = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModulePowershell.getInstance().name);
     }

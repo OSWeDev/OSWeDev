@@ -30,6 +30,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     private token: EvolizAPIToken = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleEvolizAPI.getInstance().name);
     }

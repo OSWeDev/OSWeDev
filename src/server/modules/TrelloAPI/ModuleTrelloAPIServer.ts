@@ -26,6 +26,7 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
      * ----- Local thread cache
      */
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTrelloAPI.getInstance().name);
     }

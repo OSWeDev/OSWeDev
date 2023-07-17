@@ -54,6 +54,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
     private block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleBGThread.getInstance().name);
     }

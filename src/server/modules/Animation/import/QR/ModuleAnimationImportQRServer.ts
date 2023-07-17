@@ -27,6 +27,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
     private static instance: ModuleAnimationImportQRServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnimationImportQR.getInstance().name);
     }

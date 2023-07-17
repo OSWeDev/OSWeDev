@@ -34,6 +34,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
 
     private static instance: ModuleAnonymizationServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnonymization.getInstance().name);
     }

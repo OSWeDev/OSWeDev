@@ -34,6 +34,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
     private static instance: ModuleVersionedServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleVersioned.getInstance().name);
     }

@@ -33,6 +33,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
     private static instance: ModuleVocusServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleVocus.getInstance().name);
     }

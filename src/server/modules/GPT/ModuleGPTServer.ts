@@ -32,6 +32,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private openai = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleGPT.getInstance().name);
     }
@@ -83,12 +84,39 @@ export default class ModuleGPTServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test extern apis
     public async generate_response(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTMessageVO> {
         try {
             // const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4", 60000);
             const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-3.5-turbo", 60000);
             // const modelId = "gpt-3.5-turbo";
 
+            if (!conversation || !newPrompt) {
+                throw new Error("Invalid conversation or prompt");
+            }
+
+            const currentMessages = await this.prepare_for_api(conversation, newPrompt);
+            if (!currentMessages) {
+                throw new Error("Invalid currentMessages");
+            }
+
+            const result = await this.call_api(modelId, currentMessages);
+
+            return await this.api_response_handler(conversation, result);
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param conversation
+     * @param newPrompt
+     * @returns current messages for the API
+     */
+    private async prepare_for_api(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTAPIMessage[]> {
+        try {
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");
             }
@@ -100,12 +128,27 @@ export default class ModuleGPTServer extends ModuleServerBase {
             conversation.messages.push(newPrompt);
 
             // Extract the currentMessages from the conversation
-            const currentMessages = GPTAPIMessage.fromConversation(conversation);
-            const result = await this.openai.createChatCompletion({
+            return GPTAPIMessage.fromConversation(conversation);
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+        return null;
+    }
+
+    // istanbul ignore next: cannot test extern apis
+    private async call_api(modelId: string, currentMessages: GPTAPIMessage[]): Promise<any> {
+        try {
+            return await this.openai.createChatCompletion({
                 model: modelId,
                 messages: currentMessages,
             });
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+    }
 
+    private async api_response_handler(conversation: GPTConversationVO, result: any): Promise<GPTMessageVO> {
+        try {
             const responseText = result.data.choices.shift().message.content;
             const responseMessage: GPTMessageVO = new GPTMessageVO();
             responseMessage.date = Dates.now();

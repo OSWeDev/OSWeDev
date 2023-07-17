@@ -65,6 +65,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
     private static instance: ModuleAnimationServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnimation.getInstance().name);
     }

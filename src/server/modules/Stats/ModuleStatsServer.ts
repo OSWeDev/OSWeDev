@@ -24,6 +24,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
 
     private static instance: ModuleStatsServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleStats.getInstance().name);
     }

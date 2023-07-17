@@ -20,6 +20,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
 
     private static instance: ModuleGeneratePDFServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleGeneratePDF.getInstance().name);
     }

@@ -39,6 +39,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     private static instance: ModuleMaintenanceServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleMaintenance.getInstance().name);
     }

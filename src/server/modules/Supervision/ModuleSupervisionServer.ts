@@ -51,6 +51,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
     private static instance: ModuleSupervisionServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSupervision.getInstance().name);
     }

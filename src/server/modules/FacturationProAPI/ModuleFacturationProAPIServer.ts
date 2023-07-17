@@ -27,6 +27,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
     private static instance: ModuleFacturationProAPIServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFacturationProAPI.getInstance().name);
     }

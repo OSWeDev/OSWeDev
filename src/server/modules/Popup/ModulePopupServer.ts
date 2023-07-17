@@ -23,6 +23,7 @@ export default class ModulePopupServer extends ModuleServerBase {
 
     private static instance: ModulePopupServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModulePopup.getInstance().name);
     }

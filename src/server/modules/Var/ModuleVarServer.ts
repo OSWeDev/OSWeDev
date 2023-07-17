@@ -121,6 +121,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleVar.getInstance().name);
     }

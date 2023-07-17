@@ -31,6 +31,7 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     private static instance: ModuleCronServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleCron.getInstance().name);
         CronServerController.getInstance();

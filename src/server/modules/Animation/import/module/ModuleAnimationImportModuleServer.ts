@@ -32,6 +32,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
     private static instance: ModuleAnimationImportModuleServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnimationImportModule.getInstance().name);
     }
