@@ -64,6 +64,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     public static FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT';
     public static FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_ROUTE_LIMIT';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleFeedbackServer.instance) {
             ModuleFeedbackServer.instance = new ModuleFeedbackServer();
@@ -80,6 +81,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         super(ModuleFeedback.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFeedback.POLICY_GROUP;
@@ -109,6 +111,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -253,6 +256,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         preCreateTrigger.registerHandler(FeedbackVO.API_TYPE_ID, this, this.pre_create_feedback_assign_default_state);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
     }

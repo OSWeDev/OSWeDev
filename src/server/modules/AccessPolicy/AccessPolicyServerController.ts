@@ -66,24 +66,41 @@ export default class AccessPolicyServerController {
     public static hook_user_login: (email: string, password: string) => Promise<UserVO> = null;
 
     public static init_tasks() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, AccessPolicyServerController.set_registered_user_role);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, AccessPolicyServerController.delete_registered_user_role);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, AccessPolicyServerController.set_registered_policy);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, AccessPolicyServerController.set_policy_dependency);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, AccessPolicyServerController.set_role_policy);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, AccessPolicyServerController.reload_access_matrix);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, AccessPolicyServerController.update_registered_policy);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, AccessPolicyServerController.update_policy_dependency);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, AccessPolicyServerController.update_role_policy);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_role, AccessPolicyServerController.update_role);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_user_role, AccessPolicyServerController.update_user_role);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, AccessPolicyServerController.delete_registered_policy);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, AccessPolicyServerController.delete_registered_policy_dependency);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, AccessPolicyServerController.delete_registered_role_policy);
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, AccessPolicyServerController.delete_registered_role);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AccessPolicyServerController.instance) {
             AccessPolicyServerController.instance = new AccessPolicyServerController();

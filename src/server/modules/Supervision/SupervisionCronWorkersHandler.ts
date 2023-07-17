@@ -8,6 +8,7 @@ import DailyReportCronWorker from './workers/DailyReport/DailyReportCronWorker';
 
 export default class SupervisionCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!SupervisionCronWorkersHandler.instance) {
             SupervisionCronWorkersHandler.instance = new SupervisionCronWorkersHandler();

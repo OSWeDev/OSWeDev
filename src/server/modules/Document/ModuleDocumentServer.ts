@@ -39,6 +39,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleDocumentServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDocumentServer.instance) {
             ModuleDocumentServer.instance = new ModuleDocumentServer();
@@ -52,6 +53,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         super(ModuleDocument.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDocument.POLICY_GROUP;
@@ -81,6 +83,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -167,9 +170,11 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_document_path_from_file_changed);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
     }
 
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
         APIControllerWrapper.registerServerApiHandler(ModuleDocument.APINAME_get_ds_by_user_lang, this.get_ds_by_user_lang.bind(this));

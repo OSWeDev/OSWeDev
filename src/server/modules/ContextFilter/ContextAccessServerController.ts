@@ -10,6 +10,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 
 export default class ContextAccessServerController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ContextAccessServerController.instance) {
             ContextAccessServerController.instance = new ContextAccessServerController();
@@ -21,6 +22,7 @@ export default class ContextAccessServerController {
 
     private constructor() { }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 

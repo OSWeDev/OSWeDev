@@ -9,6 +9,7 @@ import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessNotifyEnd extends VarsProcessBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessNotifyEnd.instance) {
             VarsProcessNotifyEnd.instance = new VarsProcessNotifyEnd();

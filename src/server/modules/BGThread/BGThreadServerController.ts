@@ -11,6 +11,7 @@ export default class BGThreadServerController {
 
     public static SERVER_READY: boolean = false;
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!BGThreadServerController.instance) {
             BGThreadServerController.instance = new BGThreadServerController();

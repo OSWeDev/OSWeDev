@@ -16,6 +16,7 @@ export default class MaintenanceServerController {
     public static TASK_NAME_start_maintenance = 'ModuleMaintenanceServer.start_maintenance';
     public static TASK_NAME_end_planned_maintenance = 'ModuleMaintenanceServer.end_planned_maintenance';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!MaintenanceServerController.instance) {
             MaintenanceServerController.instance = new MaintenanceServerController();
@@ -44,6 +45,7 @@ export default class MaintenanceServerController {
      */
 
     protected constructor() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
     }
 

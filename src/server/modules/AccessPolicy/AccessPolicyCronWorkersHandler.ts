@@ -7,6 +7,7 @@ import PasswordInvalidationCronWorker from './workers/PasswordInvalidation/Passw
 
 export default class AccessPolicyCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AccessPolicyCronWorkersHandler.instance) {
             AccessPolicyCronWorkersHandler.instance = new AccessPolicyCronWorkersHandler();

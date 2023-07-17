@@ -2,6 +2,7 @@ import NumRangeEnumHandler from './NumRangeEnumHandler';
 
 export default class NumRangeComponentController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
 
         if (!NumRangeComponentController.instance) {

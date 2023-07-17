@@ -27,6 +27,7 @@ import TaskResultForkMessage from './messages/TaskResultForkMessage';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleForkServer.instance) {
             ModuleForkServer.instance = new ModuleForkServer();

@@ -21,9 +21,13 @@ export default class VarsServerCallBackSubsController {
         VarsServerCallBackSubsController.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
 
     public static init() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, VarsServerCallBackSubsController.notify_vardatas.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, VarsServerCallBackSubsController.get_vars_datas.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_get_var_data, VarsServerCallBackSubsController.get_var_data.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsServerCallBackSubsController.TASK_NAME_get_subs_indexs, VarsServerCallBackSubsController.get_subs_indexs.bind(this));
     }
 

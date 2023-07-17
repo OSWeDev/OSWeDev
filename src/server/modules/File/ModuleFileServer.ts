@@ -37,6 +37,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFile.POLICY_GROUP;
@@ -58,6 +59,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
 

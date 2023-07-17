@@ -30,15 +30,18 @@ export default class ModulePushDataServer extends ModuleServerBase {
         super(ModulePushData.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         PushDataCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_set_prompt_result, this.set_prompt_result.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_get_app_version, this.get_app_version.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         // Triggers pour mettre à jour les dates

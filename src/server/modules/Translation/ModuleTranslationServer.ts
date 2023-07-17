@@ -36,6 +36,7 @@ import TranslationsServerController from './TranslationsServerController';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleTranslationServer.instance) {
             ModuleTranslationServer.instance = new ModuleTranslationServer();
@@ -58,10 +59,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         super(ModuleTranslation.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         TranslationCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
@@ -598,6 +601,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleTranslation.POLICY_GROUP;
@@ -667,6 +671,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         await Promise.all(promises);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));

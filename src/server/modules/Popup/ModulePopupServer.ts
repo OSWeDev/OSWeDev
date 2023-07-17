@@ -13,6 +13,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModulePopupServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModulePopupServer.instance) {
             ModulePopupServer.instance = new ModulePopupServer();
@@ -26,6 +27,7 @@ export default class ModulePopupServer extends ModuleServerBase {
         super(ModulePopup.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fermer' },
@@ -33,6 +35,7 @@ export default class ModulePopupServer extends ModuleServerBase {
         );
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModulePopup.POLICY_GROUP;

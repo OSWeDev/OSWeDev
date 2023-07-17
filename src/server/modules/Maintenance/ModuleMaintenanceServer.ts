@@ -29,6 +29,7 @@ import MaintenanceServerController from './MaintenanceServerController';
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleMaintenanceServer.instance) {
             ModuleMaintenanceServer.instance = new ModuleMaintenanceServer();
@@ -42,10 +43,12 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         super(ModuleMaintenance.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         MaintenanceCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         MaintenanceServerController.getInstance();
@@ -118,12 +121,17 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         // Quand on modifie une maintenance, quelle qu'elle soit, on informe pas, il faudrait informer les 3 threads
         //  ça se mettra à jour dans les 30 secondes
 
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleMaintenance.APINAME_END_MAINTENANCE, this.end_maintenance.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleMaintenance.APINAME_START_MAINTENANCE, this.start_maintenance.bind(this));

@@ -5,6 +5,7 @@ import VarsComputationHole from './VarsComputationHole';
 
 export default class VarsProcessInvalidator {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessInvalidator.instance) {
             VarsProcessInvalidator.instance = new VarsProcessInvalidator();

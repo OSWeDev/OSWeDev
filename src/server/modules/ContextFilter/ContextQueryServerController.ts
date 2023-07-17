@@ -50,6 +50,7 @@ import ArrayHandler from '../../../shared/tools/ArrayHandler';
 
 export default class ContextQueryServerController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ContextQueryServerController.instance) {
             ContextQueryServerController.instance = new ContextQueryServerController();
@@ -65,6 +66,7 @@ export default class ContextQueryServerController {
 
     private constructor() { }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 

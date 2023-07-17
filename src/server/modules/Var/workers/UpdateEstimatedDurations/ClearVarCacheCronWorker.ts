@@ -3,6 +3,7 @@ import ModuleVarServer from '../../ModuleVarServer';
 
 export default class ClearVarCacheCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ClearVarCacheCronWorker.instance) {
             ClearVarCacheCronWorker.instance = new ClearVarCacheCronWorker();

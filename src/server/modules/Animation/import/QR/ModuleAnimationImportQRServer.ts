@@ -34,6 +34,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
     // /**
     //  * On définit les droits d'accès du module
     //  */
+    // // istanbul ignore next: cannot test registerAccessPolicies
     // public async registerAccessPolicies(): Promise<void> {
     //     let group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
 

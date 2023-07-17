@@ -18,6 +18,7 @@ export default class ModuleFormatDatesNombresServer extends ModuleServerBase {
         super(ModuleFormatDatesNombres.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

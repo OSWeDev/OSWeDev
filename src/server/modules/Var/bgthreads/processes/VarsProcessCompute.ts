@@ -6,6 +6,7 @@ import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessCompute extends VarsProcessBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessCompute.instance) {
             VarsProcessCompute.instance = new VarsProcessCompute();

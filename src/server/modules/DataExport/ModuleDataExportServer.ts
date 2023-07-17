@@ -70,6 +70,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'ModuleDataExport.export_mail_template_id';
     public static MAILCATEGORY_export_file_ready = 'MAILCATEGORY.ModuleDataExport_export_file_ready';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDataExportServer.instance) {
             ModuleDataExportServer.instance = new ModuleDataExportServer();
@@ -83,6 +84,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         super(ModuleDataExport.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         ModuleBGThreadServer.getInstance().registerBGThread(DataExportBGThread.getInstance());
@@ -133,6 +135,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }, 'exportContextQueryToXLSX.file_ready.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
 
 

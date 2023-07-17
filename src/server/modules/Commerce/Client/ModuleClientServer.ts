@@ -11,6 +11,7 @@ import ModuleServerBase from '../../ModuleServerBase';
 
 export default class ModuleClientServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleClientServer.instance) {
             ModuleClientServer.instance = new ModuleClientServer();
@@ -24,6 +25,7 @@ export default class ModuleClientServer extends ModuleServerBase {
         super(ModuleClient.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleClient.APINAME_getInformationsClientUser, this.getInformationsClientUser.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));

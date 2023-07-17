@@ -36,6 +36,7 @@ export default class DAOServerController {
 
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DAOServerController.instance) {
             DAOServerController.instance = new DAOServerController();
@@ -84,6 +85,7 @@ export default class DAOServerController {
      */
 
     private constructor() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, this.add_segmented_known_databases.bind(this));
     }
 

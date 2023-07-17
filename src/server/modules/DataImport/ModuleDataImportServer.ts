@@ -54,6 +54,7 @@ import ImportLogger from './logger/ImportLogger';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDataImportServer.instance) {
             ModuleDataImportServer.instance = new ModuleDataImportServer();
@@ -73,6 +74,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDataImport.POLICY_GROUP;
@@ -126,10 +128,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         DataImportCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         // On enregistre le bgthread qui gère les imports
@@ -369,6 +373,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));

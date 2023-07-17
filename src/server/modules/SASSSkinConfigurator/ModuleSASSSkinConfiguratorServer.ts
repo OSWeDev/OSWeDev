@@ -9,6 +9,7 @@ import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSASSSkinConfiguratorServer.instance) {
             ModuleSASSSkinConfiguratorServer.instance = new ModuleSASSSkinConfiguratorServer();
@@ -22,6 +23,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
         super(ModuleSASSSkinConfigurator.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSASSSkinConfigurator.APINAME_get_sass_param_value, this.get_sass_param_value.bind(this));
     }

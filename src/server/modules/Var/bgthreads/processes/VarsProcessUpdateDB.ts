@@ -20,6 +20,7 @@ import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessUpdateDB.instance) {
             VarsProcessUpdateDB.instance = new VarsProcessUpdateDB();

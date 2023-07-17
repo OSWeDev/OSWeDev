@@ -21,6 +21,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public static TASK_NAME_set_session_to_delete_by_sids: string = 'AccessPolicyDeleteSessionBGThread.set_session_to_delete_by_sids';
     public static TASK_NAME_add_api_reqs: string = 'AccessPolicyDeleteSessionBGThread.add_api_reqs';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AccessPolicyDeleteSessionBGThread.instance) {
             AccessPolicyDeleteSessionBGThread.instance = new AccessPolicyDeleteSessionBGThread();
@@ -39,7 +40,9 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public MIN_timeout: number = 100;
 
     private constructor() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
     }
 

@@ -65,10 +65,13 @@ export default class VarsDatasVoUpdateHandler {
     public static invalidators: VarDataInvalidatorVO[] = [];
 
     public static init() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, VarsDatasVoUpdateHandler.register_vo_cud.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud_or_intersectors, VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors.bind(this));
         // ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_matroids_intersection.bind(this));
         // ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids, VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_exact_matroids.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsDatasVoUpdateHandler.TASK_NAME_push_invalidators, VarsDatasVoUpdateHandler.push_invalidators.bind(this));
     }
 

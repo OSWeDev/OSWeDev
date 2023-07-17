@@ -28,7 +28,9 @@ export default abstract class ModuleServerBase implements IModuleBase {
     public registerExpressApis(app: Express): void { }
     public async registerAccessPolicies(is_generator: boolean = false): Promise<void> { }
     public async registerAccessRoles(): Promise<void> { }
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerCrons(): void { }
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void { }
     public registerServerApiHandlers(): void { }
     public async configure(): Promise<void> { }

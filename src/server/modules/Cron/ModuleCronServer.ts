@@ -21,6 +21,7 @@ import ICronWorker from './interfaces/ICronWorker';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleCronServer.instance) {
             ModuleCronServer.instance = new ModuleCronServer();
@@ -35,6 +36,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         CronServerController.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '{worker_uid}'
@@ -121,6 +123,7 @@ export default class ModuleCronServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleCron.POLICY_GROUP;
@@ -142,6 +145,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));

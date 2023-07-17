@@ -41,6 +41,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     public static ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK';
     public static ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSupervisionServer.instance) {
             ModuleSupervisionServer.instance = new ModuleSupervisionServer();
@@ -58,11 +59,13 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         SupervisionCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleSupervision.APINAME_refresh_one_manually, this.refresh_one_manually.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         ModuleBGThreadServer.getInstance().registerBGThread(SupervisionBGThread.getInstance());
 
@@ -161,6 +164,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSupervision.POLICY_GROUP;

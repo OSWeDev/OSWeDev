@@ -12,6 +12,7 @@ import ModuleDAOServer from '../ModuleDAOServer';
  */
 export default class CheckSegmentedIdsCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!CheckSegmentedIdsCronWorker.instance) {
             CheckSegmentedIdsCronWorker.instance = new CheckSegmentedIdsCronWorker();

@@ -9,6 +9,7 @@ import StartExportDatatableCronWorker from './workers/StartExportDatatable/Start
  */
 export default class DashboardBuilderCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
 
         if (!DashboardBuilderCronWorkersHandler.instance) {

@@ -11,6 +11,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ArchiveFilesCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ArchiveFilesCronWorker.instance) {
             ArchiveFilesCronWorker.instance = new ArchiveFilesCronWorker();

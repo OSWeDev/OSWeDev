@@ -10,6 +10,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
     public static METHOD_GET: string = "GET";
     public static METHOD_POST: string = "POST";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleRequestServer.instance) {
             ModuleRequestServer.instance = new ModuleRequestServer();
@@ -23,6 +24,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
         super(ModuleRequest.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
     }

@@ -55,6 +55,7 @@ import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimatio
 
 export default class ModuleAnimationServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleAnimationServer.instance) {
             ModuleAnimationServer.instance = new ModuleAnimationServer();
@@ -68,6 +69,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         super(ModuleAnimation.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
@@ -79,6 +81,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAnimation.POLICY_GROUP;
@@ -151,11 +154,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         await Promise.all(promises);
     }
 
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
         ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterAnimationModule);
         ModuleDAOServer.getInstance().registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this, this.filterAnimationModuleContextAccessHook);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         await this.configure_vars();
         DataExportServerController.getInstance().register_export_handler(ModuleAnimation.EXPORT_API_TYPE_ID, AnimationReportingExportHandler.getInstance());

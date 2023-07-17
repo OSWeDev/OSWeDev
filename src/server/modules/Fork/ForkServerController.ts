@@ -23,6 +23,7 @@ export default class ForkServerController {
 
     // public static PARAM_NAME_NODE_MEM_SIZE: string = 'ForkServerController.NODE_MEM_SIZE';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ForkServerController.instance) {
             ForkServerController.instance = new ForkServerController();

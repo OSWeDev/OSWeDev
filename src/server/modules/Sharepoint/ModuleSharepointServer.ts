@@ -19,6 +19,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleSharepointServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSharepointServer.instance) {
             ModuleSharepointServer.instance = new ModuleSharepointServer();
@@ -34,6 +35,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
         super(ModuleSharepoint.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSharepoint.POLICY_GROUP;
@@ -63,9 +65,11 @@ export default class ModuleSharepointServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() { }
 
     /**

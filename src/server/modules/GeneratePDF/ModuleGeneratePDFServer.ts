@@ -10,6 +10,7 @@ import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleGeneratePDFServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleGeneratePDFServer.instance) {
             ModuleGeneratePDFServer.instance = new ModuleGeneratePDFServer();
@@ -25,6 +26,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
 
     public async configure() { }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
     }

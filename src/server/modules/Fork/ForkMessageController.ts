@@ -15,6 +15,7 @@ import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage'
 
 export default class ForkMessageController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ForkMessageController.instance) {
             ForkMessageController.instance = new ForkMessageController();

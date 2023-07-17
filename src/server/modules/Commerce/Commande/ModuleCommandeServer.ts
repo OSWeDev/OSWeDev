@@ -19,6 +19,7 @@ import ModuleProduitServer from '../Produit/ModuleProduitServer';
 
 export default class ModuleCommandeServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleCommandeServer.instance) {
             ModuleCommandeServer.instance = new ModuleCommandeServer();
@@ -32,6 +33,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         super(ModuleCommande.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleCommande.APINAME_getCommandesUser, this.getCommandesUser.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleCommande.APINAME_getLignesCommandeByCommandeId, this.getLignesCommandeByCommandeId.bind(this));

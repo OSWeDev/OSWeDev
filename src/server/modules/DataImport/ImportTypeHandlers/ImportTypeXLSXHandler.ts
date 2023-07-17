@@ -23,6 +23,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class ImportTypeXLSXHandler {
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ImportTypeXLSXHandler.instance) {
             ImportTypeXLSXHandler.instance = new ImportTypeXLSXHandler();

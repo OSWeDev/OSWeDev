@@ -17,6 +17,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 
 export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleFacturationProAPIServer.instance) {
             ModuleFacturationProAPIServer.instance = new ModuleFacturationProAPIServer();
@@ -30,6 +31,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         super(ModuleFacturationProAPI.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFacturationProAPI.POLICY_GROUP;
@@ -59,9 +61,11 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleFacturationProAPI.APINAME_download_invoice, this.download_invoice.bind(this));
     }

@@ -3,6 +3,7 @@ import DefaultTranslationsServerManager from '../../DefaultTranslationsServerMan
 
 export default class InstallTranslationsCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!InstallTranslationsCronWorker.instance) {
             InstallTranslationsCronWorker.instance = new InstallTranslationsCronWorker();

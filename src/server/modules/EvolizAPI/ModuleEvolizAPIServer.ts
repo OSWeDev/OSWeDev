@@ -18,6 +18,7 @@ import EvolizAPIToken from './vos/EvolizAPIToken';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleEvolizAPIServer.instance) {
             ModuleEvolizAPIServer.instance = new ModuleEvolizAPIServer();
@@ -33,6 +34,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         super(ModuleEvolizAPI.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleEvolizAPI.POLICY_GROUP;
@@ -62,9 +64,11 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));

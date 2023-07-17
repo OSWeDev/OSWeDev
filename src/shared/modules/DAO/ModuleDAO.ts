@@ -90,6 +90,7 @@ export default class ModuleDAO extends Module {
 
     public static DAO_ACCESS_QUERY: string = ModuleDAO.POLICY_GROUP_OVERALL + '.' + "QUERY";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDAO.instance) {
             ModuleDAO.instance = new ModuleDAO();

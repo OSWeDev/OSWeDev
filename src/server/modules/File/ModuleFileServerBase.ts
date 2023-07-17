@@ -27,10 +27,12 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         app.post(this.api_upload_uri, ServerBase.getInstance().csrfProtection, fileUpload(), this.uploadFile.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         ArchiveFilesWorkersHandler.getInstance();
     }

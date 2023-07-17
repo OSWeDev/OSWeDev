@@ -45,6 +45,7 @@ export default class DataExportServerController {
         return null;
     }
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DataExportServerController.instance) {
             DataExportServerController.instance = new DataExportServerController();

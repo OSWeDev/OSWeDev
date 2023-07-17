@@ -19,6 +19,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleParamsServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleParamsServer.instance) {
             ModuleParamsServer.instance = new ModuleParamsServer();
@@ -36,6 +37,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
         super(ModuleParams.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -48,6 +50,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         // APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_getParamValueAsString, this.getParamValueAsString.bind(this));
@@ -61,6 +64,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleParams.POLICY_GROUP;

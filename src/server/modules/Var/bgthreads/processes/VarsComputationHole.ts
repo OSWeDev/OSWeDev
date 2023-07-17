@@ -18,6 +18,7 @@ export default class VarsComputationHole {
     public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
 
     public static init() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsComputationHole.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
     }
 

@@ -40,6 +40,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public static DEFAULT_MIN_timeout: number = 300;
 
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleBGThreadServer.instance) {
             ModuleBGThreadServer.instance = new ModuleBGThreadServer();
@@ -60,6 +61,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleBGThread.POLICY_GROUP;

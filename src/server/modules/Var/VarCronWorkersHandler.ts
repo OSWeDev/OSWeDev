@@ -11,6 +11,7 @@ import ClearVarCacheCronWorker from './workers/UpdateEstimatedDurations/ClearVar
 
 export default class VarCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarCronWorkersHandler.instance) {
             VarCronWorkersHandler.instance = new VarCronWorkersHandler();

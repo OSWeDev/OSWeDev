@@ -44,6 +44,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return this.shared_module as ModuleProgramPlanBase;
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         // On ajoute les triggers pour le statut des RDVs en fonction des Preps / CRs et confirmation
@@ -129,6 +130,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }, 'programplan.rdv_modal.rdv_date.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
         APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
@@ -139,6 +141,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
     }
 
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
         // IPlanManager
@@ -176,6 +179,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.programplan_shared_module.POLICY_GROUP;

@@ -5,6 +5,7 @@ import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 
 export default class StartMaintenanceCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!StartMaintenanceCronWorker.instance) {
             StartMaintenanceCronWorker.instance = new StartMaintenanceCronWorker();

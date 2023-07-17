@@ -11,6 +11,7 @@ export default class DAOController {
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DAOController.instance) {
             DAOController.instance = new DAOController();

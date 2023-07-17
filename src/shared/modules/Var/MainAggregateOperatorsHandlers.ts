@@ -1,6 +1,7 @@
 
 export default class MainAggregateOperatorsHandlers {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!MainAggregateOperatorsHandlers.instance) {
             MainAggregateOperatorsHandlers.instance = new MainAggregateOperatorsHandlers();

@@ -20,6 +20,7 @@ export default class CronServerController {
 
     public static ForkedProcessType: string = "CRON";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!CronServerController.instance) {
             CronServerController.instance = new CronServerController();

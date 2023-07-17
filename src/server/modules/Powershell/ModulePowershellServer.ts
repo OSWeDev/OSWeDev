@@ -16,6 +16,7 @@ import PushDataServerController from '../PushData/PushDataServerController';
 
 export default class ModulePowershellServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModulePowershellServer.instance) {
             ModulePowershellServer.instance = new ModulePowershellServer();
@@ -31,6 +32,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
         super(ModulePowershell.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModulePowershell.POLICY_GROUP;
@@ -60,6 +62,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         this.ps = new Shell({
             executionPolicy: 'Bypass',
@@ -74,6 +77,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
         }, 'ActiveDirectory.prompt.pwd.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() { }
 
     public async ask_user_credentials_and_change_cred_value() {

@@ -24,6 +24,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
 
 
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSurveyServer.instance) {
             ModuleSurveyServer.instance = new ModuleSurveyServer();
@@ -37,6 +38,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         super(ModuleSurvey.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSurvey.POLICY_GROUP;
@@ -66,6 +68,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -137,6 +140,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         );
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSurvey.APINAME_survey, this.survey.bind(this));
     }

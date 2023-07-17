@@ -25,6 +25,7 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     public static MAILCATEGORY_DailyReportCronWorker = 'MAILCATEGORY.DailyReportCronWorker';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DailyReportCronWorker.instance) {
             DailyReportCronWorker.instance = new DailyReportCronWorker();

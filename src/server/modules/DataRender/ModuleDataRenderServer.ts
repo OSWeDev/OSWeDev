@@ -22,6 +22,7 @@ import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDataRenderServer.instance) {
             ModuleDataRenderServer.instance = new ModuleDataRenderServer();
@@ -35,6 +36,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         super(ModuleDataRender.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Jour'
@@ -80,6 +82,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     public registerExpressApis(app: Express): void { }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));

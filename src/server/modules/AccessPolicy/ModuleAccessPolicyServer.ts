@@ -67,6 +67,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
     public static TASK_NAME_delete_sessions_from_other_thread = 'ModuleAccessPolicyServer.delete_sessions_from_other_thread';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleAccessPolicyServer.instance) {
             ModuleAccessPolicyServer.instance = new ModuleAccessPolicyServer();
@@ -82,6 +83,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
 
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
         AccessPolicyServerController.init_tasks();
     }
@@ -113,6 +115,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAccessPolicy.POLICY_GROUP;
@@ -301,17 +304,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return await this.registerPolicyDependency(dep);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         AccessPolicyCronWorkersHandler.getInstance();
     }
 
 
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
         ModuleDAOServer.getInstance().registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
         ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
@@ -825,6 +831,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'TableWidgetComponent.confirm_archive.title.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_TEST_ACCESS, this.testAccess.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_CHECK_ACCESS, this.checkAccess.bind(this));
@@ -1160,6 +1167,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      */
     public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
 
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
 
         if (!await ForkedTasksController.exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {

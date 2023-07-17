@@ -19,6 +19,7 @@ const zlib = require('zlib');
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleAPIServer.instance) {
             ModuleAPIServer.instance = new ModuleAPIServer();

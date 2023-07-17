@@ -29,6 +29,7 @@ export default class VarsDatasProxy {
      */
 
     public static init() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsDatasProxy.TASK_NAME_add_to_tree_if_necessary_and_return_datas_that_need_notification, VarsDatasProxy.add_to_tree_if_necessary_and_return_datas_that_need_notification.bind(this));
     }
 

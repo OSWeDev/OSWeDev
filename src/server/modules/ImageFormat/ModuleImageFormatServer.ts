@@ -29,6 +29,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleImageFormatServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleImageFormatServer.instance) {
             ModuleImageFormatServer.instance = new ModuleImageFormatServer();
@@ -42,6 +43,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         super(ModuleImageFormat.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleImageFormat.POLICY_GROUP;
@@ -63,6 +65,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
@@ -71,6 +74,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(ImageFormatVO.API_TYPE_ID, this, this.handleTriggerPostUpdateImageFormat);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleImageFormat.APINAME_get_formatted_image, this.get_formatted_image.bind(this));
     }

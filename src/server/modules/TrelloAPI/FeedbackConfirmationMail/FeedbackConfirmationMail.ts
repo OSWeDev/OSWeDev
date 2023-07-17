@@ -15,6 +15,7 @@ export default class FeedbackConfirmationMail {
 
     public static CODE_TEXT_MAIL_SUBJECT_FeedbackConfirmationMail: string = 'mails.feedback.confirmation.subject';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!FeedbackConfirmationMail.instance) {
             FeedbackConfirmationMail.instance = new FeedbackConfirmationMail();

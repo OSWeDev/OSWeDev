@@ -24,6 +24,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleVersionedServer.instance) {
             ModuleVersionedServer.instance = new ModuleVersionedServer();
@@ -37,10 +38,12 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         super(ModuleVersioned.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleVersioned.APINAME_RESTORE_TRASHED_VO, this.restoreTrashedVo.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         for (let i in VersionedVOController.getInstance().registeredModuleTables) {

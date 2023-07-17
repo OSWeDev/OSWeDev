@@ -10,6 +10,7 @@ import VarMonthCompareCSRFCountMAndMm2Controller from './vars/controllers/VarMon
 
 export default class ModuleUserLogVarsServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleUserLogVarsServer.instance) {
             ModuleUserLogVarsServer.instance = new ModuleUserLogVarsServer();
@@ -23,6 +24,7 @@ export default class ModuleUserLogVarsServer extends ModuleServerBase {
         super(ModuleUserLogVars.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         await this.configure_vars();
     }

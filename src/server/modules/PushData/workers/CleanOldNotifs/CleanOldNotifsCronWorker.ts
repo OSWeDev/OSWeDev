@@ -10,6 +10,7 @@ import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 
 export default class CleanOldNotifsCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!CleanOldNotifsCronWorker.instance) {
             CleanOldNotifsCronWorker.instance = new CleanOldNotifsCronWorker();

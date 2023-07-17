@@ -89,6 +89,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDAOServer.instance) {
             ModuleDAOServer.instance = new ModuleDAOServer();
@@ -154,6 +155,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(is_generator: boolean = false): Promise<void> {
         let promises = [];
         let group_overall: AccessPolicyGroupVO = new AccessPolicyGroupVO();
@@ -569,6 +571,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         // await this.create_or_replace_function_ref_get_user();
@@ -709,6 +712,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }, 'crud.field_error_format.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         DAOCronWorkersHandler.getInstance();
     }
@@ -747,6 +751,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DAOServerController.getInstance().context_access_hooks[API_TYPE_ID].push(hook.bind(handler_bind_this));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_selectUsersForCheckUnicity, this.selectUsersForCheckUnicity.bind(this));
 

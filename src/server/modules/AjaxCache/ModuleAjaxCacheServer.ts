@@ -18,6 +18,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleAjaxCacheServer.instance) {
             ModuleAjaxCacheServer.instance = new ModuleAjaxCacheServer();
@@ -31,6 +32,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         super(ModuleAjaxCache.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleAjaxCache.APINAME_REQUESTS_WRAPPER, this.requests_wrapper.bind(this));
     }
@@ -38,6 +40,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAjaxCache.POLICY_GROUP;

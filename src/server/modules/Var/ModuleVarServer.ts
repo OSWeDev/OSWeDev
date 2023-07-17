@@ -95,6 +95,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleVarServer.instance) {
             ModuleVarServer.instance = new ModuleVarServer();
@@ -162,6 +163,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         VarsTabsSubsController.init();
@@ -401,13 +403,20 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'var_desc.public.___LABEL___'));
 
         // ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_delete_varconf_from_cache, this.delete_varconf_from_cache.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_update_varconf_from_cache, this.update_varconf_from_cache.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data, this.force_delete_all_cache_except_imported_data.bind(this));
 
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_u, this.invalidate_imports_for_u.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_c, this.invalidate_imports_for_c.bind(this));
 
         ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
@@ -785,6 +794,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // }
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
         // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
@@ -810,6 +820,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
     }
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         VarCronWorkersHandler.getInstance();
     }
@@ -817,6 +828,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVar.POLICY_GROUP;

@@ -4,6 +4,7 @@ import TriggerHook from './TriggerHook';
 
 export default class ModuleTriggerServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleTriggerServer.instance) {
             ModuleTriggerServer.instance = new ModuleTriggerServer();
@@ -25,6 +26,7 @@ export default class ModuleTriggerServer extends ModuleServerBase {
         super(ModuleTrigger.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 

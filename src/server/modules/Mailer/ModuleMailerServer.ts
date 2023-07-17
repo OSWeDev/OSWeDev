@@ -14,6 +14,7 @@ import TemplateHandlerServer from './TemplateHandlerServer';
 
 export default class ModuleMailerServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleMailerServer.instance) {
             ModuleMailerServer.instance = new ModuleMailerServer();
@@ -27,6 +28,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
         super(ModuleMailer.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Initié'
@@ -98,6 +100,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
         }, 'MAILCATEGORY.DailyReportCronWorker.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTML.bind(this));

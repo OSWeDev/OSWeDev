@@ -15,6 +15,7 @@ import ContextQueryServerController from './ContextQueryServerController';
 
 export default class ModuleContextFilterServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleContextFilterServer.instance) {
             ModuleContextFilterServer.instance = new ModuleContextFilterServer();
@@ -29,9 +30,11 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         super(ModuleContextFilter.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_filter_visible_options, this.select_filter_visible_options.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_count, this.select_count.bind(this));

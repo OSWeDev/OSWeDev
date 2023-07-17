@@ -8,6 +8,7 @@ import MenuController from '../menu/MenuController';
 
 export default class CRUDComponentManager {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
 
         if (!CRUDComponentManager.instance) {

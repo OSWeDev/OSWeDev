@@ -7,6 +7,7 @@ import ICronWorker from '../../../Cron/interfaces/ICronWorker';
  */
 export default class StartExportDatatableCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
 
         if (!StartExportDatatableCronWorker.instance) {

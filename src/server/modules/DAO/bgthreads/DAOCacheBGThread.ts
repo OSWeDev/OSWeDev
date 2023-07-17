@@ -20,7 +20,8 @@
 
 //     public static TASK_NAME_query: string = 'DAOCacheBGThread.query';
 
-//     public static getInstance() {
+//     // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
 //         if (!DAOCacheBGThread.instance) {
 //             DAOCacheBGThread.instance = new DAOCacheBGThread();
 //         }

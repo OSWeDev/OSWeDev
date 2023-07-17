@@ -17,6 +17,7 @@ import DataExportServerController from '../DataExportServerController';
 
 export default class DataExportBGThread implements IBGThread {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DataExportBGThread.instance) {
             DataExportBGThread.instance = new DataExportBGThread();

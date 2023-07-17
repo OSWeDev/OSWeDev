@@ -15,6 +15,7 @@ import ModuleTable from '../../../../shared/modules/ModuleTable';
 
 export default class PasswordReset {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PasswordReset.instance) {
             PasswordReset.instance = new PasswordReset();

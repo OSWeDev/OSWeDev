@@ -27,7 +27,9 @@ export default class VarsTabsSubsController {
         this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
 
     public static init() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
     }
 

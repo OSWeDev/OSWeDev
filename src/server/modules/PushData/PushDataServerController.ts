@@ -105,25 +105,44 @@ export default class PushDataServerController {
     private constructor() {
 
         // Conf des taches qui dépendent du thread
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, this.notifyRedirectHomeAndDisconnect.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarData, this.notifyVarData.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsDatas, this.notifyVarsDatas.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsDatasBySocket, this.notifyVarsDatasBySocket.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyDAOGetVoById, this.notifyDAOGetVoById.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyDAOGetVos, this.notifyDAOGetVos.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_broadcastLoggedSimple, this.broadcastLoggedSimple.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_broadcastAllSimple, this.broadcastAllSimple.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_broadcastRoleSimple, this.broadcastRoleSimple.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_broadcastRoleRedirect, this.broadcastRoleRedirect.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, this.notifySimpleSUCCESS.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifySimpleINFO, this.notifySimpleINFO.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifySimpleWARN, this.notifySimpleWARN.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifySimpleERROR, this.notifySimpleERROR.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyRedirectINFO, this.notifyRedirectINFO.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyPrompt, this.notifyPrompt.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifySession, this.notifySession.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome, this.notifyUserLoggedAndRedirectHome.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
 

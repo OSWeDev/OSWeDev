@@ -18,7 +18,8 @@
 //  */
 // export default class StatsCategoryMapperBGThread implements IBGThread {
 
-//     public static getInstance() {
+//     // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
 //         if (!StatsCategoryMapperBGThread.instance) {
 //             StatsCategoryMapperBGThread.instance = new StatsCategoryMapperBGThread();
 //         }

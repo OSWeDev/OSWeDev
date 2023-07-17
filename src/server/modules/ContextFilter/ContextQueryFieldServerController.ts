@@ -7,6 +7,7 @@ import moment from 'moment';
 
 export default class ContextQueryFieldServerController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ContextQueryFieldServerController.instance) {
             ContextQueryFieldServerController.instance = new ContextQueryFieldServerController();
@@ -18,6 +19,7 @@ export default class ContextQueryFieldServerController {
 
     private constructor() { }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 

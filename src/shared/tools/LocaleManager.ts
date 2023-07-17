@@ -2,6 +2,7 @@ import DefaultTranslation from '../modules/Translation/vos/DefaultTranslation';
 
 export default class LocaleManager {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!LocaleManager.instance) {
             LocaleManager.instance = new LocaleManager();

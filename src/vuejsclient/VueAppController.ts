@@ -26,6 +26,7 @@ export default abstract class VueAppController {
     /**
      * Ne crée pas d'instance mais permet de récupérer l'instance active
      */
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         return VueAppController.instance_;
     }

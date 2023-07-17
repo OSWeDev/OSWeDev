@@ -21,6 +21,7 @@ import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDashboardBuilderServer.instance) {
             ModuleDashboardBuilderServer.instance = new ModuleDashboardBuilderServer();
@@ -34,10 +35,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         super(ModuleDashboardBuilder.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         DashboardBuilderCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -2105,6 +2108,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(
             ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
@@ -2121,6 +2125,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         FavoritesFiltersVOService.getInstance().export_favorites_filters_datatable();
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDashboardBuilder.POLICY_GROUP;

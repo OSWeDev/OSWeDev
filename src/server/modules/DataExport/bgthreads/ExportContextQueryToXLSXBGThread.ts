@@ -11,6 +11,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
     public static TASK_NAME_push_export_query = 'ExportContextQueryToXLSXBGThread.push_export_query';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ExportContextQueryToXLSXBGThread.instance) {
             ExportContextQueryToXLSXBGThread.instance = new ExportContextQueryToXLSXBGThread();
@@ -29,6 +30,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     public exec_in_dedicated_thread: boolean = true;
 
     private constructor() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query, this.push_export_query.bind(this));
     }
 

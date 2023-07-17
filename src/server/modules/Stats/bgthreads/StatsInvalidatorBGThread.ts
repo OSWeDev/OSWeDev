@@ -18,6 +18,7 @@ export default class StatsInvalidatorBGThread implements IBGThread {
     public static PARAM_NAME_invalidate_x_previous_minutes: string = 'StatsInvalidatorBGThread.invalidate_x_previous_minutes';
     public static PARAM_NAME_invalidate_current_minute: string = 'StatsInvalidatorBGThread.invalidate_current_minute';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!StatsInvalidatorBGThread.instance) {
             StatsInvalidatorBGThread.instance = new StatsInvalidatorBGThread();

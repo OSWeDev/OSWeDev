@@ -24,6 +24,7 @@ import ServerAnonymizationController from './ServerAnonymizationController';
 
 export default class ModuleAnonymizationServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleAnonymizationServer.instance) {
             ModuleAnonymizationServer.instance = new ModuleAnonymizationServer();
@@ -40,6 +41,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAnonymization.POLICY_GROUP;
@@ -61,6 +63,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Ville' },

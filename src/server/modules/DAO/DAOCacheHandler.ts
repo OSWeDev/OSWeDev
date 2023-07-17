@@ -47,6 +47,7 @@ export default class DAOCacheHandler {
         DAOCacheHandler.dao_cache_params[parameterized_full_query] = new DAOCacheParamVO(Dates.now_ms(), max_age);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DAOCacheHandler.instance) {
             DAOCacheHandler.instance = new DAOCacheHandler();

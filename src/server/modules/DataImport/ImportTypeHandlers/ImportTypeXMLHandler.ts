@@ -25,6 +25,7 @@ const XmlReader = require('xml-reader');
 const he = require('he');
 
 export default class ImportTypeXMLHandler {
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ImportTypeXMLHandler.instance) {
             ImportTypeXMLHandler.instance = new ImportTypeXMLHandler();

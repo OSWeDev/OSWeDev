@@ -21,6 +21,7 @@ export default class FeedbackConfirmationMail {
 
     public static MAILCATEGORY_FeedbackConfirmationMail = 'MAILCATEGORY.FeedbackConfirmationMail';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!FeedbackConfirmationMail.instance) {
             FeedbackConfirmationMail.instance = new FeedbackConfirmationMail();

@@ -27,6 +27,7 @@ import ExportAnimationReportingLine from './ExportAnimationReportingLine';
 
 export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AnimationReportingExportHandler.instance) {
             AnimationReportingExportHandler.instance = new AnimationReportingExportHandler();

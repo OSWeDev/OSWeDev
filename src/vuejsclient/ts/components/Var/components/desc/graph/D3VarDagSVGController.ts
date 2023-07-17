@@ -4,6 +4,7 @@ import LocaleManager from "../../../../../../../shared/tools/LocaleManager";
 
 export default class D3VarDagSVGController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!D3VarDagSVGController.instance) {
             D3VarDagSVGController.instance = new D3VarDagSVGController();

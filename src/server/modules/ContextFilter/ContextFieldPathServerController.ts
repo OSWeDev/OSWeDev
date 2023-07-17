@@ -5,6 +5,7 @@ import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager'
 
 export default class ContextFieldPathServerController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ContextFieldPathServerController.instance) {
             ContextFieldPathServerController.instance = new ContextFieldPathServerController();
@@ -16,6 +17,7 @@ export default class ContextFieldPathServerController {
 
     private constructor() { }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 

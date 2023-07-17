@@ -28,6 +28,7 @@ export default class ModuleImageServer extends ModuleFileServerBase<ImageVO> {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleImage.POLICY_GROUP;

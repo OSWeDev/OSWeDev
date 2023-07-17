@@ -24,6 +24,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
 
     public static TASK_NAME_register_aggregated_stats: string = 'StatsUnstackerBGThread.register_aggregated_stats';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!StatsUnstackerBGThread.instance) {
             StatsUnstackerBGThread.instance = new StatsUnstackerBGThread();
@@ -51,6 +52,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
     private aggregated_stats: StatClientWrapperVO[] = [];
 
     private constructor() {
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, this.register_aggregated_stats.bind(this));
     }
 

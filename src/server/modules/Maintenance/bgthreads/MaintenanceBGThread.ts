@@ -15,6 +15,7 @@ import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 
 export default class MaintenanceBGThread implements IBGThread {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!MaintenanceBGThread.instance) {
             MaintenanceBGThread.instance = new MaintenanceBGThread();

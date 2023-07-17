@@ -20,6 +20,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleGPTServer.instance) {
             ModuleGPTServer.instance = new ModuleGPTServer();
@@ -35,6 +36,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         super(ModuleGPT.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         if (!ConfigurationService.node_configuration.OPEN_API_API_KEY) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
@@ -51,6 +53,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleGPT.POLICY_GROUP;

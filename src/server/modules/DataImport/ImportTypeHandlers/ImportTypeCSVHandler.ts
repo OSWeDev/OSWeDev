@@ -26,6 +26,7 @@ const CsvReadableStream = require('csv-reader');
 const AutoDetectDecoderStream = require('oswedev-autodetect-decoder-stream');
 
 export default class ImportTypeCSVHandler {
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ImportTypeCSVHandler.instance) {
             ImportTypeCSVHandler.instance = new ImportTypeCSVHandler();

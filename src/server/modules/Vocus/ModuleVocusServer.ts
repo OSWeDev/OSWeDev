@@ -23,6 +23,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleVocusServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleVocusServer.instance) {
             ModuleVocusServer.instance = new ModuleVocusServer();
@@ -36,6 +37,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         super(ModuleVocus.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vocus'
@@ -66,6 +68,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVocus.POLICY_GROUP;
@@ -87,6 +90,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleVocus.APINAME_getVosRefsById, this.getVosRefsById.bind(this));
     }

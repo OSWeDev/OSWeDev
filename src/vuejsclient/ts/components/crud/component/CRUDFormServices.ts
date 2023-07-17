@@ -24,6 +24,7 @@ import CRUDComponentManager from '../CRUDComponentManager';
 
 export default class CRUDFormServices {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!CRUDFormServices._instance) {
             CRUDFormServices._instance = new CRUDFormServices();
