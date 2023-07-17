@@ -324,6 +324,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         delete dag.nodes[this.var_data.index];
+        delete VarDAGNode.getInstance_semaphores[dag.uid][this.var_data.index];
         dag.nb_nodes--;
         if (this.current_step != null) {
             let current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];

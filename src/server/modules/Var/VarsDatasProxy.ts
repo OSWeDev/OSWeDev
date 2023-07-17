@@ -256,7 +256,7 @@ export default class VarsDatasProxy {
     //                 }
     //             }
 
-    //             if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, (!!wrapper.is_server_request) || (!!wrapper.client_tab_id))) {
+    //             if (do_insert && VarsCacheController.BDD_do_cache_param_data(handle_var, controller, (!!wrapper.is_server_request) || (!!wrapper.client_tab_id))) {
 
     //                 if (!to_insert_by_type[handle_var._type]) {
     //                     to_insert_by_type[handle_var._type] = [];

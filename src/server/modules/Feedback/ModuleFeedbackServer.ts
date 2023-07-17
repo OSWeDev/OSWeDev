@@ -427,47 +427,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             feedback.id = ires.id;
 
-            let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
-            if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
-                let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
-                    GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
-                    uid,
-                    'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
-                    // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
-                    'Tu dois réaliser un résumé de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
-                    'Ci-après les éléments constituant le formulaire de contact client : {' +
-                    ' - Titre du formulaire : ' + feedback.title + ' ' +
-                    ' - Message : ' + feedback.message + ' ' +
-                    ' - Infos de l\'utilisateur : ' + user_infos +
-                    ' - feedback_infos : ' + feedback_infos +
-                    ' - screen_captures : ' + screen_captures +
-                    ' - attachments : ' + attachments +
-                    ' - routes : ' + routes +
-                    ' - console_logs_errors : ' + console_logs_errors +
-                    ' - api_logs : ' + api_logs
-                ));
-                let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
-                if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
-                    let teamsWebhookContent = new TeamsWebhookContentVO();
-                    teamsWebhookContent.title = 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
-                    teamsWebhookContent.summary = gtp_4_brief.content;
-
-                    teamsWebhookContent.sections.push(
-                        new TeamsWebhookContentSectionVO().set_text('<h2>' + feedback.title + '</h2>' +
-                            '<p>' + gtp_4_brief.content + '</p>'));
-
-                    // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
-                    let dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
-                    if ((!!feedback.id) && !!dashboard_feedback_id) {
-                        teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
-                            new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                                ConfigurationService.node_configuration.BASE_URL + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
-                    }
-
-                    let teams_res = await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
-                    ConsoleHandler.log("teams_res : " + teams_res);
-                }
-            }
+            await this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors, api_logs);
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
@@ -484,6 +444,90 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return false;
         }
+    }
+
+    private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string, api_logs: string) {
+        let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
+        if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
+            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
+                GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+                uid,
+                'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
+                // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
+                'Tu dois réaliser un résumé de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+                'Ci-après les éléments constituant le formulaire de contact client : {' +
+                ' - Titre du formulaire : ' + feedback.title + ' ' +
+                ' - Message : ' + feedback.message + ' ' +
+                ' - Infos de l\'utilisateur : ' + user_infos +
+                ' - feedback_infos : ' + feedback_infos +
+                ' - console_logs_errors : ' + console_logs_errors +
+                ' - api_logs : ' + api_logs
+            ));
+            let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
+            if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
+                let teamsWebhookContent = new TeamsWebhookContentVO();
+                teamsWebhookContent.title = 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
+                teamsWebhookContent.summary = gtp_4_brief.content;
+
+                if (feedback.screen_capture_1_id) {
+                    await this.handle_screen_capture(feedback.screen_capture_1_id, 1, teamsWebhookContent);
+                }
+                if (feedback.screen_capture_2_id) {
+                    await this.handle_screen_capture(feedback.screen_capture_2_id, 2, teamsWebhookContent);
+                }
+                if (feedback.screen_capture_3_id) {
+                    await this.handle_screen_capture(feedback.screen_capture_3_id, 3, teamsWebhookContent);
+                }
+
+                if (feedback.file_attachment_1_id) {
+                    await this.handle_file_attachement(feedback.file_attachment_1_id, 1, teamsWebhookContent);
+                }
+                if (feedback.file_attachment_2_id) {
+                    await this.handle_file_attachement(feedback.file_attachment_2_id, 2, teamsWebhookContent);
+                }
+                if (feedback.file_attachment_3_id) {
+                    await this.handle_file_attachement(feedback.file_attachment_3_id, 3, teamsWebhookContent);
+                }
+
+                teamsWebhookContent.sections.push(
+                    new TeamsWebhookContentSectionVO().set_text('<h2>' + feedback.title + '</h2>' +
+                        '<p>' + gtp_4_brief.content + '</p>'));
+
+                // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
+                let dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
+                if ((!!feedback.id) && !!dashboard_feedback_id) {
+                    teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
+                        new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
+                            ConfigurationService.node_configuration.BASE_URL + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
+                }
+
+                let teams_res = await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
+                ConsoleHandler.log("teams_res : " + teams_res);
+            }
+        }
+    }
+
+    private async handle_file_attachement(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        if (!file) {
+            return '';
+        }
+        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+
+        message.sections.push(
+            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
+    }
+
+    private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        if (!file) {
+            return '';
+        }
+        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+
+        message.sections.push(
+            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
+                .set_activityImage(file_url));
     }
 
     private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {

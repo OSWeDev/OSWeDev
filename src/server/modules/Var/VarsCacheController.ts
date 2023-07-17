@@ -13,30 +13,16 @@ import VarServerControllerBase from './VarServerControllerBase';
  */
 export default class VarsCacheController {
 
-    public static instance: VarsCacheController = null;
-
     /**
      * Multithreading notes :
      *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
      *  - Everything in this controller is running in the var calculation bg thread
      */
-    public static getInstance(): VarsCacheController {
-        if (!VarsCacheController.instance) {
-            VarsCacheController.instance = new VarsCacheController();
-        }
-        return VarsCacheController.instance;
-    }
-
-    private partially_clean_bdd_cache_var_id_i: number = 0;
-    private partially_clean_bdd_cache_offset: number = 0;
-
-    protected constructor() {
-    }
 
     /**
      * Cas insert en base d'un cache de var calculée et registered
      */
-    public BDD_do_cache_param_data(var_data: VarDataBaseVO, controller: VarServerControllerBase<any>, is_requested_param: boolean): boolean {
+    public static BDD_do_cache_param_data(var_data: VarDataBaseVO, controller: VarServerControllerBase<any>, is_requested_param: boolean): boolean {
 
         // Si ça vient de la bdd, on le met à jour évidemment
         if (!!var_data.id) {
@@ -49,6 +35,7 @@ export default class VarsCacheController {
         }
 
         switch (controller.var_cache_conf.cache_startegy) {
+            default:
             case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS:
                 return true;
             case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_NONE:
@@ -72,8 +59,6 @@ export default class VarsCacheController {
                         return false;
                     }
                 }
-                return true;
-            default:
                 return true;
         }
     }

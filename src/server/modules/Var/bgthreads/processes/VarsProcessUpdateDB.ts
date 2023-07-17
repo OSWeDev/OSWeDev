@@ -158,7 +158,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
             for (let i in nodes) {
                 let node = nodes[i];
 
-                if (VarsCacheController.getInstance().BDD_do_cache_param_data(node.var_data,
+                if (VarsCacheController.BDD_do_cache_param_data(node.var_data,
                     VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id],
                     VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index] || server_subs_by_index[node.var_data.index])) {
 

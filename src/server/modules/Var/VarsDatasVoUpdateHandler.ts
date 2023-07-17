@@ -452,16 +452,48 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         // On réinsère les registers (clients et serveurs)
-        // Clients
         await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache();
-        for (let index in VarsClientsSubsCacheHolder.clients_subs_indexes_cache) {
-            VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), true);
-        }
-
         // Server
-        let server_subs: string[] = await VarsServerCallBackSubsController.get_subs_indexs();
-        for (let i in server_subs) {
-            VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(server_subs[i]), true);
+        let subs: string[] = await VarsServerCallBackSubsController.get_subs_indexs();
+        // Clients
+        subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
+
+        for (let j in subs) {
+
+            let index = subs[j];
+
+            // On peut pas réinsérer tous les éléments registered, il faut qu'on réinsère uniquement ceux qui sont concernés par l'invalidation
+            let registered_var = VarDataBaseVO.from_index(index);
+
+            if (!registered_var) {
+                continue;
+            }
+
+            let invalidated = false;
+            for (let i in invalidators) {
+                let invalidator = invalidators[i];
+
+                switch (invalidator.invalidator_type) {
+                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
+                        if (!MatroidController.matroid_intersects_matroid(registered_var, invalidator.var_data)) {
+                            continue;
+                        }
+                        break;
+                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
+                        if (registered_var.index != invalidator.var_data.index) {
+                            continue;
+                        }
+                        break;
+                }
+
+                invalidated = true;
+            }
+
+            if (!invalidated) {
+                continue;
+            }
+
+            VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), true);
         }
     }
 
