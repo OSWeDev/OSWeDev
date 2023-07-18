@@ -49,6 +49,7 @@ include ../../../../../../views/mixins/loading.pug
                                     template(v-else)
                                         template(v-if='kanban_column.is_enum')
                                             Datatablecomponentfield.is_enum(
+                                                :column="kanban_column"
                                                 :field="fields[kanban_column.id]"
                                                 :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
                                                 :columns="table_columns"
@@ -59,6 +60,7 @@ include ../../../../../../views/mixins/loading.pug
                                         template(v-else)
                                             template(v-if="kanban_column.type != 5")
                                                 Datatablecomponentfield(
+                                                    :column="kanban_column"
                                                     :filter_custom_field_filters="kanban_column.filter_custom_field_filters"
                                                     :field="fields[kanban_column.id]"
                                                     :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
@@ -108,6 +110,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                             .kanban_row_column_field_value
                                                                                 template(v-if='column.is_enum')
                                                                                     Datatablecomponentfield.is_enum(
+                                                                                        :column="column"
                                                                                         :field="fields[column.id]"
                                                                                         :vo="slot_props.sortable_list_item"
                                                                                         :columns="table_columns"
@@ -118,6 +121,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                                 template(v-else)
                                                                                     template(v-if="column.type != 5")
                                                                                         Datatablecomponentfield(
+                                                                                            :column="column"
                                                                                             :filter_custom_field_filters="column.filter_custom_field_filters"
                                                                                             :field="fields[column.id]"
                                                                                             :vo="slot_props.sortable_list_item"

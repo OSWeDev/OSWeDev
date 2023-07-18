@@ -3,8 +3,8 @@
 import moment from 'moment';
 import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
-import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
@@ -15,7 +15,6 @@ import DateHandler from '../../../../../shared/tools/DateHandler';
 import HourHandler from '../../../../../shared/tools/HourHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filters';
-import MatroidIndexHandler from '../../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../../tools/RangeHandler';
 import Dates from '../../../FormatDatesNombres/Dates/Dates';
 import DatatableField from './DatatableField';
@@ -547,6 +546,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     get translatable_title(): string {
         if (!this.vo_type_full_name) {
             return null;
+        }
+
+        if (!this.moduleTableField) {
+            return 'id'; // Cas de l'id
         }
 
         let e = this.moduleTableField.field_label.code_text;

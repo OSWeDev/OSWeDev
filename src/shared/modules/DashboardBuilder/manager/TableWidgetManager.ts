@@ -31,6 +31,7 @@ import { cloneDeep } from 'lodash';
 import VarWidgetManager from './VarWidgetManager';
 import IExportOptions from '../../DataExport/interfaces/IExportOptions';
 import DashboardPageVO from '../vos/DashboardPageVO';
+import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 
 /**
  * @class TableWidgetManager
@@ -232,9 +233,9 @@ export default class TableWidgetManager {
             if (column) {
                 if (column.many_to_many_aggregate) {
                     if (column.is_nullable) {
-                        aggregator = VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR;
+                        aggregator = VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT;
                     } else {
-                        aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR;
+                        aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT;
                     }
                 } else if (column.is_nullable) {
                     aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
@@ -615,9 +616,15 @@ export default class TableWidgetManager {
                 case TableColumnDescVO.TYPE_vo_field_ref:
                     let field = moduleTable.get_field_by_id(column.field_id);
 
+                    if (!field) {
+                        field_by_column_id[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                        break;
+                    }
+
                     let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                     // sur un simple on set le label
+                    // FIXME TODO : set_translatable_title a été supprimé pour éviter des trads appliquées côté front par des widgets et qui ne seraient pas valides en export côté serveur
                     if (data_field['set_translatable_title']) {
                         data_field['set_translatable_title'](field.field_label.code_text);
                     }

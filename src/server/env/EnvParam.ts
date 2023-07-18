@@ -42,7 +42,7 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_DELETEVOS?: boolean = false;
     public DEBUG_START_SERVER?: boolean = false;
     public DEBUG_DB_QUERY_add_activated_many_to_many?: boolean = false;
-    public DEBUG_add_var_columns_values_for_xlsx_datas?: boolean = false;
+    public DEBUG_convert_varparamfields_to_vardatas?: boolean = false;
     public DEBUG_DB_QUERY_PERF?: boolean = false;
     public DEBUG_DB_FULL_QUERY_PERF?: boolean = false;
     public DEBUG_INTERTHREADS_MESSAGES?: boolean = false;

@@ -78,7 +78,6 @@ import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
-import ThrottleGetVarDatasByIndex from './throttle_params/ThrottleGetVarDatasByIndex';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -92,8 +91,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
     public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
     public static TASK_NAME_invalidate_imports_for_d = 'VarsDatasProxy.invalidate_imports_for_d';
-
-    public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -113,10 +110,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public update_varconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
         this.update_varconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
 
-    private throttled_get_var_data_by_index_params: ThrottleGetVarDatasByIndex[] = [];
-
-    private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 50, { leading: true, trailing: true });
-    private throttle_getVarParamFromContextFilters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 200, { leading: true, trailing: true });
+    private throttle_getVarParamFromContextFilters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: true, trailing: true });
 
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
@@ -797,16 +791,10 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
-        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
-        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
-        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
-        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
-        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data, this.get_var_data.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
@@ -814,7 +802,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarParamFromContextFilters, this.getVarParamFromContextFilters.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getAggregatedVarDatas, this.getAggregatedVarDatas.bind(this));
-        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
@@ -909,6 +896,16 @@ export default class ModuleVarServer extends ModuleServerBase {
         await Promise.all(promises);
     }
 
+    public async get_limit_nb_ts_ranges_on_param_by_context_filter(): Promise<number> {
+        /**
+         * On recharge toutes les 5 minutes
+         */
+        if ((this.limit_nb_ts_ranges_on_param_by_context_filter == null) || (this.limit_nb_ts_ranges_on_param_by_context_filter_last_update < (Dates.now() - 300))) {
+            this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVar.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
+            this.limit_nb_ts_ranges_on_param_by_context_filter_last_update = Dates.now();
+        }
+        return this.limit_nb_ts_ranges_on_param_by_context_filter;
+    }
 
     /**
      * Objectif : vider tout le cache des vars, y compris les pixels qu'on supprime théoriquement pas
@@ -1547,7 +1544,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
                             }
-                            var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
+                            var_param[matroid_field.field_id] = ModuleVar.getInstance().get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
                             }
@@ -1592,320 +1589,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         resolve(refuse_param ? null : var_param);
     }
 
-    private async get_limit_nb_ts_ranges_on_param_by_context_filter(): Promise<number> {
-        /**
-         * On recharge toutes les 5 minutes
-         */
-        if ((this.limit_nb_ts_ranges_on_param_by_context_filter == null) || (this.limit_nb_ts_ranges_on_param_by_context_filter_last_update < (Dates.now() - 300))) {
-            this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
-            this.limit_nb_ts_ranges_on_param_by_context_filter_last_update = Dates.now();
-        }
-        return this.limit_nb_ts_ranges_on_param_by_context_filter;
-    }
-
-    private get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
-        let res: TSRange[] = [];
-
-        /**
-         * On va chercher par type, et on décide d'un ordre de priorité. Le but étant d'être le plus discriminant possible pour éviter de dépasser la limite du nombre de ranges
-         *  Par exemple sur un filtre 2019, 2020 | janvier, février, mars | lundi, jeudi
-         *      si on prend lundi, jeudi en premier, sur un max_range initial, on se retrouve avec une "infinité" de ranges.
-         *      par contre si on commence par limiter à 2019 et 2020 on a 1 range, puis 2 avec le découpage mois, puis ~60 avec les découpages lundi et jeudi donc là ça passe
-         */
-        if (!custom_filter) {
-            return [RangeHandler.getMaxTSRange()];
-        }
-
-        // si on a un filtre direct (x ranges par exemple) on gère directement
-        if ((custom_filter.filter_type == ContextFilterVO.TYPE_DATE_INTERSECTS) && !!custom_filter.param_tsranges) {
-            return custom_filter.param_tsranges;
-        }
-
-        /**
-         * Si on a pas de filtre année, on peut de toutes façons rien faire
-         */
-        let year = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
-        if (!year) {
-            return [RangeHandler.getMaxTSRange()];
-        }
-
-        let tsranges = this.get_ts_ranges_from_custom_filter_year(year, limit_nb_range);
-        if (!tsranges) {
-            return null;
-        }
-
-        let month = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
-        if (!!month) {
-            tsranges = this.get_ts_ranges_from_custom_filter_month(tsranges, month, limit_nb_range);
-        }
-
-        let week = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
-        if (!!week) {
-            throw new Error('Not implemented');
-            // tsranges = this.get_ts_ranges_from_custom_filter_week(tsranges, week, limit_nb_range);
-        }
-
-        let dow = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
-        if (!!dow) {
-            tsranges = this.get_ts_ranges_from_custom_filter_dow(tsranges, dow, limit_nb_range);
-        }
-
-
-        let dom = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
-        if (!!dom) {
-            tsranges = this.get_ts_ranges_from_custom_filter_dom(tsranges, dom, limit_nb_range);
-        }
-
-        return tsranges;
-    }
-
-    private get_ts_ranges_from_custom_filter_dom(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
-        let numranges: NumRange[] = null;
-
-        if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
-        }
-
-        numranges = numranges ? numranges : custom_filter.param_numranges;
-
-        if (!(numranges?.length > 0)) {
-            return tsranges;
-        }
-
-        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
-            return null;
-        }
-
-        let res: TSRange[] = [];
-        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
-
-            RangeHandler.foreach_ranges_sync(numranges, (dom: number) => {
-
-                if (dom == Dates.date(day)) {
-                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
-                }
-            });
-        }, TimeSegment.TYPE_DAY);
-
-        if (res && res.length) {
-            res = RangeHandler.getRangesUnion(res);
-        }
-        return res;
-    }
-
-    private get_ts_ranges_from_custom_filter_dow(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
-        let numranges: NumRange[] = null;
-
-        if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
-        }
-
-        numranges = numranges ? numranges : custom_filter.param_numranges;
-
-        if ((!numranges) || (!numranges.length)) {
-            return tsranges;
-        }
-
-        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
-            return null;
-        }
-
-        let res: TSRange[] = [];
-        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
-
-            RangeHandler.foreach_ranges_sync(numranges, (dow: number) => {
-
-                if (dow == Dates.isoWeekday(day)) {
-                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
-                }
-            });
-        }, TimeSegment.TYPE_DAY);
-
-        if (res && res.length) {
-            res = RangeHandler.getRangesUnion(res);
-        }
-        return res;
-    }
-
-    private get_ts_ranges_from_custom_filter_month(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
-        let numranges: NumRange[] = null;
-
-        if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
-        }
-
-        numranges = numranges ? numranges : custom_filter.param_numranges;
-
-        if ((!numranges) || (!numranges.length)) {
-            return tsranges;
-        }
-
-        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
-            return null;
-        }
-
-        let res: TSRange[] = [];
-        RangeHandler.foreach_ranges_sync(tsranges, (year: number) => {
-
-            RangeHandler.foreach_ranges_sync(numranges, (month_i: number) => {
-
-                res.push(RangeHandler.create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
-            });
-        });
-
-        if (res && res.length) {
-            res = RangeHandler.getRangesUnion(res);
-        }
-        return res;
-    }
-
-    private get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
-        if (custom_filter.param_numeric != null) {
-            return [RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
-        }
-
-        if (custom_filter.param_numranges && (custom_filter.param_numranges.length > limit_nb_range)) {
-            return null;
-        }
-
-        let res: TSRange[] = [];
-        RangeHandler.foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
-            res.push(RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
-        });
-        return res;
-    }
-
-    // private async load_slowvars() {
-
-    //     let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID).filter_by_num_eq('type', SlowVarVO.TYPE_DENIED).exec_as_server().select_vos<SlowVarVO>();
-
-    //     VarsDatasProxy.denied_slowvars = {};
-    //     for (let i in items) {
-    //         let item = items[i];
-
-    //         VarsDatasProxy.denied_slowvars[item.name] = item;
-    //     }
-    // }
-
-    /**
-     * On propose une version ultra optimisée du chargement de vardatas depuis la bdd, avec un throttle minimal mais qui devrait permettre de balancer
-     *  des requetes groupées avec l'index
-     * On regroupe les demandes par var_data_api_type_id
-     */
-    private async throttled_get_var_data_by_index() {
-        if (this.throttled_get_var_data_by_index_params && this.throttled_get_var_data_by_index_params.length) {
-
-            // On regroupe d'abord les params par api_type_id
-            let params_by_api_type_id: { [api_type_id: string]: { [var_data_index: string]: ThrottleGetVarDatasByIndex[] } } = {};
-            for (let i in this.throttled_get_var_data_by_index_params) {
-                let param = this.throttled_get_var_data_by_index_params[i];
-
-                if (param.semaphore) {
-                    continue;
-                }
-                param.semaphore = true;
-
-                if (!params_by_api_type_id[param.var_data_api_type_id]) {
-                    params_by_api_type_id[param.var_data_api_type_id] = {};
-                }
-                if (!params_by_api_type_id[param.var_data_api_type_id][param.var_data_index]) {
-                    params_by_api_type_id[param.var_data_api_type_id][param.var_data_index] = [];
-                }
-
-                params_by_api_type_id[param.var_data_api_type_id][param.var_data_index].push(param);
-            }
-
-            /**
-             * Une requete par api_type_id
-             */
-            let promises = [];
-            let calledback_indexes: { [index: number]: boolean } = {};
-            for (let api_type_id in params_by_api_type_id) {
-                let params_by_var_data_index = params_by_api_type_id[api_type_id];
-
-                promises.push((async () => {
-
-                    let indexes: string[] = [];
-                    for (let var_data_index in params_by_var_data_index) {
-                        indexes.push(var_data_index);
-                    }
-
-                    // let query_wrapper: ParameterizedQueryWrapper = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str();
-
-                    // if (!query_wrapper) {
-                    //     ConsoleHandler.warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
-                    //     return;
-                    // }
-
-                    // let results: VarDataBaseVO[] = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
-                    // TODO en vrai avec les contexts queries et les index réversibles, estèce qu'on a besoin de tout ce bordel ?
-                    let results: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).exec_as_server().select_vos<VarDataBaseVO>();
-
-                    for (let i in results) {
-                        let vo = results[i];
-
-                        let params = params_by_api_type_id[vo._type][vo.index];
-                        for (let j in params) {
-                            let param = params[j];
-                            param.cb(vo);
-                            calledback_indexes[param.index] = true;
-                        }
-                    }
-                })());
-            }
-
-            await all_promises(promises);
-
-            /**
-             * On appelle les callbacks qui n'ont pas été appelés
-             */
-            for (let i in params_by_api_type_id) {
-                let params_by_var_data_index = params_by_api_type_id[i];
-
-                for (let var_data_index in params_by_var_data_index) {
-                    let params = params_by_var_data_index[var_data_index];
-
-                    for (let j in params) {
-                        let param = params[j];
-                        if (!calledback_indexes[param.index]) {
-                            param.cb(null);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private async get_var_data(var_data_index: string): Promise<VarDataBaseVO> {
         return await VarsServerCallBackSubsController.get_var_data(VarDataBaseVO.from_index(var_data_index), "client:get-var-data");
     }
-
-    /**
-     * Méthode pour récupérer une var_data en base de données avec l'index, et le type de données
-     * @param var_data_api_type_id le type de la var_data attendue
-     * @param var_data_index l'index
-     * @returns la var_data
-     */
-    private async get_var_data_by_index<T extends VarDataBaseVO>(var_data_api_type_id: string, var_data_index: string): Promise<T> {
-
-        if ((!var_data_api_type_id) || (!var_data_index)) {
-            return null;
-        }
-
-        return new Promise(async (accept, resolve) => {
-
-            let cb = (v) => {
-                accept(v);
-            };
-
-            let param = new ThrottleGetVarDatasByIndex(
-                var_data_api_type_id,
-                var_data_index,
-                cb
-            );
-            this.throttled_get_var_data_by_index_params.push(param);
-            await this.throttle_get_var_data_by_index();
-        });
-    }
-
 }

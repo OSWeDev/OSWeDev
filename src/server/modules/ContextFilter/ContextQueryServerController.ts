@@ -1686,6 +1686,12 @@ export default class ContextQueryServerController {
                 case VarConfVO.NO_AGGREGATOR:
                     break;
 
+                case VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT:
+                case VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT:
+                    aggregator_prefix = 'ARRAY_AGG(DISTINCT ';
+                    aggregator_suffix = ')';
+                    force_query_distinct = true;
+                    break;
                 case VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR:
                 case VarConfVO.ARRAY_AGG_AGGREGATOR:
                     aggregator_prefix = 'ARRAY_AGG(';
@@ -2355,7 +2361,9 @@ export default class ContextQueryServerController {
 
                         if (cq_fields && (cq_fields.length > 0)) {
                             for (let l in cq_fields) {
-                                if ((cq_fields[l].aggregator == VarConfVO.IS_NULLABLE_AGGREGATOR) || (cq_fields[l].aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR)) {
+                                if ((cq_fields[l].aggregator == VarConfVO.IS_NULLABLE_AGGREGATOR) ||
+                                    (cq_fields[l].aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR) ||
+                                    (cq_fields[l].aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT)) {
                                     is_nullable_aggregator = true;
                                     break;
                                 }

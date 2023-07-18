@@ -59,7 +59,7 @@ export default class ModuleDataExport extends Module {
         is_secured?: boolean,
         file_access_policy_name?: string,
         target_user_id?: number,
-        do_not_user_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
+        do_not_use_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
 
         export_options?: IExportOptions,
 

@@ -64,6 +64,7 @@ import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import TableWidgetController from './../TableWidgetController';
 import './TableWidgetTableComponent.scss';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
+import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -1110,10 +1111,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     // break;
                     // default:
 
-                    // if (!field) {
-                    //     res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type().set_translatable_title();
-                    //     break;
-                    // }
+                    // Cas de l'id
+                    if (!field) {
+                        res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                        break;
+                    }
 
                     let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
@@ -1240,6 +1242,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case TableColumnDescVO.TYPE_vo_field_ref:
                     let field = moduleTable.get_field_by_id(column.field_id);
 
+                    if (!field) {
+                        res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                        break;
+                    }
+
                     let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                     // sur un simple on set le label
@@ -1292,10 +1299,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 // break;
                 // default:
 
-                // if (!field) {
-                //     res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type().set_translatable_title();
-                //     break;
-                // }
+                if (!field) {
+                    res[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                    break;
+                }
 
                 let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
@@ -1503,9 +1510,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             if (column) {
                 if (column.many_to_many_aggregate) {
                     if (column.is_nullable) {
-                        aggregator = VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR;
+                        aggregator = VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT;
                     } else {
-                        aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR;
+                        aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT;
                     }
                 } else if (column.is_nullable) {
                     aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
@@ -1598,6 +1605,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         query_.query_distinct = true;
+
+        await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(query_, this.columns);
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
 
         // Si je ne suis pas sur la dernière demande, je me casse
@@ -1951,7 +1960,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             false,
             null,
             null,
-            this.do_not_user_filter_by_datatable_field_uid,
+            this.do_not_use_filter_by_datatable_field_uid,
             this.export_options,
             this.vars_indicator,
         );
@@ -2000,7 +2009,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return res;
     }
 
-    get do_not_user_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
+    get do_not_use_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
         let res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
 
         for (let i in this.default_widget_options_columns) {
@@ -2290,7 +2299,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 param.is_secured,
                 param.file_access_policy_name,
                 VueAppBase.getInstance().appController?.data_user?.id,
-                param.do_not_user_filter_by_datatable_field_uid,
+                param.do_not_use_filter_by_datatable_field_uid,
                 param.export_options,
                 param.vars_indicator,
             );

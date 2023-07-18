@@ -20,6 +20,7 @@ import ValidationFiltersWidgetController from '../../../../dashboard_builder/wid
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import './db_var_datatable_field.scss';
+import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
@@ -55,6 +56,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private row_value: any;
 
     @Prop({ default: null })
+    private column: TableColumnDescVO;
+
+    @Prop({ default: null })
     private columns: TableColumnDescVO[];
 
     @Prop({ default: null })
@@ -69,8 +73,8 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
-    private throttle_init_param = debounce(this.throttled_init_param.bind(this), 500);
-    private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 500);
+    private throttle_init_param = debounce(this.throttled_init_param.bind(this), 100);
+    private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 100);
 
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;
@@ -165,41 +169,50 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
         let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
 
-        // On supprime les filtres à ne pas prendre en compte pour créer le bon param
-        if (this.do_not_user_filter_active_ids && this.do_not_user_filter_active_ids.length) {
-            let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+        // TODO : FIXME on doit reprendre ce concept dans la création de la query...
+        // // On supprime les filtres à ne pas prendre en compte pour créer le bon param
+        // if (this.do_not_user_filter_active_ids && this.do_not_user_filter_active_ids.length) {
+        //     let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
 
-            for (let i in this.do_not_user_filter_active_ids) {
-                let page_filter_id = this.do_not_user_filter_active_ids[i];
+        //     for (let i in this.do_not_user_filter_active_ids) {
+        //         let page_filter_id = this.do_not_user_filter_active_ids[i];
 
-                let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
-                if (!page_widget) {
-                    continue;
-                }
+        //         let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+        //         if (!page_widget) {
+        //             continue;
+        //         }
 
-                let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        //         let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
 
-                if (page_widget_options?.vo_field_ref) {
-                    if (active_field_filters && active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
-                        delete active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id];
-                    }
-                }
-            }
-        }
+        //         if (page_widget_options?.vo_field_ref) {
+        //             if (active_field_filters && active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
+        //                 delete active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id];
+        //             }
+        //         }
+        //     }
+        // }
 
-        let context = DashboardBuilderController.getInstance().add_table_row_context(active_field_filters, this.columns, this.row_value);
+        // let context = DashboardBuilderController.getInstance().add_table_row_context(active_field_filters, this.columns, this.row_value);
 
         /**
          * On crée le custom_filters
          */
         let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, active_field_filters);
 
-        this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
-            VarsController.var_conf_by_id[this.var_id].name,
-            context,
+        let limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(
+            ModuleVar.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
+        this.var_param = ModuleVar.getInstance().getVarParamFromDataRow(
+            this.row_value,
+            this.column,
             custom_filters,
-            this.dashboard.api_type_ids,
-            this.get_discarded_field_paths);
+            limit_nb_ts_ranges_on_param_by_context_filter,
+            false);
+        // this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
+        //     VarsController.var_conf_by_id[this.var_id].name,
+        //     context,
+        //     custom_filters,
+        //     this.dashboard.api_type_ids,
+        //     this.get_discarded_field_paths);
 
         if (!this.var_param) {
             this.var_param_no_value_or_param_is_invalid = true;

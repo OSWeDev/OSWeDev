@@ -33,7 +33,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         is_secured: boolean = false,
         file_access_policy_name: string = null,
         target_user_id: number = null,
-        do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+        do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
         export_options: IExportOptions = null,
         vars_indicator?: ExportVarIndicator,
     ): ExportContextQueryToXLSXParamVO {
@@ -41,7 +41,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         return new ExportContextQueryToXLSXParamVO(
             filename, context_query, ordered_column_list, column_labels, exportable_datatable_custom_field_columns, columns, fields, varcolumn_conf,
             active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths, is_secured, file_access_policy_name, target_user_id,
-            do_not_user_filter_by_datatable_field_uid, export_options, vars_indicator);
+            do_not_use_filter_by_datatable_field_uid, export_options, vars_indicator);
     }
 
     public static getAPIParams(param: ExportContextQueryToXLSXParamVO): any[] {
@@ -61,7 +61,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
             param.is_secured,
             param.file_access_policy_name,
             param.target_user_id,
-            param.do_not_user_filter_by_datatable_field_uid,
+            param.do_not_use_filter_by_datatable_field_uid,
             param.export_options,
             param.vars_indicator,
         ];
@@ -85,7 +85,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         public is_secured: boolean = false,
         public file_access_policy_name: string = null,
         public target_user_id: number = null,
-        public do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+        public do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
         public export_options?: IExportOptions,
 

@@ -1,48 +1,48 @@
-.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field.moduleTableField.field_type : ""' :data-label="t(field.translatable_title)")
+.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field_type : ""' :data-label="t(field.translatable_title)")
     template(v-if="is_load")
         template(v-if='!field.hidden')
             template(v-if="show_label")
                 span {{ t(field.translatable_title) }} :
             template(v-if="field.type == 'Simple'")
-                template(v-if="field.moduleTableField.field_type == 'boolean'")
+                template(v-if="field_type == 'boolean'")
                     template(v-if="field_value == 'true' || field_value === true")
                         i.boolean_value.is_true.fa-duotone(:class="{[field.moduleTableField.boolean_icon_true]: true, 'text-success': !field.moduleTableField.boolean_invert_colors, 'text-danger': field.moduleTableField.boolean_invert_colors}")
                     template(v-if="field_value == 'false' || field_value === false")
                         i.boolean_value.is_false.fa-duotone(:class="{[field.moduleTableField.boolean_icon_false]: true, 'text-success': field.moduleTableField.boolean_invert_colors, 'text-danger': !field.moduleTableField.boolean_invert_colors}")
-                template(v-else-if="field.moduleTableField.field_type == 'password'")
+                template(v-else-if="field_type == 'password'")
                     i.fa-duotone.fa-lock
-                template(v-else-if="field.moduleTableField.field_type == 'number[]'")
+                template(v-else-if="field_type == 'number[]'")
                     ul.multi-input(v-if="field_value")
                         li(v-for="value in field_value") {{ get_filtered_value(value) }}
-                template(v-else-if="field.moduleTableField.field_type == 'float[]'")
+                template(v-else-if="field_type == 'float[]'")
                     ul.multi-input(v-if="field_value")
                         li(v-for="value in field_value") {{ get_filtered_value(value) }}
 
-                template(v-else-if="field.moduleTableField.field_type == 'file'")
+                template(v-else-if="field_type == 'file'")
                     Filedatatablefieldcomponent(:file_path="field_value", :show_tooltip="show_tooltip")
 
-                template(v-else-if="field.moduleTableField.field_type == 'text[]'")
+                template(v-else-if="field_type == 'text[]'")
                     ul.multi-input(v-if="field_value")
                         li(v-for="value in field_value") {{ value }}
-                template(v-else-if="field.moduleTableField.field_type == 'html[]'")
+                template(v-else-if="field_type == 'html[]'")
                     ul.multi-input(v-if="field_value")
                         li(v-for="value in field_value")
                             template(v-if="explicit_html")
                                 span(v-html="value")
                             template(v-else)
                                 code {{ value }}
-                template(v-else-if="field.moduleTableField.field_type == 'html'")
+                template(v-else-if="field_type == 'html'")
                     template(v-if="explicit_html")
                         span(v-html="field_value")
                     template(v-else)
                         code {{ field_value }}
-                template(v-else-if="field.moduleTableField.field_type == 'enum'")
+                template(v-else-if="field_type == 'enum'")
                     span(:class="transliterate_enum_value_to_class_name") {{ field_value }}
                 template(v-else-if="is_custom_field_type && custom_field_types.read_component")
                     .custom_read_field_component(:is="custom_field_types.read_component" :row='vo' :value='field_value')
-                template(v-else-if="field.moduleTableField.field_type == 'textarea'")
+                template(v-else-if="field_type == 'textarea'")
                     pre {{ field_value }}
-                template(v-else-if="field.moduleTableField.field_type == 'translatable_text'")
+                template(v-else-if="field_type == 'translatable_text'")
                     span {{ t(field_value) }}
                 template(v-else)
                     span {{ get_filtered_value(field_value) }}
@@ -73,6 +73,7 @@
 
             template(v-else-if="field.type == 'VAR'")
                 Dbvardatatablefieldcomponent(
+                    :column="column"
                     :filter_custom_field_filters="filter_custom_field_filters"
                     :do_not_user_filter_active_ids="do_not_user_filter_active_ids"
                     :var_id="field.var_id"

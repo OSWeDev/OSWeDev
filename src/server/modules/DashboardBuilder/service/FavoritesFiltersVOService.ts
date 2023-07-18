@@ -221,7 +221,7 @@ export default class FavoritesFiltersVOService {
                     xlsx_data.is_secured,
                     xlsx_data.file_access_policy_name,
                     xlsx_data.target_user_id,
-                    xlsx_data.do_not_user_filter_by_datatable_field_uid,
+                    xlsx_data.do_not_use_filter_by_datatable_field_uid,
                     xlsx_data.export_options,
                     xlsx_data.vars_indicator,
                 );

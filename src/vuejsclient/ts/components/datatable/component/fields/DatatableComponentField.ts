@@ -37,6 +37,9 @@ export default class DatatableComponentField extends VueComponentBase {
     private vo: IDistantVOBase;
 
     @Prop({ default: null })
+    private column: TableColumnDescVO;
+
+    @Prop({ default: null })
     private columns: TableColumnDescVO[];
 
     @Prop({ default: false })
@@ -80,6 +83,10 @@ export default class DatatableComponentField extends VueComponentBase {
 
     private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
     private is_load: boolean = false;
+
+    get field_type(): string {
+        return this.field?.moduleTableField?.field_type || ModuleTableField.FIELD_TYPE_int; // Pour le cas de l'id
+    }
 
     public async mounted() {
         if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
@@ -158,7 +165,7 @@ export default class DatatableComponentField extends VueComponentBase {
     }
 
     get custom_field_types(): TableFieldTypeControllerBase {
-        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers && this.simple_field.moduleTableField) {
             return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.moduleTableField.field_type];
         }
 

@@ -143,6 +143,8 @@ export default class VarConfVO implements INamedVO {
     public static IS_NULLABLE_AGGREGATOR: number = 9;
     public static COUNT_AGGREGATOR: number = 10;
     public static ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR: number = 11;
+    public static ARRAY_AGG_AGGREGATOR_DISTINCT: number = 12; // ARRAY AGRÉGATOR DISTINCT qui permet d'aggréger et de ne pas avoir de doublons
+    public static ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT: number = 13;
 
     public static AGGREGATOR_LABELS: { [id: number]: string } = {
         [VarConfVO.NO_AGGREGATOR]: 'var_conf.aggregator.no',
@@ -157,6 +159,8 @@ export default class VarConfVO implements INamedVO {
         [VarConfVO.IS_NULLABLE_AGGREGATOR]: 'var_conf.aggregator.is_nullable',
         [VarConfVO.COUNT_AGGREGATOR]: 'var_conf.aggregator.count_agg',
         [VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR]: 'var_conf.aggregator.array_agg_and_is_nullable',
+        [VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT]: 'var_conf.aggregator.array_agg_distinct',
+        [VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT]: 'var_conf.aggregator.array_agg_and_is_nullable_distinct',
     };
 
     public static API_TYPE_ID: string = "var_conf";

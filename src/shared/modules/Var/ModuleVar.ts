@@ -1,21 +1,30 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ConsoleHandler from '../../tools/ConsoleHandler';
+import RangeHandler from '../../tools/RangeHandler';
 import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import ContextFilterVOHandler from '../ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
-import { query } from '../ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
+import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
+import NumRange from '../DataRender/vos/NumRange';
+import NumSegment from '../DataRender/vos/NumSegment';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import TSRange from '../DataRender/vos/TSRange';
+import Dates from '../FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
-import APIGetVarDataByIndexParamVO from './params/APIGetVarDataByIndexParamVO';
 import VarsController from './VarsController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
@@ -27,6 +36,9 @@ import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
 
 export default class ModuleVar extends Module {
+
+    public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
+    public static VARPARAMFIELD_PREFIX: string = '__varparamfield_';
 
     public static MODULE_NAME: string = 'Var';
 
@@ -48,7 +60,6 @@ export default class ModuleVar extends Module {
     public static APINAME_unregister_params: string = 'unregister_params';
 
     public static APINAME_get_var_data: string = 'get_var_data';
-    public static APINAME_get_var_data_by_index: string = 'get_var_data_by_index';
 
     public static APINAME_getVarControllerVarsDeps: string = 'getVarControllerVarsDeps';
     public static APINAME_getParamDependencies: string = 'getParamDependencies';
@@ -93,7 +104,6 @@ export default class ModuleVar extends Module {
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
 
     public get_var_data: <T extends VarDataBaseVO>(var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data);
-    public get_var_data_by_index: <T extends VarDataBaseVO>(var_data_api_type_id: string, var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data_by_index);
 
     public getVarParamFromContextFilters: (
         var_name: string,
@@ -234,36 +244,12 @@ export default class ModuleVar extends Module {
             [VarConfVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.registerApi(new GetAPIDefinition<APIGetVarDataByIndexParamVO, VarConfIds>(
-            ModuleVar.POLICY_FO_ACCESS,
-            ModuleVar.APINAME_get_var_data_by_index,
-            ((param: APIGetVarDataByIndexParamVO) => [param.api_type_id])
-        ));
-
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, VarDataBaseVO>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_data,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             StringParamVOStatic
         ));
-
-        // APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
-        //     ModuleVar.POLICY_DESC_MODE_ACCESS,
-        //     ModuleVar.APINAME_invalidate_cache_intersection,
-        //     (params: VarDataBaseVO[]) => {
-        //         let res: string[] = [];
-
-        //         for (let i in params) {
-        //             let param = params[i];
-
-        //             if (res.indexOf(param._type) < 0) {
-        //                 res.push(param._type);
-        //             }
-        //         }
-
-        //         return res;
-        //     }
-        // ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
@@ -377,6 +363,373 @@ export default class ModuleVar extends Module {
     public async hook_module_configure(): Promise<boolean> {
         await this.initializeasync();
         return true;
+    }
+
+
+    public get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let res: TSRange[] = [];
+
+        /**
+         * On va chercher par type, et on décide d'un ordre de priorité. Le but étant d'être le plus discriminant possible pour éviter de dépasser la limite du nombre de ranges
+         *  Par exemple sur un filtre 2019, 2020 | janvier, février, mars | lundi, jeudi
+         *      si on prend lundi, jeudi en premier, sur un max_range initial, on se retrouve avec une "infinité" de ranges.
+         *      par contre si on commence par limiter à 2019 et 2020 on a 1 range, puis 2 avec le découpage mois, puis ~60 avec les découpages lundi et jeudi donc là ça passe
+         */
+        if (!custom_filter) {
+            return [RangeHandler.getMaxTSRange()];
+        }
+
+        // si on a un filtre direct (x ranges par exemple) on gère directement
+        if ((custom_filter.filter_type == ContextFilterVO.TYPE_DATE_INTERSECTS) && !!custom_filter.param_tsranges) {
+            return custom_filter.param_tsranges;
+        }
+
+        /**
+         * Si on a pas de filtre année, on peut de toutes façons rien faire
+         */
+        let year = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        if (!year) {
+            return [RangeHandler.getMaxTSRange()];
+        }
+
+        let tsranges = this.get_ts_ranges_from_custom_filter_year(year, limit_nb_range);
+        if (!tsranges) {
+            return null;
+        }
+
+        let month = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        if (!!month) {
+            tsranges = this.get_ts_ranges_from_custom_filter_month(tsranges, month, limit_nb_range);
+        }
+
+        let week = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        if (!!week) {
+            throw new Error('Not implemented');
+            // tsranges = this.get_ts_ranges_from_custom_filter_week(tsranges, week, limit_nb_range);
+        }
+
+        let dow = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
+        if (!!dow) {
+            tsranges = this.get_ts_ranges_from_custom_filter_dow(tsranges, dow, limit_nb_range);
+        }
+
+
+        let dom = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
+        if (!!dom) {
+            tsranges = this.get_ts_ranges_from_custom_filter_dom(tsranges, dom, limit_nb_range);
+        }
+
+        return tsranges;
+    }
+
+    public get_ts_ranges_from_custom_filter_dom(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let numranges: NumRange[] = null;
+
+        if (custom_filter.param_numeric != null) {
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+        }
+
+        numranges = numranges ? numranges : custom_filter.param_numranges;
+
+        if (!(numranges?.length > 0)) {
+            return tsranges;
+        }
+
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+            return null;
+        }
+
+        let res: TSRange[] = [];
+        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
+
+            RangeHandler.foreach_ranges_sync(numranges, (dom: number) => {
+
+                if (dom == Dates.date(day)) {
+                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                }
+            });
+        }, TimeSegment.TYPE_DAY);
+
+        if (res && res.length) {
+            res = RangeHandler.getRangesUnion(res);
+        }
+        return res;
+    }
+
+    public get_ts_ranges_from_custom_filter_dow(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let numranges: NumRange[] = null;
+
+        if (custom_filter.param_numeric != null) {
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+        }
+
+        numranges = numranges ? numranges : custom_filter.param_numranges;
+
+        if ((!numranges) || (!numranges.length)) {
+            return tsranges;
+        }
+
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+            return null;
+        }
+
+        let res: TSRange[] = [];
+        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
+
+            RangeHandler.foreach_ranges_sync(numranges, (dow: number) => {
+
+                if (dow == Dates.isoWeekday(day)) {
+                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                }
+            });
+        }, TimeSegment.TYPE_DAY);
+
+        if (res && res.length) {
+            res = RangeHandler.getRangesUnion(res);
+        }
+        return res;
+    }
+
+    public get_ts_ranges_from_custom_filter_month(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let numranges: NumRange[] = null;
+
+        if (custom_filter.param_numeric != null) {
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+        }
+
+        numranges = numranges ? numranges : custom_filter.param_numranges;
+
+        if ((!numranges) || (!numranges.length)) {
+            return tsranges;
+        }
+
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+            return null;
+        }
+
+        let res: TSRange[] = [];
+        RangeHandler.foreach_ranges_sync(tsranges, (year: number) => {
+
+            RangeHandler.foreach_ranges_sync(numranges, (month_i: number) => {
+
+                res.push(RangeHandler.create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
+            });
+        });
+
+        if (res && res.length) {
+            res = RangeHandler.getRangesUnion(res);
+        }
+        return res;
+    }
+
+    public get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        if (custom_filter.param_numeric != null) {
+            return [RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
+        }
+
+        if (custom_filter.param_numranges && (custom_filter.param_numranges.length > limit_nb_range)) {
+            return null;
+        }
+
+        let res: TSRange[] = [];
+        RangeHandler.foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
+            res.push(RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
+        });
+        return res;
+    }
+
+    /**
+     * On veut rajouter les colonnes qui extraient les IDs des différentes dimensions dont on pourra avoir besoin pour les vars
+     * @param context_query
+     * @param varcolumn_conf
+     */
+    public add_vars_params_columns_for_ref_ids(
+        context_query: ContextQueryVO,
+        columns: TableColumnDescVO[]
+    ) {
+
+        // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
+        let needed_dimensions: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+        let matroids_done: { [api_type_id: string]: boolean } = {};
+
+        for (let j in columns) {
+            let column: TableColumnDescVO = columns[j];
+
+            if (!column) {
+                continue;
+            }
+
+            if (column.type != TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            let varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
+
+            if (!varconf) {
+                ConsoleHandler.error('add_vars_params_columns_for_ref_ids:varconf not found:' + column.var_id);
+                continue;
+            }
+
+            let matroid_api_type_id = varconf.var_data_vo_type;
+            if (matroids_done[matroid_api_type_id]) {
+                continue;
+            }
+            matroids_done[matroid_api_type_id] = true;
+
+            let matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
+
+            if (!matroid_fields) {
+                continue;
+            }
+
+            for (let i in matroid_fields) {
+                let matroid_field: ModuleTableField<any> = matroid_fields[i];
+
+                if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
+                    continue;
+                }
+
+                let matroid_field_api_type_id: string = matroid_field.manyToOne_target_moduletable.vo_type;
+                let matroid_field_name: string = matroid_field.target_field;
+
+                if (!needed_dimensions[matroid_field_api_type_id]) {
+                    needed_dimensions[matroid_field_api_type_id] = {};
+                }
+
+                needed_dimensions[matroid_field_api_type_id][matroid_field_name] = true;
+            }
+        }
+
+        // On ajoute ces dimensions dans le contextquery
+        for (let api_type_id in needed_dimensions) {
+            let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
+
+            for (let field_id in needed_dimensions_api_type_id) {
+
+                let field_alias = this.get_var_param_field_name(api_type_id, field_id);
+
+                context_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+            }
+        }
+    }
+
+    public get_var_param_field_name(api_type_id: string, field_id: string): string {
+        return ModuleVar.VARPARAMFIELD_PREFIX + api_type_id + '_' + field_id;
+    }
+
+    public clean_rows_of_varparamfields(rows: IDistantVOBase[], context_query: ContextQueryVO) {
+        for (let i in rows) {
+            let row = rows[i];
+
+            for (let field_name in row) {
+                if (field_name.indexOf(ModuleVar.VARPARAMFIELD_PREFIX) == 0) {
+                    delete row[field_name];
+                }
+            }
+        }
+
+        for (let i in context_query.fields) {
+            let field = context_query.fields[i];
+
+            if (field.alias.indexOf(ModuleVar.VARPARAMFIELD_PREFIX) == 0) {
+                context_query.remove_field(parseInt(i));
+            }
+        }
+    }
+
+    /**
+     * On construit le param en fonction des éléments de la ligne d'une part pour les dimensions de type ref, et d'autre part vo les custom_filters pour les dimensions de type ts
+     */
+    public getVarParamFromDataRow(
+        row: any,
+        column: TableColumnDescVO,
+        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        limit_nb_ts_ranges_on_param_by_context_filter: number = null,
+        accept_max_ranges: boolean = false) {
+
+        let var_conf = VarsController.var_conf_by_id[column.var_id];
+        let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_conf.name);
+        let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        let refuse_param: boolean = false;
+
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+
+            switch (matroid_field.field_type) {
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                    if (matroid_field.has_relation) {
+
+                        let alias = this.get_var_param_field_name(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field);
+                        if ((!row[alias]) || !row[alias].length) {
+                            refuse_param = true;
+                            break;
+                        }
+
+                        let ids: number[] = row[alias].map((id) => parseInt(id));
+                        var_param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_list(ids);
+                    } else {
+                        if (!accept_max_ranges) {
+                            // Max range étant interdit sur les registers de var, on force un retour null
+
+                            if (!refuse_param) {
+                                ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                                refuse_param = true;
+                            }
+                        } else {
+                            var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                        }
+                    }
+                    break;
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    if (!accept_max_ranges) {
+
+                        if (!refuse_param) {
+                            ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                            refuse_param = true;
+                        }
+                    } else {
+                        var_param[matroid_field.field_id] = [RangeHandler.getMaxHourRange()];
+                    }
+                    break;
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    if (!!custom_filters[matroid_field.field_id]) {
+                        // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
+                        // on compte en nombre de range et non en cardinal
+                        // et on limite à la limite configurée dans l'application
+                        var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_ts_ranges_on_param_by_context_filter);
+
+                        if ((!var_param[matroid_field.field_id]) || (!var_param[matroid_field.field_id].length)) {
+                            if (!accept_max_ranges) {
+
+                                if (!refuse_param) {
+                                    ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                                    refuse_param = true;
+                                }
+
+                            } else {
+                                var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                            }
+                        }
+                        break;
+                    }
+
+                    // Max range étant interdit sur les registers de var, on force un retour null
+                    if (!accept_max_ranges) {
+
+                        if (!refuse_param) {
+                            ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                            refuse_param = true;
+                        }
+
+                    } else {
+                        var_param[matroid_field.field_id] = [RangeHandler.getMaxTSRange()];
+                    }
+                    break;
+            }
+        }
+
+        return refuse_param ? null : var_param;
     }
 
     private initializeVarPixelFieldConfVO() {

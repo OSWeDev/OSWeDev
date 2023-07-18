@@ -285,6 +285,18 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         return this.add_field(field_id, alias, api_type_id, aggregator, modifier, cast_with);
     }
 
+    public remove_field(
+        field_id_in_array: number
+    ): ContextQueryVO {
+
+        if (!this.fields) {
+            return;
+        }
+
+        this.fields.splice(field_id_in_array, 1);
+        return this;
+    }
+
     /**
      * Ajouter un field attendu en résultat de la requête par le field_id, et optionnellement un alias spécifique
      *  on utilise base_api_type_id de la requete si on en fournit pas un explicitement ici

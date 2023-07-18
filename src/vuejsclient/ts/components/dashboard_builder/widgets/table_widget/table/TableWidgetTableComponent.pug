@@ -146,6 +146,7 @@ include ../../../../../../views/mixins/loading.pug
                                                 template(v-if='column.readonly')
                                                     template(v-if='column.is_enum')
                                                         Datatablecomponentfield.is_enum(
+                                                            :column="column"
                                                             :field="fields[column.id]"
                                                             :vo="row"
                                                             :columns="table_columns"
@@ -156,6 +157,7 @@ include ../../../../../../views/mixins/loading.pug
                                                     template(v-else)
                                                         template(v-if="column.type != 5")
                                                             Datatablecomponentfield(
+                                                                :column="column"
                                                                 :filter_custom_field_filters="column.filter_custom_field_filters"
                                                                 :do_not_user_filter_active_ids="column.do_not_user_filter_active_ids"
                                                                 :field="fields[column.id]"
@@ -176,6 +178,7 @@ include ../../../../../../views/mixins/loading.pug
                                                     template(v-if="column.type == 2")
                                                         //- Colonne type VAR
                                                         Datatablecomponentfield(
+                                                            :column="column"
                                                             :filter_custom_field_filters="column.filter_custom_field_filters"
                                                             :do_not_user_filter_active_ids="column.do_not_user_filter_active_ids"
                                                             :field="fields[column.id]"
@@ -195,6 +198,7 @@ include ../../../../../../views/mixins/loading.pug
                                                     
                                                     template(v-else)
                                                         Crudcomponentfield(
+                                                            :column="column"
                                                             @onchangevo='onchange_column'
                                                             :field="fields[column.id]"
                                                             :vo="row"
