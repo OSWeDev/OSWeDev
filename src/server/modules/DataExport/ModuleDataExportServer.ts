@@ -40,7 +40,6 @@ import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FilterObj, { filter_by_name } from '../../../shared/tools/Filters';

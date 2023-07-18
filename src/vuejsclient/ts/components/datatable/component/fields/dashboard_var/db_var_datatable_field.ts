@@ -3,24 +3,22 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
-import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
+import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
-import FieldValueFilterWidgetOptions from '../../../../dashboard_builder/widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
-import VueComponentBase from '../../../../VueComponentBase';
 import './db_var_datatable_field.scss';
-import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
@@ -73,38 +71,57 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
-    private throttle_init_param = debounce(this.throttled_init_param.bind(this), 100);
-    private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 100);
+    private throttle_init_param = debounce(this.throttled_init_param.bind(this), 10);
+    // private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 10);
 
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;
     private is_loading: boolean = true;
 
     private var_param_no_value_or_param_is_invalid: boolean = false;
+    private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
         return ObjectHandler.hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
     }
 
-    @Watch('dashboard_id', { immediate: true })
-    @Watch('var_id', { immediate: true })
-    @Watch('filter_type', { immediate: true })
-    @Watch('filter_additional_params', { immediate: true })
-    @Watch('get_active_field_filters', { immediate: true })
-    @Watch('columns', { immediate: true })
+    @Watch('dashboard_id')
+    @Watch('var_id')
+    @Watch('filter_type')
+    @Watch('filter_additional_params')
+    @Watch('get_active_field_filters')
+    @Watch('columns')
     private async onchange_dashboard_id() {
         await this.throttle_init_param();
-
     }
 
     private async mounted() {
-        await ValidationFiltersWidgetController.getInstance().register_updater(
-            this.dashboard_id,
-            this.page_widget.page_id,
-            this.page_widget.id,
-            this.throttle_do_init_param.bind(this),
-        );
+
+        let promises = [];
+        if ((!this.dashboard) || (this.dashboard.id != this.dashboard_id)) {
+            promises.push((async () => {
+                this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
+            })());
+        }
+        if (!this.limit_nb_ts_ranges_on_param_by_context_filter) {
+            promises.push((async () => {
+                this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(
+                    ModuleVar.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
+            })());
+        }
+        promises.push((async () => {
+            await ValidationFiltersWidgetController.getInstance().register_updater(
+                this.dashboard_id,
+                this.page_widget.page_id,
+                this.page_widget.id,
+                this.throttled_do_init_param.bind(this),
+            );
+        })());
+
+        await all_promises(promises);
+
+        await this.throttled_init_param();
     }
 
     private async throttled_init_param() {
@@ -114,12 +131,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             return;
         }
 
-        await this.throttle_do_init_param();
+        await this.throttled_do_init_param();
     }
 
     @Watch('row_value', { immediate: true })
     private async onchange_row() {
-        await this.throttle_do_init_param();
+        await this.throttled_do_init_param();
     }
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
@@ -161,11 +178,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
         // On refuse de charger des vars si la table est en cours de chargement
         if (this.table_is_busy) {
-            this.throttle_do_init_param();
+            setTimeout(this.throttled_do_init_param.bind(this), 100);
             return;
         }
-
-        this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
 
         let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
 
@@ -199,14 +214,17 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
          */
         let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, active_field_filters);
 
-        let limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(
-            ModuleVar.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
-        this.var_param = ModuleVar.getInstance().getVarParamFromDataRow(
+        let new_param = ModuleVar.getInstance().getVarParamFromDataRow(
             this.row_value,
             this.column,
             custom_filters,
-            limit_nb_ts_ranges_on_param_by_context_filter,
+            this.limit_nb_ts_ranges_on_param_by_context_filter,
             false);
+
+        if (!this.var_param || !new_param || (this.var_param.index != new_param.index)) {
+            this.var_param = new_param;
+        }
+
         // this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
         //     VarsController.var_conf_by_id[this.var_id].name,
         //     context,
