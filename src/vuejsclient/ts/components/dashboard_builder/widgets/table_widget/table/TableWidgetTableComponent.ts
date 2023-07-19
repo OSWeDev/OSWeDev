@@ -1128,6 +1128,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     //     break;
                     // }
 
+                    if (!field) {
+                        return;
+                    }
+
                     let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                     // sur un simple on set le label

@@ -111,6 +111,11 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public static get_dt_field(field: ModuleTableField<any>): DatatableField<any, any> {
         let dt_field: DatatableField<any, any> = null;
+
+        if (!field) {
+            return;
+        }
+
         if (field.manyToOne_target_moduletable) {
 
             let dt_fields: Array<DatatableField<any, any>> = [
