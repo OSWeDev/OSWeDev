@@ -21,13 +21,15 @@ export default class VarDAGNode extends DAGNodeBase {
     // Pour le chargement des données
     public static TAG_3_DATA_LOADING: string = 'DATA_LOADING';
     // Pour le calcul
+    public static TAG_4_IS_COMPUTABLE: string = 'IS_COMPUTABLE';
     public static TAG_4_COMPUTING: string = 'COMPUTING';
     // Pour la notification
     public static TAG_5_NOTIFYING_END: string = 'NOTIFYING_END';
     // Pour la sauvegarde
     public static TAG_6_UPDATING_IN_DB: string = 'UPDATING_IN_DB';
     // Pour la suppression
-    public static TAG_7_DELETING: string = 'TO_DELETING';
+    public static TAG_7_IS_DELETABLE: string = 'IS_DELETABLE';
+    public static TAG_7_DELETING: string = 'DELETING';
 
     /**
      * Les tags permanents pour indiquer un changement de statut du noeud
@@ -69,13 +71,15 @@ export default class VarDAGNode extends DAGNodeBase {
         [VarDAGNode.TAG_2_DEPLOYED]: 4,
         [VarDAGNode.TAG_3_DATA_LOADING]: 5,
         [VarDAGNode.TAG_3_DATA_LOADED]: 6,
-        [VarDAGNode.TAG_4_COMPUTING]: 7,
-        [VarDAGNode.TAG_4_COMPUTED]: 8,
-        [VarDAGNode.TAG_5_NOTIFYING_END]: 9,
-        [VarDAGNode.TAG_5_NOTIFIED_END]: 10,
-        [VarDAGNode.TAG_6_UPDATING_IN_DB]: 11,
-        [VarDAGNode.TAG_6_UPDATED_IN_DB]: 12,
-        [VarDAGNode.TAG_7_DELETING]: 13,
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: 7,
+        [VarDAGNode.TAG_4_COMPUTING]: 8,
+        [VarDAGNode.TAG_4_COMPUTED]: 9,
+        [VarDAGNode.TAG_5_NOTIFYING_END]: 10,
+        [VarDAGNode.TAG_5_NOTIFIED_END]: 11,
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: 12,
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: 13,
+        [VarDAGNode.TAG_7_IS_DELETABLE]: 14,
+        [VarDAGNode.TAG_7_DELETING]: 15,
     };
     public static ORDERED_STEP_TAGS_NAMES: string[] = [
         VarDAGNode.TAG_0_CREATED,
@@ -85,12 +89,14 @@ export default class VarDAGNode extends DAGNodeBase {
         VarDAGNode.TAG_2_DEPLOYED,
         VarDAGNode.TAG_3_DATA_LOADING,
         VarDAGNode.TAG_3_DATA_LOADED,
+        VarDAGNode.TAG_4_IS_COMPUTABLE,
         VarDAGNode.TAG_4_COMPUTING,
         VarDAGNode.TAG_4_COMPUTED,
         VarDAGNode.TAG_5_NOTIFYING_END,
         VarDAGNode.TAG_5_NOTIFIED_END,
         VarDAGNode.TAG_6_UPDATING_IN_DB,
         VarDAGNode.TAG_6_UPDATED_IN_DB,
+        VarDAGNode.TAG_7_IS_DELETABLE,
         VarDAGNode.TAG_7_DELETING
     ];
 
@@ -235,7 +241,7 @@ export default class VarDAGNode extends DAGNodeBase {
     /**
      * L'étape actuelle du process de calcul du noeud (VarDAGNode.STEP_XXX)
      */
-    private current_step: number = null;
+    public current_step: number = null;
 
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
@@ -254,6 +260,26 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step) {
             return false;
+        }
+
+        // Cas spécifique des tags DATA_LOADED qu'on ne doit pas mettre, mais sans indiquer d'erreur si on est déjà IS_COMPUTABLE,
+        //  et idem pour UPDATED_IN_DB si on est déjà IS_DELETABLE
+        if ((tag == VarDAGNode.TAG_3_DATA_LOADED) && this.tags[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
+            return true;
+        }
+
+        if ((tag == VarDAGNode.TAG_6_UPDATED_IN_DB) && this.tags[VarDAGNode.TAG_7_IS_DELETABLE]) {
+            return true;
+        }
+
+        // Par ailleurs, si on est en train d'ajouter un tag DATA_LOADED sur un noeud is_computable, on transforme en IS_COMPUTABLE
+        //  et idem pour UPDATED_IN_DB si on est déjà IS_DELETABLE
+        if ((tag == VarDAGNode.TAG_3_DATA_LOADED) && this.is_computable) {
+            tag = VarDAGNode.TAG_4_IS_COMPUTABLE;
+        }
+
+        if ((tag == VarDAGNode.TAG_6_UPDATED_IN_DB) && this.is_deletable) {
+            tag = VarDAGNode.TAG_7_IS_DELETABLE;
         }
 
         this.tags[tag] = true;
@@ -297,7 +323,11 @@ export default class VarDAGNode extends DAGNodeBase {
         let dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, this, outgoing_node);
 
         this.outgoing_deps[dep.dep_name] = dep;
-        dep.outgoing_node.incoming_deps[dep.dep_name] = dep;
+
+        if (!dep.outgoing_node.incoming_deps[dep.dep_name]) {
+            dep.outgoing_node.incoming_deps[dep.dep_name] = [];
+        }
+        dep.outgoing_node.incoming_deps[dep.dep_name].push(dep);
 
         if (!!this.var_dag.roots[dep.outgoing_node.var_data.index]) {
             delete this.var_dag.roots[dep.outgoing_node.var_data.index];
@@ -338,23 +368,45 @@ export default class VarDAGNode extends DAGNodeBase {
             }
         }
 
-        for (let i in this.incoming_deps) {
-            let incoming_dep = this.incoming_deps[i];
-            delete incoming_dep.incoming_node.outgoing_deps[incoming_dep.dep_name];
+        let keys = Object.keys(this.incoming_deps);
+        for (let i in keys) {
+            let deps = this.incoming_deps[keys[i]];
 
-            if (!ObjectHandler.hasAtLeastOneAttribute(incoming_dep.incoming_node.outgoing_deps)) {
-                dag.leafs[(incoming_dep.incoming_node as VarDAGNode).var_data.index] = incoming_dep.incoming_node as VarDAGNode;
+            for (let j in deps) {
+                let incoming_dep = deps[j];
+
+                delete incoming_dep.incoming_node.outgoing_deps[incoming_dep.dep_name];
+
+                if (!ObjectHandler.hasAtLeastOneAttribute(incoming_dep.incoming_node.outgoing_deps)) {
+                    dag.leafs[(incoming_dep.incoming_node as VarDAGNode).var_data.index] = incoming_dep.incoming_node as VarDAGNode;
+                }
             }
         }
 
-        for (let i in this.outgoing_deps) {
-            let outgoing_dep = this.outgoing_deps[i];
-            delete outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
+        keys = Object.keys(this.outgoing_deps);
+        for (let i in keys) {
+            let outgoing_dep = this.outgoing_deps[keys[i]];
+
+            let incoming_deps = outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
+            for (let j in incoming_deps) {
+                let incoming_node: VarDAGNode = incoming_deps[j].incoming_node as VarDAGNode;
+
+                if (incoming_node.var_data.index == this.var_data.index) {
+                    incoming_deps.splice(parseInt(j.toString()), 1);
+                    break;
+                }
+            }
+
+            if (!incoming_deps.length) {
+                delete outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
+            }
 
             if (!ObjectHandler.hasAtLeastOneAttribute(outgoing_dep.outgoing_node.incoming_deps)) {
                 dag.roots[(outgoing_dep.outgoing_node as VarDAGNode).var_data.index] = outgoing_dep.outgoing_node as VarDAGNode;
             }
         }
+        delete this.incoming_deps;
+        delete this.outgoing_deps;
 
         if (!!dag.leafs[this.var_data.index]) {
             delete dag.leafs[this.var_data.index];
@@ -385,21 +437,15 @@ export default class VarDAGNode extends DAGNodeBase {
 
     /**
      * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes
-     * et qu'il ait un tag courant >= VarDAGNode.TAG_7_DELETING
      */
     get is_deletable(): boolean {
-        return (this.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_7_DELETING]) && !this.hasIncoming;
+        return !this.hasIncoming;
     }
 
     /**
      * On défini comme computable un noeud dont toutes les dépendances sortantes ont un tag courant >= VarDAGNode.TAG_4_COMPUTED
-     * et qui a un tag courrant >= VarDAGNode.TAG_3_DATA_LOADED
      */
     get is_computable(): boolean {
-        if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTING]) {
-            return false;
-        }
-
         for (let i in this.outgoing_deps) {
             let outgoing_dep = this.outgoing_deps[i];
 

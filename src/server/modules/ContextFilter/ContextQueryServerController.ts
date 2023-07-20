@@ -1067,10 +1067,14 @@ export default class ContextQueryServerController {
      */
     public async build_select_query_not_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'IN');
+
         if (!context_query) {
-            ConsoleHandler.error('Invalid query:build_select_query_not_count:INFOS context_query');
+            ConsoleHandler.error('Invalid query:build_select_query_not_count:!context_query:INFOS context_query');
             context_query.log(true);
-            throw new Error('Invalid query param:build_select_query_not_count');
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_context_query_empty');
+            throw new Error('Invalid query param:!context_query');
         }
 
         /**
@@ -1080,6 +1084,7 @@ export default class ContextQueryServerController {
 
         let main_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], null);
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
+        let res = null;
 
         try {
 
@@ -1087,7 +1092,10 @@ export default class ContextQueryServerController {
              * Par mesure de sécu on check que les éléments proposés existent en base
              */
             if (!context_query.base_api_type_id) {
-                return null;
+                ConsoleHandler.error('Invalid query:build_select_query_not_count:!base_api_type_id:INFOS context_query');
+                context_query.log(true);
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_base_api_type_id_empty');
+                throw new Error('Invalid query param:!base_api_type_id');
             }
 
             /**
@@ -1102,13 +1110,17 @@ export default class ContextQueryServerController {
 
             // Si on ignore_access_hook, on ignore les droits aussi
             if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_check_access_failed');
                 return null;
             }
 
             let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
             if (!base_moduletable) {
-                return null;
+                ConsoleHandler.error('Invalid query:build_select_query_not_count:!base_moduletable:INFOS context_query');
+                context_query.log(true);
+                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_not_found_base_moduletable');
+                throw new Error('Invalid query param:!base_moduletable');
             }
 
             /**
@@ -1136,84 +1148,12 @@ export default class ContextQueryServerController {
                     }
                 }
 
-                // Loop on union_queries
-                if (context_query.union_queries?.length > 0) {
-                    const root_context_query = cloneDeep(context_query);
-
-                    const union_context_queries: ContextQueryVO[] = context_query.union_queries;
-
-                    root_context_query.query_distinct = false;
-                    root_context_query.union_queries = null;
-
-                    union_context_queries.push(root_context_query);
-
-                    // We should get the moduletable from each union query
-                    // We should get the fields from each union query
-                    // - The given fields shall help to force cast to the right postgresql type
-                    const { all_distinct_fields } = this.get_common_fields_from_union_context_query(
-                        context_query
-                    );
-
-                    // Build sub-query for the final db request to union
-                    // Select offset fields as null for each moduletable
-                    // Each union_query may be segmented
-                    for (const key in union_context_queries) {
-                        const union_context_query = context_query.union_queries[key];
-
-                        const has_access_api_type_id = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
-                            union_context_query,
-                            union_context_query.base_api_type_id,
-                            union_context_query.fields,
-                            access_type
-                        );
-
-                        if (!has_access_api_type_id) {
-                            continue;
-                        }
-
-                        const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
-
-                        if (moduletable.is_segmented) {
-
-                            let { queries: segmented_queries } = await this.build_segmented_moduletable_select_query(
-                                context_query,
-                                main_query_wrapper,
-                                queries,
-                                access_type,
-                            );
-
-                            if (segmented_queries?.length > 0) {
-                                queries = queries.concat(segmented_queries);
-                            }
-
-                        } else {
-                            const parameterized_query_wrapper = await this.build_moduletable_select_query(
-                                union_context_query,
-                                access_type,
-                                null,
-                                false,
-                                null,
-                                all_distinct_fields,
-                            );
-
-                            if (!!(parameterized_query_wrapper?.query?.length > 0) && !parameterized_query_wrapper?.is_segmented_non_existing_table) {
-
-                                if (!main_query_wrapper.fields) {
-                                    main_query_wrapper.fields = parameterized_query_wrapper.fields;
-                                }
-
-                                queries.push(parameterized_query_wrapper.query);
-                            }
-                        }
-
-                        /**
-                         * Dans le cas des segmented, on remonte pas auto l'ajout des fields si on en avait pas dans la requete initiale, contrairement aux queries non segmentées, ce qui empeche le throttle
-                         */
-                        if (!(context_query.fields?.length > 0) && (union_context_query.fields?.length > 0)) {
-                            context_query.fields = union_context_query.fields;
-                        }
-                    }
-                }
+                await this.handle_context_query_union_queries(
+                    context_query,
+                    main_query_wrapper,
+                    queries,
+                    access_type
+                );
 
                 /**
                  * WARN :: Un check complémentaire suite observation en prod, mais sans comprendre pourquoi on a besoin de le faire
@@ -1224,77 +1164,184 @@ export default class ContextQueryServerController {
                 if (!queries.length) {
                     main_query_wrapper.mark_as_is_segmented_non_existing_table();
 
+                    StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_is_segmented_non_existing_table');
+                    StatsController.register_stat_DUREE('ContextQueryServerController', 'build_select_query_not_count', 'OUT_is_segmented_non_existing_table', Dates.now_ms() - time_in);
                     return main_query_wrapper;
                 }
 
-                let aliases_n: number = 0;
-
-                let union_query = 'SELECT * FROM ((' + queries.join(') UNION ALL (') + ')) as t_union_' + (aliases_n);
-
-                if (context_query.union_queries?.length > 0) {
-                    // We should Apply Filters clauses on the union_query
-                    // We should Keep the api_type_id for each union_query
-                    // Must build the query_wrapper clause for the union_queries, shall be the root context_query
-
-                    const union_context_query = cloneDeep(context_query);
-
-                    union_context_query.sort_by = union_context_query.sort_by?.map((sort_by) => {
-                        let alias = sort_by.alias ? sort_by.alias : sort_by.field_id;
-
-                        sort_by.alias = `t_union_${aliases_n}.` + alias;
-
-                        return sort_by;
-                    });
-
-                    union_context_query.fields = union_context_query.fields?.map((field) => {
-                        let alias = field.alias ? field.alias : field.field_id;
-
-                        field.alias = `t_union_${aliases_n}.` + alias;
-
-                        return field;
-                    });
-
-                    let GROUP_BY = await this.build_query_wrapper_group_by_clause(
-                        union_context_query,
-                        main_query_wrapper,
-                        false,
-                    );
-
-                    let { SORT_BY, QUERY } = await this.build_query_wrapper_sort_by_clause(
-                        union_context_query,
-                        main_query_wrapper,
-                        aliases_n,
-                        access_type,
-                        union_query
-                    );
-
-                    // Limit
-                    let LIMIT = "";
-
-                    if (!union_context_query.do_count_results) {
-                        LIMIT = this.get_limit(union_context_query);
-                    }
-
-                    union_query = QUERY + GROUP_BY + SORT_BY + LIMIT;
-                }
-
-                main_query_wrapper.set_query(union_query);
-
-                return main_query_wrapper;
+                res = await this.handle_queries_union_all(
+                    context_query,
+                    main_query_wrapper,
+                    queries,
+                    access_type
+                );
             } else {
-                main_query_wrapper = await this.build_select_query_not_count_segment(
+                res = await this.build_select_query_not_count_segment(
                     context_query,
                     access_type,
                     base_moduletable,
                     base_moduletable.vo_type
                 );
-
-                return main_query_wrapper;
             }
         } catch (error) {
             ConsoleHandler.error(error);
+            context_query.log(true);
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_ERROR');
             return main_query_wrapper;
         }
+
+        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT');
+        StatsController.register_stat_DUREE('ContextQueryServerController', 'build_select_query_not_count', 'OUT', Dates.now_ms() - time_in);
+        return res;
+    }
+
+    private async handle_context_query_union_queries(
+        context_query: ContextQueryVO,
+        main_query_wrapper: ParameterizedQueryWrapper,
+        queries: string[],
+        access_type: string
+    ) {
+
+        // Loop on union_queries
+        if (context_query.union_queries?.length > 0) {
+            const root_context_query = cloneDeep(context_query);
+
+            const union_context_queries: ContextQueryVO[] = context_query.union_queries;
+
+            root_context_query.query_distinct = false;
+            root_context_query.union_queries = null;
+
+            union_context_queries.push(root_context_query);
+
+            // We should get the moduletable from each union query
+            // We should get the fields from each union query
+            // - The given fields shall help to force cast to the right postgresql type
+            const { all_distinct_fields } = this.get_common_fields_from_union_context_query(
+                context_query
+            );
+
+            // Build sub-query for the final db request to union
+            // Select offset fields as null for each moduletable
+            // Each union_query may be segmented
+            for (const key in union_context_queries) {
+                const union_context_query = context_query.union_queries[key];
+
+                const has_access_api_type_id = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
+                    union_context_query,
+                    union_context_query.base_api_type_id,
+                    union_context_query.fields,
+                    access_type
+                );
+
+                if (!has_access_api_type_id) {
+                    continue;
+                }
+
+                const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+
+                if (moduletable.is_segmented) {
+
+                    let { queries: segmented_queries } = await this.build_segmented_moduletable_select_query(
+                        context_query,
+                        main_query_wrapper,
+                        queries,
+                        access_type,
+                    );
+
+                    if (segmented_queries?.length > 0) {
+                        queries = queries.concat(segmented_queries);
+                    }
+
+                } else {
+                    const parameterized_query_wrapper = await this.build_moduletable_select_query(
+                        union_context_query,
+                        access_type,
+                        null,
+                        false,
+                        null,
+                        all_distinct_fields,
+                    );
+
+                    if (!!(parameterized_query_wrapper?.query?.length > 0) && !parameterized_query_wrapper?.is_segmented_non_existing_table) {
+
+                        if (!main_query_wrapper.fields) {
+                            main_query_wrapper.fields = parameterized_query_wrapper.fields;
+                        }
+
+                        queries.push(parameterized_query_wrapper.query);
+                    }
+                }
+
+                /**
+                 * Dans le cas des segmented, on remonte pas auto l'ajout des fields si on en avait pas dans la requete initiale, contrairement aux queries non segmentées, ce qui empeche le throttle
+                 */
+                if (!(context_query.fields?.length > 0) && (union_context_query.fields?.length > 0)) {
+                    context_query.fields = union_context_query.fields;
+                }
+            }
+        }
+    }
+
+    private async handle_queries_union_all(
+        context_query: ContextQueryVO,
+        main_query_wrapper: ParameterizedQueryWrapper,
+        queries: string[],
+        access_type: string
+    ): Promise<ParameterizedQueryWrapper> {
+
+        let aliases_n: number = 0;
+
+        let union_query = 'SELECT * FROM ((' + queries.join(') UNION ALL (') + ')) as t_union_' + (aliases_n);
+
+        if (context_query.union_queries?.length > 0) {
+            // We should Apply Filters clauses on the union_query
+            // We should Keep the api_type_id for each union_query
+            // Must build the query_wrapper clause for the union_queries, shall be the root context_query
+
+            const union_context_query = cloneDeep(context_query);
+
+            union_context_query.sort_by = union_context_query.sort_by?.map((sort_by) => {
+                let alias = sort_by.alias ? sort_by.alias : sort_by.field_id;
+
+                sort_by.alias = `t_union_${aliases_n}.` + alias;
+
+                return sort_by;
+            });
+
+            union_context_query.fields = union_context_query.fields?.map((field) => {
+                let alias = field.alias ? field.alias : field.field_id;
+
+                field.alias = `t_union_${aliases_n}.` + alias;
+
+                return field;
+            });
+
+            let GROUP_BY = await this.build_query_wrapper_group_by_clause(
+                union_context_query,
+                main_query_wrapper,
+                false,
+            );
+
+            let { SORT_BY, QUERY } = await this.build_query_wrapper_sort_by_clause(
+                union_context_query,
+                main_query_wrapper,
+                aliases_n,
+                access_type,
+                union_query
+            );
+
+            // Limit
+            let LIMIT = "";
+
+            if (!union_context_query.do_count_results) {
+                LIMIT = this.get_limit(union_context_query);
+            }
+
+            union_query = QUERY + GROUP_BY + SORT_BY + LIMIT;
+        }
+
+        main_query_wrapper.set_query(union_query);
+        return main_query_wrapper;
     }
 
     private async build_segmented_moduletable_select_query(

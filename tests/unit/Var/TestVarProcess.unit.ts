@@ -333,16 +333,16 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_3_DATA_LOADED]: true
     });
     expect(node_e.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_f.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_g.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_h.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
 
     expect(dag.current_step_tags).toStrictEqual({
@@ -355,7 +355,9 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_3_DATA_LOADED]: {
             [node_a.var_data.index]: node_a,
             [node_b.var_data.index]: node_b,
-            [node_c.var_data.index]: node_c,
+            [node_c.var_data.index]: node_c
+        },
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {
             [node_e.var_data.index]: node_e,
             [node_f.var_data.index]: node_f,
             [node_g.var_data.index]: node_g,
@@ -385,16 +387,16 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_3_DATA_LOADED]: true
     });
     expect(node_e.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_f.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_g.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_h.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
 
     expect(dag.current_step_tags).toStrictEqual({
@@ -407,7 +409,9 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_3_DATA_LOADED]: {
             [node_a.var_data.index]: node_a,
             [node_b.var_data.index]: node_b,
-            [node_c.var_data.index]: node_c,
+            [node_c.var_data.index]: node_c
+        },
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {
             [node_e.var_data.index]: node_e,
             [node_f.var_data.index]: node_f,
             [node_g.var_data.index]: node_g,
@@ -425,10 +429,10 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_3_DATA_LOADED]: true
     });
     expect(node_b.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_c.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_e.tags).toStrictEqual({
         [VarDAGNode.TAG_4_COMPUTED]: true
@@ -451,7 +455,9 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {
-            [node_a.var_data.index]: node_a,
+            [node_a.var_data.index]: node_a
+        },
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {
             [node_b.var_data.index]: node_b,
             [node_c.var_data.index]: node_c
         },
@@ -471,7 +477,7 @@ test('DAG: test var process', async () => {
 
     // On computer le second étage
     expect(node_a.tags).toStrictEqual({
-        [VarDAGNode.TAG_3_DATA_LOADED]: true
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
     expect(node_b.tags).toStrictEqual({
         [VarDAGNode.TAG_4_COMPUTED]: true
@@ -499,7 +505,8 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYING]: {},
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
-        [VarDAGNode.TAG_3_DATA_LOADED]: {
+        [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {
             [node_a.var_data.index]: node_a
         },
         [VarDAGNode.TAG_4_COMPUTING]: {},
@@ -550,6 +557,7 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {
             [node_a.var_data.index]: node_a,
@@ -606,6 +614,7 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {
             [node_a.var_data.index]: node_a,
@@ -655,6 +664,7 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {},
         [VarDAGNode.TAG_5_NOTIFYING_END]: {},
@@ -713,6 +723,7 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {},
         [VarDAGNode.TAG_5_NOTIFYING_END]: {},
@@ -735,7 +746,7 @@ test('DAG: test var process', async () => {
     expect(did_something).toBeTruthy();
 
     expect(node_a.tags).toStrictEqual({
-        [VarDAGNode.TAG_6_UPDATED_IN_DB]: true
+        [VarDAGNode.TAG_7_IS_DELETABLE]: true
     });
     expect(node_b.tags).toStrictEqual({
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: true
@@ -764,14 +775,13 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {},
         [VarDAGNode.TAG_5_NOTIFYING_END]: {},
         [VarDAGNode.TAG_5_NOTIFIED_END]: {},
         [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
-            [node_a.var_data.index]: node_a,
-
             [node_b.var_data.index]: node_b,
             [node_c.var_data.index]: node_c,
 
@@ -779,6 +789,9 @@ test('DAG: test var process', async () => {
             [node_f.var_data.index]: node_f,
             [node_g.var_data.index]: node_g,
             [node_h.var_data.index]: node_h
+        },
+        [VarDAGNode.TAG_7_IS_DELETABLE]: {
+            [node_a.var_data.index]: node_a
         }
     });
 
@@ -795,7 +808,7 @@ test('DAG: test var process', async () => {
     expect(did_something).toBeFalsy();
 
     expect(node_a.tags).toStrictEqual({
-        [VarDAGNode.TAG_6_UPDATED_IN_DB]: true
+        [VarDAGNode.TAG_7_IS_DELETABLE]: true
     });
     expect(node_b.tags).toStrictEqual({
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: true
@@ -824,14 +837,13 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {},
         [VarDAGNode.TAG_5_NOTIFYING_END]: {},
         [VarDAGNode.TAG_5_NOTIFIED_END]: {},
         [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
-            [node_a.var_data.index]: node_a,
-
             [node_b.var_data.index]: node_b,
             [node_c.var_data.index]: node_c,
 
@@ -839,11 +851,14 @@ test('DAG: test var process', async () => {
             [node_f.var_data.index]: node_f,
             [node_g.var_data.index]: node_g,
             [node_h.var_data.index]: node_h
+        },
+        [VarDAGNode.TAG_7_IS_DELETABLE]: {
+            [node_a.var_data.index]: node_a
         }
     });
 
     // On lance le process de suppression de l'arbre
-    did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker']();
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -864,25 +879,27 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {},
         [VarDAGNode.TAG_5_NOTIFYING_END]: {},
         [VarDAGNode.TAG_5_NOTIFIED_END]: {},
         [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
-            [node_b.var_data.index]: node_b,
-            [node_c.var_data.index]: node_c,
-
             [node_e.var_data.index]: node_e,
             [node_f.var_data.index]: node_f,
             [node_g.var_data.index]: node_g,
             [node_h.var_data.index]: node_h
         },
+        [VarDAGNode.TAG_7_IS_DELETABLE]: {
+            [node_b.var_data.index]: node_b,
+            [node_c.var_data.index]: node_c
+        },
         [VarDAGNode.TAG_7_DELETING]: {},
     });
 
     // On lance le process de suppression de l'arbre
-    did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker']();
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -903,12 +920,14 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {},
         [VarDAGNode.TAG_5_NOTIFYING_END]: {},
         [VarDAGNode.TAG_5_NOTIFIED_END]: {},
         [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
-        [VarDAGNode.TAG_6_UPDATED_IN_DB]: {
+        [VarDAGNode.TAG_6_UPDATED_IN_DB]: {},
+        [VarDAGNode.TAG_7_IS_DELETABLE]: {
             [node_e.var_data.index]: node_e,
             [node_f.var_data.index]: node_f,
             [node_g.var_data.index]: node_g,
@@ -919,7 +938,7 @@ test('DAG: test var process', async () => {
 
 
     // On lance le process de suppression de l'arbre
-    did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker']();
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -940,12 +959,14 @@ test('DAG: test var process', async () => {
         [VarDAGNode.TAG_2_DEPLOYED]: {},
         [VarDAGNode.TAG_3_DATA_LOADING]: {},
         [VarDAGNode.TAG_3_DATA_LOADED]: {},
+        [VarDAGNode.TAG_4_IS_COMPUTABLE]: {},
         [VarDAGNode.TAG_4_COMPUTING]: {},
         [VarDAGNode.TAG_4_COMPUTED]: {},
         [VarDAGNode.TAG_5_NOTIFYING_END]: {},
         [VarDAGNode.TAG_5_NOTIFIED_END]: {},
         [VarDAGNode.TAG_6_UPDATING_IN_DB]: {},
         [VarDAGNode.TAG_6_UPDATED_IN_DB]: {},
+        [VarDAGNode.TAG_7_IS_DELETABLE]: {},
         [VarDAGNode.TAG_7_DELETING]: {},
     });
 

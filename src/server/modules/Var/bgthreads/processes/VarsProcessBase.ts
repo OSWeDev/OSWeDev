@@ -100,9 +100,8 @@ export default abstract class VarsProcessBase {
                     did_something = did_something || res;
                     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
-                    node.remove_tag(this.TAG_SELF_NAME);
-
                     self.handle_worker_result(res, worker_time_in, node);
+                    node.remove_tag(this.TAG_SELF_NAME);
                 });
             } else {
                 let worker_time_in = Dates.now_ms();
@@ -110,9 +109,8 @@ export default abstract class VarsProcessBase {
                 did_something = did_something || res;
                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
-                node.remove_tag(this.TAG_SELF_NAME);
-
                 this.handle_worker_result(res, worker_time_in, node);
+                node.remove_tag(this.TAG_SELF_NAME);
             }
         }
 
@@ -142,12 +140,17 @@ export default abstract class VarsProcessBase {
          * Si on a des vars registered par le client on veut les prioriser, donc on ignorera les autres pour le moment
          * Sinon on prend toutes les vars qui ont le tag in
          */
-        // ATTENTION : on a un pb avec le filter_by_sub : si A, sub, dépend de B, pas sub,
-        //  on arrive à bloquer le compute de A puisque B reste bloqué en data_loaded en attendant le compute de A qui est prioritaire
-        //  mais dépendant de B...
-        // let nodes: { [node_name: string]: VarDAGNode } = this.filter_by_subs(CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME]);
-        // nodes = (nodes && Object.keys(nodes).length) ? nodes : CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME];
         let nodes: { [node_name: string]: VarDAGNode } = CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME];
+
+        if ((!nodes) || (!Object.keys(nodes).length)) {
+            return null;
+        }
+
+        let subbed_nodes = this.filter_by_subs(nodes);
+        if (subbed_nodes && Object.keys(subbed_nodes).length) {
+            nodes = subbed_nodes;
+        }
+
         let valid_nodes: { [node_name: string]: VarDAGNode } = {};
 
         for (let i in nodes) {
@@ -158,18 +161,21 @@ export default abstract class VarsProcessBase {
             }
 
             StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, this.TAG_IN_NAME);
-            node.remove_tag(this.TAG_IN_NAME);
 
-            // Si on a un by pass, on ne fait rien puisqu'on a déjà le tag out
-            if (node.tags[this.TAG_OUT_NAME]) {
+            // Si on a un by pass, on ne fait rien puisqu'on a déjà le tag out - on gère le cas spécifique du delete dont le in et out sont iso
+            if ((this.TAG_OUT_NAME != this.TAG_IN_NAME) && node.tags[this.TAG_OUT_NAME]) {
+                node.remove_tag(this.TAG_IN_NAME);
                 continue;
             }
 
             if (!node.add_tag(this.TAG_SELF_NAME)) {
                 // On a un refus, lié à une suppression en attente sur ce noeud, on arrête les traitements
+                node.remove_tag(this.TAG_IN_NAME);
                 continue;
             }
 
+            // On remove_tag après le add_tag sinon si on a déjà tag une étape >, on peut plus tagger < à current_step
+            node.remove_tag(this.TAG_IN_NAME);
             valid_nodes[node.var_data.index] = node;
         }
 
@@ -179,7 +185,7 @@ export default abstract class VarsProcessBase {
     private async handle_batch_worker(): Promise<boolean> {
 
         let batch_nodes: { [node_name: string]: VarDAGNode } = this.get_valid_nodes();
-        let has_something_to_do = Object.keys(batch_nodes).length > 0;
+        let has_something_to_do = batch_nodes ? Object.keys(batch_nodes).length > 0 : false;
 
         if (has_something_to_do) {
 
@@ -190,7 +196,6 @@ export default abstract class VarsProcessBase {
 
             for (let i in batch_nodes) {
                 let node = batch_nodes[i];
-                node.remove_tag(this.TAG_SELF_NAME);
 
                 // Si on a pas fait l'action, on retente plus tard
                 if (res) {
@@ -202,6 +207,7 @@ export default abstract class VarsProcessBase {
                     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker_failed", Dates.now_ms() - worker_time_in);
                     node.add_tag(this.TAG_IN_NAME);
                 }
+                node.remove_tag(this.TAG_SELF_NAME);
             }
         }
 

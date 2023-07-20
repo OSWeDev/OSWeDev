@@ -185,6 +185,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if (!invalid_stats_group.stat_type_name) {
             ConsoleHandler.error('Statsstat_typeMapperBGThread:FAILED:invalid_stats_group.tmp_stat_type_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.stat_type_name = 'ERROR';
+            return null;
         }
 
         if (!this.stat_type_cache[invalid_stats_group.stat_type_name]) {
@@ -276,6 +277,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if ((!invalid_stats_group.sub_category_name) || (!invalid_stats_group.category_id)) {
             ConsoleHandler.error('StatsUnstackerBGThread:FAILED:invalid_stats_group.tmp_sub_category_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.sub_category_name = 'ERROR';
+            return null;
         }
 
         if (!this.sub_category_cache[invalid_stats_group.category_id]) {
@@ -305,6 +307,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if ((!invalid_stats_group.event_name) || (!invalid_stats_group.sub_category_id)) {
             ConsoleHandler.error('StatsUnstackerBGThread:FAILED:invalid_stats_group.tmp_event_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.event_name = 'ERROR';
+            return null;
         }
 
         if (!this.event_cache[invalid_stats_group.sub_category_id]) {
@@ -334,6 +337,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if (!invalid_stats_group.thread_name) {
             ConsoleHandler.error('StatsUnstackerBGThread:FAILED:invalid_stats_group.tmp_thread_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.thread_name = 'ERROR';
+            return null;
         }
 
         if (!this.thread_cache[invalid_stats_group.thread_name]) {

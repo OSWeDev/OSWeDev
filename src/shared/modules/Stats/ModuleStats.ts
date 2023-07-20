@@ -8,7 +8,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VarsInitController from '../Var/VarsInitController';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import RegisterClientStatsParamVO, { RegisterClientStatsParamVOStatic } from './params/RegisterClientStatsParamVO';
 import StatsGroupSecDataRangesVO from './vars/vos/StatsGroupDayDataRangesVO';
 import StatClientWrapperVO from './vos/StatClientWrapperVO';

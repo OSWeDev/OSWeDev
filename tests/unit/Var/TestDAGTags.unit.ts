@@ -23,14 +23,30 @@ test('DAG: test isDeletable', async () => {
 
     let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
     let node_A = dag.nodes[var_data_A.index];
-    // Pas de tag updated_db, donc pas de suppression
+    // Pas de incoming deps, donc peut être supprimé
     expect(node_A.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
-    expect(node_A.is_deletable).toStrictEqual(false);
+    expect(node_A.is_deletable).toStrictEqual(true);
 
 
     node_A.remove_tag(VarDAGNode.TAG_0_CREATED);
+    node_A.add_tag(VarDAGNode.TAG_6_UPDATING_IN_DB);
+    expect(node_A.tags).toStrictEqual({
+        [VarDAGNode.TAG_6_UPDATING_IN_DB]: true
+    });
+    expect(node_A.is_deletable).toStrictEqual(true);
+
+
+    node_A.remove_tag(VarDAGNode.TAG_6_UPDATING_IN_DB);
+    node_A.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+    expect(node_A.tags).toStrictEqual({
+        [VarDAGNode.TAG_7_IS_DELETABLE]: true
+    });
+    expect(node_A.is_deletable).toStrictEqual(true);
+
+
+    node_A.remove_tag(VarDAGNode.TAG_7_IS_DELETABLE);
     node_A.add_tag(VarDAGNode.TAG_7_DELETING);
     expect(node_A.tags).toStrictEqual({
         [VarDAGNode.TAG_7_DELETING]: true
@@ -134,30 +150,37 @@ test('DAG: test isComputable', async () => {
     });
 
 
-    // Pas de tag updated_db, donc pas de suppression
+    // Pas de deps computed, donc pas computable
     expect(node_B.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
     expect(node_B.is_computable).toStrictEqual(false);
 
-    // Pas de tag updated_db, donc pas de suppression
+    // Pas de deps, donc computable
     expect(node_E.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
-    expect(node_E.is_computable).toStrictEqual(false);
+    expect(node_E.is_computable).toStrictEqual(true);
 
-    // Pas de tag updated_db, donc pas de suppression
+    // Pas de deps, donc computable
     expect(node_F.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
-    expect(node_F.is_computable).toStrictEqual(false);
+    expect(node_F.is_computable).toStrictEqual(true);
 
     node_E.remove_tag(VarDAGNode.TAG_0_CREATED);
     node_E.add_tag(VarDAGNode.TAG_4_COMPUTING);
     expect(node_A.is_computable).toStrictEqual(false);
     expect(node_B.is_computable).toStrictEqual(false);
     expect(node_E.is_computable).toStrictEqual(true);
-    expect(node_F.is_computable).toStrictEqual(false);
+    expect(node_F.is_computable).toStrictEqual(true);
+
+    node_E.remove_tag(VarDAGNode.TAG_4_COMPUTING);
+    node_E.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
+    expect(node_A.is_computable).toStrictEqual(false);
+    expect(node_B.is_computable).toStrictEqual(false);
+    expect(node_E.is_computable).toStrictEqual(true);
+    expect(node_F.is_computable).toStrictEqual(true);
 
     node_F.remove_tag(VarDAGNode.TAG_0_CREATED);
     node_F.add_tag(VarDAGNode.TAG_4_COMPUTING);
@@ -170,7 +193,7 @@ test('DAG: test isComputable', async () => {
     expect(node_E.is_computable).toStrictEqual(true);
     expect(node_F.is_computable).toStrictEqual(true);
 
-    node_E.remove_tag(VarDAGNode.TAG_4_COMPUTING);
+    node_E.remove_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
     node_E.add_tag(VarDAGNode.TAG_4_COMPUTED);
     node_F.remove_tag(VarDAGNode.TAG_4_COMPUTING);
     node_F.add_tag(VarDAGNode.TAG_4_COMPUTED);
@@ -342,7 +365,7 @@ test('DAG: test addOutgoingDep', async () => {
         'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
     });
     expect(node_B.incoming_deps).toStrictEqual({
-        'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
+        'DEP:A>B': [new VarDAGNodeDep('DEP:A>B', node_A, node_B)]
     });
 
     node_A.addOutgoingDep('DEP:A>B', node_B);
@@ -351,7 +374,7 @@ test('DAG: test addOutgoingDep', async () => {
         'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
     });
     expect(node_B.incoming_deps).toStrictEqual({
-        'DEP:A>B': new VarDAGNodeDep('DEP:A>B', node_A, node_B)
+        'DEP:A>B': [new VarDAGNodeDep('DEP:A>B', node_A, node_B)]
     });
 });
 
@@ -407,7 +430,7 @@ test('DAG: test unlinkFromDAG', async () => {
         BF: new VarDAGNodeDep('BF', node_B, node_F)
     });
     expect(node_B.incoming_deps).toStrictEqual({
-        AB: new VarDAGNodeDep('AB', node_A, node_B),
+        AB: [new VarDAGNodeDep('AB', node_A, node_B)]
     });
 
     expect(node_C.outgoing_deps).toStrictEqual({
@@ -415,27 +438,27 @@ test('DAG: test unlinkFromDAG', async () => {
         CH: new VarDAGNodeDep('CH', node_C, node_H)
     });
     expect(node_C.incoming_deps).toStrictEqual({
-        AC: new VarDAGNodeDep('AC', node_A, node_C)
+        AC: [new VarDAGNodeDep('AC', node_A, node_C)]
     });
 
     expect(node_E.outgoing_deps).toStrictEqual({});
     expect(node_E.incoming_deps).toStrictEqual({
-        BE: new VarDAGNodeDep('BE', node_B, node_E)
+        BE: [new VarDAGNodeDep('BE', node_B, node_E)]
     });
 
     expect(node_F.outgoing_deps).toStrictEqual({});
     expect(node_F.incoming_deps).toStrictEqual({
-        BF: new VarDAGNodeDep('BF', node_B, node_F)
+        BF: [new VarDAGNodeDep('BF', node_B, node_F)]
     });
 
     expect(node_G.outgoing_deps).toStrictEqual({});
     expect(node_G.incoming_deps).toStrictEqual({
-        CG: new VarDAGNodeDep('CG', node_C, node_G)
+        CG: [new VarDAGNodeDep('CG', node_C, node_G)]
     });
 
     expect(node_H.outgoing_deps).toStrictEqual({});
     expect(node_H.incoming_deps).toStrictEqual({
-        CH: new VarDAGNodeDep('CH', node_C, node_H)
+        CH: [new VarDAGNodeDep('CH', node_C, node_H)]
     });
 
     node_A.unlinkFromDAG();
@@ -492,22 +515,22 @@ test('DAG: test unlinkFromDAG', async () => {
 
     expect(node_E.outgoing_deps).toStrictEqual({});
     expect(node_E.incoming_deps).toStrictEqual({
-        BE: new VarDAGNodeDep('BE', node_B, node_E)
+        BE: [new VarDAGNodeDep('BE', node_B, node_E)]
     });
 
     expect(node_F.outgoing_deps).toStrictEqual({});
     expect(node_F.incoming_deps).toStrictEqual({
-        BF: new VarDAGNodeDep('BF', node_B, node_F)
+        BF: [new VarDAGNodeDep('BF', node_B, node_F)]
     });
 
     expect(node_G.outgoing_deps).toStrictEqual({});
     expect(node_G.incoming_deps).toStrictEqual({
-        CG: new VarDAGNodeDep('CG', node_C, node_G)
+        CG: [new VarDAGNodeDep('CG', node_C, node_G)]
     });
 
     expect(node_H.outgoing_deps).toStrictEqual({});
     expect(node_H.incoming_deps).toStrictEqual({
-        CH: new VarDAGNodeDep('CH', node_C, node_H)
+        CH: [new VarDAGNodeDep('CH', node_C, node_H)]
     });
 
     node_E.unlinkFromDAG();

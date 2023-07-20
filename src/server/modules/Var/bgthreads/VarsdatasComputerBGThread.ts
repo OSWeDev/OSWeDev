@@ -77,6 +77,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             VarsDatasVoUpdateHandler.init();
             VarsDatasProxy.init();
             VarsClientsSubsCacheManager.init();
+            CurrentVarDAGHolder.init_stats_process();
 
             // On lance les process
             VarsProcessNotifyStart.getInstance().work();

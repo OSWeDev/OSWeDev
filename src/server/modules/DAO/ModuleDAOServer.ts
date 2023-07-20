@@ -81,6 +81,7 @@ import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ServerBase from '../../ServerBase';
+import { Stats } from 'fs';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -2213,7 +2214,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @returns {Promise<any>} résultat potentiellement freeze à tester avec Object.isFrozen
      */
     public async throttle_select_query(query_: string = null, values: any = null, parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[], context_query: ContextQueryVO): Promise<any> {
-        // await this.check_throttled_select_query_size_ms();
         let self = this;
 
         return new Promise(async (resolve, reject) => {
@@ -2226,89 +2226,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             try {
                 self.throttled_select_query_params.push(param);
-                // await self.throttled_select_query_({
-                //     [param.index]: param
-                // });
             } catch (error) {
                 reject(error);
             }
         });
     }
-
-    // public async throttled_select_query() {
-    //     if (this.throttled_select_query_params && this.throttled_select_query_params.length) {
-
-    //         let moduleTables_by_voType = VOsTypesManager.moduleTables_by_voType;
-
-    //         /**
-    //          * On libère la liste des params pour un prochain appel
-    //          */
-    //         let batch_throttled_select_query_params = this.throttled_select_query_params;
-    //         this.throttled_select_query_params = [];
-
-    //         /**
-    //          * On doit d'abord regrouper les requêtes par liste de fields (et même de fields label dans la query)
-    //          *  donc si on a pas de fields, il faudrait ressortir les fields du moduletable (mais il faut le faire en amont je pense)
-    //          *  pour le moment je gère pas ce cas (et je log un warning)
-    //          */
-    //         let throttled_select_query_params_by_fields_labels_by_index: { [fields_labels: string]: { [index: number]: ThrottledSelectQueryParam } } = {};
-
-    //         /**
-    //          * On essaie aussi d'identifier des requêtes parfaitement identiques pour pas les refaire 10 fois
-    //          *  donc où on a la même query et les mêmes values
-    //          * Si on en trouve plusieurs, on stocke les cbs, mais on oublie la seconde requete
-    //          */
-    //         let throttled_select_query_params_by_parameterized_full_query: { [parameterized_full_query: string]: ThrottledSelectQueryParam } = {};
-
-    //         /**
-    //          * On se fait aussi une list par index de requete pour alléger les recherches par la suite
-    //          */
-    //         let throttled_select_query_params_by_index: { [index: number]: ThrottledSelectQueryParam } = {};
-
-    //         if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-    //             ConsoleHandler.log('throttled_select_query:IN:' + this.throttled_select_query_params.length);
-    //         }
-
-    //         /**
-    //          * On gère les doublons et on regroupe les requêtes par index
-    //          */
-    //         let promises = await this.handle_doublons_and_regroup_by_index(
-    //             batch_throttled_select_query_params,
-    //             throttled_select_query_params_by_parameterized_full_query,
-    //             throttled_select_query_params_by_index,
-    //             moduleTables_by_voType,
-    //             throttled_select_query_params_by_fields_labels_by_index);
-
-    //         let nb_queries = promises ? promises.length : 0;
-
-
-    //         /**
-    //          * On veut utiliser efficacement les connexions vers la BDD
-    //          *  on va se limiter à un nombre de requêtes simultanées défini non pas comme MAX_POOL mais
-    //          *  comme un nombre de requêtes simultanées NORMAL
-    //          */
-    //         let nb_simultaneous_queries = ConfigurationService.node_configuration.TARGET_THROTTLED_QUERIES_CONNECTION_POOL;
-
-    //         // On a déjà une requête par promises émises au dessus, et on va en créer une par index
-    //         nb_queries += (throttled_select_query_params_by_fields_labels_by_index ? Object.keys(throttled_select_query_params_by_fields_labels_by_index).length : 0);
-
-    //         let nb_connexions_disponibles = Math.max(Math.min(nb_simultaneous_queries, nb_simultaneous_queries - nb_queries), 0);
-
-    //         /**
-    //          * On a un nombre de connexions disponibles, on va essayer de les utiliser au max / mieux en découpant les plus gros paquets pour en faire des plus petits
-    //          */
-    //         this.split_for_nb_connections(throttled_select_query_params_by_fields_labels_by_index, nb_connexions_disponibles);
-
-
-    //         /**
-    //          * On gère les réponses disponibles dans le cache : on a toujours les requetes dans le throttled_select_query_params_by_fields_labels_by_index
-    //          *  mais le semaphore est à true si on a chargé depuis le cache
-    //          */
-    //         this.handle_cached_responses_and_db_queries(promises, throttled_select_query_params_by_fields_labels_by_index);
-
-    //         await all_promises(promises);
-    //     }
-    // }
 
     /**
      * Cas très spécifique de la connexion où l'on a évidemment pas le droit de lister les comptes, mais il faut tout de même pouvoir se connecter...
@@ -5361,11 +5283,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async do_select_query(request: string, values: any[], param: ThrottledSelectQueryParam, freeze_check_passed_and_refused: { [full_parameterized_query: string]: boolean }, force_freeze: boolean = false) {
         let results = null;
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'IN');
 
         try {
             let uid = this.log_db_query_perf_start('do_select_query', request);
             results = await ModuleServiceBase.db.query(request, values);
             this.log_db_query_perf_end(uid, 'do_select_query', request);
+
+            StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'query_OUT');
+            StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'query_OUT', Dates.now_ms() - time_in);
         } catch (error) {
             ConsoleHandler.error('do_select_query:' + error);
         }
@@ -5395,12 +5322,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
             DAOCacheHandler.set_cache(param.parameterized_full_query, results, param.context_query.max_age_ms);
         }
 
+        param.register_precbs_stats();
+        let cbs_time_in = Dates.now_ms();
+
         for (let cbi in param.cbs) {
             let cb = param.cbs[cbi];
 
             promises.push(cb(results ? results : null));
         }
         await all_promises(promises);
+
+        StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'cbs_OUT');
+        StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'cbs_OUT', Dates.now_ms() - cbs_time_in);
+        StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'OUT', Dates.now_ms() - time_in);
 
         return results;
     }
@@ -5688,216 +5622,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return null;
     }
 
-    // private async handle_doublons_and_regroup_by_index(
-    //     batch_throttled_select_query_params: ThrottledSelectQueryParam[],
-    //     throttled_select_query_params_by_parameterized_full_query: { [parameterized_full_query: string]: ThrottledSelectQueryParam },
-    //     throttled_select_query_params_by_index: { [index: string]: ThrottledSelectQueryParam },
-    //     moduleTables_by_voType: { [voType: string]: ModuleTable<any> },
-    //     throttled_select_query_params_by_fields_labels_by_index: { [index: string]: { [field_label: string]: ThrottledSelectQueryParam } }
-    // ): Promise<Array<Promise<any>>> {
-
-    //     let promises = [];
-    //     for (let i in batch_throttled_select_query_params) {
-    //         let throttled_select_query_param: ThrottledSelectQueryParam = batch_throttled_select_query_params[i];
-
-    //         /**
-    //          * Unicité des requêtes
-    //          */
-    //         if (throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query]) {
-
-    //             throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query].cbs.push(...throttled_select_query_param.cbs);
-    //             if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-    //                 ConsoleHandler.log('throttled_select_query:found duplicated query:' + throttled_select_query_param.parameterized_full_query + ':' + throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query].cbs.length + 'x (counting cbs)');
-    //             }
-
-    //             continue;
-    //         }
-    //         throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query] = throttled_select_query_param;
-    //         throttled_select_query_params_by_index[throttled_select_query_param.index] = throttled_select_query_param;
-
-    //         let fields = throttled_select_query_param.parameterizedQueryWrapperFields;
-    //         let fields_labels: string = null;
-
-    //         fields_labels = throttled_select_query_param.context_query.do_count_results ? 'number,c' : null;
-
-    //         if (!fields_labels) {
-    //             fields_labels = fields ? fields.map((field) => {
-
-    //                 // On a besoin du type du champs et de l'alias
-    //                 let table_field_type = 'N/A';
-
-    //                 try {
-    //                     table_field_type = (field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
-    //                         moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';
-    //                 } catch (error) {
-    //                     ConsoleHandler.error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
-    //                 }
-
-    //                 return table_field_type + ',' + field.row_col_alias;
-
-    //             }).join(';') : null;
-    //         }
-
-    //         if (!fields_labels) {
-    //             ConsoleHandler.warn('Throttled select query without fields, not supported yet');
-    //             promises.push((async () => {
-    //                 let res = await this.query(throttled_select_query_param.parameterized_full_query);
-
-    //                 let pms = [];
-    //                 for (let cbi in throttled_select_query_param.cbs) {
-    //                     let cb = throttled_select_query_param.cbs[cbi];
-
-    //                     pms.push(cb(res));
-    //                 }
-    //                 await all_promises(pms);
-    //             })());
-    //             continue;
-    //         }
-
-    //         if (!throttled_select_query_params_by_fields_labels_by_index[fields_labels]) {
-    //             throttled_select_query_params_by_fields_labels_by_index[fields_labels] = {};
-    //         }
-
-    //         throttled_select_query_params_by_fields_labels_by_index[fields_labels][throttled_select_query_param.index] = throttled_select_query_param;
-    //     }
-
-    //     return promises;
-    // }
-
-    // private handle_cached_responses_and_db_queries(
-    //     promises: Array<Promise<any>>,
-    //     throttled_select_query_params_by_fields_labels_by_index: { [index: string]: { [field_label: string]: ThrottledSelectQueryParam } }) {
-
-
-    //     for (let i in throttled_select_query_params_by_fields_labels_by_index) {
-    //         let throttled_select_query_params: { [index: number]: ThrottledSelectQueryParam } = throttled_select_query_params_by_fields_labels_by_index[i];
-
-
-    //         let request: string = "";
-    //         if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-    //             ConsoleHandler.log('throttled_select_query:do_throttled_select_query:PREPARE:' + i);
-    //         }
-    //         for (let j in throttled_select_query_params) {
-    //             let param = throttled_select_query_params[j];
-
-    //             if (param.semaphore) {
-    //                 continue;
-    //             }
-    //             param.semaphore = true;
-
-    //             /**
-    //              * On ajoute la gestion du cache ici
-    //              */
-    //             if (param.context_query.max_age_ms && DAOCacheHandler.has_cache(param.parameterized_full_query, param.context_query.max_age_ms)) {
-    //                 delete throttled_select_query_params[j];
-    //                 let res = DAOCacheHandler.get_cache(param.parameterized_full_query);
-    //                 if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-    //                     ConsoleHandler.log('throttled_select_query:do_throttled_select_query:cache:' + param.parameterized_full_query);
-    //                 }
-    //                 StatsController.register_stat_COMPTEUR('ModuleDAO', 'throttled_select_query', 'from_cache');
-
-    //                 for (let cbi in param.cbs) {
-    //                     let cb = param.cbs[cbi];
-
-    //                     promises.push((async () => {
-    //                         await cb(res);
-    //                     })());
-    //                 }
-    //                 continue;
-    //             }
-    //             StatsController.register_stat_COMPTEUR('ModuleDAO', 'throttled_select_query', 'not_from_cache');
-
-    //             /**
-    //              * On ne doit avoir que des select
-    //              */
-    //             if (!/^\(?select /i.test(param.parameterized_full_query)) {
-    //                 ConsoleHandler.error('Only select queries are allowed in throttled_select_query:' + param.parameterized_full_query);
-    //                 continue;
-    //             }
-
-    //             if (request != "") {
-    //                 request += " UNION ALL ";
-    //             }
-
-    //             let this_query = "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
-    //             if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-    //                 ConsoleHandler.log('throttled_select_query:do_throttled_select_query:this_query:' + this_query);
-    //             }
-    //             request += this_query;
-    //         }
-
-    //         if (request != "") {
-    //             promises.push((async () => {
-    //                 if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-    //                     ConsoleHandler.log('throttled_select_query:do_throttled_select_query:START:' + i);
-    //                 }
-    //                 await this.do_throttled_select_query(request, null, throttled_select_query_params);
-    //                 if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-    //                     ConsoleHandler.log('throttled_select_query:do_throttled_select_query:END:' + i);
-    //                 }
-    //             })());
-    //         }
-    //     }
-    // }
-
-    // /**
-    //  * Méthode qui découpe les requêtes en fonction du nombre de connexions, en divisant en 2 parties l'index le plus grand à chaque connexion disponible
-    //  * @param throttled_select_query_params_by_fields_labels_by_index
-    //  * @param nb_connexions_disponibles
-    //  * @returns
-    //  */
-    // private split_for_nb_connections(
-    //     throttled_select_query_params_by_fields_labels_by_index: { [fields_label: string]: { [index: string]: ThrottledSelectQueryParam } },
-    //     nb_connexions_disponibles: number
-    // ): void {
-
-    //     while (nb_connexions_disponibles > 1) {
-
-    //         let max_index: string = null;
-    //         let actual_max = 0;
-
-    //         // si on a que des requêtes avec un seul index, on sort
-    //         let only_one_index = true;
-
-    //         for (let fields_label in throttled_select_query_params_by_fields_labels_by_index) {
-    //             let throttled_select_query_params: { [index: number]: ThrottledSelectQueryParam } = throttled_select_query_params_by_fields_labels_by_index[fields_label];
-
-    //             let nb_indexes = Object.keys(throttled_select_query_params).length;
-    //             if (nb_indexes > 1) {
-    //                 only_one_index = false;
-    //             }
-
-    //             if (nb_indexes > actual_max) {
-    //                 actual_max = nb_indexes;
-    //                 max_index = fields_label;
-    //             }
-    //         }
-
-    //         if (only_one_index) {
-    //             return;
-    //         }
-
-    //         let group_a: { [index: string]: ThrottledSelectQueryParam } = {};
-    //         let group_b: { [index: string]: ThrottledSelectQueryParam } = {};
-    //         let nb_group_a = 0;
-
-    //         for (let i in throttled_select_query_params_by_fields_labels_by_index[max_index]) {
-    //             if (nb_group_a < (actual_max / 2)) {
-    //                 nb_group_a++;
-    //                 group_a[i] = throttled_select_query_params_by_fields_labels_by_index[max_index][i];
-    //             } else {
-    //                 group_b[i] = throttled_select_query_params_by_fields_labels_by_index[max_index][i];
-    //             }
-    //         }
-
-    //         throttled_select_query_params_by_fields_labels_by_index[max_index + '_a'] = group_a;
-    //         throttled_select_query_params_by_fields_labels_by_index[max_index + '_b'] = group_b;
-    //         delete throttled_select_query_params_by_fields_labels_by_index[max_index];
-
-    //         nb_connexions_disponibles--;
-    //     }
-    // }
-
     /**
      * Changement de méthode pour les querys en base, on passe par une forme de bgthread qui dépile en continue
      *  les requêtes à faire, et qui les fait en parallèle, en utilisant un PromisePipeline
@@ -5918,6 +5642,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             waiter = 1;
             let param: ThrottledSelectQueryParam = this.throttled_select_query_params.shift();
+            param.register_unstack_stats();
 
             if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.log('shift_select_queries:pushing param');
@@ -5937,6 +5662,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 force_freeze[param.parameterized_full_query] = true;
                 let results = await this.current_select_query_promises[param.parameterized_full_query];
+                param.register_precbs_stats();
                 let promises = [];
                 for (let cbi in param.cbs) {
                     let cb = param.cbs[cbi];
@@ -5966,6 +5692,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ConsoleHandler.log('shift_select_queries:do_shift_select_queries:cache:' + param.parameterized_full_query);
                     }
                     StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'from_cache');
+                    param.register_precbs_stats();
 
                     let promises = [];
                     for (let cbi in param.cbs) {
@@ -5977,6 +5704,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
                     promises.push(current_promise_resolver(res));
                     await all_promises(promises);
+
+                    param.register_postcbs_stats();
                     return;
                 }
                 StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');

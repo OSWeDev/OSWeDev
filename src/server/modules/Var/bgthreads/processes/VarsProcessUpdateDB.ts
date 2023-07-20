@@ -51,6 +51,14 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
                 continue;
             }
 
+            /**
+             * On update en base aucune data issue de la BDD, puisque si on a chargé la donnée, soit c'est un import qu'on a donc interdiction de toucher, soit c'est
+             *  un cache de var_data pas invalidé, et puisque pas invalidé, on y touche pas
+             */
+            if (!!node.var_data.id) {
+                continue;
+            }
+
             if (!nodes_by_type[node.var_data._type]) {
                 nodes_by_type[node.var_data._type] = [];
             }

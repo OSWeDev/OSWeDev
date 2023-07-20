@@ -435,9 +435,8 @@ export default class VarsDatasVoUpdateHandler {
                 }
             });
 
-            await promise_pipeline.push(async () => {
-                await this.apply_invalidator_in_tree(invalidator);
-            });
+            // Attention on ne doit pas unlink en //, sinon il faut semaphore comme le getInstance()
+            this.apply_invalidator_in_tree(invalidator);
         }
 
         await promise_pipeline.end();
@@ -901,12 +900,17 @@ export default class VarsDatasVoUpdateHandler {
         let node = VarsServerController.varcontrollers_dag.nodes[intersector.var_id];
 
         for (let j in node.incoming_deps) {
-            let dep = node.incoming_deps[j];
-            let controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
+            let deps = node.incoming_deps[j];
 
-            let tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
-            if (tmp && tmp.length) {
-                tmp.forEach((e) => res[e.index] = e);
+            for (let i in deps) {
+                let dep = deps[i];
+
+                let controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
+
+                let tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
+                if (tmp && tmp.length) {
+                    tmp.forEach((e) => res[e.index] = e);
+                }
             }
         }
 

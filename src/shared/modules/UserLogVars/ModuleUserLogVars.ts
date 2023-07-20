@@ -6,7 +6,7 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
 import VarsInitController from '../Var/VarsInitController';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import UserDataRangesVO from './vars/vos/UserDataRangesVO';
 import UserMinDataRangesVO from './vars/vos/UserMinDataRangesVO';
 

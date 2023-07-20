@@ -49,6 +49,6 @@ export default abstract class DataSourceControllerBase {
     public abstract load_node_data(node: VarDAGNode);
 
     public registerDataSource() {
-        DataSourcesController.getInstance().registerDataSource(this);
+        DataSourcesController.registerDataSource(this);
     }
 }

@@ -380,7 +380,7 @@ export default class VarsDeployDepsHandler {
 
             // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
 
-            await DataSourcesController.getInstance().load_node_datas(predeps_dss, node);
+            await DataSourcesController.load_node_datas(predeps_dss, node);
 
             // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
         }

@@ -40,7 +40,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
             return true;
         }
 
-        await DataSourcesController.getInstance().load_node_datas(dss, node);
+        await DataSourcesController.load_node_datas(dss, node);
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
