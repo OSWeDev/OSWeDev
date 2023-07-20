@@ -120,7 +120,7 @@ export default class VarDAGNode extends DAGNodeBase {
         if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
             let promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
             VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise.finally(() => {
-                delete VarDAGNode.getInstance_semaphores[var_data.index];
+                delete VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
             });
 
             return promise;
@@ -176,10 +176,20 @@ export default class VarDAGNode extends DAGNodeBase {
              */
             /* istanbul ignore next: impossible to test - linked to above query */
             if (VarsServerController.has_valid_value(node.var_data)) {
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    ConsoleHandler.log('VarDAGNode.getInstance_semaphored:has_valid_value:TAG_4_COMPUTED & TAG_6_UPDATED_IN_DB:' + JSON.stringify(node.var_data));
+                }
+
                 node.add_tag(VarDAGNode.TAG_4_COMPUTED);
                 // On ne doit pas update in DB du coup
                 node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
             } else {
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    ConsoleHandler.log('VarDAGNode.getInstance_semaphored:!has_valid_value:TAG_0_CREATED:' + JSON.stringify(node.var_data));
+                }
+
                 node.add_tag(VarDAGNode.TAG_0_CREATED);
             }
 
@@ -258,6 +268,10 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     public add_tag(tag: string): boolean {
 
+        if (this.tags[tag]) {
+            return true;
+        }
+
         if (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step) {
             return false;
         }
@@ -272,31 +286,26 @@ export default class VarDAGNode extends DAGNodeBase {
             return true;
         }
 
-        // Par ailleurs, si on est en train d'ajouter un tag DATA_LOADED sur un noeud is_computable, on transforme en IS_COMPUTABLE
-        //  et idem pour UPDATED_IN_DB si on est déjà IS_DELETABLE
-        if ((tag == VarDAGNode.TAG_3_DATA_LOADED) && this.is_computable) {
-            tag = VarDAGNode.TAG_4_IS_COMPUTABLE;
-        }
-
-        if ((tag == VarDAGNode.TAG_6_UPDATED_IN_DB) && this.is_deletable) {
-            tag = VarDAGNode.TAG_7_IS_DELETABLE;
-        }
-
         this.tags[tag] = true;
 
-        this.update_current_step_tag();
-        if (!this.var_dag) {
-            return true;
+        if (!!this.var_dag) {
+
+            if (!this.var_dag.tags[tag]) {
+                this.var_dag.tags[tag] = {};
+            }
+            this.var_dag.tags[tag][this.var_data.index] = this;
         }
 
-        if (!this.var_dag.tags[tag]) {
-            this.var_dag.tags[tag] = {};
-        }
-        this.var_dag.tags[tag][this.var_data.index] = this;
+        this.update_current_step_tag();
+
         return true;
     }
 
     public remove_tag(tag: string) {
+
+        if (!this.tags[tag]) {
+            return;
+        }
 
         delete this.tags[tag];
 
@@ -329,6 +338,13 @@ export default class VarDAGNode extends DAGNodeBase {
         }
         dep.outgoing_node.incoming_deps[dep.dep_name].push(dep);
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            ConsoleHandler.log(
+                'VarDAGNode.addOutgoingDep:' + this.var_data.index +
+                ':outgoing_dep:' + dep.dep_name +
+                ':outgoing_node:' + (dep.outgoing_node as VarDAGNode).var_data.index);
+        }
+
         if (!!this.var_dag.roots[dep.outgoing_node.var_data.index]) {
             delete this.var_dag.roots[dep.outgoing_node.var_data.index];
         }
@@ -340,17 +356,34 @@ export default class VarDAGNode extends DAGNodeBase {
 
     /**
      * Méthode appelée pour supprimer le noeud de l'arbre
+     * @returns {boolean} true si le noeud a été supprimé, false sinon
      */
-    public unlinkFromDAG(): VarDAGNode {
+    public unlinkFromDAG(force_delete: boolean = false): boolean {
 
         if (!this.var_dag) {
-            return;
+            return true;
         }
         let dag = this.var_dag;
+
+        // dernier check. On ne doit pas avoir d'incoming_deps depuis la prise de décision de supprimer
+        if (this.hasIncoming && (!force_delete)) {
+            this.remove_tag(VarDAGNode.TAG_7_IS_DELETABLE);
+            this.remove_tag(VarDAGNode.TAG_7_DELETING);
+            this.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+            return false;
+        }
+
         this.var_dag = null;
 
         if (!dag.nodes[this.var_data.index]) {
-            return;
+            ConsoleHandler.warn('VarDAGNode.unlinkFromDAG:' + this.var_data.index + ':not in dag.nodes !');
+            return false;
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            ConsoleHandler.log(
+                'VarDAGNode.unlinkFromDAG:' + this.var_data.index +
+                ':delete dag.nodes[this.var_data.index]');
         }
 
         delete dag.nodes[this.var_data.index];
@@ -375,6 +408,12 @@ export default class VarDAGNode extends DAGNodeBase {
             for (let j in deps) {
                 let incoming_dep = deps[j];
 
+                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    ConsoleHandler.log(
+                        'VarDAGNode.unlinkFromDAG:' + this.var_data.index +
+                        ':incoming_dep:' + incoming_dep.dep_name +
+                        ':incoming_node:' + (incoming_dep.incoming_node as VarDAGNode).var_data.index);
+                }
                 delete incoming_dep.incoming_node.outgoing_deps[incoming_dep.dep_name];
 
                 if (!ObjectHandler.hasAtLeastOneAttribute(incoming_dep.incoming_node.outgoing_deps)) {
@@ -389,9 +428,17 @@ export default class VarDAGNode extends DAGNodeBase {
 
             let incoming_deps = outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
             for (let j in incoming_deps) {
-                let incoming_node: VarDAGNode = incoming_deps[j].incoming_node as VarDAGNode;
+                let incoming_dep = incoming_deps[j];
 
-                if (incoming_node.var_data.index == this.var_data.index) {
+                if (incoming_dep == outgoing_dep) {
+
+                    if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                        ConsoleHandler.log(
+                            'VarDAGNode.unlinkFromDAG:' + this.var_data.index +
+                            ':outgoing_dep:' + outgoing_dep.dep_name +
+                            ':outgoing_node:' + (outgoing_dep.outgoing_node as VarDAGNode).var_data.index);
+                    }
+
                     incoming_deps.splice(parseInt(j.toString()), 1);
                     break;
                 }
@@ -415,7 +462,7 @@ export default class VarDAGNode extends DAGNodeBase {
             delete dag.roots[this.var_data.index];
         }
 
-        return this;
+        return true;
     }
 
     /**
@@ -426,6 +473,11 @@ export default class VarDAGNode extends DAGNodeBase {
         if (!!this.var_dag.nodes[this.var_data.index]) {
             return this.var_dag.nodes[this.var_data.index];
         }
+
+        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            ConsoleHandler.log('VarDAGNode.linkToDAG:' + this.var_data.index);
+        }
+
         this.var_dag.nodes[this.var_data.index] = this;
         this.var_dag.nb_nodes++;
 
@@ -490,6 +542,34 @@ export default class VarDAGNode extends DAGNodeBase {
             }
         }
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            ConsoleHandler.log('VarDAGNode.update_current_step_tag:' + this.var_data.index +
+                ':current_step:' + this.current_step + ':updated_current_step:' + updated_current_step);
+        }
+
         this.current_step = updated_current_step;
+        this.onchange_current_step();
+    }
+
+    /**
+     * Ici on check les évolutions autos:
+     *  - du DATA_LOADED au is_computable, si is_computable
+     *  - du UPDATED_IN_DB au is_deletable, si is_deletable
+     */
+    private onchange_current_step() {
+
+        if (this.current_step == null) {
+            return;
+        }
+
+        if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) && this.is_computable) {
+            this.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
+            this.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
+        }
+
+        if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_6_UPDATED_IN_DB]) && this.is_deletable) {
+            this.add_tag(VarDAGNode.TAG_7_IS_DELETABLE);
+            this.remove_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+        }
     }
 }

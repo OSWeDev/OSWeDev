@@ -18,7 +18,7 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
 
     // Cas particulier de la suppression de noeud, si le noeud existe encore en post traitement, on doit le tagguer à supprimer pour le prochain tour
     private constructor() {
-        super('VarsProcessDagCleaner', VarDAGNode.TAG_7_IS_DELETABLE, VarDAGNode.TAG_7_DELETING, VarDAGNode.TAG_7_IS_DELETABLE, 5000, true);
+        super('VarsProcessDagCleaner', VarDAGNode.TAG_7_IS_DELETABLE, VarDAGNode.TAG_7_DELETING, VarDAGNode.TAG_6_UPDATED_IN_DB, 10, true);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
@@ -29,7 +29,9 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
             let node = nodes[i];
 
             let outgoings = node.outgoing_deps;
-            node.unlinkFromDAG();
+            if (!node.unlinkFromDAG()) {
+                continue;
+            }
 
             // //FIXME DELETE
             // this.check_dag();

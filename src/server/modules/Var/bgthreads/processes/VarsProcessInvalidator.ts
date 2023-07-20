@@ -1,7 +1,10 @@
+import { cpuUsage } from 'process';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import VarsDatasVoUpdateHandler from '../../VarsDatasVoUpdateHandler';
 import VarsComputationHole from './VarsComputationHole';
+import ConfigurationService from '../../../../env/ConfigurationService';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 
 export default class VarsProcessInvalidator {
 
@@ -42,7 +45,15 @@ export default class VarsProcessInvalidator {
             return false;
         }
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            ConsoleHandler.log('VarsProcessInvalidator:has_vos_cud_or_intersectors');
+        }
+
         await VarsComputationHole.exec_in_computation_hole(async () => {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:IN');
+            }
 
             // On vide le cache des DataSources
             // OPTI POSSIBLE : invalider que le cache des datasources qui ont été invalidées (cf vos_cud et datasources_dependencies)
@@ -57,6 +68,10 @@ export default class VarsProcessInvalidator {
              * Ensuite, on reprend tous les subs (clients et serveurs) et on les rajoute dans l'arbre.
              */
             await VarsDatasVoUpdateHandler.handle_invalidators();
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:OUT');
+            }
         });
 
         return true;

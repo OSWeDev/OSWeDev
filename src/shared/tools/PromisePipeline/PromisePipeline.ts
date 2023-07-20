@@ -85,7 +85,7 @@ export default class PromisePipeline {
             await Promise.race(Object.values(this.all_waiting_and_running_promises_by_cb_uid));
 
             if (this.stat_name) {
-                StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'WAIT', Dates.now_ms() - time_in);
+                StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'WAIT_FOR_PUSH', Dates.now_ms() - time_in);
             }
 
             if (EnvHandler.DEBUG_PROMISE_PIPELINE) {

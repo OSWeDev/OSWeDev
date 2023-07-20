@@ -34,6 +34,8 @@ export default interface IEnvParam {
     DEBUG_convert_varparamfields_to_vardatas?: boolean;
     DEBUG_FORKS?: boolean;
     DEBUG_VARS?: boolean;
+    DEBUG_VARS_INVALIDATION?: boolean;
+    DEBUG_VARS_CURRENT_TREE?: boolean;
     DEBUG_VARS_DB_PARAM_BUILDER?: boolean;
     DEBUG_VARS_SERVER_SUBS_CBS?: boolean;
     DEBUG_START_SERVER?: boolean;

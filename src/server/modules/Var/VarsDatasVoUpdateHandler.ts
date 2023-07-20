@@ -9,6 +9,7 @@ import StatsController from '../../../shared/modules/Stats/StatsController';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -446,12 +447,12 @@ export default class VarsDatasVoUpdateHandler {
             for (let i in invalidated_pixels_never_delete) {
                 let invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
 
-                VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, invalidated_pixel_never_delete, true);
+                VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true);
             }
         }
 
         // On réinsère les registers (clients et serveurs)
-        await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache();
+        await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache(true);
         // Server
         let subs: string[] = await VarsServerCallBackSubsController.get_subs_indexs();
         // Clients
@@ -492,6 +493,9 @@ export default class VarsDatasVoUpdateHandler {
                 continue;
             }
 
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:REINSERT:' + index);
+            }
             VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), true);
         }
     }
@@ -688,8 +692,25 @@ export default class VarsDatasVoUpdateHandler {
             if (!node) {
                 continue;
             }
+            if (!node.var_dag) {
+                continue;
+            }
 
-            node.unlinkFromDAG();
+            /**
+             * On doit tout invalider vers le haut aussi
+             */
+            let list_nodes = [];
+            DAGController.visit_bottom_up_from_node(node, async (n: VarDAGNode) => {
+                list_nodes.push(n);
+            });
+
+            for (let j in list_nodes) {
+
+                list_nodes[j].unlinkFromDAG(true);
+                if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                    ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + list_nodes[j].var_data.index);
+                }
+            }
         }
     }
 
@@ -702,9 +723,19 @@ export default class VarsDatasVoUpdateHandler {
             return null;
         }
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:' + invalidator.var_data.index + ':');
+        }
+
         if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT) {
 
             let node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[invalidator.var_data.index];
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index +
+                    ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
+                    ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
+            }
 
             if (!node) {
                 return null;
@@ -718,6 +749,10 @@ export default class VarsDatasVoUpdateHandler {
                 return null;
             }
 
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index + ': INVALIDATED');
+            }
+
             return [node];
         }
 
@@ -726,6 +761,13 @@ export default class VarsDatasVoUpdateHandler {
 
         for (let i in CurrentVarDAGHolder.current_vardag.nodes) {
             let node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[i];
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
+                    ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
+                    ':node_index:' + node.var_data.index + ':node_var_id:' + node.var_data.var_id + ':invalidator_var_id:' + invalidator.var_data.var_id +
+                    ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
+            }
 
             if (node.var_data._type != invalidator.var_data._type) {
                 continue;
@@ -749,6 +791,11 @@ export default class VarsDatasVoUpdateHandler {
 
             if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INCLUDED_OR_EXACT) {
                 throw new Error('Not Implemented');
+            }
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
+                    ':node_index:' + node.var_data.index + ': INVALIDATED');
             }
 
             res.push(node);

@@ -31,14 +31,14 @@ export default class VarsClientsSubsCacheManager {
         VarsClientsSubsCacheManager.throttle_remove_subs([var_index]);
     }
 
-    public static async update_clients_subs_indexes_cache(): Promise<void> {
+    public static async update_clients_subs_indexes_cache(force_update: boolean = false): Promise<void> {
 
         await SemaphoreHandler.semaphore_async(
             'VarsClientsSubsCacheManager.update_clients_subs_indexes_cache_semaphore',
             async () => {
                 try {
 
-                    let subs_indexs = await VarsTabsSubsController.get_subs_indexs();
+                    let subs_indexs = await VarsTabsSubsController.get_subs_indexs(force_update);
 
                     let new_cache = {};
                     for (let index of subs_indexs) {

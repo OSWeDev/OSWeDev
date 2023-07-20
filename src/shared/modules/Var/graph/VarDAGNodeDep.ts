@@ -1,7 +1,7 @@
 import VarDAGNode from './VarDAGNode';
 import DAGNodeDep from './dagbase/DAGNodeDep';
 
-export default class VarDAGNodeDep extends DAGNodeDep<VarDAGNode>{
+export default class VarDAGNodeDep extends DAGNodeDep<VarDAGNode> {
 
     /**
      * DON'T USE this method to add a dep to a node, use addOutgoingDep on the node directly

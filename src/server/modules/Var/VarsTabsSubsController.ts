@@ -33,14 +33,14 @@ export default class VarsTabsSubsController {
         ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_get_subs_indexs, this.get_subs_indexs.bind(this));
     }
 
-    public static async get_subs_indexs(): Promise<string[]> {
+    public static async get_subs_indexs(force_update: boolean = false): Promise<string[]> {
 
         let self = this;
 
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
-                reject, VarsTabsSubsController.TASK_NAME_get_subs_indexs, resolve)) {
+                reject, VarsTabsSubsController.TASK_NAME_get_subs_indexs, resolve, force_update)) {
                 return;
             }
 
@@ -48,7 +48,7 @@ export default class VarsTabsSubsController {
                 ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
             }
 
-            await self.clean_old_subs();
+            await self.clean_old_subs(force_update);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
@@ -300,13 +300,13 @@ export default class VarsTabsSubsController {
     /**
      * On nettoie les subs qui sont trop anciens, mais on ne fait le checke qu'une fois toutes les X minutes max
      */
-    private static async clean_old_subs() {
+    private static async clean_old_subs(force_update: boolean = false) {
 
         let now = Dates.now();
         let SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
         let SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
 
-        if ((now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
+        if ((!force_update) && (now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
             return;
         }
         this.last_subs_clean = now;
