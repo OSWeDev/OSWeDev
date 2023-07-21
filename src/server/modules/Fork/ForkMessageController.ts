@@ -12,6 +12,8 @@ import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkMessageWrapper from './interfaces/IForkMessageWrapper';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
+import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
+import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 
 export default class ForkMessageController {
 
@@ -50,6 +52,12 @@ export default class ForkMessageController {
         }
 
         StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_type);
+        if ((!!msg.message_content) && (
+            (msg.message_type == MainProcessTaskForkMessage.FORK_MESSAGE_TYPE) ||
+            (msg.message_type == BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE) ||
+            (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE))) {
+            StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_content);
+        }
 
         try {
 
@@ -86,6 +94,12 @@ export default class ForkMessageController {
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_type);
+        if ((!!msg.message_content) && (
+            (msg.message_type == MainProcessTaskForkMessage.FORK_MESSAGE_TYPE) ||
+            (msg.message_type == BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE) ||
+            (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE))) {
+            StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_content);
+        }
 
         return new Promise((resolve, reject) => {
 

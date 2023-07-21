@@ -1,7 +1,6 @@
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
-import VarsTabsSubsController from '../../VarsTabsSubsController';
 import NotifVardatasParam from '../../notifs/NotifVardatasParam';
 import VarsProcessBase from './VarsProcessBase';
 

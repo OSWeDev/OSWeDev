@@ -17,7 +17,6 @@ export default interface IEnvParam {
     NODE_VERBOSE: boolean;
     ACTIVATE_LONG_JOHN: boolean;
     MAX_POOL: number;
-    TARGET_THROTTLED_QUERIES_CONNECTION_POOL?: number;
     SERVER_START_BOOSTER: boolean;
     SERVER_ENCODING: string;
     CONSOLE_LOG_TO_FILE: boolean;

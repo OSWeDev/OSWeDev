@@ -1535,7 +1535,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let rows: IDistantVOBase[] = cloneDeep(datatable_rows);
 
         let limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(limit);
+        let promise_pipeline = new PromisePipeline(limit, 'convert_varparamfields_to_vardatas');
         let debug_uid: number = 0;
         let has_errors: boolean = false;
         let module_var = ModuleVar.getInstance();

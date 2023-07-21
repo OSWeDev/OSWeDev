@@ -17,6 +17,8 @@ import VarsServerController from "./VarsServerController";
 import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
 import DataSourcesController from "./datasource/DataSourcesController";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import { all_promises } from "../../../shared/tools/PromiseTools";
+import StatsController from "../../../shared/modules/Stats/StatsController";
 
 export default class VarsDeployDepsHandler {
 
@@ -55,6 +57,9 @@ export default class VarsDeployDepsHandler {
         limit_to_aggregated_datas: boolean = false
     ) {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'IN');
+
         // ?? pourquoi on change ça ici => en fait c'est l'équivalent du tag je pense donc surement à supp
         // node.already_tried_loading_data_and_deploy = true;
 
@@ -81,6 +86,8 @@ export default class VarsDeployDepsHandler {
                 node.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
                 node.add_tag(VarDAGNode.TAG_4_COMPUTED);
                 node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+                StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value');
+                StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value', Dates.now_ms() - time_in);
                 return;
             }
         }
@@ -91,6 +98,8 @@ export default class VarsDeployDepsHandler {
         if (varconf.pixel_activated) {
 
             if (await VarsDeployDepsHandler.handle_pixellisation(node, varconf, limit_to_aggregated_datas, DEBUG_VARS)) {
+                StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation');
+                StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_handle_pixellisation', Dates.now_ms() - time_in);
                 return;
             }
         }
@@ -112,6 +121,9 @@ export default class VarsDeployDepsHandler {
         if (DEBUG_VARS) {
             ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:OUT:');
         }
+
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT');
+        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT', Dates.now_ms() - time_in);
     }
 
     /**
@@ -130,6 +142,9 @@ export default class VarsDeployDepsHandler {
             }
             return false;
         }
+
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'IN');
 
         let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
         for (let i in varconf.pixel_fields) {
@@ -208,6 +223,10 @@ export default class VarsDeployDepsHandler {
             // On laisse que la notification puisqu'on a déjà tout, et l'insère en base puisqu'on ne l'avait pas
             node.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
             node.add_tag(VarDAGNode.TAG_4_COMPUTED);
+
+            StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_FULL_OK');
+            StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_FULL_OK', Dates.now_ms() - time_in);
+
             return true;
         }
 
@@ -283,6 +302,9 @@ export default class VarsDeployDepsHandler {
         if (DEBUG_VARS) {
             ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':PIXELED:known:' + nb_known_pixels + ':' + nb_unknown_pixels + ':');
         }
+
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED');
+        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED', Dates.now_ms() - time_in);
     }
 
     /**
@@ -353,20 +375,25 @@ export default class VarsDeployDepsHandler {
      */
     private static async get_node_deps(node: VarDAGNode): Promise<{ [dep_id: string]: VarDataBaseVO }> {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'IN');
+
         if (node.is_aggregator) {
             let aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
             let index = 0;
 
+            let promises = [];
             for (let i in node.aggregated_datas) {
                 let data = node.aggregated_datas[i];
                 aggregated_deps['AGG_' + (index++)] = data;
 
-                // on peut essayer de notifier les deps issues des aggréagations qui auraient déjà une valeur valide
-                let dep_node = await VarDAGNode.getInstance(node.var_dag, data, false);
-                if (!dep_node) {
-                    return null;
-                }
+                promises.push(VarDAGNode.getInstance(node.var_dag, data, true));
             }
+            await all_promises(promises);
+
+            StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator');
+            StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT_is_aggregator', Dates.now_ms() - time_in);
+
             return aggregated_deps;
         }
 
@@ -388,19 +415,28 @@ export default class VarsDeployDepsHandler {
         /**
          * On demande les deps
          */
-        return controller.getParamDependencies(node);
+        let res = controller.getParamDependencies(node);
+
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT');
+        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT', Dates.now_ms() - time_in);
+
+        return res;
     }
 
     private static async handle_deploy_deps(
         node: VarDAGNode,
         deps: { [index: string]: VarDataBaseVO }) {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_deploy_deps', 'IN');
         let deps_as_array = Object.values(deps);
+        StatsController.register_stat_QUANTITE('VarsDeployDepsHandler', 'handle_deploy_deps', 'deps', deps_as_array ? deps_as_array.length : 0);
         let deps_ids_as_array = Object.keys(deps);
 
         let start_time = Dates.now();
         let real_start_time = start_time;
 
+        let promises = [];
         for (let deps_i in deps_as_array) {
 
             if ((!node.var_dag) || (!node.var_dag.nodes[node.var_data.index])) {
@@ -422,12 +458,19 @@ export default class VarsDeployDepsHandler {
                 continue;
             }
 
-            let dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false);
-            if (!dep_node) {
-                return;
-            }
+            promises.push((async () => {
 
-            node.addOutgoingDep(dep_id, dep_node);
+                let dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false);
+                if (!dep_node) {
+                    return;
+                }
+
+                node.addOutgoingDep(dep_id, dep_node);
+            })());
         }
+
+        await all_promises(promises);
+
+        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_deploy_deps', 'OUT', Dates.now_ms() - time_in);
     }
 }

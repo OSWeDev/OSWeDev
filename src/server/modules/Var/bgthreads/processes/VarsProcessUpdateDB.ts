@@ -153,13 +153,6 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
     private async filter_by_BDD_do_cache_param_data(nodes_by_type: { [type: string]: VarDAGNode[] }): Promise<{ [type: string]: VarDAGNode[] }> {
         let res_by_type: { [type: string]: VarDAGNode[] } = {};
 
-        // Server
-        let server_subs: string[] = await VarsServerCallBackSubsController.get_subs_indexs();
-        let server_subs_by_index: { [index: string]: boolean } = {};
-        for (let i in server_subs) {
-            server_subs_by_index[server_subs[i]] = true;
-        }
-
         for (let _type in nodes_by_type) {
             let nodes = nodes_by_type[_type];
 
@@ -168,7 +161,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
 
                 if (VarsCacheController.BDD_do_cache_param_data(node.var_data,
                     VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id],
-                    VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index] || server_subs_by_index[node.var_data.index])) {
+                    VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index] || !!VarsServerCallBackSubsController.cb_subs[node.var_data.index])) {
 
                     if (!res_by_type[_type]) {
                         res_by_type[_type] = [];

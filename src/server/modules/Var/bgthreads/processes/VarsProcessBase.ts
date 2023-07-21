@@ -29,7 +29,7 @@ export default abstract class VarsProcessBase {
         // // On initialise le fait qu'on est pas en train d'attendre une invalidation
         VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
 
-        let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps, this.name, true);
+        let promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps, this.name, true);
         let waiting_for_invalidation_time_in = null;
 
         while (true) {
@@ -40,9 +40,7 @@ export default abstract class VarsProcessBase {
             let updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
             if (updated_waiting_for_invalidation_time_in) {
 
-                if (!waiting_for_invalidation_time_in && ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
-                    waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
-                }
+                waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
                 continue;
             }
 
@@ -73,7 +71,7 @@ export default abstract class VarsProcessBase {
                     ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:IN');
                 }
 
-                if (!!this.MAX_Workers) {
+                if ((!!this.MAX_Workers) && (!this.as_batch)) {
 
                     let pipeline_end_wait_for_invalidation_time_in = Dates.now_ms();
                     // On doit attendre la fin du pipeline, pour indiquer qu'on est prêt à faire l'invalidation

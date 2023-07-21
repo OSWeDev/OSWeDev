@@ -454,7 +454,7 @@ export default class VarsDatasVoUpdateHandler {
         // On réinsère les registers (clients et serveurs)
         await VarsClientsSubsCacheManager.update_clients_subs_indexes_cache(true);
         // Server
-        let subs: string[] = await VarsServerCallBackSubsController.get_subs_indexs();
+        let subs: string[] = Object.keys(VarsServerCallBackSubsController.cb_subs);
         // Clients
         subs.push(...Object.keys(VarsClientsSubsCacheHolder.clients_subs_indexes_cache));
 

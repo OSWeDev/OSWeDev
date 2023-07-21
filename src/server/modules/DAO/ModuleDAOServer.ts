@@ -125,6 +125,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private throttled_select_query_params: ThrottledSelectQueryParam[] = [];
 
+    /**
+     * Les params du throttled_select_query
+     */
+    private throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
+
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
     // private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 10, { leading: false, trailing: true });
@@ -2225,6 +2230,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             try {
+                if (!self.throttled_select_query_params_by_fields_labels[param.fields_labels]) {
+                    self.throttled_select_query_params_by_fields_labels[param.fields_labels] = [];
+                }
+                self.throttled_select_query_params_by_fields_labels[param.fields_labels].push(param);
                 self.throttled_select_query_params.push(param);
             } catch (error) {
                 reject(error);
@@ -5636,7 +5645,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (!this.throttled_select_query_params || !this.throttled_select_query_params.length) {
                 await ThreadHandler.sleep(waiter, "ModuleDAOServer:shift_select_queries");
-                waiter = Math.min(waiter * 2, 10);
                 continue;
             }
 
@@ -5644,34 +5652,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let param: ThrottledSelectQueryParam = this.throttled_select_query_params.shift();
             param.register_unstack_stats();
 
+            /* TODO on veut identifier les autres queries avec le même this.throttled_select_query_params_by_fields_labels
+             * this.throttled_select_query_params_by_fields_labels[param.fields_labels]
+             * et ensuite on fait les dedoublonnages pour garder que les requetes nouvelles, et à la fin on les résoud ensembles avec un
+             * union all. On peut peut-etre limiter le nombre de queries qu'on regroupe ensemble par exemple à 10 ou 5 pour pas
+             * se retrouver avec une query trop grosse qui va être très longue et revenir dans un système d'entenoir.
+             */
+            TODO
+
             if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.log('shift_select_queries:pushing param');
             }
 
-            // Ici on voudrait un système de dédoublonnage, qui permette de dire cette requete est déjà en cours, on
-            //  attend que la promise déjà construite soit terminée au lieu d'en faire encore une autre. ça nécessite de garder une trace des
-            //  promises en cours
-            if (this.current_select_query_promises[param.parameterized_full_query]) {
-
-                if (!!freeze_check_passed_and_refused[param.parameterized_full_query]) {
-                    // si on a bloqué l'usage du current_select_query_promises, on ne doit pas en relancer avec la même requête
-                    // on doit attendre la fin de la précédente. Donc on attend la suppression du current_select_query_promises
-                    this.throttled_select_query_params.push(param);
-                    continue;
-                }
-
-                force_freeze[param.parameterized_full_query] = true;
-                let results = await this.current_select_query_promises[param.parameterized_full_query];
-                param.register_precbs_stats();
-                let promises = [];
-                for (let cbi in param.cbs) {
-                    let cb = param.cbs[cbi];
-
-                    promises.push((async () => {
-                        await cb(results);
-                    })());
-                }
-                await all_promises(promises);
+            if (await this.dedoublonnage(param, force_freeze, freeze_check_passed_and_refused)) {
                 continue;
             }
 
@@ -5727,5 +5720,45 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 await current_promise_resolver(results);
             });
         }
+    }
+
+    /**
+     * Système de dédoublonnage qui permet de dire cette requete est déjà en cours, on attend que la promise déjà construite soit terminée 
+     * au lieu d'en faire encore une autre.
+     * @returns true si on a trouvé une requête en cours, et qu'on a ajouté la cb à la liste des cbs à appeler - donc il ne faut pas lancer de nouvelle requete
+     */
+    private async dedoublonnage(
+        param: ThrottledSelectQueryParam,
+        force_freeze: { [parameterized_full_query: string]: boolean },
+        freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean }): Promise<boolean> {
+
+        // Ici on voudrait un système de dédoublonnage, qui permette de dire cette requete est déjà en cours, on
+        //  attend que la promise déjà construite soit terminée au lieu d'en faire encore une autre. ça nécessite de garder une trace des
+        //  promises en cours
+        if (this.current_select_query_promises[param.parameterized_full_query]) {
+
+            if (!!freeze_check_passed_and_refused[param.parameterized_full_query]) {
+                // si on a bloqué l'usage du current_select_query_promises, on ne doit pas en relancer avec la même requête
+                // on doit attendre la fin de la précédente. Donc on attend la suppression du current_select_query_promises
+                this.throttled_select_query_params.push(param);
+                return true;
+            }
+
+            force_freeze[param.parameterized_full_query] = true;
+            let results = await this.current_select_query_promises[param.parameterized_full_query];
+            param.register_precbs_stats();
+            let promises = [];
+            for (let cbi in param.cbs) {
+                let cb = param.cbs[cbi];
+
+                promises.push((async () => {
+                    await cb(results);
+                })());
+            }
+            await all_promises(promises);
+            return true;
+        }
+
+        return false;
     }
 }
