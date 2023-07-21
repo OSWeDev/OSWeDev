@@ -266,6 +266,10 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     private async mounted() {
+
+        this.set_var_conf();
+        this.set_editable_field();
+
         await this.intersect_in();
     }
 
