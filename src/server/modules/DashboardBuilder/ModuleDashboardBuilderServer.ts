@@ -1270,6 +1270,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Colonnes'
         }, 'table_widget_options_component.columns.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Chaque colone peut &ecirc;tre configur&eacute;e individuellement et afficher ' +
+                'les valeurs de filtres actifs avec lesquels elle a &eacute;t&eacute; filtr&eacute;e, ' +
+                'pour les afficher if faut entrer le nom de la colonne suivi de ' +
+                '\{\#active_filter\:\&lt;champ\&gt;\} o&ugrave; \&lt;champ\&gt; est le nom du champ du filtre ' +
+                'actif &agrave; afficher.'
+        }, 'table_widget_options_component.columns.ca_tooltip.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Activer la fonction CRUD'
         }, 'table_widget_options_component.crud_api_type_id.___LABEL___'));

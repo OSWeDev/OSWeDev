@@ -425,7 +425,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
         // - Update to columns format (percent, toFixed etc...)
-        const xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
+        const xlsx_datas = await this.update_data_rows_to_xlsx_columns_format(translated_datas, columns);
 
         const sheets: IExportableSheet[] = [];
 
@@ -888,28 +888,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     if (value != null) {
                         const params = [value].concat(filter_additional_params);
 
+                        // We update the value to the column format (FilterObj => percent, decimal, toFixed etc...)
                         if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
                             value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
                             format = varcolumn_conf.filter_type as XlsxCellFormatByFilterType;
 
-                            if (varcolumn_conf.filter_type != 'tstz') {
-                                value = (value as any).replace(/\s+/g, '');
-                            }
-                        }
-
-                        if (
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_percent
-                        ) {
-                            value = (value as any).replace(/%/g, '');
-                            value = parseFloat(value as any) / 100;
-                        }
-
-                        if (
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixed ||
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
-                        ) {
-                            value = parseFloat(value as any);
+                            value = this.update_value_to_xlsx_column_format(varcolumn_conf, value);
                         }
                     }
 
@@ -1380,7 +1364,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * TODO: do export in specific way for each type (date, number, string, etc...)
      * e.g. https://github.com/SheetJS/sheetjs/issues/2192#issuecomment-745865277
      */
-    private async update_to_xlsx_columns_format(
+    private async update_data_rows_to_xlsx_columns_format(
         datas: any[],
         columns: TableColumnDescVO[] = null,
     ) {
@@ -1406,11 +1390,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     continue;
                 }
 
+                // We keep the raw value in case we need it later
                 row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
 
                 let value = row[column.datatable_field_uid] ?? null;
                 let format: XlsxCellFormatByFilterType = null;
 
+                // Default value we will update the value
+                // to the column format later
                 row[column.datatable_field_uid] = {
                     format,
                     value,
@@ -1420,30 +1407,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     continue;
                 }
 
-                let params = [value].concat(filter_additional_params);
+                const params = [value].concat(filter_additional_params);
 
+                // We update the value to the column format (FilterObj => percent, decimal, toFixed etc...)
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {
                     value = filter_by_name[column.filter_type].read.apply(null, params);
                     format = column.filter_type as XlsxCellFormatByFilterType;
 
-                    if (column.filter_type != 'tstz') {
-                        value = value.replace(/\s+/g, '');
-                    }
-
-                    if (
-                        column.filter_type == FilterObj.FILTER_TYPE_percent
-                    ) {
-                        value = (value as any).replace(/%/g, '');
-                        value = parseFloat(value as any) / 100;
-                    }
-
-                    if (
-                        column.filter_type == FilterObj.FILTER_TYPE_toFixed ||
-                        column.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
-                        column.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
-                    ) {
-                        value = parseFloat(value as any);
-                    }
+                    value = this.update_value_to_xlsx_column_format(column, value);
                 }
 
                 row[column.datatable_field_uid] = {
@@ -1454,6 +1425,37 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         return xlsx_datas;
+    }
+
+    /**
+     * update_value_to_xlsx_column_format
+     *
+     * @param {TableColumnDescVO | ExportVarcolumnConf} column
+     * @param {number | string} value
+     * @returns {number}
+     */
+    private update_value_to_xlsx_column_format(
+        column: TableColumnDescVO | ExportVarcolumnConf,
+        value: any,
+    ): number {
+
+        if (column.filter_type != FilterObj.FILTER_TYPE_tstz) {
+            // Remove all spaces
+            value = (value as any).replace(/\s+/g, '');
+        }
+
+        // Remove all non numeric characters
+        // And force to be a number
+        switch (column.filter_type) {
+            case FilterObj.FILTER_TYPE_percent:
+                value = (value as any).replace(/%/g, '');
+            case FilterObj.FILTER_TYPE_toFixed:
+            case FilterObj.FILTER_TYPE_toFixedCeil:
+            case FilterObj.FILTER_TYPE_toFixedFloor:
+                value = parseFloat(value as any);
+        }
+
+        return value;
     }
 
     /**

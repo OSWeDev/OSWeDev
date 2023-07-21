@@ -23,6 +23,7 @@ export default class LocaleManager {
             txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
             params
         );
+
         return (res != null) ? res.toString() : null;
     }
 
@@ -31,7 +32,8 @@ export default class LocaleManager {
             return txt;
         }
 
-        let res = LocaleManager.getInstance().i18n.t(txt, params);
+        const res = LocaleManager.getInstance().i18n.t(txt, params);
+
         return (res != null) ? res.toString() : null;
     }
 

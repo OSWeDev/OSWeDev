@@ -308,6 +308,8 @@
 
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}
+            span.fa-stack.fa-lg(v-tooltip="{content: read_label('table_widget_options_component.columns.ca_tooltip'), theme: 'info-tooltip'}")
+                i.fa-solid.fa-question-circle.fa-stack-1x
         template(v-if='columns && (columns.length > 1)')
             Vuenestable.nested_field_refs(
                 v-model="editable_columns"

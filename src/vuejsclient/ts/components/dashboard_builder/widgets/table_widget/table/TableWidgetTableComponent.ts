@@ -67,6 +67,7 @@ import TableWidgetController from './../TableWidgetController';
 import './TableWidgetTableComponent.scss';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
+import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -168,6 +169,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private last_calculation_cpt: number = 0;
 
     private old_widget_options: TableWidgetOptionsVO = null;
+    private widget_options: TableWidgetOptionsVO = null;
 
     private table_columns: TableColumnDescVO[] = [];
 
@@ -241,6 +243,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         let filtered_value = vo ? vo[datatable_field_uid] : null;
 
         this.is_filtering_by = true;
+
         let context_filter: ContextFilterVO = new ContextFilterVO();
         context_filter.vo_type = column.api_type_id;
         context_filter.field_id = column.field_id;
@@ -591,14 +594,19 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        // Updater to update visible options when call_updater is called
-        // - throttle_call_updaters is called by the validation_filters_widget for example
-        await ValidationFiltersWidgetController.getInstance().register_updater(
-            this.dashboard_page.dashboard_id,
-            this.dashboard_page.id,
-            this.page_widget.id,
-            this.throttle_do_update_visible_options.bind(this),
-        );
+        const validation_page_widgets = this.get_validation_page_widgets();
+
+        if (validation_page_widgets?.length > 0) {
+            // Updater to update visible options when call_updater is called
+            // - throttle_call_updaters is called by the validation_filters_widget for example
+            await ValidationFiltersWidgetController.getInstance().register_updater(
+                this.dashboard_page.dashboard_id,
+                this.dashboard_page.id,
+                this.page_widget.id,
+                this.throttle_do_update_visible_options.bind(this),
+                validation_page_widgets[0].id,
+            );
+        }
 
         ResetFiltersWidgetController.getInstance().register_reseter(
             this.dashboard_page,
@@ -1027,7 +1035,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         row: any,
         field: DatatableField<any, any>,
         value: any,
-        crudComponentField: CRUDComponentField) {
+        crudComponentField: CRUDComponentField
+    ) {
 
         let self = this;
         self.snotify.async(self.label('TableWidgetComponent.onchange_column.start'), () =>
@@ -1342,17 +1351,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     /**
-     *
-     * TODO: case when can_apply_default_field_filters_without_validation = false && has_widget_validation_filtres = true && has_active_default_field_filters = true
+     * update_visible_options
+     *  - We should wait for validation button to be clicked to update visible options
      *
      * @param {boolean} force
      * @returns
      */
     private async update_visible_options(force: boolean = false) {
-
         // Si j'ai mon bouton de validation des filtres qui est actif,
         // j'attends que ce soit lui qui m'appelle
-        if ((!force) && this.has_widget_validation_filtres()) {
+        if ((!force) && this.has_validation_page_widgets()) {
             return;
         }
 
@@ -1378,16 +1386,18 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         this.update_cpt_live++;
         this.is_busy = true;
 
+        // const table_fields = this.fields;
+        const table_fields = TableWidgetManager.get_table_fields_by_widget_options(
+            this.dashboard,
+            this.widget_options
+        );
+
         if (
             !(this.widget_options?.columns?.length > 0) ||
             !this.dashboard.api_type_ids ||
-            !this.fields
+            !table_fields
         ) {
-            this.data_rows = [];
-            this.loaded_once = true;
-            this.is_busy = false;
-            this.update_cpt_live--;
-            this.pagination_count = null;
+            this.init_data_rows();
             return;
         }
 
@@ -1424,10 +1434,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             }
         }
 
-        let crud_api_type_id = this.widget_options.crud_api_type_id ? this.widget_options.crud_api_type_id : null;
+        let crud_api_type_id = this.widget_options.crud_api_type_id;
         if (!crud_api_type_id) {
-            for (let column_id in this.fields) {
-                let field = this.fields[column_id];
+            for (let column_id in table_fields) {
+                let field = table_fields[column_id];
 
                 if (!field.vo_type_id) {
                     continue;
@@ -1443,25 +1453,21 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return;
         }
 
-        // TODO: check if we should apply active_field_filters
-        let context_filters: ContextFilterVO[] = [];
-        if (this.should_apply_active_field_filters()) {
-            context_filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
-            );
-        }
+        let context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+        );
 
         const context_query: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(context_filters);
 
-        //On évite les jointures supprimées.
-        for (let vo_type in this.get_discarded_field_paths) {
-            let discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
+        // On évite les jointures supprimées.
+        for (const vo_type in this.get_discarded_field_paths) {
+            const discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
 
             for (let field_id in discarded_field_paths_vo_type) {
-                context_query.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+                context_query.set_discarded_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
             }
         }
 
@@ -1478,11 +1484,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 (f.param_text != this.filtering_by_active_field_filter.param_text));
         }
 
-        if (this.fields && (
-            ((this.order_asc_on_id != null) && this.fields[this.order_asc_on_id]) ||
-            ((this.order_desc_on_id != null) && this.fields[this.order_desc_on_id]))) {
+        if (table_fields && (
+            ((this.order_asc_on_id != null) && table_fields[this.order_asc_on_id]) ||
+            ((this.order_desc_on_id != null) && table_fields[this.order_desc_on_id]))) {
 
-            let field = (this.order_asc_on_id != null) ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
+            let field = (this.order_asc_on_id != null) ? table_fields[this.order_asc_on_id] : table_fields[this.order_desc_on_id];
 
             context_query.set_sort(
                 new SortByVO(
@@ -1504,8 +1510,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             }
         }
 
-        for (let column_id in this.fields) {
-            let field = this.fields[column_id];
+        for (let column_id in table_fields) {
+            let field = table_fields[column_id];
 
             if (
                 (field.type == DatatableField.VAR_FIELD_TYPE) ||
@@ -1518,11 +1524,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             if (this.dashboard.api_type_ids.indexOf(field.vo_type_id) < 0) {
                 ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.vo_type_id);
-                this.data_rows = [];
-                this.loaded_once = true;
-                this.is_busy = false;
-                this.update_cpt_live--;
-                this.pagination_count = null;
+                this.init_data_rows();
                 return;
             }
 
@@ -1567,11 +1569,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 !this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
                 !Object.keys(this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
             ) {
-                this.update_cpt_live--;
-                this.data_rows = [];
-                this.loaded_once = true;
-                this.is_busy = false;
-                this.pagination_count = null;
+                this.init_data_rows();
                 return;
             }
 
@@ -1585,11 +1583,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             }
 
             if (!has_filter) {
-                this.update_cpt_live--;
-                this.data_rows = [];
-                this.loaded_once = true;
-                this.is_busy = false;
-                this.pagination_count = null;
+                this.init_data_rows();
                 return;
             }
         }
@@ -1629,14 +1623,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             );
         }
 
-        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
-        for (let i in this.fields) {
-            const field = this.fields[i];
+        const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
+        for (let i in table_fields) {
+            const field = table_fields[i];
             fields[field.datatable_field_uid] = field;
         }
 
         context_query.query_distinct = true;
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(
+        const rows = await ModuleContextFilter.getInstance().select_datatable_rows(
             context_query,
             this.columns_by_field_id,
             fields
@@ -1658,7 +1652,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         this.data_rows = rows;
 
-        let context_query_for_count: ContextQueryVO = cloneDeep(context_query);
+        const context_query_for_count: ContextQueryVO = cloneDeep(context_query);
+
         context_query_for_count.set_limit(0, 0);
         context_query_for_count.set_sort(null);
         context_query_for_count.query_distinct = true;
@@ -1673,7 +1668,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         if (this.widget_options.has_table_total_footer) {
-
             await this.reload_column_total();
         }
 
@@ -1690,12 +1684,25 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             new RegExp('.*' + ModuleContextFilter.APINAME_select_count)
         );
 
-        // TODO: define if we should update_visible_options (depend on if the page contains the validation_filter_widget)
-
         await this.throttle_do_update_visible_options();
     }
 
-    @Watch('widget_options', { immediate: true })
+    /**
+     * Watch on page_widget
+     *
+     * @returns
+     */
+    @Watch('page_widget', { immediate: true, deep: true })
+    private async onchange_page_widget_options() {
+        this.widget_options = this.get_widget_options();
+    }
+
+    /**
+     * Watch on widget_options
+     *
+     * @returns
+     */
+    @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
@@ -1728,12 +1735,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.widget_options.limit;
         this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
-
-        // TODO: define if we should update_visible_options (depend on if the page contains the validation_filter_widget)
-        const should_update_visible_options = this.should_apply_active_field_filters();
-
         let promises = [
-            should_update_visible_options ? this.throttle_update_visible_options() : void 0, // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
+            this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
             this.update_filter_by_access_cache()
         ];
 
@@ -1772,7 +1775,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
-    get widget_options(): TableWidgetOptionsVO {
+    private get_widget_options(): TableWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
@@ -1803,7 +1806,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         if (!this.widget_options.can_apply_default_field_filters_without_validation) {
-            const has_validation_filter_widget = this.has_widget_validation_filtres();
+            const has_validation_filter_widget = this.has_validation_page_widgets();
 
             if (has_validation_filter_widget) {
                 should_apply = this.loaded_once;
@@ -2236,7 +2239,12 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         for (let i in this.data_rows) {
 
-            let cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data(this.data_rows[i], this.export_datatable, this.exportable_datatable_columns);
+            let cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data(
+                this.data_rows[i],
+                this.export_datatable,
+                this.exportable_datatable_columns
+            );
+
             if (!!cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
                 delete cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID];
             }
@@ -2345,6 +2353,18 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 param.vars_indicator,
             );
         }
+    }
+
+    /**
+     * init_data_rows
+     *  - Re/Intialize the data_rows array
+     */
+    private init_data_rows() {
+        this.data_rows = [];
+        this.loaded_once = true;
+        this.is_busy = false;
+        this.update_cpt_live--;
+        this.pagination_count = null;
     }
 
     private get_style_th(column: TableColumnDescVO) {
@@ -2531,7 +2551,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      */
     get vars_indicator(): ExportVarIndicator {
 
-        if (!this.widget_options) { return; }
+        if (!this.widget_options) {
+            return;
+        }
 
         const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConf } = {};
 
@@ -2539,7 +2561,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
 
         // var_widget_id required to continue
-        if (!var_widget_id) { return; }
+        if (!var_widget_id) {
+            return;
+        }
 
         // Find all var widgets of actual page
         const var_page_widgets = Object.values(this.all_page_widget)?.filter(
@@ -2572,25 +2596,38 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         );
     }
 
-    private has_widget_validation_filtres(): boolean {
+    private has_validation_page_widgets(): boolean {
+        return this.get_validation_page_widgets()?.length > 0;
+    }
 
-        if (!this.all_page_widget) {
-            return false;
+    /**
+     * get_validation_page_widgets
+     * - Get all widget validation filters
+     * @returns {DashboardPageWidgetVO[]}
+     */
+    private get_validation_page_widgets(): DashboardPageWidgetVO[] {
+        const all_page_widget: DashboardPageWidgetVO[] = this.all_page_widget;
+        const validation_page_widgets: DashboardPageWidgetVO[] = [];
+
+        if (!all_page_widget) {
+            return;
         }
 
-        for (let i in this.all_page_widget) {
-            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+        for (let i in all_page_widget) {
+            const page_widget: DashboardPageWidgetVO = all_page_widget[i];
+
+            const widget: DashboardWidgetVO = this.widgets_by_id[page_widget.widget_id];
 
             if (!widget) {
                 continue;
             }
 
             if (widget.is_validation_filters) {
-                return true;
+                validation_page_widgets.push(page_widget);
             }
         }
 
-        return false;
+        return validation_page_widgets;
     }
 
     // /**

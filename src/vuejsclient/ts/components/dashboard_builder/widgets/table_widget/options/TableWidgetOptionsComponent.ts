@@ -19,6 +19,7 @@ import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsCont
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
 import './TableWidgetOptionsComponent.scss';
 import { cloneDeep } from 'lodash';
+import VueAppController from '../../../../../../VueAppController';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -90,6 +91,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.widget_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
         await this.update_options();
     }
+
     private async switch_use_kanban_by_default_if_exists() {
         this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
         this.widget_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
@@ -591,6 +593,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
+    }
+
+    private read_label(label: string): string {
+        const translation = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS;
+        const text = translation[label + '.___LABEL___'];
+
+        return text;
     }
 
     get title_name_code_text(): string {

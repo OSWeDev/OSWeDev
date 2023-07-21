@@ -318,6 +318,9 @@ export default class TableWidgetManager {
         },
     ): TableColumnDescVO[] {
 
+        // We should not modify the widget_options
+        widget_options = cloneDeep(widget_options);
+
         if (!(widget_options?.columns?.length > 0)) {
             return null;
         }
@@ -330,11 +333,11 @@ export default class TableWidgetManager {
             // TODO - may be find all page widgets by the given widget_options
         }
 
-        let table_columns: TableColumnDescVO[] = [];
+        const table_columns: TableColumnDescVO[] = [];
 
-        for (let i in widget_options.columns) {
+        for (const i in widget_options.columns) {
 
-            let column = widget_options.columns[i];
+            const column = widget_options.columns[i];
 
             if (column.readonly == null) {
                 column.readonly = true;
@@ -343,6 +346,12 @@ export default class TableWidgetManager {
             if (column.column_width == null) {
                 column.column_width = 0;
             }
+            // if (column.is_sticky) {
+            //     this.sticky_left_by_col_id[column.id] = sticky_left;
+            //     sticky_left += parseInt(column.column_width.toString());
+            //     this.has_sticky_cols = true;
+            //     this.last_sticky_col_id = column.id;
+            // }
 
             // TODO: Check by access rights
             // if (column.filter_by_access && !this.filter_by_access_cache[column.filter_by_access]) {
@@ -393,6 +402,30 @@ export default class TableWidgetManager {
         }
 
         WeightHandler.getInstance().sortByWeight(table_columns);
+
+        // vue que je ne peut pas effacer un element en garentissant
+        // que j effacer le bonne element j'ajoute dans un nouveau
+        // tableau pour l'affichage final dans le dashboardboardbuilder
+        for (const u in table_columns) {
+            const column = table_columns[u];
+            const final_res = [];
+            if (column?.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
+                // pour mettre a plat les colonne pour l affichage
+                for (const r in column.children) {
+                    let children = column.children[r];
+                    let index = column.children.indexOf(children);
+                    // column.children.push(Object.assign(new TableColumnDescVO(), children));
+                    final_res.push(new TableColumnDescVO().from(children));
+                    // res.push(Object.assign(new TableColumnDescVO(), children));
+                    // column.children.splice(index, 1);
+                }
+                column.children = final_res;
+            }
+            // else {
+            //     final_res.push(Object.assign(new TableColumnDescVO(), column));
+            //     continue;
+            // }
+        }
 
         return table_columns;
     }
@@ -601,15 +634,15 @@ export default class TableWidgetManager {
         widget_options: TableWidgetOptionsVO,
         options?: { default?: boolean }
     ): { [column_id: number]: DatatableField<any, any> } {
-        let field_by_column_id: { [column_id: number]: DatatableField<any, any> } = {};
+        const field_by_column_id: { [column_id: number]: DatatableField<any, any> } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
             widget_options,
             { default: options?.default }
         );
 
-        for (let i in columns) {
-            let column: TableColumnDescVO = columns[i];
+        for (const i in columns) {
+            const column: TableColumnDescVO = columns[i];
             let moduleTable: ModuleTable<any>;
 
             if (column?.type != TableColumnDescVO.TYPE_header) {
