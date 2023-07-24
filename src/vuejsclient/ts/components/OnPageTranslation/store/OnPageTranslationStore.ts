@@ -44,21 +44,9 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
         registerPageTranslations(state: IOnPageTranslationState, infos: Array<{ translation_code: string, missing: boolean }>) {
 
             for (let i in infos) {
-
-                let info = infos[i];
-                if (state.page_translations[info.translation_code]) {
-
-                    // Si on a déjà le code, mais qu'on a en info missing, cette info doit être prioritaire
-                    if (info.missing) {
-                        state.page_translations[info.translation_code].missing = true;
-                    }
-                    return;
-                }
-
-                Vue.set(state.page_translations, info.translation_code, new OnPageTranslationItem(info.translation_code, info.missing));
+                OnPageTranslationStore_.mutations.registerPageTranslation(state, infos[i]);
             }
         },
-
 
         clear(state: IOnPageTranslationState) {
             // On clear tout sauf les traductions manquantes
