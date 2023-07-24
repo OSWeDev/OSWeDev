@@ -50,11 +50,11 @@ import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
-import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -79,9 +79,6 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ServerBase from '../../ServerBase';
-import { Stats } from 'fs';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -945,7 +942,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         /**
          * Si les vos sont segmentés, on check en amont l'existence des tables segmentées
@@ -953,19 +949,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
          */
         await this.confirm_segmented_tables_existence(vos);
         return await this.insertOrUpdateVOs_as_server(vos, exec_as_server);
-
-        // let res: InsertOrDeleteQueryResult[] = [];
-        // for (let i in vos) {
-        //     let vo = vos[i];
-
-        //     await promise_pipeline.push(async () => {
-        //         res.push(await this.insertOrUpdateVO(vo));
-        //     });
-        // }
-
-        // await promise_pipeline.end();
-
-        // return res;
     }
 
     /**
@@ -2550,140 +2533,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
         return await this._insertOrUpdateVO(vo, false);
-
-        // let time_in = Dates.now_ms();
-        // StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'in');
-
-        // if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-        //     let uid: number = StackContext.get('UID');
-        //     let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-        //     if (uid && CLIENT_TAB_ID) {
-        //         this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
-        //     }
-        //     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'global_update_blocker');
-        //     return null;
-        // }
-
-        // // On vérifie qu'on peut faire un insert ou update
-        // if ((!vo) || (!vo._type) || (!VOsTypesManager.moduleTables_by_voType[vo._type])) {
-        //     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'invalid_vo');
-        //     return null;
-        // }
-        // if (!this.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
-        //     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed_checkAccessSync');
-        //     return null;
-        // }
-
-        // // On ajoute un filtrage via hook
-        // let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
-
-        // if (!tmp_vo) {
-        //     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed_filterVOAccess');
-        //     return null;
-        // }
-        // vo = tmp_vo;
-
-        // let vos = [vo];
-
-        // if (this.check_foreign_keys) {
-        //     vos = await this.filterByForeignKeys([vo]);
-
-        //     if ((!vos) || (vos.length != 1)) {
-        //         StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'filterByForeignKeys');
-        //         return null;
-        //     }
-        // }
-
-        // let self = this;
-
-        // return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
-
-        //     let isUpdate: boolean = vo.id ? true : false;
-        //     let preUpdate: IDistantVOBase = null;
-
-        //     let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
-
-        //     if (!moduleTable) {
-        //         StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'no_moduletable');
-        //         resolve(null);
-        //         return null;
-        //     }
-
-        //     /**
-        //      * Si on a des fields de type unique, et pas de id fourni, on veut tester de charger depuis la bdd un objet avec
-        //      *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
-        //      */
-        //     if (!vo.id) {
-        //         try {
-        //             vo.id = await this.check_uniq_indexes(vo, moduleTable);
-        //         } catch (err) {
-        //             StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed_check_uniq_indexes');
-        //             return null;
-        //         }
-        //     }
-
-        //     /**
-        //      * Si on est sur un update et si on a des triggers de mise à jour on veut récupérer le vo en base avant de l'écraser pour le passer aux triggers
-        //      */
-        //     if (vo.id) {
-
-        //         if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
-
-        //             let query_ = query(vo._type).filter_by_id(vo.id);
-        //             if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-        //                 query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
-        //             }
-        //             preUpdate = await query_.select_vo();
-
-        //             if (!preUpdate) {
-        //                 StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'update_autochange_to_insert');
-        //                 // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
-        //                 isUpdate = false;
-        //                 vo.id = null;
-        //             }
-        //         }
-        //     }
-
-        //     let sql: string = await this.getqueryfor_insertOrUpdateVO(vo, preUpdate);
-        //     let failed: boolean = false;
-
-        //     if (!sql) {
-        //         ConsoleHandler.warn('Est-ce bien normal ? insertOrUpdateVO :(!sql):' + JSON.stringify(vo));
-        //         StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'no_sql');
-        //         resolve(null);
-        //         return null;
-        //     }
-
-        //     let bdd_version = moduleTable.get_bdd_version(vo);
-        //     let query_uid = this.log_db_query_perf_start('insertOrUpdateVO', 'type:' + vo._type);
-        //     let db_result = await ModuleServiceBase.db.oneOrNone(sql, bdd_version).catch((reason) => {
-        //         ConsoleHandler.error('insertOrUpdateVO :' + reason);
-        //         failed = true;
-        //     });
-        //     this.log_db_query_perf_end(query_uid, 'insertOrUpdateVO', 'type:' + vo._type);
-
-        //     let res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
-
-        //     if (failed) {
-        //         StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed');
-        //         resolve(null);
-        //         return null;
-        //     }
-
-        //     if (res && vo) {
-        //         if (isUpdate) {
-        //             await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(preUpdate, vo), exec_as_server);
-        //         } else {
-        //             vo.id = res.id;
-        //             await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
-        //         }
-        //     }
-
-        //     StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'ok');
-        //     let time_out = Dates.now_ms();
-        //     StatsController.register_stat_DUREE('dao', 'insertOrUpdateVO', 'ok_time', time_out - time_in);
-        //     resolve(res);
-        // });
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {

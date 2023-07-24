@@ -47,6 +47,8 @@ import ContextFieldPathServerController from './ContextFieldPathServerController
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import ArrayHandler from '../../../shared/tools/ArrayHandler';
+import ContextQueryJoinVO from '../../../shared/modules/ContextFilter/vos/ContextQueryJoinVO';
+import ContextQueryJoinOnFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryJoinOnFieldVO';
 
 export default class ContextQueryServerController {
 
@@ -1564,13 +1566,6 @@ export default class ContextQueryServerController {
 
         if (!(context_query.fields?.length > 0)) {
 
-            // if (context_query.query_distinct) {
-            //     /**
-            //      * Aucun sens en fait de sélectionner des vos distincts
-            //      */
-            //     throw new Error('Incompatible options:distinct & !fields');
-            // }
-
             context_query.field('id');
 
             let fields = base_moduletable.get_fields();
@@ -1653,21 +1648,23 @@ export default class ContextQueryServerController {
 
             let moduletable = VOsTypesManager.moduleTables_by_voType[context_field.api_type_id];
 
-            const all_required_field_ids = all_required_fields?.map((field) => field.field_id);
+            if ((!!moduletable) && context_field.field_id) {
+                const all_required_field_ids = all_required_fields?.map((field) => field.field_id);
 
-            if (
-                (!moduletable) ||
-                (
-                    (context_field?.field_id != 'id') &&
-                    (!moduletable.get_field_by_id(context_field.field_id))
-                ) &&
-                (
-                    // Case when we need all_required_fields (the overflows fields shall be sets as null)
-                    (all_required_field_ids?.length > 0) &&
-                    (!all_required_field_ids.find((required_field) => required_field === context_field.field_id))
-                )
-            ) {
-                return null;
+                if (
+                    (!moduletable) ||
+                    (
+                        (context_field?.field_id != 'id') &&
+                        (!moduletable.get_field_by_id(context_field.field_id))
+                    ) &&
+                    (
+                        // Case when we need all_required_fields (the overflows fields shall be sets as null)
+                        (all_required_field_ids?.length > 0) &&
+                        (!all_required_field_ids.find((required_field) => required_field === context_field.field_id))
+                    )
+                ) {
+                    return null;
+                }
             }
 
             /**
@@ -1675,10 +1672,14 @@ export default class ContextQueryServerController {
              */
             ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_field.api_type_id);
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
-            ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
+            if (context_field.field_id) {
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
+            }
 
             /**
              * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+             * 
+             * Dans le cas d'un join entre contextquery, on arrive aussi ici a condition d'avoir un field issue du join
              */
             if (!query_wrapper.tables_aliases_by_type[context_field.api_type_id]) {
 
@@ -1694,7 +1695,7 @@ export default class ContextQueryServerController {
                     context_field
                 );
             }
-
+TODO continuer fonctionnement field sans field_id
             if (!first) {
                 SELECT += ', ';
             }
@@ -2148,6 +2149,33 @@ export default class ContextQueryServerController {
         return { SORT_BY, QUERY, aliases_n, query_wrapper };
     }
 
+    private handle_join_context_query(
+        context_query: ContextQueryVO,
+        context_query_join: ContextQueryJoinVO,
+        jointures: string[]) {
+
+        if (!context_query_join) {
+            return;
+        }
+
+        let join_on_fields: string[] = [];
+
+        for (let i in context_query_join.join_on_fields) {
+            let join_on_field: ContextQueryJoinOnFieldVO = context_query_join.join_on_fields[i];
+
+            join_on_fields.push(
+                join_on_field.joined_table_alias + '.' + join_on_field.joined_table_field_id_or_alias + ' = ' +
+                join_on_field.initial_context_query_api_type_id + '.' + join_on_field.initial_context_query_field_id_or_alias
+            );
+        }
+
+        jointures.push(
+            '(' + this.getquerystr(context_query_join.joined_context_query) + ') ' + context_query_join.joined_table_alias +
+            ' ON ' + join_on_fields.join(' AND ')
+        );
+
+    }
+
     /**
      * Check injection OK : Seul risque identifié updates_jointures > get_table_full_name, dont le check est OK
      *
@@ -2174,6 +2202,17 @@ export default class ContextQueryServerController {
         access_type: string,
         selected_field: ContextQueryFieldVO = null
     ): Promise<number> {
+
+        /**
+         * Cas spécifique d'un api_type_id join qui serait en fait issu d'un join de contextquery
+         */
+        if (context_query.joined_context_queries) {
+            let context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
+
+            if (context_query_join) {
+                this.handle_join_context_query(context_query, context_query_join, jointures);
+            }
+        }
 
         /**
          * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
