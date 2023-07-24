@@ -1,5 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ConsoleHandler from '../../tools/ConsoleHandler';
+import { all_promises } from '../../tools/PromiseTools';
 import RangeHandler from '../../tools/RangeHandler';
 import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -9,10 +10,14 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ContextFilterVOHandler from '../ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
+import ContextQueryJoinOnFieldVO from '../ContextFilter/vos/ContextQueryJoinOnFieldVO';
+import ContextQueryJoinVO from '../ContextFilter/vos/ContextQueryJoinVO';
 import ContextQueryVO, { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
+import DashboardPageWidgetVO from '../DashboardBuilder/vos/DashboardPageWidgetVO';
+import FieldValueFilterWidgetOptionsVO from '../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import NumRange from '../DataRender/vos/NumRange';
 import NumSegment from '../DataRender/vos/NumSegment';
@@ -543,78 +548,34 @@ export default class ModuleVar extends Module {
      * @param context_query
      * @param varcolumn_conf
      */
-    public add_vars_params_columns_for_ref_ids(
-        context_query: ContextQueryVO,
+    public async add_vars_params_columns_for_ref_ids(
+        context_query_actuelle: ContextQueryVO,
         columns: TableColumnDescVO[]
     ) {
 
-        // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
-        let needed_dimensions: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
-        let matroids_done: { [api_type_id: string]: boolean } = {};
+        // On garde l'état initial de la query pour avoir les fields sans les vars qu'on ajoute pour les ignores de filtres potentiels
+        let context_query_initiale = context_query_actuelle.clone();
 
-        for (let j in columns) {
-            let column: TableColumnDescVO = columns[j];
-
-            if (!column) {
-                continue;
-            }
-
-            if (column.type != TableColumnDescVO.TYPE_var_ref) {
-                continue;
-            }
-
-            let varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
-
-            if (!varconf) {
-                ConsoleHandler.error('add_vars_params_columns_for_ref_ids:varconf not found:' + column.var_id);
-                continue;
-            }
-
-            let matroid_api_type_id = varconf.var_data_vo_type;
-            if (matroids_done[matroid_api_type_id]) {
-                continue;
-            }
-            matroids_done[matroid_api_type_id] = true;
-
-            let matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
-
-            if (!matroid_fields) {
-                continue;
-            }
-
-            for (let i in matroid_fields) {
-                let matroid_field: ModuleTableField<any> = matroid_fields[i];
-
-                if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
-                    continue;
-                }
-
-                let matroid_field_api_type_id: string = matroid_field.manyToOne_target_moduletable.vo_type;
-                let matroid_field_name: string = matroid_field.target_field;
-
-                if (!needed_dimensions[matroid_field_api_type_id]) {
-                    needed_dimensions[matroid_field_api_type_id] = {};
-                }
-
-                needed_dimensions[matroid_field_api_type_id][matroid_field_name] = true;
-            }
-        }
-
-        // On ajoute ces dimensions dans le contextquery
-        for (let api_type_id in needed_dimensions) {
-            let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
-
-            for (let field_id in needed_dimensions_api_type_id) {
-
-                let field_alias = this.get_var_param_field_name(api_type_id, field_id);
-
-                context_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
-            }
-        }
+        // d'un côté on gère les colonnes qui ont pas d'exclusion de filtre, et de l'autre celles qui en ont
+        // Dans le cas des exclusions de filtre, on doit faire une sous requete, avec un left join, donc c'est plus compliqué on doit gérer ça à part
+        this.add_vars_params_columns_for_ref_ids_without_excluded_filters(context_query_actuelle, columns);
+        await this.add_vars_params_columns_for_ref_ids_with_excluded_filters(
+            context_query_initiale,
+            context_query_actuelle,
+            columns);
     }
 
-    public get_var_param_field_name(api_type_id: string, field_id: string): string {
-        return ModuleVar.VARPARAMFIELD_PREFIX + api_type_id + '_' + field_id;
+    public page_widgets_ids_to_exclude_as_alias_prefix(do_not_user_filter_active_ids: number[]): string {
+
+        if ((!do_not_user_filter_active_ids) || (!do_not_user_filter_active_ids.length)) {
+            return '';
+        }
+
+        return '_pwids2excl__' + do_not_user_filter_active_ids.join('_') + '__';
+    }
+
+    public get_var_param_field_name(api_type_id: string, field_id: string, page_widgets_ids_to_exclude_as_alias_prefix: string = null): string {
+        return ModuleVar.VARPARAMFIELD_PREFIX + (page_widgets_ids_to_exclude_as_alias_prefix ? page_widgets_ids_to_exclude_as_alias_prefix : '') + api_type_id + '_' + field_id;
     }
 
     public clean_rows_of_varparamfields(rows: IDistantVOBase[], context_query: ContextQueryVO) {
@@ -838,5 +799,299 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarDataValueResVO.API_TYPE_ID, () => new VarDataValueResVO(), datatable_fields, null);
         this.datatables.push(datatable);
+    }
+
+
+    /**
+     * Important de ne pas juste faire une sous requete par colonne de var qui aurait des filtres, mais bien essayer de limiter les sous-requetes
+     * par ce que le moteur pgsql ne voit pas même si les requetes sont identiques qu'il peut les factoriser... (tester avec explain les futurs versions, mais en 13 c'est KO)
+     * Donc on regroupe par la liste des page_widget_ids qu'on refuse puis par api_type_id, puis par field_id
+     * FIXME : TODO : tenter de généraliser avec le cas où on refuse 0 ids. Mais dans ce cas pas de sous requetes, donc c'est peut-etre du temps perdu
+     * @param context_query_initiale le contexte initial, hors vars
+     * @param context_query_actuelle le contexte actuel, avec les vars en cours d'ajout
+     * @param columns
+     */
+    private async add_vars_params_columns_for_ref_ids_with_excluded_filters(
+        context_query_initiale: ContextQueryVO,
+        context_query_actuelle: ContextQueryVO,
+        columns: TableColumnDescVO[]) {
+
+        // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
+        let needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
+        let matroids_done_by_page_widget_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: boolean } } = {};
+        let pages_widgets_ids_to_exclude_by_alias_prefix: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: number[] } = {};
+
+        this.init_maps_for_add_vars_params_columns_for_ref_ids_with_excluded_filters(columns, needed_dimensions_by_page_widgets_ids_to_exclude, matroids_done_by_page_widget_ids_to_exclude, pages_widgets_ids_to_exclude_by_alias_prefix);
+
+        let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = await this.preload_all_page_widget_by_id(columns);
+
+        // On ajoute ces dimensions dans le contextquery
+        let all_page_widget_options_cache_by_id: { [id: number]: any } = {};
+        for (let page_widgets_ids_to_exclude_as_alias_prefix in needed_dimensions_by_page_widgets_ids_to_exclude) {
+            let needed_dimensions = needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix];
+
+            for (let api_type_id in needed_dimensions) {
+                let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
+
+                for (let field_id in needed_dimensions_api_type_id) {
+
+                    let field_alias = this.get_var_param_field_name(api_type_id, field_id, page_widgets_ids_to_exclude_as_alias_prefix);
+
+                    /**
+                     * On doit dupliquer la query initiale hors vars
+                     *  puis on supprime les filtres correspondants aux page_widgets_ids à exclure
+                     *  puis on fait un left join avec la query actuelle (donc avec les colonnes de vars déjà en cours d'ajout) sur la base des colonnes identiques (toutes les colonnes de la requete hors vars)
+                     *  et on ajoute une colonne à la requete actuelle pour récupérer les ids des colonnes de vars de cette sous-requete
+                     */
+                    let sub_query = context_query_initiale.clone();
+                    let sub_query_table_alias = 'sub_query_' + field_alias;
+                    this.delete_context_filters_for_page_widgets_ids_to_exclude(sub_query, pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix], all_page_widget_by_id, all_page_widget_options_cache_by_id);
+
+                    let sub_query_join_on_fields: ContextQueryJoinOnFieldVO[] = [];
+
+                    for (let i in context_query_initiale.fields) {
+                        let field = context_query_initiale.fields[i];
+
+                        if (!field) {
+                            continue;
+                        }
+
+                        sub_query_join_on_fields.push(ContextQueryJoinOnFieldVO.createNew(
+                            sub_query_table_alias,
+                            field_alias,
+                            api_type_id,
+                            field_id
+                        ));
+                    }
+
+                    context_query_actuelle.join_context_query(sub_query, sub_query_table_alias, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN, sub_query_join_on_fields);
+                    // On ajoute la colonne à la requete actuelle - ARRAY_AGG(DISTINCT sub_query_table_alias.field_alias) as field_alias
+                    context_query_actuelle.field(null, field_alias, sub_query_table_alias, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+                }
+            }
+        }
+    }
+
+    private delete_context_filters_for_page_widgets_ids_to_exclude(
+        context_query: ContextQueryVO,
+        page_widgets_ids_to_exclude: number[],
+        all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO },
+        all_page_widget_options_cache_by_id: { [id: number]: any }
+    ) {
+
+        for (let i in page_widgets_ids_to_exclude) {
+            let page_filter_id = page_widgets_ids_to_exclude[i];
+
+            let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+            if (!page_widget) {
+                continue;
+            }
+
+            if (!all_page_widget_options_cache_by_id[page_widget.id]) {
+                all_page_widget_options_cache_by_id[page_widget.id] = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+            }
+            let page_widget_options = all_page_widget_options_cache_by_id[page_widget.id];
+
+            if (page_widget_options?.vo_field_ref) {
+
+                let new_filters = [];
+                for (let j in context_query.filters) {
+                    let filter = context_query.filters[j];
+
+                    if (!filter) {
+                        continue;
+                    }
+
+                    if ((filter.field_id == page_widget_options.vo_field_ref.field_id) &&
+                        (filter.vo_type == page_widget_options.vo_field_ref.api_type_id)) {
+                        continue;
+                    }
+
+                    new_filters.push(filter);
+                }
+                context_query.filters = new_filters;
+            }
+        }
+    }
+
+    private init_maps_for_add_vars_params_columns_for_ref_ids_with_excluded_filters(
+        columns: TableColumnDescVO[],
+        needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_id: string]: boolean } } },
+        matroids_done_by_page_widget_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: boolean } },
+        pages_widgets_ids_to_exclude_by_alias_prefix: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: number[] }
+    ) {
+
+        for (let j in columns) {
+            let column: TableColumnDescVO = columns[j];
+
+            if (!column) {
+                continue;
+            }
+
+            if (column.type != TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            if (!column.do_not_user_filter_active_ids || !column.do_not_user_filter_active_ids.length) {
+                continue;
+            }
+
+            let page_widgets_ids_to_exclude_as_alias_prefix = this.page_widgets_ids_to_exclude_as_alias_prefix(column.do_not_user_filter_active_ids);
+
+            if (!pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix]) {
+                pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix] = column.do_not_user_filter_active_ids;
+            }
+
+            let varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
+
+            if (!varconf) {
+                ConsoleHandler.error('add_vars_params_columns_for_ref_ids:varconf not found:' + column.var_id);
+                continue;
+            }
+
+            let matroid_api_type_id = varconf.var_data_vo_type;
+            if (!matroids_done_by_page_widget_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix]) {
+                matroids_done_by_page_widget_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix] = {};
+            }
+
+            if (matroids_done_by_page_widget_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix][matroid_api_type_id]) {
+                continue;
+            }
+            matroids_done_by_page_widget_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix][matroid_api_type_id] = true;
+
+            let matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
+
+            if (!matroid_fields) {
+                continue;
+            }
+
+            for (let i in matroid_fields) {
+                let matroid_field: ModuleTableField<any> = matroid_fields[i];
+
+                if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
+                    continue;
+                }
+
+                let matroid_field_api_type_id: string = matroid_field.manyToOne_target_moduletable.vo_type;
+                let matroid_field_name: string = matroid_field.target_field;
+
+                if (!needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix]) {
+                    needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix] = {};
+                }
+                if (!needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix][matroid_field_api_type_id]) {
+                    needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix][matroid_field_api_type_id] = {};
+                }
+
+                needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix][matroid_field_api_type_id][matroid_field_name] = true;
+            }
+        }
+    }
+
+    private add_vars_params_columns_for_ref_ids_without_excluded_filters(context_query: ContextQueryVO, columns: TableColumnDescVO[]) {
+
+        // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
+        let needed_dimensions: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+        let matroids_done: { [api_type_id: string]: boolean } = {};
+
+        for (let j in columns) {
+            let column: TableColumnDescVO = columns[j];
+
+            if (!column) {
+                continue;
+            }
+
+            if (column.type != TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
+                continue;
+            }
+
+            let varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
+
+            if (!varconf) {
+                ConsoleHandler.error('add_vars_params_columns_for_ref_ids:varconf not found:' + column.var_id);
+                continue;
+            }
+
+            let matroid_api_type_id = varconf.var_data_vo_type;
+            if (matroids_done[matroid_api_type_id]) {
+                continue;
+            }
+            matroids_done[matroid_api_type_id] = true;
+
+            let matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
+
+            if (!matroid_fields) {
+                continue;
+            }
+
+            for (let i in matroid_fields) {
+                let matroid_field: ModuleTableField<any> = matroid_fields[i];
+
+                if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
+                    continue;
+                }
+
+                let matroid_field_api_type_id: string = matroid_field.manyToOne_target_moduletable.vo_type;
+                let matroid_field_name: string = matroid_field.target_field;
+
+                if (!needed_dimensions[matroid_field_api_type_id]) {
+                    needed_dimensions[matroid_field_api_type_id] = {};
+                }
+
+                needed_dimensions[matroid_field_api_type_id][matroid_field_name] = true;
+            }
+        }
+
+        // On ajoute ces dimensions dans le contextquery
+        for (let api_type_id in needed_dimensions) {
+            let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
+
+            for (let field_id in needed_dimensions_api_type_id) {
+
+                let field_alias = this.get_var_param_field_name(api_type_id, field_id);
+
+                context_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+            }
+        }
+    }
+
+    private async preload_all_page_widget_by_id(columns: TableColumnDescVO[]): Promise<{ [id: number]: DashboardPageWidgetVO }> {
+        let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = {};
+        let promises = [];
+
+        for (let j in columns) {
+            let column: TableColumnDescVO = columns[j];
+
+            if (!column) {
+                continue;
+            }
+
+            if (column.type != TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            if (!column.do_not_user_filter_active_ids || !column.do_not_user_filter_active_ids.length) {
+                continue;
+            }
+
+            for (let i in column.do_not_user_filter_active_ids) {
+                let page_filter_id = column.do_not_user_filter_active_ids[i];
+
+                if (!!all_page_widget_by_id[page_filter_id]) {
+                    continue;
+                }
+
+                promises.push((async () => {
+                    all_page_widget_by_id[page_filter_id] = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_id(page_filter_id).select_vo<DashboardPageWidgetVO>();
+                })());
+            }
+        }
+
+        await all_promises(promises);
+
+        return all_page_widget_by_id;
     }
 }

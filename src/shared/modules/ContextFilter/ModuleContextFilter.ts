@@ -14,6 +14,8 @@ import VarConfVO from '../Var/vos/VarConfVO';
 import BuildSelectQueryParamVO, { BuildSelectQueryParamVOStatic } from './vos/BuildSelectQueryParamVO';
 import ContextFilterVO from './vos/ContextFilterVO';
 import ContextQueryFieldVO from './vos/ContextQueryFieldVO';
+import ContextQueryJoinOnFieldVO from './vos/ContextQueryJoinOnFieldVO';
+import ContextQueryJoinVO from './vos/ContextQueryJoinVO';
 import ContextQueryVO from './vos/ContextQueryVO';
 import CountValidSegmentationsParamVO, { CountValidSegmentationsParamVOStatic } from './vos/CountValidSegmentationsParamVO';
 import DeleteVosParamVO, { DeleteVosParamVOStatic } from './vos/DeleteVosParamVO';
@@ -152,6 +154,8 @@ export default class ModuleContextFilter extends Module {
         this.init_SortByVO();
         this.init_ContextQueryFieldVO();
         this.init_ContextQueryVO();
+        this.init_ContextQueryJoinOnFieldVO();
+        this.init_ContextQueryJoinVO();
     }
 
     public registerApis() {
@@ -260,6 +264,32 @@ export default class ModuleContextFilter extends Module {
         ];
 
         let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
+        this.datatables.push(datatable);
+    }
+
+    private init_ContextQueryJoinOnFieldVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('joined_table_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_alias', true),
+            new ModuleTableField('joined_table_field_id_or_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_field_id_or_alias', true),
+            new ModuleTableField('initial_context_query_api_type_id', ModuleTableField.FIELD_TYPE_string, 'initial_context_query_api_type_id', true),
+            new ModuleTableField('initial_context_query_field_id_or_alias', ModuleTableField.FIELD_TYPE_string, 'initial_context_query_field_id_or_alias', true),
+        ];
+
+        let datatable = new ModuleTable(this, ContextQueryJoinOnFieldVO.API_TYPE_ID, () => new ContextQueryJoinOnFieldVO(), datatable_fields, null, "Champs pour join de requêtes");
+        this.datatables.push(datatable);
+    }
+
+    private init_ContextQueryJoinVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('joined_context_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_query', true),
+            new ModuleTableField('joined_table_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_alias', true),
+            new ModuleTableField('join_on_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'join_on_fields', true),
+            new ModuleTableField('join_type', ModuleTableField.FIELD_TYPE_enum, 'join_type', true, true, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN).setEnumValues(ContextQueryJoinVO.JOIN_TYPE_LABELS),
+        ];
+
+        let datatable = new ModuleTable(this, ContextQueryJoinVO.API_TYPE_ID, () => new ContextQueryJoinVO(), datatable_fields, null, "Join de requête");
         this.datatables.push(datatable);
     }
 

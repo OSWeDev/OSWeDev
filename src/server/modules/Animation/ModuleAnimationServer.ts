@@ -16,7 +16,6 @@ import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/Animati
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -29,9 +28,9 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -265,13 +264,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             qr_ids.push(qrs[i].id);
         }
 
-        let uqrs: AnimationUserQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserQRVO>(
-            AnimationUserQRVO.API_TYPE_ID,
-            'qr_id',
-            qr_ids,
-            'user_id',
-            user_ids
-        );
+        let uqrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
+            .filter_by_num_has(field_names<AnimationUserQRVO>().qr_id, qr_ids)
+            .filter_by_num_has(field_names<AnimationUserQRVO>().user_id, user_ids)
+            .select_vos<AnimationUserQRVO>();
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
@@ -416,25 +412,18 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         let aums: AnimationUserModuleVO[] = null;
 
         if (module_ids.length > 0 && user_ids.length > 0) {
-            aums = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-                AnimationUserModuleVO.API_TYPE_ID,
-                'module_id',
-                module_ids,
-                'user_id',
-                user_ids,
-            );
+            aums = await query(AnimationUserModuleVO.API_TYPE_ID)
+                .filter_by_num_has('module_id', module_ids)
+                .filter_by_num_has('user_id', user_ids)
+                .select_vos<AnimationUserModuleVO>();
         } else if (module_ids.length > 0) {
-            aums = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-                AnimationUserModuleVO.API_TYPE_ID,
-                'module_id',
-                module_ids,
-            );
+            aums = await query(AnimationUserModuleVO.API_TYPE_ID)
+                .filter_by_num_has('module_id', module_ids)
+                .select_vos<AnimationUserModuleVO>();
         } else if (user_ids.length > 0) {
-            aums = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-                AnimationUserModuleVO.API_TYPE_ID,
-                'user_id',
-                user_ids,
-            );
+            aums = await query(AnimationUserModuleVO.API_TYPE_ID)
+                .filter_by_num_has('user_id', user_ids)
+                .select_vos<AnimationUserModuleVO>();
         } else {
             aums = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
         }

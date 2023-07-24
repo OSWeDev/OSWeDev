@@ -1,4 +1,4 @@
-import { isArray } from "lodash";
+import { cloneDeep, isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
@@ -18,6 +18,8 @@ import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
 import ParameterizedQueryWrapper from "./ParameterizedQueryWrapper";
 import SortByVO from "./SortByVO";
+import ContextQueryJoinVO from "./ContextQueryJoinVO";
+import ContextQueryJoinOnFieldVO from "./ContextQueryJoinOnFieldVO";
 
 /**
  * Encapsuler la définition d'une requête ou d'une sous-requête (qu'on liera à la requête principale par un filtre)
@@ -67,6 +69,11 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Les filtres à appliquer à la requête
      */
     public filters: ContextFilterVO[];
+
+    /**
+     * Les jointures manuelles entre 2 context query
+     */
+    public joined_context_queries: ContextQueryJoinVO[];
 
     /**
      * Les types utilisables dans la requete pour faire les jointures
@@ -153,6 +160,23 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
     public set_base_api_type_id(base_api_type_id: string): ContextQueryVO {
         this.base_api_type_id = base_api_type_id;
+
+        return this;
+    }
+
+    public join_context_query(
+        joined_context_query: ContextQueryVO,
+        joined_table_alias: string,
+        join_type: number,
+        join_on_fields: ContextQueryJoinOnFieldVO[],
+    ): ContextQueryVO {
+
+        let context_query_join: ContextQueryJoinVO = ContextQueryJoinVO.createNew(joined_context_query, joined_table_alias, join_on_fields, join_type);
+        if (!this.joined_context_queries) {
+            this.joined_context_queries = [];
+        }
+
+        this.joined_context_queries.push(context_query_join);
 
         return this;
     }
@@ -948,6 +972,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         this.update_active_api_type_ids_from_sorts([sort]);
 
         return this;
+    }
+
+    public clone(): ContextQueryVO {
+        return Object.assign(new ContextQueryVO(), cloneDeep(this));
     }
 
     /**

@@ -2,7 +2,7 @@ import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
@@ -184,31 +184,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
         let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
 
-        // TODO : FIXME on doit reprendre ce concept dans la création de la query...
-        // // On supprime les filtres à ne pas prendre en compte pour créer le bon param
-        // if (this.do_not_user_filter_active_ids && this.do_not_user_filter_active_ids.length) {
-        //     let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
-
-        //     for (let i in this.do_not_user_filter_active_ids) {
-        //         let page_filter_id = this.do_not_user_filter_active_ids[i];
-
-        //         let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
-        //         if (!page_widget) {
-        //             continue;
-        //         }
-
-        //         let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
-
-        //         if (page_widget_options?.vo_field_ref) {
-        //             if (active_field_filters && active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
-        //                 delete active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id];
-        //             }
-        //         }
-        //     }
-        // }
-
-        // let context = DashboardBuilderController.getInstance().add_table_row_context(active_field_filters, this.columns, this.row_value);
-
         /**
          * On crée le custom_filters
          */
@@ -224,13 +199,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         if (!this.var_param || !new_param || (this.var_param.index != new_param.index)) {
             this.var_param = new_param;
         }
-
-        // this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
-        //     VarsController.var_conf_by_id[this.var_id].name,
-        //     context,
-        //     custom_filters,
-        //     this.dashboard.api_type_ids,
-        //     this.get_discarded_field_paths);
 
         if (!this.var_param) {
             this.var_param_no_value_or_param_is_invalid = true;

@@ -4,18 +4,20 @@ import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerW
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect, test } from "playwright-test-coverage";
+import ConfigurationService from '../../../src/server/env/ConfigurationService';
 import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAGNodeDep from '../../../src/shared/modules/Var/graph/VarDAGNodeDep';
 import DAGController from '../../../src/shared/modules/Var/graph/dagbase/DAGController';
 import DAGNodeDep from '../../../src/shared/modules/Var/graph/dagbase/DAGNodeDep';
 import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeVarsInit from './fakes/FakeVarsInit';
-import FakeDataVO from './fakes/vos/FakeDataVO';
-import RangeHandler from '../../../src/shared/tools/RangeHandler';
-import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
-import FakeTriangularVarsInit from './fakes/vars_triangular_dag/FakeTriangularVarsInit';
 import FakeTriangularValidDataHandler from './fakes/vars_triangular_dag/FakeTriangularValidDataHandler';
-import VarDAGNodeDep from '../../../src/shared/modules/Var/graph/VarDAGNodeDep';
+import FakeTriangularVarsInit from './fakes/vars_triangular_dag/FakeTriangularVarsInit';
+import FakeDataVO from './fakes/vos/FakeDataVO';
+
+ConfigurationService.setEnvParams({});
+ConfigurationService.IS_UNIT_TEST_MODE = true;
 
 test('DAG: test semaphore getInstance()', async () => {
 
@@ -311,18 +313,21 @@ test('DAG: test remove nodes', async () => {
         CH: [new VarDAGNodeDep('CH', dagnodeC, dagnodeH)]
     });
 
+    // On ne peut pas supprimer un noeud qui a des incoming
     dagnodeE.unlinkFromDAG();
 
-    expect(dag.nb_nodes).toStrictEqual(6);
+    expect(dag.nb_nodes).toStrictEqual(7);
     expect(dag.nodes).toStrictEqual({
         [FakeTriangularValidDataHandler.get_expected_var_data_A_index()]: dagnodeA,
         [FakeTriangularValidDataHandler.get_expected_var_data_B_index()]: dagnodeB,
         [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
+        [FakeTriangularValidDataHandler.get_expected_var_data_E_index()]: dagnodeE,
         [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
         [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
         [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
     });
     expect(dag.leafs).toStrictEqual({
+        [FakeTriangularValidDataHandler.get_expected_var_data_E_index()]: dagnodeE,
         [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
         [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
         [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
@@ -333,6 +338,7 @@ test('DAG: test remove nodes', async () => {
 
     expect(dagnodeA.hasIncoming).toStrictEqual(false);
     expect(dagnodeA.hasOutgoing).toStrictEqual(true);
+    expect(dagnodeA.var_data).toStrictEqual(var_data_A);
     expect(dagnodeA.var_dag).toStrictEqual(dag);
     expect(dagnodeA.outgoing_deps).toStrictEqual({
         AB: new VarDAGNodeDep('AB', dagnodeA, dagnodeB),
@@ -342,8 +348,10 @@ test('DAG: test remove nodes', async () => {
 
     expect(dagnodeB.hasIncoming).toStrictEqual(true);
     expect(dagnodeB.hasOutgoing).toStrictEqual(true);
+    expect(dagnodeB.var_data).toStrictEqual(var_data_B);
     expect(dagnodeB.var_dag).toStrictEqual(dag);
     expect(dagnodeB.outgoing_deps).toStrictEqual({
+        BE: new VarDAGNodeDep('BE', dagnodeB, dagnodeE),
         BF: new VarDAGNodeDep('BF', dagnodeB, dagnodeF)
     });
     expect(dagnodeB.incoming_deps).toStrictEqual({
@@ -352,6 +360,7 @@ test('DAG: test remove nodes', async () => {
 
     expect(dagnodeC.hasIncoming).toStrictEqual(true);
     expect(dagnodeC.hasOutgoing).toStrictEqual(true);
+    expect(dagnodeC.var_data).toStrictEqual(var_data_C);
     expect(dagnodeC.var_dag).toStrictEqual(dag);
     expect(dagnodeC.outgoing_deps).toStrictEqual({
         CG: new VarDAGNodeDep('CG', dagnodeC, dagnodeG),
@@ -361,14 +370,18 @@ test('DAG: test remove nodes', async () => {
         AC: [new VarDAGNodeDep('AC', dagnodeA, dagnodeC)]
     });
 
-    expect(dagnodeE.hasIncoming).toStrictEqual(false);
+    expect(dagnodeE.hasIncoming).toStrictEqual(true);
     expect(dagnodeE.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeE.var_dag).toBeNull();
-    expect(dagnodeE.outgoing_deps).toBeUndefined();
-    expect(dagnodeE.incoming_deps).toBeUndefined();
+    expect(dagnodeE.var_data).toStrictEqual(var_data_E);
+    expect(dagnodeE.var_dag).toStrictEqual(dag);
+    expect(dagnodeE.outgoing_deps).toStrictEqual({});
+    expect(dagnodeE.incoming_deps).toStrictEqual({
+        BE: [new VarDAGNodeDep('BE', dagnodeB, dagnodeE)]
+    });
 
     expect(dagnodeF.hasIncoming).toStrictEqual(true);
     expect(dagnodeF.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeF.var_data).toStrictEqual(var_data_F);
     expect(dagnodeF.var_dag).toStrictEqual(dag);
     expect(dagnodeF.outgoing_deps).toStrictEqual({});
     expect(dagnodeF.incoming_deps).toStrictEqual({
@@ -377,6 +390,7 @@ test('DAG: test remove nodes', async () => {
 
     expect(dagnodeG.hasIncoming).toStrictEqual(true);
     expect(dagnodeG.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeG.var_data).toStrictEqual(var_data_G);
     expect(dagnodeG.var_dag).toStrictEqual(dag);
     expect(dagnodeG.outgoing_deps).toStrictEqual({});
     expect(dagnodeG.incoming_deps).toStrictEqual({
@@ -385,80 +399,7 @@ test('DAG: test remove nodes', async () => {
 
     expect(dagnodeH.hasIncoming).toStrictEqual(true);
     expect(dagnodeH.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeH.var_dag).toStrictEqual(dag);
-    expect(dagnodeH.outgoing_deps).toStrictEqual({});
-    expect(dagnodeH.incoming_deps).toStrictEqual({
-        CH: [new VarDAGNodeDep('CH', dagnodeC, dagnodeH)]
-    });
-
-    dagnodeF.unlinkFromDAG();
-
-    expect(dag.nb_nodes).toStrictEqual(5);
-    expect(dag.nodes).toStrictEqual({
-        [FakeTriangularValidDataHandler.get_expected_var_data_A_index()]: dagnodeA,
-        [FakeTriangularValidDataHandler.get_expected_var_data_B_index()]: dagnodeB,
-        [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
-        [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
-        [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
-    });
-    expect(dag.leafs).toStrictEqual({
-        [FakeTriangularValidDataHandler.get_expected_var_data_B_index()]: dagnodeB,
-        [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
-        [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
-    });
-    expect(dag.roots).toStrictEqual({
-        [FakeTriangularValidDataHandler.get_expected_var_data_A_index()]: dagnodeA
-    });
-
-    expect(dagnodeA.hasIncoming).toStrictEqual(false);
-    expect(dagnodeA.hasOutgoing).toStrictEqual(true);
-    expect(dagnodeA.var_dag).toStrictEqual(dag);
-    expect(dagnodeA.outgoing_deps).toStrictEqual({
-        AB: new VarDAGNodeDep('AB', dagnodeA, dagnodeB),
-        AC: new VarDAGNodeDep('AC', dagnodeA, dagnodeC)
-    });
-
-    expect(dagnodeB.hasIncoming).toStrictEqual(true);
-    expect(dagnodeB.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeB.var_dag).toStrictEqual(dag);
-    expect(dagnodeB.outgoing_deps).toStrictEqual({});
-    expect(dagnodeB.incoming_deps).toStrictEqual({
-        AB: [new VarDAGNodeDep('AB', dagnodeA, dagnodeB)]
-    });
-
-    expect(dagnodeC.hasIncoming).toStrictEqual(true);
-    expect(dagnodeC.hasOutgoing).toStrictEqual(true);
-    expect(dagnodeC.var_dag).toStrictEqual(dag);
-    expect(dagnodeC.outgoing_deps).toStrictEqual({
-        CG: new VarDAGNodeDep('CG', dagnodeC, dagnodeG),
-        CH: new VarDAGNodeDep('CH', dagnodeC, dagnodeH)
-    });
-    expect(dagnodeC.incoming_deps).toStrictEqual({
-        AC: [new VarDAGNodeDep('AC', dagnodeA, dagnodeC)]
-    });
-
-    expect(dagnodeE.hasIncoming).toStrictEqual(false);
-    expect(dagnodeE.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeE.var_dag).toBeNull();
-    expect(dagnodeE.outgoing_deps).toBeUndefined();
-    expect(dagnodeE.incoming_deps).toBeUndefined();
-
-    expect(dagnodeF.hasIncoming).toStrictEqual(false);
-    expect(dagnodeF.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeF.var_dag).toBeNull();
-    expect(dagnodeF.outgoing_deps).toBeUndefined();
-    expect(dagnodeF.incoming_deps).toBeUndefined();
-
-    expect(dagnodeG.hasIncoming).toStrictEqual(true);
-    expect(dagnodeG.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeG.var_dag).toStrictEqual(dag);
-    expect(dagnodeG.outgoing_deps).toStrictEqual({});
-    expect(dagnodeG.incoming_deps).toStrictEqual({
-        CG: [new VarDAGNodeDep('CG', dagnodeC, dagnodeG)]
-    });
-
-    expect(dagnodeH.hasIncoming).toStrictEqual(true);
-    expect(dagnodeH.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeH.var_data).toStrictEqual(var_data_H);
     expect(dagnodeH.var_dag).toStrictEqual(dag);
     expect(dagnodeH.outgoing_deps).toStrictEqual({});
     expect(dagnodeH.incoming_deps).toStrictEqual({
@@ -467,37 +408,128 @@ test('DAG: test remove nodes', async () => {
 
     dagnodeA.unlinkFromDAG();
 
-    expect(dag.nb_nodes).toStrictEqual(4);
+    expect(dag.nb_nodes).toStrictEqual(6);
     expect(dag.nodes).toStrictEqual({
         [FakeTriangularValidDataHandler.get_expected_var_data_B_index()]: dagnodeB,
         [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
+        [FakeTriangularValidDataHandler.get_expected_var_data_E_index()]: dagnodeE,
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
         [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
         [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
     });
     expect(dag.leafs).toStrictEqual({
-        [FakeTriangularValidDataHandler.get_expected_var_data_B_index()]: dagnodeB,
+        [FakeTriangularValidDataHandler.get_expected_var_data_E_index()]: dagnodeE,
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
         [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
         [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
     });
     expect(dag.roots).toStrictEqual({
         [FakeTriangularValidDataHandler.get_expected_var_data_B_index()]: dagnodeB,
-        [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC
+        [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
     });
 
     expect(dagnodeA.hasIncoming).toStrictEqual(false);
     expect(dagnodeA.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeA.var_dag).toBeNull();
+    expect(dagnodeA.var_data).toStrictEqual(var_data_A);
+    expect(dagnodeA.var_dag).toStrictEqual(null);
+    expect(dagnodeA.outgoing_deps).toBeUndefined();
+    expect(dagnodeA.incoming_deps).toBeUndefined();
+
+    expect(dagnodeB.hasIncoming).toStrictEqual(false);
+    expect(dagnodeB.hasOutgoing).toStrictEqual(true);
+    expect(dagnodeB.var_data).toStrictEqual(var_data_B);
+    expect(dagnodeB.var_dag).toStrictEqual(dag);
+    expect(dagnodeB.outgoing_deps).toStrictEqual({
+        BE: new VarDAGNodeDep('BE', dagnodeB, dagnodeE),
+        BF: new VarDAGNodeDep('BF', dagnodeB, dagnodeF)
+    });
+    expect(dagnodeB.incoming_deps).toStrictEqual({});
+
+    expect(dagnodeC.hasIncoming).toStrictEqual(false);
+    expect(dagnodeC.hasOutgoing).toStrictEqual(true);
+    expect(dagnodeC.var_data).toStrictEqual(var_data_C);
+    expect(dagnodeC.var_dag).toStrictEqual(dag);
+    expect(dagnodeC.outgoing_deps).toStrictEqual({
+        CG: new VarDAGNodeDep('CG', dagnodeC, dagnodeG),
+        CH: new VarDAGNodeDep('CH', dagnodeC, dagnodeH)
+    });
+    expect(dagnodeC.incoming_deps).toStrictEqual({});
+
+    expect(dagnodeE.hasIncoming).toStrictEqual(true);
+    expect(dagnodeE.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeE.var_data).toStrictEqual(var_data_E);
+    expect(dagnodeE.var_dag).toStrictEqual(dag);
+    expect(dagnodeE.outgoing_deps).toStrictEqual({});
+    expect(dagnodeE.incoming_deps).toStrictEqual({
+        BE: [new VarDAGNodeDep('BE', dagnodeB, dagnodeE)]
+    });
+
+    expect(dagnodeF.hasIncoming).toStrictEqual(true);
+    expect(dagnodeF.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeF.var_data).toStrictEqual(var_data_F);
+    expect(dagnodeF.var_dag).toStrictEqual(dag);
+    expect(dagnodeF.outgoing_deps).toStrictEqual({});
+    expect(dagnodeF.incoming_deps).toStrictEqual({
+        BF: [new VarDAGNodeDep('BF', dagnodeB, dagnodeF)]
+    });
+
+    expect(dagnodeG.hasIncoming).toStrictEqual(true);
+    expect(dagnodeG.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeG.var_data).toStrictEqual(var_data_G);
+    expect(dagnodeG.var_dag).toStrictEqual(dag);
+    expect(dagnodeG.outgoing_deps).toStrictEqual({});
+    expect(dagnodeG.incoming_deps).toStrictEqual({
+        CG: [new VarDAGNodeDep('CG', dagnodeC, dagnodeG)]
+    });
+
+    expect(dagnodeH.hasIncoming).toStrictEqual(true);
+    expect(dagnodeH.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeH.var_data).toStrictEqual(var_data_H);
+    expect(dagnodeH.var_dag).toStrictEqual(dag);
+    expect(dagnodeH.outgoing_deps).toStrictEqual({});
+    expect(dagnodeH.incoming_deps).toStrictEqual({
+        CH: [new VarDAGNodeDep('CH', dagnodeC, dagnodeH)]
+    });
+
+    dagnodeB.unlinkFromDAG();
+
+    expect(dag.nb_nodes).toStrictEqual(5);
+    expect(dag.nodes).toStrictEqual({
+        [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
+        [FakeTriangularValidDataHandler.get_expected_var_data_E_index()]: dagnodeE,
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
+        [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
+        [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
+    });
+    expect(dag.leafs).toStrictEqual({
+        [FakeTriangularValidDataHandler.get_expected_var_data_E_index()]: dagnodeE,
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
+        [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
+        [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
+    });
+    expect(dag.roots).toStrictEqual({
+        [FakeTriangularValidDataHandler.get_expected_var_data_E_index()]: dagnodeE,
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
+        [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
+    });
+
+    expect(dagnodeA.hasIncoming).toStrictEqual(false);
+    expect(dagnodeA.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeA.var_data).toStrictEqual(var_data_A);
+    expect(dagnodeA.var_dag).toStrictEqual(null);
     expect(dagnodeA.outgoing_deps).toBeUndefined();
     expect(dagnodeA.incoming_deps).toBeUndefined();
 
     expect(dagnodeB.hasIncoming).toStrictEqual(false);
     expect(dagnodeB.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeB.var_dag).toStrictEqual(dag);
-    expect(dagnodeB.outgoing_deps).toStrictEqual({});
-    expect(dagnodeB.incoming_deps).toStrictEqual({});
+    expect(dagnodeB.var_data).toStrictEqual(var_data_B);
+    expect(dagnodeB.var_dag).toStrictEqual(null);
+    expect(dagnodeB.outgoing_deps).toBeUndefined();
+    expect(dagnodeB.incoming_deps).toBeUndefined();
 
     expect(dagnodeC.hasIncoming).toStrictEqual(false);
     expect(dagnodeC.hasOutgoing).toStrictEqual(true);
+    expect(dagnodeC.var_data).toStrictEqual(var_data_C);
     expect(dagnodeC.var_dag).toStrictEqual(dag);
     expect(dagnodeC.outgoing_deps).toStrictEqual({
         CG: new VarDAGNodeDep('CG', dagnodeC, dagnodeG),
@@ -507,18 +539,21 @@ test('DAG: test remove nodes', async () => {
 
     expect(dagnodeE.hasIncoming).toStrictEqual(false);
     expect(dagnodeE.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeE.var_dag).toBeNull();
-    expect(dagnodeE.outgoing_deps).toBeUndefined();
-    expect(dagnodeE.incoming_deps).toBeUndefined();
+    expect(dagnodeE.var_data).toStrictEqual(var_data_E);
+    expect(dagnodeE.var_dag).toStrictEqual(dag);
+    expect(dagnodeE.outgoing_deps).toStrictEqual({});
+    expect(dagnodeE.incoming_deps).toStrictEqual({});
 
     expect(dagnodeF.hasIncoming).toStrictEqual(false);
     expect(dagnodeF.hasOutgoing).toStrictEqual(false);
-    expect(dagnodeF.var_dag).toBeNull();
-    expect(dagnodeF.outgoing_deps).toBeUndefined();
-    expect(dagnodeF.incoming_deps).toBeUndefined();
+    expect(dagnodeF.var_data).toStrictEqual(var_data_F);
+    expect(dagnodeF.var_dag).toStrictEqual(dag);
+    expect(dagnodeF.outgoing_deps).toStrictEqual({});
+    expect(dagnodeF.incoming_deps).toStrictEqual({});
 
     expect(dagnodeG.hasIncoming).toStrictEqual(true);
     expect(dagnodeG.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeG.var_data).toStrictEqual(var_data_G);
     expect(dagnodeG.var_dag).toStrictEqual(dag);
     expect(dagnodeG.outgoing_deps).toStrictEqual({});
     expect(dagnodeG.incoming_deps).toStrictEqual({
@@ -527,6 +562,82 @@ test('DAG: test remove nodes', async () => {
 
     expect(dagnodeH.hasIncoming).toStrictEqual(true);
     expect(dagnodeH.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeH.var_data).toStrictEqual(var_data_H);
+    expect(dagnodeH.var_dag).toStrictEqual(dag);
+    expect(dagnodeH.outgoing_deps).toStrictEqual({});
+    expect(dagnodeH.incoming_deps).toStrictEqual({
+        CH: [new VarDAGNodeDep('CH', dagnodeC, dagnodeH)]
+    });
+
+    dagnodeE.unlinkFromDAG();
+
+    expect(dag.nb_nodes).toStrictEqual(4);
+    expect(dag.nodes).toStrictEqual({
+        [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
+        [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
+        [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
+    });
+    expect(dag.leafs).toStrictEqual({
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
+        [FakeTriangularValidDataHandler.get_expected_var_data_G_index()]: dagnodeG,
+        [FakeTriangularValidDataHandler.get_expected_var_data_H_index()]: dagnodeH
+    });
+    expect(dag.roots).toStrictEqual({
+        [FakeTriangularValidDataHandler.get_expected_var_data_F_index()]: dagnodeF,
+        [FakeTriangularValidDataHandler.get_expected_var_data_C_index()]: dagnodeC,
+    });
+
+    expect(dagnodeA.hasIncoming).toStrictEqual(false);
+    expect(dagnodeA.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeA.var_data).toStrictEqual(var_data_A);
+    expect(dagnodeA.var_dag).toStrictEqual(null);
+    expect(dagnodeA.outgoing_deps).toBeUndefined();
+    expect(dagnodeA.incoming_deps).toBeUndefined();
+
+    expect(dagnodeB.hasIncoming).toStrictEqual(false);
+    expect(dagnodeB.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeB.var_data).toStrictEqual(var_data_B);
+    expect(dagnodeB.var_dag).toStrictEqual(null);
+    expect(dagnodeB.outgoing_deps).toBeUndefined();
+    expect(dagnodeB.incoming_deps).toBeUndefined();
+
+    expect(dagnodeC.hasIncoming).toStrictEqual(false);
+    expect(dagnodeC.hasOutgoing).toStrictEqual(true);
+    expect(dagnodeC.var_data).toStrictEqual(var_data_C);
+    expect(dagnodeC.var_dag).toStrictEqual(dag);
+    expect(dagnodeC.outgoing_deps).toStrictEqual({
+        CG: new VarDAGNodeDep('CG', dagnodeC, dagnodeG),
+        CH: new VarDAGNodeDep('CH', dagnodeC, dagnodeH)
+    });
+    expect(dagnodeC.incoming_deps).toStrictEqual({});
+
+    expect(dagnodeE.hasIncoming).toStrictEqual(false);
+    expect(dagnodeE.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeE.var_data).toStrictEqual(var_data_E);
+    expect(dagnodeE.var_dag).toStrictEqual(null);
+    expect(dagnodeE.outgoing_deps).toBeUndefined();
+    expect(dagnodeE.incoming_deps).toBeUndefined();
+
+    expect(dagnodeF.hasIncoming).toStrictEqual(false);
+    expect(dagnodeF.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeF.var_data).toStrictEqual(var_data_F);
+    expect(dagnodeF.var_dag).toStrictEqual(dag);
+    expect(dagnodeF.outgoing_deps).toStrictEqual({});
+    expect(dagnodeF.incoming_deps).toStrictEqual({});
+
+    expect(dagnodeG.hasIncoming).toStrictEqual(true);
+    expect(dagnodeG.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeG.var_data).toStrictEqual(var_data_G);
+    expect(dagnodeG.var_dag).toStrictEqual(dag);
+    expect(dagnodeG.outgoing_deps).toStrictEqual({});
+    expect(dagnodeG.incoming_deps).toStrictEqual({
+        CG: [new VarDAGNodeDep('CG', dagnodeC, dagnodeG)]
+    });
+
+    expect(dagnodeH.hasIncoming).toStrictEqual(true);
+    expect(dagnodeH.hasOutgoing).toStrictEqual(false);
+    expect(dagnodeH.var_data).toStrictEqual(var_data_H);
     expect(dagnodeH.var_dag).toStrictEqual(dag);
     expect(dagnodeH.outgoing_deps).toStrictEqual({});
     expect(dagnodeH.incoming_deps).toStrictEqual({

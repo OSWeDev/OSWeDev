@@ -11,9 +11,11 @@ import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeDataVO from './fakes/vos/FakeDataVO';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
-import DAGNodeDep from '../../../src/shared/modules/Var/graph/dagbase/DAGNodeDep';
+import ConfigurationService from '../../../src/server/env/ConfigurationService';
 
 ConsoleHandler.init();
+ConfigurationService.setEnvParams({});
+ConfigurationService.IS_UNIT_TEST_MODE = true;
 
 test('DAG: test isDeletable', async () => {
 
@@ -533,29 +535,32 @@ test('DAG: test unlinkFromDAG', async () => {
         CH: [new VarDAGNodeDep('CH', node_C, node_H)]
     });
 
+    // On peut pas supprimer un noeud qui a des incoming deps
     node_E.unlinkFromDAG();
 
-    expect(dag.nb_nodes).toStrictEqual(5);
+    expect(dag.nb_nodes).toStrictEqual(6);
     expect(dag.current_step_tags[VarDAGNode.TAG_0_CREATED]).toStrictEqual({
         [FakeDataHandler.get_var_data_B().index]: node_B,
         [FakeDataHandler.get_var_data_C().index]: node_C,
-        [FakeDataHandler.get_var_data_F().index]: node_F,
-        [FakeDataHandler.get_var_data_G().index]: node_G,
-        [FakeDataHandler.get_var_data_H().index]: node_H
-    });
-    expect(dag.tags[VarDAGNode.TAG_0_CREATED]).toStrictEqual({
-        [FakeDataHandler.get_var_data_B().index]: node_B,
-        [FakeDataHandler.get_var_data_C().index]: node_C,
+        [FakeDataHandler.get_var_data_E().index]: node_E,
         [FakeDataHandler.get_var_data_F().index]: node_F,
         [FakeDataHandler.get_var_data_G().index]: node_G,
         [FakeDataHandler.get_var_data_H().index]: node_H
     });
 
+    expect(dag.tags[VarDAGNode.TAG_0_CREATED]).toStrictEqual({
+        [FakeDataHandler.get_var_data_B().index]: node_B,
+        [FakeDataHandler.get_var_data_C().index]: node_C,
+        [FakeDataHandler.get_var_data_E().index]: node_E,
+        [FakeDataHandler.get_var_data_F().index]: node_F,
+        [FakeDataHandler.get_var_data_G().index]: node_G,
+        [FakeDataHandler.get_var_data_H().index]: node_H
+    });
 
     expect(dag.nodes[FakeDataHandler.get_var_data_A().index]).toBeUndefined();
     expect(dag.nodes[FakeDataHandler.get_var_data_B().index]).toStrictEqual(node_B);
     expect(dag.nodes[FakeDataHandler.get_var_data_C().index]).toStrictEqual(node_C);
-    expect(dag.nodes[FakeDataHandler.get_var_data_E().index]).toBeUndefined();
+    expect(dag.nodes[FakeDataHandler.get_var_data_E().index]).toStrictEqual(node_E);
     expect(dag.nodes[FakeDataHandler.get_var_data_F().index]).toStrictEqual(node_F);
     expect(dag.nodes[FakeDataHandler.get_var_data_G().index]).toStrictEqual(node_G);
     expect(dag.nodes[FakeDataHandler.get_var_data_H().index]).toStrictEqual(node_H);
@@ -565,13 +570,41 @@ test('DAG: test unlinkFromDAG', async () => {
         [FakeDataHandler.get_var_data_C().index]: node_C
     });
     expect(dag.leafs).toStrictEqual({
+        [FakeDataHandler.get_var_data_E().index]: node_E,
         [FakeDataHandler.get_var_data_F().index]: node_F,
         [FakeDataHandler.get_var_data_G().index]: node_G,
         [FakeDataHandler.get_var_data_H().index]: node_H
     });
 
     expect(node_B.outgoing_deps).toStrictEqual({
+        BE: new VarDAGNodeDep('BE', node_B, node_E),
         BF: new VarDAGNodeDep('BF', node_B, node_F)
     });
     expect(node_B.incoming_deps).toStrictEqual({});
+
+    expect(node_C.outgoing_deps).toStrictEqual({
+        CG: new VarDAGNodeDep('CG', node_C, node_G),
+        CH: new VarDAGNodeDep('CH', node_C, node_H)
+    });
+    expect(node_C.incoming_deps).toStrictEqual({});
+
+    expect(node_E.outgoing_deps).toStrictEqual({});
+    expect(node_E.incoming_deps).toStrictEqual({
+        BE: [new VarDAGNodeDep('BE', node_B, node_E)]
+    });
+
+    expect(node_F.outgoing_deps).toStrictEqual({});
+    expect(node_F.incoming_deps).toStrictEqual({
+        BF: [new VarDAGNodeDep('BF', node_B, node_F)]
+    });
+
+    expect(node_G.outgoing_deps).toStrictEqual({});
+    expect(node_G.incoming_deps).toStrictEqual({
+        CG: [new VarDAGNodeDep('CG', node_C, node_G)]
+    });
+
+    expect(node_H.outgoing_deps).toStrictEqual({});
+    expect(node_H.incoming_deps).toStrictEqual({
+        CH: [new VarDAGNodeDep('CH', node_C, node_H)]
+    });
 });

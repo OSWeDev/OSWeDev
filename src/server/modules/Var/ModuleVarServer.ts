@@ -699,39 +699,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         await VarsDatasVoUpdateHandler.push_invalidators(invalidators);
-
-        // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
-        // if ((!vos) || (!vos.length)) {
-        //     return;
-        // }
-
-        // for (let i in vos) {
-        //     let vo = vos[i];
-
-        //     if (!vo.check_param_is_valid(vo._type)) {
-        //         ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
-        //         continue;
-        //     }
-
-        //     let moduletable_vardata = VOsTypesManager.moduleTables_by_voType[vo._type];
-        //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
-
-        //     if (moduletable_vardata.is_segmented) {
-
-        //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
-
-        //         await RangeHandler.foreach_ranges(ranges, async (segment: number) => {
-        //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
-        //                 query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-        //             await ModuleServiceBase.getInstance().db.query(request);
-        //         }, moduletable_vardata.table_segmented_field_segment_type);
-
-        //     } else {
-        //         let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
-        //             query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-        //         await ModuleServiceBase.getInstance().db.query(request);
-        //     }
-        // }
     }
 
     public async delete_cache_and_imports_intersection(vos: VarDataBaseVO[]) {
@@ -754,39 +721,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         await VarsDatasVoUpdateHandler.push_invalidators(invalidators);
-
-        // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
-        // if ((!vos) || (!vos.length)) {
-        //     return;
-        // }
-
-        // for (let i in vos) {
-        //     let vo = vos[i];
-
-        //     if (!vo.check_param_is_valid(vo._type)) {
-        //         ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
-        //         continue;
-        //     }
-
-        //     let moduletable_vardata = VOsTypesManager.moduleTables_by_voType[vo._type];
-        //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
-
-        //     if (moduletable_vardata.is_segmented) {
-
-        //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
-
-        //         await RangeHandler.foreach_ranges(ranges, async (segment: number) => {
-        //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
-        //                 query_ + ';';
-        //             await ModuleServiceBase.getInstance().db.query(request);
-        //         }, moduletable_vardata.table_segmented_field_segment_type);
-
-        //     } else {
-        //         let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
-        //             query_ + ';';
-        //         await ModuleServiceBase.getInstance().db.query(request);
-        //     }
-        // }
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers

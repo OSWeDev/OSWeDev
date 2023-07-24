@@ -31,7 +31,7 @@ import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/Module
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
-import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
@@ -697,11 +697,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                 self.set_targets_facilitators_by_ids(
                     VOsTypesManager.vosArray_to_vosByIds(
-                        await ModuleDAO.getInstance().getVosByRefFieldsIds<IPlanTargetFacilitator>(
-                            this.program_plan_shared_module.target_facilitator_type_id,
-                            'target_id', targets_ids,
-                            'facilitator_id', facilitators_ids
-                        ))
+                        await query(this.program_plan_shared_module.target_facilitator_type_id)
+                            .filter_by_num_has(field_names<IPlanTargetFacilitator>().target_id, targets_ids)
+                            .filter_by_num_has(field_names<IPlanTargetFacilitator>().facilitator_id, facilitators_ids)
+                            .select_vos<IPlanTargetFacilitator>()
+                    )
                 );
             })());
         }

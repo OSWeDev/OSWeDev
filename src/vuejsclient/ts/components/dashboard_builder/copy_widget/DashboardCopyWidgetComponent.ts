@@ -9,10 +9,11 @@ import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilde
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
-import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import VueComponentBase from '../../VueComponentBase';
+import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import './DashboardCopyWidgetComponent.scss';
 
 @Component({
@@ -116,8 +117,9 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
             //Changement des identifiants widget de ces trads.
             let code = page_widget_trad.code_text;
             // Text
-            let translations: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<TranslationVO>(
-                TranslationVO.API_TYPE_ID, 'text_id', [page_widget_trad.id]);
+            let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<TranslationVO>().text_id, page_widget_trad.id)
+                .select_vos<TranslationVO>();
 
             delete page_widget_trad.id; //On supprime l'identifiant pour éviter les confusions
 

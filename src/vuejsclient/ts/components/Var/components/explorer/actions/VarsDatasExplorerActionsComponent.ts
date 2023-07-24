@@ -9,6 +9,7 @@ import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarsDatasExplorerVuexAction, ModuleVarsDatasExplorerVuexGetter } from '../VarsDatasExplorerVuexStore';
 import './VarsDatasExplorerActionsComponent.scss';
+import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./VarsDatasExplorerActionsComponent.pug'),
@@ -83,11 +84,8 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
         for (let i in this.get_filter_params) {
             let filter_param = this.get_filter_params[i];
 
-            let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(filter_param._type, [filter_param], null);
-            for (let j in datas) {
-                let data = datas[j];
-                res[data.index] = data;
-            }
+            let data: VarDataBaseVO = await query(filter_param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, filter_param.index).select_vo<VarDataBaseVO>();
+            res[data.index] = data;
         }
 
         this.set_filtered_datas(res);

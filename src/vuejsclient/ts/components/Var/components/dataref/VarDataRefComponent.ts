@@ -23,6 +23,8 @@ import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
 import HourHandler from '../../../../../../shared/tools/HourHandler';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -224,11 +226,9 @@ export default class VarDataRefComponent extends VueComponentBase {
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
         if ((!res) || (!res.id)) {
             ConsoleHandler.warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
-            let bdddatas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(clone._type, [clone]);
-            if (bdddatas && bdddatas.length) {
+            let bdddata: VarDataBaseVO = await query(clone._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, clone.index).select_vo<VarDataBaseVO>();
+            if (bdddata) {
                 ConsoleHandler.log('...trouvé on met à jour');
-                let bdddata: VarDataBaseVO = bdddatas[0];
-
                 if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts > clone.value_ts))) {
                     ConsoleHandler.error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
                     return;
