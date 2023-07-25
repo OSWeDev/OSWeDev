@@ -16,7 +16,7 @@ export default class PostAPIDefinition<T, U> extends APIDefinition<T, U> {
         public api_name: string,
         public API_TYPES_IDS_involved: (string[]) | ((value: IAPIParamTranslator<T> | T) => string[]),
         public param_translator: IAPIParamTranslatorStatic<T> = null,
-        public api_return_type: number = 0) {
+        public api_return_type: number = APIDefinition.API_RETURN_TYPE_JSON) {
         super(access_policy_name, APIDefinition.API_TYPE_POST, api_name, API_TYPES_IDS_involved, param_translator, api_return_type);
     }
 }

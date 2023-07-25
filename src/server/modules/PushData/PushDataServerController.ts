@@ -7,6 +7,7 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -30,6 +31,7 @@ export default class PushDataServerController {
 
     public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
     public static TASK_NAME_notifyUserLoggedAndRedirectHome: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirectHome';
+    public static TASK_NAME_notifyAPIResult: string = 'PushDataServerController' + '.notifyAPIResult';
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
     public static TASK_NAME_notifyVarsDatasBySocket: string = 'PushDataServerController' + '.notifyVarsDatasBySocket';
@@ -364,6 +366,30 @@ export default class PushDataServerController {
     }
 
     /**
+     * On notifie un utilisateur, via son user_id et son client_tab_id pour renvoyer le résultat d'un appel POST ou POST_FOR_GET dont l'api est def en result notif
+     * @param user_id
+     * @param client_tab_id
+     * @param res
+     */
+    public async notifyAPIResult(user_id: number, client_tab_id: string, api_call_id: number, res: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyAPIResult, user_id, client_tab_id, api_call_id, res)) {
+            return;
+        }
+
+        user_id = ((user_id == null) ? 0 : user_id);
+        let notification: NotificationVO = this.getAPIResultNotif(user_id, client_tab_id, null, api_call_id, res);
+        if (!notification) {
+            ConsoleHandler.error('notifyAPIResult: no notification');
+            return;
+        }
+
+        await this.notify(notification);
+    }
+
+
+    /**
      * On notifie un utilisateur, via son user_id et son client_tab_id pour notifier la fenêtre abonnée uniquement
      * @param user_id
      * @param client_tab_id
@@ -383,7 +409,6 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarData');
     }
 
     /**
@@ -1019,6 +1044,26 @@ export default class PushDataServerController {
 
             ConsoleHandler.error('notify:' + notification.user_id + ':' + error);
         }
+    }
+
+    private getAPIResultNotif(user_id: number, client_tab_id: string, socket_id: string, api_call_id: number, res: any): NotificationVO {
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.api_type_id = null;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_APIRESULT;
+        notification.read = true;
+        notification.socket_ids = socket_id ? [socket_id] : null;
+        notification.client_tab_id = client_tab_id;
+        notification.user_id = user_id;
+        notification.auto_read_if_connected = true;
+        notification.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            APINotifTypeResultVO.createNew(
+                api_call_id,
+                res
+            )
+        ]));
+        return notification;
     }
 
     private getVarDataNotif(user_id: number, client_tab_id: string, socket_id: string, vos: VarDataValueResVO[]): NotificationVO {

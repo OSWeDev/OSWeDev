@@ -46,8 +46,11 @@ export default class APIControllerWrapper {
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
         sanitize_result: (res: any, ...params) => any = null,
+        use_notif_for_result: boolean = false
     ): (...params) => Promise<U> {
-        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result);
+        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(
+            api_name, sanitize_params, precondition,
+            precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result, use_notif_for_result);
     }
 
     public static registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
