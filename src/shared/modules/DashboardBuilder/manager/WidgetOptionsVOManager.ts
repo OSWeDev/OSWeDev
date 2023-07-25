@@ -11,11 +11,11 @@ import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
 
 /**
- * DashboardWidgetVOManager
+ * WidgetOptionsVOManager
  *  - Widgets manager for the dashboard builder
  *  - Is actually DashboardWidgetTypeVOManager
  */
-export default class DashboardWidgetVOManager {
+export default class WidgetOptionsVOManager {
 
     /**
      * check_dashboard_widget_access
@@ -52,27 +52,32 @@ export default class DashboardWidgetVOManager {
      *
      * TODO: Maybe create AbstractWidgetOptionsVO and use it as return type
      *
-     * @param {string} name
-     * @param {any} props
+     * @param {string} widget_name
+     * @param {string | Object} json_options
      * @returns {any}
      */
-    public static create_widget_options_vo_by_name(name: string, props?: any): any {
-        switch (name) {
+    public static create_widget_options_vo_by_name(widget_name: string, json_options?: any): any {
+
+        if (typeof json_options === 'string') {
+            json_options = JSON.parse(json_options);
+        }
+
+        switch (widget_name) {
             case DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter:
-                return new FieldValueFilterWidgetOptionsVO().from(props);
+                return new FieldValueFilterWidgetOptionsVO().from(json_options);
             case DashboardWidgetVO.WIDGET_NAME_monthfilter:
-                return new MonthFilterWidgetOptionsVO().from(props);
+                return new MonthFilterWidgetOptionsVO().from(json_options);
             case DashboardWidgetVO.WIDGET_NAME_yearfilter:
-                return new YearFilterWidgetOptionsVO().from(props);
+                return new YearFilterWidgetOptionsVO().from(json_options);
             default:
                 throw new Error(
                     `Factory for the given WidgetOptionsVO ` +
-                    `name: "${name}" is not implemented yet!`
+                    `widget_name: "${widget_name}" is not implemented yet!`
                 );
         }
     }
 
-    public static async registerWidgetType(
+    public static async register_widget_type(
         widget_type: DashboardWidgetVO,
         options_constructor: () => any,
         get_selected_fields: (page_widget: DashboardPageWidgetVO) => {
@@ -80,7 +85,7 @@ export default class DashboardWidgetVOManager {
         }
     ) {
 
-        const self = DashboardWidgetVOManager.getInstance();
+        const self = WidgetOptionsVOManager.getInstance();
 
         if (!self.initialized) {
             await self.initialize();
@@ -121,7 +126,7 @@ export default class DashboardWidgetVOManager {
             check_access?: boolean,
         }
     ): Promise<DashboardWidgetVO[]> {
-        const self = DashboardWidgetVOManager.getInstance();
+        const self = WidgetOptionsVOManager.getInstance();
 
         // Return sorted_widgets_types if already loaded
         if (!options?.refresh && self.sorted_widgets_types?.length > 0) {
@@ -132,7 +137,7 @@ export default class DashboardWidgetVOManager {
         // We should always check access to the dashboard_widget vo
         // unless options.check_access is explicitly false
         if (options?.check_access !== false) {
-            const has_access = await DashboardWidgetVOManager.check_dashboard_widget_access();
+            const has_access = await WidgetOptionsVOManager.check_dashboard_widget_access();
             if (!has_access) {
                 return;
             }
@@ -156,15 +161,15 @@ export default class DashboardWidgetVOManager {
         return sorted_widgets;
     }
 
-    public static getInstance(): DashboardWidgetVOManager {
-        if (!DashboardWidgetVOManager.instance) {
-            DashboardWidgetVOManager.instance = new DashboardWidgetVOManager();
+    public static getInstance(): WidgetOptionsVOManager {
+        if (!WidgetOptionsVOManager.instance) {
+            WidgetOptionsVOManager.instance = new WidgetOptionsVOManager();
         }
 
-        return DashboardWidgetVOManager.instance;
+        return WidgetOptionsVOManager.instance;
     }
 
-    protected static instance: DashboardWidgetVOManager;
+    protected static instance: WidgetOptionsVOManager;
 
     public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
     public widgets_options_constructor_by_widget_id: { [widget_id: number]: () => any } = {};
@@ -189,21 +194,19 @@ export default class DashboardWidgetVOManager {
         }
 
         // Check access
-        const has_access = await DashboardWidgetVOManager.check_dashboard_widget_access();
+        const has_access = await WidgetOptionsVOManager.check_dashboard_widget_access();
         if (!has_access) {
             this.initialized = true;
             return;
         }
 
-        await DashboardWidgetVOManager.find_all_sorted_widgets_types({ check_access: false });
+        await WidgetOptionsVOManager.find_all_sorted_widgets_types({ check_access: false });
 
         this.initialized = true;
     }
 
-
-
     /**
-     * @deprecated use registerWidgetType instead
+     * @deprecated use register_widget_type instead
      */
     public async registerWidget(
         widget_type: DashboardWidgetVO,
@@ -212,6 +215,6 @@ export default class DashboardWidgetVOManager {
             [api_type_id: string]: { [field_id: string]: boolean }
         }
     ) {
-        return DashboardWidgetVOManager.registerWidgetType(widget_type, options_constructor, get_selected_fields);
+        return WidgetOptionsVOManager.register_widget_type(widget_type, options_constructor, get_selected_fields);
     }
 }

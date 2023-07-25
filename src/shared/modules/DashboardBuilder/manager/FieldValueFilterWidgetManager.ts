@@ -20,7 +20,7 @@ export default class FieldValueFilterWidgetManager {
      *
      * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
      */
-    public static async get_field_value_filters_widgets_options(
+    public static async get_field_value_filters_widgets_options_metadata(
         dashboard_page_id: number,
     ): Promise<
         {

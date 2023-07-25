@@ -4,8 +4,8 @@
         .input_wrapper
             toggle-button(
                 @change="switch_hide_filter" 
-                :value="hide_filter" 
-                :sync="false"
+                v-model="hide_filter" 
+                :sync="true"
                 :width="60"
                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
             )
@@ -15,8 +15,8 @@
         .input_wrapper
             toggle-button(
                 @change="switch_is_vo_field_ref"
-                :value="is_vo_field_ref"
-                :sync="false"
+                v-model="is_vo_field_ref"
+                :sync="true"
                 :width="150"
                 :labels="{checked: label('month_filter_widget_component.is_vo_field_ref.data'), unchecked: label('month_filter_widget_component.is_vo_field_ref.value')}")
 
@@ -25,8 +25,8 @@
         .input_wrapper
             toggle-button(
                 @change="switch_month_relative_mode" 
-                :value="month_relative_mode" 
-                :sync="false"
+                v-model="month_relative_mode" 
+                :sync="true"
                 :width="150"
                 :labels="{checked: label('month_filter_widget_component.month_relative_mode.data'), unchecked: label('month_filter_widget_component.month_relative_mode.value')}")
 
@@ -50,18 +50,30 @@
         .input_wrapper
             toggle-button(
                 @change="switch_auto_select_month" 
-                :value="auto_select_month" 
-                :sync="false"
+                v-model="auto_select_month" 
+                :sync="true"
                 :width="150"
                 :labels="{checked: label('month_filter_widget_component.auto_select_month.data'), unchecked: label('month_filter_widget_component.auto_select_month.value')}")
+
+    template
+        .is_month_cumulable
+            .input_label {{ label('month_filter_widget_component.is_month_cumulable') }}
+            .input_wrapper
+                toggle-button(
+                    @change="toggle_is_month_cumulable" 
+                    v-model="is_month_cumulable" 
+                    :sync="true"
+                    :width="150"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 
 
     .auto_select_month_relative_mode 
         .input_label {{ label('month_filter_widget_component.auto_select_month_relative_mode') }}
         .input_wrapper
             toggle-button(
                 @change="switch_auto_select_month_relative_mode" 
-                :value="auto_select_month_relative_mode" 
-                :sync="false"
+                v-model="auto_select_month_relative_mode" 
+                :sync="true"
                 :width="150"
                 :labels="{checked: label('month_filter_widget_component.auto_select_month_relative_mode.data'), unchecked: label('month_filter_widget_component.auto_select_month_relative_mode.value')}")
 
@@ -70,10 +82,11 @@
         .input_wrapper
             toggle-button(
                 @change="switch_is_relative_to_other_filter" 
-                :value="is_relative_to_other_filter" 
-                :sync="false"
+                v-model="is_relative_to_other_filter" 
+                :sync="true"
                 :width="150"
-                :labels="{checked: label('month_filter_widget_component.is_relative_to_other_filter.filter'), unchecked: label('month_filter_widget_component.is_relative_to_other_filter.now')}")
+                :labels="{checked: label('month_filter_widget_component.is_relative_to_other_filter.filter'), unchecked: label('month_filter_widget_component.is_relative_to_other_filter.now')}"
+            )
 
     .relative_to_other_filter_id(v-if='auto_select_month_relative_mode && is_relative_to_other_filter')
         .input_label {{ label('month_filter_widget_component.relative_to_other_filter_id') }}
@@ -87,8 +100,8 @@
             .input_wrapper
                 toggle-button(
                     @change="toggle_can_select_all" 
-                    :value="can_select_all" 
-                    :sync="false"
+                    v-model="can_select_all" 
+                    :sync="true"
                     :width="150"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 ) 

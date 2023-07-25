@@ -144,6 +144,7 @@ export default class ContextFilterVOManager {
 
     /**
      * Create Context Filter From Month Filter Widget Options
+     *  - TODO: when is_month_cumulable is true, we must create a ContextFilterVO that contains all months relative to the preselected month_relative_mode
      *
      * @param {MonthFilterWidgetOptionsVO} [widget_options]
      *
@@ -169,7 +170,6 @@ export default class ContextFilterVOManager {
                 months.push(i.toString());
             }
         }
-
 
         for (const i in months) {
             const month = months[i];
@@ -728,7 +728,9 @@ export default class ContextFilterVOManager {
     }
 
     /**
-     * Get Filters From Active Field Filters
+     * get_context_filters_from_active_field_filters
+     *  - Get Context Filters From Active Field Filters
+     *  - Flatten the active_field_filters to get the context_filters in a single array
      *
      * @param {FieldFiltersVO} active_field_filters
      * @returns {ContextFilterVO[]}
@@ -761,7 +763,7 @@ export default class ContextFilterVOManager {
 
     /**
      * Filter Context Filter Tree By Vo Type
-     * - We must filter the context_filter e.g. (case when supervision type)
+     * - Filter the context_filter e.g. (case when supervision type)
      * - Filter the context_filter tree to only keep the one we want to filter on
      * - We are only intererested by the the actual filter to apply on the given vo_type
      *

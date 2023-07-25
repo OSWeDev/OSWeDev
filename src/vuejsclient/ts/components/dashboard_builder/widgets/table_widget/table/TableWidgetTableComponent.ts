@@ -68,6 +68,8 @@ import './TableWidgetTableComponent.scss';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
 import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import DashboardPageWidgetVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
+import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -170,6 +172,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private old_widget_options: TableWidgetOptionsVO = null;
     private widget_options: TableWidgetOptionsVO = null;
+    private widgets_options_metadata: TableWidgetOptionsVO = null;
 
     private table_columns: TableColumnDescVO[] = [];
 
@@ -463,24 +466,29 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      * Get Active Filter Params By Translatable Name Code Text
      *  - Shall provide parameters (from active filter) for dynamique translated text
      *
-     * @param code <string>
-     * @returns <[active_filter_name: string]: string | number>
+     * @param {string} code
+     * @returns {[param_key: string]: string | number}
      */
-    private get_active_filter_params_by_translatable_name_code_text(code: string): { [active_filter_name: string]: string | number } {
-        if (!(code?.length > 0)) { return; }
+    private get_active_filter_translation_params_by_translatable_name_code_text(code: string): { [param_key: string]: string | number } {
+        if (!(code?.length > 0)) {
+            return;
+        }
 
         const active_field_filters = this.get_active_field_filters;
 
         // We must have active fields filters
-        if (!(Object.keys(active_field_filters)?.length > 0)) { return; }
+        if (!(Object.keys(active_field_filters)?.length > 0)) {
+            return;
+        }
 
-        let res: { [active_filter_name: string]: string | number } = null;
+        let res: { [param_key: string]: string | number } = null;
 
         const translated_text: string = this.get_flat_locale_translations[code];
 
-        // Active filter checker + get filter name e.g. {#active_filter:Datesmoins1}
-        const rgx = /\{[\"|\']?(?<checker_name>\#active_filter\:)(?<filter_name>\w+)[\"|\']?\}/;
+        // Active filter checker + get page_widget_id e.g. {#active_filter:500}
+        const rgx = /\{[\"|\']?(?<checker_name>\#active_filter\:)(?<page_widget_id>\w+)[\"|\']?\}/;
 
+        // Check if translated text contains active filter checker
         const is_active_filter_type = rgx.test(translated_text);
 
         if (is_active_filter_type) {
@@ -489,23 +497,45 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             // exec regex on translated text
             const rgx_result = rgx.exec(translated_text);
 
-            // find the actual field filters key (required by translated text) from active_field_filters
+            const { page_widget_id } = rgx_result?.groups;
+
+            // TODO: find field_filter by page_widget_id instead of filter_name
+            const page_widget = this.all_page_widget.find((pw: DashboardPageWidgetVO) => {
+                return pw.id == parseInt(page_widget_id);
+            });
+
+            // Case when page_widget does not exist
+            if (!page_widget) {
+                return;
+            }
+
+            const widget_options = JSON.parse(page_widget.json_options);
+
+            // Case when widget_options is not a vo_field_ref
+            const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                widget_options,
+            );
+
+            // Find the actual field filters key (required by translated text) from active_field_filters
             const field_filters_key: string = Object.keys(active_field_filters)
                 .find((key_a) => Object.keys(active_field_filters[key_a])
-                    .find((key_b) => key_b === rgx_result?.groups?.filter_name)
+                    .find((key_b) => key_b === vo_field_ref.field_id)
                 );
 
-            // case when active filter does not exist
-            if (!(field_filters_key?.length > 0)) { return; }
+            // Case when active filter does not exist
+            if (!(field_filters_key?.length > 0)) {
+                return;
+            }
 
             // The actual required filter
             // - At this step it must be found
-            const context_filter: ContextFilterVO = active_field_filters[field_filters_key][rgx_result.groups.filter_name];
+            const context_filter: ContextFilterVO = active_field_filters[field_filters_key][vo_field_ref.field_id];
 
             // filter to HMI readable
             const filter_readable = ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter);
 
-            const params_key = `#active_filter:${rgx_result.groups.filter_name}`;
+            // The params_key to be used in translated text
+            const params_key = `#active_filter:${page_widget_id}`;
 
             res[params_key] = filter_readable;
         }
@@ -1127,7 +1157,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     // switch (field.field_type) {
 
                     // let data_field: SimpleDatatableFieldVO<any, any> = SimpleDatatableFieldVO.createNew(field.field_id, field.field_label.code_text);
-                    // data_field.setModuleTable(moduleTable);
+                    // data_field.setModuleTable(moduleTable);²
                     // res[column.id] = data_field;
                     // break;
                     // default:
@@ -1386,7 +1416,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         this.update_cpt_live++;
         this.is_busy = true;
 
-        // const table_fields = this.fields;
         const table_fields = TableWidgetManager.get_table_fields_by_widget_options(
             this.dashboard,
             this.widget_options
@@ -2602,7 +2631,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     /**
      * get_validation_page_widgets
-     * - Get all widget validation filters
+     *  - Get all widget validation filters
      * @returns {DashboardPageWidgetVO[]}
      */
     private get_validation_page_widgets(): DashboardPageWidgetVO[] {

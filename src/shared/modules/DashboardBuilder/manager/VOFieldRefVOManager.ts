@@ -23,16 +23,16 @@ export default class VOFieldRefVOManager {
         page_id?: number
     ): Promise<string> {
 
-        // Get sorted_page_widgets_options from dashboard
-        let sorted_page_widgets_options = null;
+        // Get widgets_options_metadata from dashboard
+        let widgets_options_metadata = null;
         if (page_id) {
-            sorted_page_widgets_options = await DashboardPageWidgetVOManager.find_all_wigdets_options_metadata_by_page_id(page_id);
+            widgets_options_metadata = await DashboardPageWidgetVOManager.find_all_widgets_options_metadata_by_page_id(page_id);
         } else {
             // TODO: To be removed
-            sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options();
+            widgets_options_metadata = DashboardPageWidgetVOManager.find_all_widgets_options_metadata();
         }
 
-        let page_wigdet_options = null;
+        let page_widget_options = null;
         // Label of filter to be displayed
         let label: string = null;
 
@@ -43,10 +43,10 @@ export default class VOFieldRefVOManager {
             );
         }
 
-        if (!isEmpty(sorted_page_widgets_options)) {
-            // Get the page_wigdet_options from sorted_page_widgets_options
-            // - The page_wigdet_options is used to get the label of the filter
-            page_wigdet_options = Object.values(sorted_page_widgets_options)?.filter((sorted_page_widget_option: any) => {
+        if (!isEmpty(widgets_options_metadata)) {
+            // Get the page_widget_options from widgets_options_metadata
+            // - The page_widget_options is used to get the label of the filter
+            page_widget_options = Object.values(widgets_options_metadata)?.filter((sorted_page_widget_option: any) => {
                 const widget_options = sorted_page_widget_option?.widget_options;
                 const _vo_field_ref = widget_options?.vo_field_ref;
 
@@ -61,12 +61,12 @@ export default class VOFieldRefVOManager {
             })?.shift();
         }
 
-        if (page_wigdet_options?.widget_options?.is_vo_field_ref === false) {
-            label = page_wigdet_options?.widget_options?.custom_filter_name;
+        if (page_widget_options?.widget_options?.is_vo_field_ref === false) {
+            label = page_widget_options?.widget_options?.custom_filter_name;
 
-        } else if (page_wigdet_options?.page_widget_id) {
+        } else if (page_widget_options?.page_widget_id) {
             label = (vo_field_ref as VOFieldRefVO).get_translatable_name_code_text(
-                page_wigdet_options.page_widget_id
+                page_widget_options.page_widget_id
             );
         }
 
@@ -83,7 +83,7 @@ export default class VOFieldRefVOManager {
      */
     public static create_vo_field_ref_vo_from_widget_options(
         widget_options: {
-            vo_field_ref: {
+            vo_field_ref?: {
                 api_type_id: string,
                 field_id: string
             }

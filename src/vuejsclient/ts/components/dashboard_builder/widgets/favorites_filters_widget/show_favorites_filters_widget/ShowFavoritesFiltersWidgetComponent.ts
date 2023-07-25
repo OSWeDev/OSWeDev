@@ -429,9 +429,9 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private async get_selectionnable_active_field_filters(): Promise<FieldFiltersVO> {
         const dashboard_page_id = this.dashboard_page.id;
 
-        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options(dashboard_page_id);
-        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options(dashboard_page_id);
-        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options(dashboard_page_id);
+        const field_value_filters_widgets_options = await FieldValueFilterWidgetManager.get_field_value_filters_widgets_options_metadata(dashboard_page_id);
+        const month_filters_widgets_options = await MonthFilterWidgetManager.get_month_filters_widgets_options_metadata(dashboard_page_id);
+        const year_filters_widgets_options = await YearFilterWidgetManager.get_year_filters_widgets_options_metadata(dashboard_page_id);
 
         const widgets_options: any[] = [];
 

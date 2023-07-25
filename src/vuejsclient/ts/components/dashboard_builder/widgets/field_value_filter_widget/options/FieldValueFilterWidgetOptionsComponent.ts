@@ -6,7 +6,7 @@ import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilt
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import VOFieldRefVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOHandler';
 import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
-import DashboardWidgetVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardWidgetVOManager';
+import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
@@ -661,12 +661,12 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         // this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        const all_widgets_types: DashboardWidgetVO[] = DashboardWidgetVOManager.getInstance().sorted_widgets_types;
+        const all_widgets_types: DashboardWidgetVO[] = WidgetOptionsVOManager.getInstance().sorted_widgets_types;
         const widget_type: DashboardWidgetVO = all_widgets_types.find((e) => e.id == this.page_widget.widget_id);
 
         let name = widget_type?.name;
 
-        const get_selected_fields = DashboardWidgetVOManager.getInstance().widgets_get_selected_fields[name];
+        const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
 
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
 

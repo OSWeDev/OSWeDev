@@ -82,7 +82,7 @@ include ../../../../../../views/mixins/loading.pug
 
                                         Inlinetranslatabletext( 
                                             :code_text="column.get_translatable_name_code_text(page_widget.id)" 
-                                            :translation_params="get_active_filter_params_by_translatable_name_code_text(column.get_translatable_name_code_text(page_widget.id))" 
+                                            :translation_params="get_active_filter_translation_params_by_translatable_name_code_text(column.get_translatable_name_code_text(page_widget.id))" 
                                         )
 
                                     th(

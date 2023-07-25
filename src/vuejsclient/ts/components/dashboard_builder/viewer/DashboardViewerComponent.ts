@@ -6,7 +6,7 @@ import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
 import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
-import DashboardWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardWidgetVOManager';
+import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -138,7 +138,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return;
         }
 
-        DashboardWidgetVOManager.getInstance().initialize();
+        WidgetOptionsVOManager.getInstance().initialize();
 
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];

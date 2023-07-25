@@ -24,7 +24,7 @@ import ComponentDatatableFieldVO from '../../DAO/vos/datatable/ComponentDatatabl
 import ModuleTable from '../../ModuleTable';
 import DashboardBuilderBoardManager from './DashboardBuilderBoardManager';
 import DashboardPageWidgetVOManager from './DashboardPageWidgetVOManager';
-import DashboardWidgetVOManager from './DashboardWidgetVOManager';
+import WidgetOptionsVOManager from './WidgetOptionsVOManager';
 import LocaleManager from '../../../tools/LocaleManager';
 import ExportVarcolumnConf from '../../DataExport/vos/ExportVarcolumnConf';
 import { cloneDeep } from 'lodash';
@@ -165,7 +165,7 @@ export default class TableWidgetManager {
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
     ): ContextQueryVO {
         // Get sorted_widgets from dashboard (or sorted_widgets_types)
-        const { sorted_widgets } = DashboardWidgetVOManager.getInstance();
+        const { sorted_widgets } = WidgetOptionsVOManager.getInstance();
         // Get page_widgets (or all_page_widgets from dashboard)
         const { page_widgets } = DashboardPageWidgetVOManager.getInstance();
 

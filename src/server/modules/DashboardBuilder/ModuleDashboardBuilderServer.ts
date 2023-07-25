@@ -472,6 +472,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Mois maximum (...,Décembre=12)'
         }, 'month_filter_widget_component.max_month.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélection cumulée jusqu\'à la selection relative'
+        }, 'month_filter_widget_component.is_month_cumulable.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-selection automatique'
         }, 'month_filter_widget_component.auto_select_month.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -1275,8 +1278,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Chaque colone peut &ecirc;tre configur&eacute;e individuellement et afficher ' +
                 'les valeurs de filtres actifs avec lesquels elle a &eacute;t&eacute; filtr&eacute;e, ' +
                 'pour les afficher if faut entrer le nom de la colonne suivi de ' +
-                '\{\#active_filter\:\&lt;champ\&gt;\} o&ugrave; \&lt;champ\&gt; est le nom du champ du filtre ' +
-                'actif &agrave; afficher.'
+                '\{\#active_filter\:\&lt;page_widget_id\&gt;\} o&ugrave; \&lt;page_widget_id\&gt; ' +
+                'est l\'id du widget de type filtre actif &agrave; afficher.'
         }, 'table_widget_options_component.columns.ca_tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

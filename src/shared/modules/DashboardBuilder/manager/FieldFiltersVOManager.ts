@@ -3,7 +3,7 @@ import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import TranslationManager from "../../Translation/manager/TranslationManager";
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import DashboardWidgetVOManager from "./DashboardWidgetVOManager";
+import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
@@ -49,7 +49,7 @@ export default class FieldFiltersVOManager {
         );
 
         // Get all widgets_types
-        const widgets_types = await DashboardWidgetVOManager.find_all_sorted_widgets_types();
+        const widgets_types = await WidgetOptionsVOManager.find_all_sorted_widgets_types();
 
         // Create Default FieldFilters from each page_widget
         for (const key in widgets_types) {
@@ -68,7 +68,7 @@ export default class FieldFiltersVOManager {
                 let widget_options: any = null;
 
                 try {
-                    widget_options = DashboardWidgetVOManager.create_widget_options_vo_by_name(
+                    widget_options = WidgetOptionsVOManager.create_widget_options_vo_by_name(
                         widget.name,
                         json_options
                     );
@@ -135,7 +135,7 @@ export default class FieldFiltersVOManager {
 
         if (page_id != null) {
             // Get all widgets_options of the given dashboard_page id
-            const widgets_options = await DashboardPageWidgetVOManager.find_all_wigdets_options_by_page_id(
+            const widgets_options = await DashboardPageWidgetVOManager.find_all_widgets_options_by_page_id(
                 page_id
             );
 
@@ -402,6 +402,35 @@ export default class FieldFiltersVOManager {
 
         return context_filter;
     }
+
+    /**
+     * get_context_filter_by_widget_options_from_field_filters
+     *
+     * @param {any} widget_options
+     * @param {FieldFiltersVO} field_filters
+     * @returns {ContextFilterVO}
+     */
+    public static get_context_filter_by_widget_options_from_field_filters(
+        widget_options: any,
+        field_filters: FieldFiltersVO,
+    ): ContextFilterVO {
+
+        if (!widget_options) {
+            return null;
+        }
+
+        const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+            widget_options
+        );
+
+        const context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_from_field_filters(
+            vo_field_ref,
+            field_filters
+        );
+
+        return context_filter;
+    }
+
     /**
      * Update field_filters by required api type ids
      * - The aim of this function is to update and return field_filters for each given api_type_id
