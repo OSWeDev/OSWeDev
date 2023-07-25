@@ -10,6 +10,9 @@ export default abstract class APIDefinition<T, U> {
     public static API_RETURN_TYPE_JSON: number = 0;
     public static API_RETURN_TYPE_RES: number = 1;
     public static API_RETURN_TYPE_FILE: number = 2;
+    /**
+     * ATTENTION : à ce jour pas de timeOut defini
+     */
     public static API_RETURN_TYPE_NOTIF: number = 3;
 
     /**
