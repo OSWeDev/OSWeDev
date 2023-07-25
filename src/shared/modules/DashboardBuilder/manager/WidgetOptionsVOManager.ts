@@ -9,6 +9,10 @@ import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
+import MonthFilterWidgetManager from "./MonthFilterWidgetManager";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
+import YearFilterWidgetManager from "./YearFilterWidgetManagers";
 
 /**
  * WidgetOptionsVOManager
@@ -44,6 +48,37 @@ export default class WidgetOptionsVOManager {
         }
 
         return true;
+    }
+
+    /**
+     * create_context_filter_from_widget_options
+     *  - This method is responsible for creating the context filter from the given widget options
+     *
+     * @param {string} [widget_name]
+     * @param {any} [widget_options] TODO: we must create a AbstractWidgetOptionsVO
+     *
+     * @returns {ContextFilterVO}
+     */
+    public static create_context_filter_from_widget_options(widget_name: string, widget_options: any): ContextFilterVO {
+        switch (widget_name) {
+            case DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter:
+                return FieldValueFilterWidgetManager.create_context_filter_from_widget_options(
+                    widget_options
+                );
+            case DashboardWidgetVO.WIDGET_NAME_monthfilter:
+                return MonthFilterWidgetManager.create_context_filter_from_widget_options(
+                    widget_options
+                );
+            case DashboardWidgetVO.WIDGET_NAME_yearfilter:
+                return YearFilterWidgetManager.create_context_filter_from_widget_options(
+                    widget_options
+                );
+            default:
+                throw new Error(
+                    `ContextFilter for the given WidgetOptionsVO ` +
+                    `name: "${widget_name}" is not implemented yet!`
+                );
+        }
     }
 
     /**

@@ -38,6 +38,7 @@ import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -371,7 +372,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
-        const context_filter = ContextFilterVOManager.create_context_filter_from_string_filter_options(
+        const context_filter = FieldValueFilterWidgetManager.create_context_filter_from_string_filter_options(
             this.vo_field_ref,
             this.tmp_filter_active_options,
             {
@@ -409,7 +410,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             let filter_opt_value: string = this.tmp_filter_active_options[i].label;
             if (!this.tmp_filter_active_options_lvl2[filter_opt_value] || !this.tmp_filter_active_options_lvl2[filter_opt_value].length) {
 
-                const context_filter = ContextFilterVOManager.create_context_filter_from_string_filter_options(
+                const context_filter = FieldValueFilterWidgetManager.create_context_filter_from_string_filter_options(
                     this.vo_field_ref,
                     [this.tmp_filter_active_options[i]],
                     {
@@ -429,7 +430,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 continue;
             }
 
-            const context_filter = ContextFilterVOManager.create_context_filter_from_string_filter_options(
+            const context_filter = FieldValueFilterWidgetManager.create_context_filter_from_string_filter_options(
                 this.vo_field_ref_lvl2,
                 this.tmp_filter_active_options_lvl2[filter_opt_value],
                 {
@@ -442,7 +443,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 continue;
             }
 
-            const context_filter_lvl1 = ContextFilterVOManager.create_context_filter_from_string_filter_options(
+            const context_filter_lvl1 = FieldValueFilterWidgetManager.create_context_filter_from_string_filter_options(
                 this.vo_field_ref,
                 [filter_visible_options_by_values[filter_opt_value]],
                 {

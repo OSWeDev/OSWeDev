@@ -13,7 +13,6 @@ import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -213,7 +212,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
         this.is_month_cumulable = this.widget_options.is_month_cumulable;
 
-        this.selected_months = MonthFilterWidgetManager.get_default_selected_months_from_widget_options(
+        this.selected_months = MonthFilterWidgetManager.get_selected_months_from_widget_options(
             this.widget_options
         );
     }
@@ -453,28 +452,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     }
 
     get months(): string[] {
-        let res: string[] = [];
-
-        if ((!this.widget_options) || (this.widget_options.min_month == null) || (this.widget_options.max_month == null)) {
-            return [];
-        }
-
-        if ((this.widget_options.max_month - this.widget_options.min_month) > 12) {
-            return [];
-        }
-
-        if (this.widget_options.month_relative_mode) {
-
-            let current_month = Dates.month(Dates.now()) + 1;
-            for (let i = current_month + this.widget_options.min_month; i <= current_month + this.widget_options.max_month; i++) {
-                res.push(i.toString());
-            }
-        } else {
-            for (let i = this.widget_options.min_month; i <= this.widget_options.max_month; i++) {
-                res.push(i.toString());
-            }
-        }
-        return res;
+        return MonthFilterWidgetManager.get_available_months_from_widget_options(
+            this.widget_options
+        );
     }
 
     /**

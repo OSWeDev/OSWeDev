@@ -87,7 +87,7 @@ export default class FieldFiltersVOManager {
 
                 // context_filter must be a ContextFilterVO
                 // context_filter will be null if the widget_options does not have prefilled default options
-                const context_filter: ContextFilterVO = ContextFilterVOManager.create_context_filter_from_widget_options(
+                const context_filter: ContextFilterVO = WidgetOptionsVOManager.create_context_filter_from_widget_options(
                     widget.name,
                     widget_options
                 );

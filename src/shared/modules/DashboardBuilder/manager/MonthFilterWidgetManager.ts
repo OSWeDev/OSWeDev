@@ -3,6 +3,8 @@ import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import RangeHandler from "../../../tools/RangeHandler";
+import NumSegment from "../../DataRender/vos/NumSegment";
+import NumRange from "../../DataRender/vos/NumRange";
 
 /**
  * MonthFilterWidgetManager
@@ -13,18 +15,77 @@ import RangeHandler from "../../../tools/RangeHandler";
 export default class MonthFilterWidgetManager {
 
     /**
-     * get_default_available_months_from_widget_options
+     * create_context_filter_from_widget_options
+     *  - TODO: when is_month_cumulable is true, we must create a ContextFilterVO that contains all months relative to the preselected month_relative_mode
+     *
+     * @param {MonthFilterWidgetOptionsVO} [widget_options]
+     *
+     * @returns {ContextFilterVO}
+     */
+    public static create_context_filter_from_widget_options(
+        widget_options: MonthFilterWidgetOptionsVO
+    ): ContextFilterVO {
+        let context_filter: ContextFilterVO = new ContextFilterVO();
+
+        const vo_field_ref = widget_options.vo_field_ref ?? null;
+        const selected_months: any = MonthFilterWidgetManager.get_selected_months_from_widget_options(
+            widget_options
+        );
+
+        let months_ranges: NumRange[] = [];
+
+        for (let i in selected_months) {
+            if (!selected_months[i]) {
+                continue;
+            }
+            months_ranges.push(
+                RangeHandler.create_single_elt_NumRange(
+                    parseInt(i),
+                    NumSegment.TYPE_INT
+                )
+            );
+        }
+
+        months_ranges = RangeHandler.getRangesUnion(months_ranges);
+
+        context_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
+        context_filter.param_numranges = months_ranges;
+
+        if (widget_options.is_vo_field_ref) {
+            context_filter.vo_type = vo_field_ref.api_type_id;
+            context_filter.field_id = vo_field_ref.field_id;
+        } else {
+            context_filter.vo_type = ContextFilterVO.CUSTOM_FILTERS_TYPE;
+            context_filter.field_id = widget_options.custom_filter_name;
+        }
+
+        return context_filter;
+    }
+
+    /**
+     * get_available_months_from_widget_options
      *
      * @param {MonthFilterWidgetOptionsVO} widget_options
      * @returns {string[]}
      */
-    public static get_default_available_months_from_widget_options(
+    public static get_available_months_from_widget_options(
         widget_options: MonthFilterWidgetOptionsVO
     ): string[] {
         const available_months: string[] = [];
 
         if (!widget_options) {
-            return null;
+            return [];
+        }
+
+        if (
+            (widget_options.min_month == null) ||
+            (widget_options.max_month == null)
+        ) {
+            return [];
+        }
+
+        if ((widget_options.max_month - widget_options.min_month) > 12) {
+            return [];
         }
 
         // Depending on the mode, we will have to compute the min and max month
@@ -43,25 +104,24 @@ export default class MonthFilterWidgetManager {
         return available_months;
     }
 
-
     /**
-     * get_default_selected_months_from_widget_options
+     * get_selected_months_from_widget_options
      * - Get default selected months
      *
      * @param {MonthFilterWidgetOptionsVO} widget_options
      * @returns { { [month: number]: boolean }}
      */
-    public static get_default_selected_months_from_widget_options(
+    public static get_selected_months_from_widget_options(
         widget_options: MonthFilterWidgetOptionsVO
     ): { [month: number]: boolean } {
-        const default_selected_months: { [month: number]: boolean } = {};
+        const selected_months: { [month: number]: boolean } = {};
 
         if (!widget_options) {
             return null;
         }
 
         // Depending on the mode, we will have to compute the min and max month
-        const months = MonthFilterWidgetManager.get_default_available_months_from_widget_options(
+        const months = MonthFilterWidgetManager.get_available_months_from_widget_options(
             widget_options
         );
 
@@ -71,44 +131,45 @@ export default class MonthFilterWidgetManager {
             const current_month = Dates.month(Dates.now()) + 1;
             const month_i = parseInt(month_key);
 
-            default_selected_months[month_key] = false;
+            selected_months[month_key] = false;
 
-            if (widget_options.auto_select_month) {
+            if (!widget_options.auto_select_month) {
+                continue;
+            }
 
-                if (
-                    (widget_options.auto_select_month_min == null) ||
-                    (widget_options.auto_select_month_max == null)
-                ) {
+            if (
+                (widget_options.auto_select_month_min == null) ||
+                (widget_options.auto_select_month_max == null)
+            ) {
+                continue;
+            }
+
+            if (
+                widget_options.is_month_cumulable &&
+                widget_options.auto_select_month_relative_mode
+            ) {
+                // Is auto select month relative to current month ?
+                if ((month_i <= (current_month + widget_options.auto_select_month_max))) {
+                    selected_months[month_key] = true;
                     continue;
                 }
-
-                if (
-                    widget_options.is_month_cumulable &&
-                    widget_options.auto_select_month_relative_mode
-                ) {
-                    // Is auto select month relative to current month ?
-                    if ((month_i <= (current_month + widget_options.auto_select_month_max))) {
-                        default_selected_months[month_key] = true;
-                        continue;
-                    }
-                } else if (widget_options.auto_select_month_relative_mode) {
-                    // Is auto select month relative to current month ?
-                    if ((month_i >= (current_month + widget_options.auto_select_month_min)) &&
-                        (month_i <= (current_month + widget_options.auto_select_month_max))) {
-                        default_selected_months[month_key] = true;
-                        continue;
-                    }
-                } else {
-                    if ((month_i >= widget_options.auto_select_month_min) &&
-                        (month_i <= widget_options.auto_select_month_max)) {
-                        default_selected_months[month_key] = true;
-                        continue;
-                    }
+            } else if (widget_options.auto_select_month_relative_mode) {
+                // Is auto select month relative to current month ?
+                if ((month_i >= (current_month + widget_options.auto_select_month_min)) &&
+                    (month_i <= (current_month + widget_options.auto_select_month_max))) {
+                    selected_months[month_key] = true;
+                    continue;
+                }
+            } else {
+                if ((month_i >= widget_options.auto_select_month_min) &&
+                    (month_i <= widget_options.auto_select_month_max)) {
+                    selected_months[month_key] = true;
+                    continue;
                 }
             }
         }
 
-        return default_selected_months;
+        return selected_months;
     }
 
     /**
