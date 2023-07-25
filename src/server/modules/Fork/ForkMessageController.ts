@@ -53,6 +53,7 @@ export default class ForkMessageController {
 
         StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_type);
         if ((!!msg.message_content) && (
+            ((typeof msg.message_content == "string") && (!msg.message_content.startsWith('{'))) &&
             (msg.message_type == MainProcessTaskForkMessage.FORK_MESSAGE_TYPE) ||
             (msg.message_type == BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE) ||
             (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE))) {
@@ -94,10 +95,11 @@ export default class ForkMessageController {
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_type);
-        if ((!!msg.message_content) && (
-            (msg.message_type == MainProcessTaskForkMessage.FORK_MESSAGE_TYPE) ||
-            (msg.message_type == BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE) ||
-            (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE))) {
+        if ((!!msg.message_content) &&
+            ((typeof msg.message_content == "string") && (!msg.message_content.startsWith('{'))) && (
+                (msg.message_type == MainProcessTaskForkMessage.FORK_MESSAGE_TYPE) ||
+                (msg.message_type == BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE) ||
+                (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE))) {
             StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_content);
         }
 

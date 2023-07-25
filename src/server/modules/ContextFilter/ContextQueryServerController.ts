@@ -6,16 +6,18 @@ import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handle
 import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryJoinOnFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryJoinOnFieldVO';
+import ContextQueryJoinVO from '../../../shared/modules/ContextFilter/vos/ContextQueryJoinVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import DAOController from '../../../shared/modules/DAO/DAOController';
-import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -24,16 +26,17 @@ import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
-import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
+import ArrayHandler from '../../../shared/tools/ArrayHandler';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
-import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
@@ -46,9 +49,6 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
-import ArrayHandler from '../../../shared/tools/ArrayHandler';
-import ContextQueryJoinVO from '../../../shared/modules/ContextFilter/vos/ContextQueryJoinVO';
-import ContextQueryJoinOnFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryJoinOnFieldVO';
 
 export default class ContextQueryServerController {
 
@@ -352,6 +352,23 @@ export default class ContextQueryServerController {
                 let field_id = field.alias ? field.alias : field.field_id;
 
                 let module_table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
+
+                if (!module_table) {
+                    // On est sur un champs issu d'une subquery très probablement
+                    let joined_query = context_query.joined_context_queries.find((joinedcq) => joinedcq.joined_table_alias == field.api_type_id)?.joined_context_query;
+                    let joined_field = joined_query?.fields.find((jf) => jf.alias == field.alias);
+
+                    if (!joined_field) {
+                        throw new Error('select_datatable_rows: joined_field not found for field ' + field.field_id + ' of type ' + field.api_type_id);
+                    }
+
+                    module_table = VOsTypesManager.moduleTables_by_voType[joined_field.api_type_id];
+                    field = joined_field;
+                }
+
+                if (field.field_id == 'id') {
+                    continue;
+                }
                 let module_field = module_table.getFieldFromId(field.field_id);
 
                 // switch (module_field.field_type) {
@@ -1678,7 +1695,7 @@ export default class ContextQueryServerController {
 
             /**
              * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
-             * 
+             *
              * Dans le cas d'un join entre contextquery, on arrive aussi ici a condition d'avoir un field issue du join
              */
             if (!query_wrapper.tables_aliases_by_type[context_field.api_type_id]) {
@@ -1695,7 +1712,7 @@ export default class ContextQueryServerController {
                     context_field
                 );
             }
-TODO continuer fonctionnement field sans field_id
+
             if (!first) {
                 SELECT += ', ';
             }
@@ -1708,13 +1725,13 @@ TODO continuer fonctionnement field sans field_id
                 context_field.alias ?? context_field.field_id
             );
 
-            let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id;
+            let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + (context_field.field_id ?? context_field.alias);
 
             if (
                 context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||
                 context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN
             ) {
-                field_full_name = context_field.field_id;
+                field_full_name = context_field.field_id ?? context_field.alias;
             }
 
 
@@ -1727,7 +1744,7 @@ TODO continuer fonctionnement field sans field_id
                 alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
             }
 
-            let field_alias = (alias ? " as " + alias : '');
+            let field_alias = ((alias && context_field.field_id) ? " as " + alias : '');
 
             switch (context_field.aggregator) {
                 case VarConfVO.IS_NULLABLE_AGGREGATOR:
@@ -2149,31 +2166,39 @@ TODO continuer fonctionnement field sans field_id
         return { SORT_BY, QUERY, aliases_n, query_wrapper };
     }
 
-    private handle_join_context_query(
-        context_query: ContextQueryVO,
+    private async handle_join_context_query(
         context_query_join: ContextQueryJoinVO,
-        jointures: string[]) {
+        jointures: string[],
+        tables_aliases_by_type: { [vo_type: string]: string }
+    ): Promise<number> {
 
         if (!context_query_join) {
             return;
         }
 
         let join_on_fields: string[] = [];
+        if (!tables_aliases_by_type[context_query_join.joined_table_alias]) {
+            tables_aliases_by_type[context_query_join.joined_table_alias] = context_query_join.joined_table_alias;
+        }
 
         for (let i in context_query_join.join_on_fields) {
             let join_on_field: ContextQueryJoinOnFieldVO = context_query_join.join_on_fields[i];
 
+            // On doit checker l'égalite et ajouter le cas d'un null de part et d'autre
             join_on_fields.push(
-                join_on_field.joined_table_alias + '.' + join_on_field.joined_table_field_id_or_alias + ' = ' +
-                join_on_field.initial_context_query_api_type_id + '.' + join_on_field.initial_context_query_field_id_or_alias
+                '((' +
+                tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ' = ' +
+                tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ') OR ((' +
+                tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ' IS NULL) AND (' +
+                tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ' IS NULL)))'
             );
         }
 
+        let joined_query_str = await context_query_join.joined_context_query.get_select_query_str();
         jointures.push(
-            '(' + this.getquerystr(context_query_join.joined_context_query) + ') ' + context_query_join.joined_table_alias +
+            '(' + joined_query_str.query + ') ' + context_query_join.joined_table_alias +
             ' ON ' + join_on_fields.join(' AND ')
         );
-
     }
 
     /**
@@ -2210,7 +2235,7 @@ TODO continuer fonctionnement field sans field_id
             let context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
 
             if (context_query_join) {
-                this.handle_join_context_query(context_query, context_query_join, jointures);
+                return await this.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
             }
         }
 

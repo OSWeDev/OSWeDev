@@ -17,7 +17,6 @@ import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import VarsDatasProxy from '../../Var/VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import ModuleDataImportServer from '../ModuleDataImportServer';
 

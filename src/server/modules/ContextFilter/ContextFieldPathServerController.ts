@@ -231,6 +231,14 @@ export default class ContextFieldPathServerController {
                 last_field_path.field.module_table;
         }
 
+        /**
+         * Si on a pas de moduletable c'est qu'on a par exemple une subquery computed
+         */
+        if (!moduletable) {
+            return null;
+        }
+
+
         if (deployed_deps_from[moduletable.vo_type]) {
             return null;
         }

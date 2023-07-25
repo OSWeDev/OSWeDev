@@ -1606,6 +1606,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         query_.query_distinct = true;
 
+        // On fait le count sans les vars
+        let query_count: ContextQueryVO = cloneDeep(query_);
+
         await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(query_, this.columns);
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
 
@@ -1625,11 +1628,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         this.data_rows = rows;
 
-        let context_query: ContextQueryVO = cloneDeep(query_);
-        context_query.set_limit(0, 0);
-        context_query.set_sort(null);
-        context_query.query_distinct = true;
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+        query_count.set_limit(0, 0);
+        query_count.set_sort(null);
+        query_count.query_distinct = true;
+        this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {

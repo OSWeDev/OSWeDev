@@ -130,6 +130,14 @@ export default class ContextAccessServerController {
          * Si le field_id est le label du type ou id, on peut transformer un droit de type READ en LIST
          */
         let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
+
+        /**
+         * Si on ne retrouve pas la table, on est sur un champ calculé, on ne peut pas vérifier les droits
+         */
+        if (!table) {
+            return true;
+        }
+
         let tmp_access_type = access_type;
         if ((access_type == ModuleDAO.DAO_ACCESS_TYPE_READ) && ((field_id == 'id') || (table.default_label_field && table.default_label_field.field_id && (field_id == table.default_label_field.field_id)))) {
             tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;

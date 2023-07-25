@@ -403,28 +403,37 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, columns);
 
-        let datas = (context_query.fields?.length > 0) ?
-            await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
-            await ModuleContextFilter.getInstance().select_vos(context_query);
+        let might_have_more_datas = true;
+        let xlsx_datas = [];
+        while (might_have_more_datas) {
 
-        let datas_with_vars = await this.convert_varparamfields_to_vardatas(
-            context_query,
-            datas,
-            columns,
-            custom_filters);
+            // let time_in = Dates.now(); Pour l'instant on fait betement des packets de 1k lignes, on verra plus tard pour optimiser en fonction des temps de traitement de chaque requete
+            context_query.set_limit(1000, xlsx_datas.length);
 
-        if (!datas_with_vars) {
-            ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
-            await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
-            return;
+            let datas = (context_query.fields?.length > 0) ?
+                await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
+                await ModuleContextFilter.getInstance().select_vos(context_query);
+
+            let datas_with_vars = await this.convert_varparamfields_to_vardatas(
+                context_query,
+                datas,
+                columns,
+                custom_filters);
+
+            if (!datas_with_vars) {
+                ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
+                await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
+                return;
+            }
+
+            let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
+
+            await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
+
+            // - Update to columns format (percent, toFixed etc...)
+            const this_xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
+            xlsx_datas.push(...this_xlsx_datas);
         }
-
-        let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
-
-        await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
-
-        // - Update to columns format (percent, toFixed etc...)
-        const xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
 
         let sheets: IExportableSheet[] = [];
 

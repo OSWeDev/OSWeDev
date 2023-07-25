@@ -43,7 +43,7 @@ import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
 export default class ModuleVar extends Module {
 
     public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
-    public static VARPARAMFIELD_PREFIX: string = '__varparamfield_';
+    public static VARPARAMFIELD_PREFIX: string = '_vpf_';
 
     public static MODULE_NAME: string = 'Var';
 
@@ -371,7 +371,7 @@ export default class ModuleVar extends Module {
     }
 
 
-    public get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+    public get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range: number = 100): TSRange[] {
         let res: TSRange[] = [];
 
         /**
@@ -527,7 +527,7 @@ export default class ModuleVar extends Module {
         return res;
     }
 
-    public get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+    public get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range = 100): TSRange[] {
         if (custom_filter.param_numeric != null) {
             return [RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
         }
@@ -571,7 +571,7 @@ export default class ModuleVar extends Module {
             return '';
         }
 
-        return '_pwids2excl__' + do_not_user_filter_active_ids.join('_') + '__';
+        return '_pw2ex_' + do_not_user_filter_active_ids.join('_') + '_';
     }
 
     public get_var_param_field_name(api_type_id: string, field_id: string, page_widgets_ids_to_exclude_as_alias_prefix: string = null): string {
@@ -605,13 +605,16 @@ export default class ModuleVar extends Module {
         row: any,
         column: TableColumnDescVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        limit_nb_ts_ranges_on_param_by_context_filter: number = null,
+        limit_nb_ts_ranges_on_param_by_context_filter: number = 100,
         accept_max_ranges: boolean = false) {
 
         let var_conf = VarsController.var_conf_by_id[column.var_id];
         let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_conf.name);
         let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
         let refuse_param: boolean = false;
+
+        // Si on a refusé des page_widgets, on doit utiliser les colonnes dédiées sur la row
+        let page_widgets_ids_to_exclude_as_alias_prefix: string = this.page_widgets_ids_to_exclude_as_alias_prefix(column.do_not_user_filter_active_ids);
 
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
@@ -621,7 +624,7 @@ export default class ModuleVar extends Module {
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                     if (matroid_field.has_relation) {
 
-                        let alias = this.get_var_param_field_name(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field);
+                        let alias = this.get_var_param_field_name(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, page_widgets_ids_to_exclude_as_alias_prefix);
                         if ((!row[alias]) || !row[alias].length) {
                             refuse_param = true;
                             break;
@@ -814,7 +817,8 @@ export default class ModuleVar extends Module {
     private async add_vars_params_columns_for_ref_ids_with_excluded_filters(
         context_query_initiale: ContextQueryVO,
         context_query_actuelle: ContextQueryVO,
-        columns: TableColumnDescVO[]) {
+        columns: TableColumnDescVO[]
+    ) {
 
         // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
         let needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
@@ -830,6 +834,20 @@ export default class ModuleVar extends Module {
         for (let page_widgets_ids_to_exclude_as_alias_prefix in needed_dimensions_by_page_widgets_ids_to_exclude) {
             let needed_dimensions = needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix];
 
+            /**
+             * On doit dupliquer la query initiale hors vars
+             *  puis on supprime les filtres correspondants aux page_widgets_ids à exclure
+             *  on ajoute un field sur la subquery pour la ou les colonnes de vars
+             *  puis on fait un left join avec la query actuelle (donc avec les colonnes de vars déjà en cours d'ajout) sur la base des colonnes identiques (toutes les colonnes de la requete hors vars)
+             *  et on ajoute une colonne à la requete actuelle pour récupérer les ids des colonnes de vars de cette sous-requete
+             */
+
+            let sub_query = context_query_initiale.clone();
+            let sub_query_table_alias = 'sq_' + page_widgets_ids_to_exclude_as_alias_prefix;
+            this.delete_context_filters_for_page_widgets_ids_to_exclude(sub_query, pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix], all_page_widget_by_id, all_page_widget_options_cache_by_id);
+            let sub_query_join_on_fields: ContextQueryJoinOnFieldVO[] = [];
+
+
             for (let api_type_id in needed_dimensions) {
                 let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
 
@@ -837,38 +855,43 @@ export default class ModuleVar extends Module {
 
                     let field_alias = this.get_var_param_field_name(api_type_id, field_id, page_widgets_ids_to_exclude_as_alias_prefix);
 
-                    /**
-                     * On doit dupliquer la query initiale hors vars
-                     *  puis on supprime les filtres correspondants aux page_widgets_ids à exclure
-                     *  puis on fait un left join avec la query actuelle (donc avec les colonnes de vars déjà en cours d'ajout) sur la base des colonnes identiques (toutes les colonnes de la requete hors vars)
-                     *  et on ajoute une colonne à la requete actuelle pour récupérer les ids des colonnes de vars de cette sous-requete
-                     */
-                    let sub_query = context_query_initiale.clone();
-                    let sub_query_table_alias = 'sub_query_' + field_alias;
-                    this.delete_context_filters_for_page_widgets_ids_to_exclude(sub_query, pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix], all_page_widget_by_id, all_page_widget_options_cache_by_id);
+                    // On ajoute la colonne à la sub query - ARRAY_AGG(DISTINCT sub_query_table_alias.field_alias) as field_alias
+                    sub_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
 
-                    let sub_query_join_on_fields: ContextQueryJoinOnFieldVO[] = [];
-
-                    for (let i in context_query_initiale.fields) {
-                        let field = context_query_initiale.fields[i];
-
-                        if (!field) {
-                            continue;
-                        }
-
-                        sub_query_join_on_fields.push(ContextQueryJoinOnFieldVO.createNew(
-                            sub_query_table_alias,
-                            field_alias,
-                            api_type_id,
-                            field_id
-                        ));
-                    }
-
-                    context_query_actuelle.join_context_query(sub_query, sub_query_table_alias, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN, sub_query_join_on_fields);
-                    // On ajoute la colonne à la requete actuelle - ARRAY_AGG(DISTINCT sub_query_table_alias.field_alias) as field_alias
-                    context_query_actuelle.field(null, field_alias, sub_query_table_alias, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+                    // On ajoute la colonne à la requete actuelle - sans aggreg puisque c'est déjà fait en subquery
+                    context_query_actuelle.field(null, field_alias, sub_query_table_alias);
                 }
             }
+
+            for (let i in context_query_initiale.fields) {
+                let field = context_query_initiale.fields[i];
+
+                if (!field) {
+                    continue;
+                }
+
+                if (!field.alias) {
+                    throw new Error('add_vars_params_columns_for_ref_ids_with_excluded_filters: field.alias should be defined:' + JSON.stringify(field));
+                }
+
+                // On doit renommer les fields de la sub pour les rendre uniques (je sais pas pourquoi mais sinon le moteur psql m'indique qu'il faut group by sur le t0.id par exemple - et j'ai l'impression que c'est du à une ambiguïté sur l'alias)
+                let sub_query_field_alias = sub_query_table_alias + '_' + field.alias;
+                let sub_query_field = sub_query.fields.find((f) => f.alias == field.alias);
+                if (!sub_query_field) {
+                    throw new Error('add_vars_params_columns_for_ref_ids_with_excluded_filters: sub_query_field should be defined:' + JSON.stringify(field));
+                }
+
+                sub_query_field.alias = sub_query_field_alias;
+
+                sub_query_join_on_fields.push(ContextQueryJoinOnFieldVO.createNew(
+                    sub_query_table_alias,
+                    sub_query_field.alias,
+                    field.api_type_id,
+                    field.field_id
+                ));
+            }
+
+            context_query_actuelle.join_context_query(sub_query, sub_query_table_alias, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN, sub_query_join_on_fields);
         }
     }
 

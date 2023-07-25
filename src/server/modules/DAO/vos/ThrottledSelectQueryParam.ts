@@ -68,8 +68,27 @@ export default class ThrottledSelectQueryParam {
                 let table_field_type = 'N/A';
 
                 try {
-                    table_field_type = (field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
-                        VOsTypesManager.moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';
+
+                    // si on a pas de moduletable, on est sur une sélection issue d'une sous-requete. On va chercher le type dans la sous-requete
+                    let table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
+                    if (!table) {
+                        let sub_query = this.context_query.joined_context_queries.find((joinedcq) => joinedcq.joined_table_alias == field.api_type_id);
+                        if (!sub_query) {
+                            throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery found');
+                        }
+
+                        // on doit retrouver le champs qui a le même id/alias
+                        let sub_field = sub_query.joined_context_query.fields.find((sq_field) => sq_field.alias == field.row_col_alias);
+                        if (!sub_field) {
+                            throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery field found');
+                        }
+
+                        table_field_type = (sub_field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                            VOsTypesManager.moduleTables_by_voType[sub_field.api_type_id].getFieldFromId(sub_field.field_id)?.field_type ?? 'N/A';
+                    } else {
+                        table_field_type = (field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                            VOsTypesManager.moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';
+                    }
                 } catch (error) {
                     ConsoleHandler.error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
                 }

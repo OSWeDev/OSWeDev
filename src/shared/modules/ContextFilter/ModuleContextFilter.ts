@@ -271,7 +271,7 @@ export default class ModuleContextFilter extends Module {
 
         let datatable_fields = [
             new ModuleTableField('joined_table_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_alias', true),
-            new ModuleTableField('joined_table_field_id_or_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_field_id_or_alias', true),
+            new ModuleTableField('joined_table_field_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_field_alias', true),
             new ModuleTableField('initial_context_query_api_type_id', ModuleTableField.FIELD_TYPE_string, 'initial_context_query_api_type_id', true),
             new ModuleTableField('initial_context_query_field_id_or_alias', ModuleTableField.FIELD_TYPE_string, 'initial_context_query_field_id_or_alias', true),
         ];
@@ -322,6 +322,7 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
             new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
             new ModuleTableField('union_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
+            new ModuleTableField('joined_context_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_queries', false),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
