@@ -258,6 +258,10 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     @Watch("vo_init")
     private async on_change_vo_init() {
+        if (!this.crud) {
+            return;
+        }
+
         await this.prepareNewVO();
     }
 
