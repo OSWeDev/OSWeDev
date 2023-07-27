@@ -42,7 +42,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     // private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
-    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
     private debounced_var_datas_updater = debounce(this.var_datas_updater.bind(this), 500);
 
     private current_chart_data: any = null;

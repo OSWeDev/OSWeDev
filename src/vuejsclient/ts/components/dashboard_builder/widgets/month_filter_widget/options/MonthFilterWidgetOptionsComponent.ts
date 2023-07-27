@@ -54,7 +54,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     private auto_select_month_max: string = null;
 
     private next_update_options: MonthFilterWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private relative_to_other_filter_id: number = null;
     private is_relative_to_other_filter: boolean = false;

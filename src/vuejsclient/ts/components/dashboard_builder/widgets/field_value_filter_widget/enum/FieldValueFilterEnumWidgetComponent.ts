@@ -76,10 +76,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private actual_query: string = null;
     private old_widget_options: FieldValueFilterWidgetOptions = null;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private last_calculation_cpt: number = 0;
 
-    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private throttled_reset_visible_options = ThrottleHelper.declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private async mounted() {
         ResetFiltersWidgetController.getInstance().register_reseter(

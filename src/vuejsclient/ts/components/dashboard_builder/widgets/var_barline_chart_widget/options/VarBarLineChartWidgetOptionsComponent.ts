@@ -42,9 +42,9 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     // private get_custom_filters: string[];
 
     // private next_update_options: VarBarLineChartWidgetOptions = null;
-    // private throttled_reload_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
-    // private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    // private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
+    // private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
+    // private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    // private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
 
     // private tmp_selected_var_name_1: string = null;
     // private tmp_selected_var_name_2: string = null;

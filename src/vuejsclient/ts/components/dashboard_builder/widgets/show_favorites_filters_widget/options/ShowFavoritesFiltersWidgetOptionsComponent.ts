@@ -52,8 +52,8 @@ export default class ShowFavoritesFiltersWidgetOptionsComponent extends VueCompo
     private next_update_options: ShowFavoritesFiltersWidgetOptions = null;
 
     // Perform the action of update options
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private last_calculation_cpt: number = 0;
 

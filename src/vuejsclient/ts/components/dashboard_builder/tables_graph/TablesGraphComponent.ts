@@ -53,7 +53,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private maxgraph: Graph = null;
 
-    private throttle_init_or_update_graph = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_or_update_graph.bind(this), 100);
+    private throttle_init_or_update_graph = ThrottleHelper.declare_throttle_without_args(this.init_or_update_graph.bind(this), 100);
     private graph_mapper: MaxGraphMapper = null;
     private current_cell_mapper: MaxGraphEdgeMapper | MaxGraphCellMapper = null;
 

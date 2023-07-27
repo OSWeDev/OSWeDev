@@ -29,19 +29,11 @@ export default class VarsComputationHole {
      * Les cbs sont empilés tant qu'on a des demande qui arrivent
      * Quand le trou est disponible, on dépile les cbs dans l'ordre
      * Et enfin on remet tout le monde en route
+     * ATTENTION : Ne doit être appelé que sur le thread de computation des vars
      */
     public static async exec_in_computation_hole(cb: () => {}): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
-
-            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                reject,
-                VarsBGThreadNameHolder.bgthread_name,
-                VarsComputationHole.TASK_NAME_exec_in_computation_hole,
-                resolve,
-                cb)) {
-                return;
-            }
 
             let wrapped_cb = async () => {
                 try {

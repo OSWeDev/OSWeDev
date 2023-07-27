@@ -51,23 +51,19 @@ export default class VarsClientsSubsCacheManager {
             });
     }
 
-    private static throttle_add_new_subs = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(VarsClientsSubsCacheManager.throttled_add_new_subs.bind(VarsClientsSubsCacheManager), 1);
-    private static throttle_remove_subs = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(VarsClientsSubsCacheManager.throttled_remove_subs.bind(VarsClientsSubsCacheManager), 1);
+    private static throttle_add_new_subs = ThrottleHelper.declare_throttle_with_stackable_args(VarsClientsSubsCacheManager.throttled_add_new_subs.bind(VarsClientsSubsCacheManager), 1);
+    private static throttle_remove_subs = ThrottleHelper.declare_throttle_with_stackable_args(VarsClientsSubsCacheManager.throttled_remove_subs.bind(VarsClientsSubsCacheManager), 1);
 
     /* istanbul ignore next */
     private static async throttled_add_new_subs(var_indexs: string[]): Promise<void> {
 
-        return new Promise(async (resolve, reject) => {
+        if (!await ForkedTasksController.exec_self_on_bgthread(
+            VarsBGThreadNameHolder.bgthread_name,
+            VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, var_indexs)) {
+            return;
+        }
 
-            if (!await ForkedTasksController.exec_self_on_bgthread(
-                VarsBGThreadNameHolder.bgthread_name,
-                VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, var_indexs)) {
-                return;
-            }
-
-            VarsClientsSubsCacheManager.throttled_add_new_subs_on_bg_thread(var_indexs);
-            resolve();
-        });
+        VarsClientsSubsCacheManager.throttled_add_new_subs_on_bg_thread(var_indexs);
     }
     private static throttled_add_new_subs_on_bg_thread(var_indexs: string[]) {
         for (let i in var_indexs) {
@@ -78,17 +74,13 @@ export default class VarsClientsSubsCacheManager {
     /* istanbul ignore next */
     private static async throttled_remove_subs(var_indexs: string[]): Promise<void> {
 
-        return new Promise(async (resolve, reject) => {
+        if (!await ForkedTasksController.exec_self_on_bgthread(
+            VarsBGThreadNameHolder.bgthread_name,
+            VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, var_indexs)) {
+            return;
+        }
 
-            if (!await ForkedTasksController.exec_self_on_bgthread(
-                VarsBGThreadNameHolder.bgthread_name,
-                VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, var_indexs)) {
-                return;
-            }
-
-            VarsClientsSubsCacheManager.throttled_remove_subs_on_bg_thread(var_indexs);
-            resolve();
-        });
+        VarsClientsSubsCacheManager.throttled_remove_subs_on_bg_thread(var_indexs);
     }
     private static throttled_remove_subs_on_bg_thread(var_indexs: string[]) {
         for (let i in var_indexs) {

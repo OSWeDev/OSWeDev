@@ -58,7 +58,7 @@ export default abstract class VueAppController {
     public has_access_to_feedback: boolean = false;
     public has_access_to_survey: boolean = false;
 
-    public throttled_register_translation = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.register_translation.bind(this), 1000);
+    public throttled_register_translation = ThrottleHelper.declare_throttle_with_stackable_args(this.register_translation.bind(this), 1000);
 
     protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;

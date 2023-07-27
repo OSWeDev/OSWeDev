@@ -72,7 +72,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private field_id_selected: string = null;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private loaded_once: boolean = false;
     private is_busy: boolean = false;

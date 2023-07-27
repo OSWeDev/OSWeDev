@@ -124,7 +124,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
     ];
 
-    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
+    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
 
     private async mounted() {
         ResetFiltersWidgetController.getInstance().register_reseter(

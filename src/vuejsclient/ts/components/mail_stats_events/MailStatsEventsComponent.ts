@@ -39,8 +39,8 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     private is_loading: boolean = true;
     private force_reload: boolean = true;
 
-    private throttled_update_datas = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_datas.bind(this), 200, { leading: false, trailing: true });
-    private throttled_auto_update = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_update_datas.bind(this), 30000, { leading: false, trailing: true });
+    private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 200, { leading: false, trailing: true });
+    private throttled_auto_update = ThrottleHelper.declare_throttle_without_args(this.throttled_update_datas.bind(this), 30000, { leading: false, trailing: true });
 
     @Watch('category_name', { immediate: true })
     @Watch('email_to')

@@ -487,6 +487,47 @@ export default class VarDAGNode extends DAGNodeBase {
         return this;
     }
 
+    public update_parent_is_computable_if_needed(force_this_node_as_computed: boolean = false) {
+
+        // On impacte le tag sur les parents si tous leurs enfants sont computed
+        for (let i in this.incoming_deps) {
+            let deps = this.incoming_deps[i];
+
+            for (let k in deps) {
+                let dep = deps[k];
+
+                let parent_node: VarDAGNode = dep.incoming_node as VarDAGNode;
+
+                if (parent_node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
+                    continue;
+                }
+
+                // On veut un is_computable mais avec un is_computing sur le noeud en cours de work
+                let parent_is_computable = true;
+                for (let j in parent_node.outgoing_deps) {
+                    let outgoing_dep = parent_node.outgoing_deps[j];
+
+                    if (force_this_node_as_computed && (outgoing_dep.outgoing_node == this)) {
+                        continue;
+                    }
+
+                    if ((outgoing_dep.outgoing_node as VarDAGNode).current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
+                        parent_is_computable = false;
+                        break;
+                    }
+                }
+
+                if (parent_is_computable) {
+                    parent_node.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
+
+                    if (parent_node.tags[VarDAGNode.TAG_3_DATA_LOADED]) {
+                        parent_node.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes
      */
@@ -571,5 +612,8 @@ export default class VarDAGNode extends DAGNodeBase {
             this.add_tag(VarDAGNode.TAG_7_IS_DELETABLE);
             this.remove_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
         }
+
+        // On impacte les parents sur un potentiel is_computable
+        this.update_parent_is_computable_if_needed();
     }
 }

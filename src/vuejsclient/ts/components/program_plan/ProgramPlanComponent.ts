@@ -242,7 +242,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private calendar_date: string = DateHandler.getInstance().formatDayForIndex(Dates.now());
     private viewname: string = 'timelineWeek';
 
-    private reset_targets = ThrottleHelper.getInstance().declare_throttle_without_args(
+    private reset_targets = ThrottleHelper.declare_throttle_without_args(
         this.reset_targets_throttled.bind(this),
         100,
         {

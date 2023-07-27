@@ -397,22 +397,33 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             columns_by_field_id[column.datatable_field_uid] = column;
         }
 
-        // TODO FIXME il faut faire des blocs de x lignes, on peut pas exporter tout d'un coup (sur 20k lignes ça bloque complet)
-        //  à la limite on peut envisager peut-etre de faire 1000 lignes, checker la durée, et passer à 500 ou 2000 en fonction, ... jusqu'à trouver un bon compromis pour un export donné
-        //  une durée de 2/3 secondes max c'est surement pas mal pour la partie requete
-
-        await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, columns);
-
         let might_have_more_datas = true;
         let xlsx_datas = [];
+        let has_query_limit = !!context_query.query_limit;
+        let limit = 1000;
         while (might_have_more_datas) {
 
             // let time_in = Dates.now(); Pour l'instant on fait betement des packets de 1k lignes, on verra plus tard pour optimiser en fonction des temps de traitement de chaque requete
-            context_query.set_limit(1000, xlsx_datas.length);
 
+            if (!has_query_limit) {
+                context_query.set_limit(limit, xlsx_datas.length);
+            }
+
+            // Je sais pas pourquoi on doit le refaire à chaque fois ça ...
+            await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, columns);
             let datas = (context_query.fields?.length > 0) ?
                 await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
                 await ModuleContextFilter.getInstance().select_vos(context_query);
+
+            if (!has_query_limit) {
+                might_have_more_datas = (datas?.length >= limit);
+            } else {
+                might_have_more_datas = false;
+            }
+
+            if (!datas?.length) {
+                break;
+            }
 
             let datas_with_vars = await this.convert_varparamfields_to_vardatas(
                 context_query,
@@ -874,7 +885,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 try {
 
-                    let var_data = await VarsServerCallBackSubsController.get_var_data(var_param, 'create_vars_indicator_xlsx_sheet: exporting data');
+                    let var_data = await VarsServerCallBackSubsController.get_var_data(
+                        var_param.index);
                     let value = var_data ? var_data.value : null;
                     let format: XlsxCellFormatByFilterType = null;
 
@@ -1602,7 +1614,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                     try {
 
-                        let var_data = await VarsServerCallBackSubsController.get_var_data(var_param, 'convert_varparamfields_to_vardatas: exporting data');
+                        let var_data = await VarsServerCallBackSubsController.get_var_data(var_param.index);
                         row[column.datatable_field_uid] = var_data?.value ?? null;
                     } catch (error) {
                         ConsoleHandler.error('convert_varparamfields_to_vardatas:FAILED get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);

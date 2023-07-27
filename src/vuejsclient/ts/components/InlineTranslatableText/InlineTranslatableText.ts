@@ -53,7 +53,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     private parameterized_text: string = null;
     private semaphore: boolean = false;
 
-    private thottled_check_existing_bdd_translation = ThrottleHelper.getInstance().declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
+    private thottled_check_existing_bdd_translation = ThrottleHelper.declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
 
     @Watch("code_text", { immediate: true })
     @Watch("translation_params", { immediate: true })

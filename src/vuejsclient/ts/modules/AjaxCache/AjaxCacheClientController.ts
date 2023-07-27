@@ -61,7 +61,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     // private processRequestsSemaphore: boolean = false;
     // private processRequestsSemaphore_needs_reload: boolean = false;
 
-    // private debounced_requests_wrapper = ThrottleHelper.getInstance().declare_throttle_without_args(this.processRequestsWrapper.bind(this), this.ajaxcache_debouncer, { leading: true, trailing: true });
+    // private debounced_requests_wrapper = ThrottleHelper.declare_throttle_without_args(this.processRequestsWrapper.bind(this), this.ajaxcache_debouncer, { leading: true, trailing: true });
 
     public async getCSRFToken() {
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');

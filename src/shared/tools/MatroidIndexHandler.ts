@@ -202,7 +202,7 @@ export default class MatroidIndexHandler {
         return res;
     }
 
-    public static from_normalized_vardata(index: string): VarDataBaseVO {
+    public static get_var_id_from_normalized_vardata(index: string): number {
 
         if (!index) {
             return null;
@@ -213,15 +213,33 @@ export default class MatroidIndexHandler {
         try {
             pieces = index.split('|');
         } catch (error) {
-            console.error('from_normalized_vardata ; index : ' + index);
+            console.error('get_var_id_from_normalized_vardata ; index : ' + index);
             console.error(error);
         }
 
-        let var_id: number = MatroidIndexHandler.base_76_txt_to_base_10_num(pieces[0]);
+        return MatroidIndexHandler.base_76_txt_to_base_10_num(pieces[0]);
+    }
+
+    public static from_normalized_vardata(index: string): VarDataBaseVO {
+
+        if (!index) {
+            return null;
+        }
+
+        let var_id: number = this.get_var_id_from_normalized_vardata(index);
         let var_conf = VarsController.var_conf_by_id[var_id];
 
         if (!var_conf) {
             return null;
+        }
+
+        let pieces: string[] = [];
+
+        try {
+            pieces = index.split('|');
+        } catch (error) {
+            console.error('from_normalized_vardata ; index : ' + index);
+            console.error(error);
         }
 
         let res: VarDataBaseVO = VOsTypesManager.moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();

@@ -3,7 +3,6 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -13,10 +12,6 @@ import ManualTasksController from '../../../shared/modules/Cron/ManualTasksContr
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import FieldFilterManager from '../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
-import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
@@ -104,13 +99,13 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public cpt_for_datasources: { [datasource_name: string]: number } = {}; // TEMP DEBUG JFE
 
-    public update_varcacheconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+    public update_varcacheconf_from_cache = ThrottleHelper.declare_throttle_with_stackable_args(
         this.update_varcacheconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
 
-    public update_varconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+    public update_varconf_from_cache = ThrottleHelper.declare_throttle_with_stackable_args(
         this.update_varconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
 
-    private throttle_getVarParamFromContextFilters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: true, trailing: true });
+    private throttle_getVarParamFromContextFilters = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: true, trailing: true });
 
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
@@ -846,6 +841,12 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     public async force_delete_all_cache_except_imported_data(): Promise<void> {
 
+        if (!await ForkedTasksController.exec_self_on_bgthread(
+            VarsBGThreadNameHolder.bgthread_name,
+            ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data)) {
+            return;
+        }
+
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
             for (let api_type_id in VarsServerController.varcacheconf_by_api_type_ids) {
@@ -1019,7 +1020,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         let uid = StackContext.get('UID');
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
-        VarsTabsSubsController.register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
+        let params_indexes = params ? params.map((param) => param.index) : [];
+
+        VarsTabsSubsController.register_sub(uid, client_tab_id, params_indexes);
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
             for (let i in params) {
@@ -1034,7 +1037,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         let notifyable_vars: VarDataBaseVO[] = [];
 
-        notifyable_vars = await VarsDatasProxy.get_var_datas_or_ask_to_bgthread(params);
+        notifyable_vars = await VarsDatasProxy.get_var_datas_or_ask_to_bgthread(params_indexes);
 
         if (notifyable_vars && notifyable_vars.length) {
             let vars_to_notif: VarDataValueResVO[] = [];
@@ -1524,6 +1527,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async get_var_data(var_data_index: string): Promise<VarDataBaseVO> {
-        return await VarsServerCallBackSubsController.get_var_data(VarDataBaseVO.from_index(var_data_index), "client:get-var-data");
+        return await VarsServerCallBackSubsController.get_var_data(var_data_index);
     }
 }

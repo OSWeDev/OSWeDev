@@ -58,7 +58,7 @@ export default class VarsDatasVoUpdateHandler {
     public static ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public static last_call_handled_something: boolean = false;
 
-    public static register_vo_cud = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.register_vo_cud_throttled.bind(this), 100, { leading: true, trailing: true });
+    public static register_vo_cud = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.register_vo_cud_throttled.bind(this), 100, { leading: true, trailing: true });
 
     /**
      * La liste des invalidations en attente de traitement
@@ -509,8 +509,8 @@ export default class VarsDatasVoUpdateHandler {
     private static has_retrieved_vos_cud: boolean = false;
 
 
-    private static throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 30000, { leading: false, trailing: true });
-    private static throttle_push_invalidators = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 1000, { leading: false, trailing: true });
+    private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 30000, { leading: false, trailing: true });
+    private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 1000, { leading: false, trailing: true });
 
 
     /**

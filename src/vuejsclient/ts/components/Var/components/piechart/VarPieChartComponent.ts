@@ -55,11 +55,11 @@ export default class VarPieChartComponent extends VueComponentBase {
     private current_chart_data: any = null;
     private current_chart_options: any = null;
 
-    private throttled_update_chart_js = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_chart_js, 500, { leading: false, trailing: true });
+    private throttled_update_chart_js = ThrottleHelper.declare_throttle_without_args(this.update_chart_js, 500, { leading: false, trailing: true });
     private debounced_render_or_update_chart_js = debounce(this.render_or_update_chart_js, 100);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
-    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 100, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 100, { leading: false, trailing: true });
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)

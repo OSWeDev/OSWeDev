@@ -23,7 +23,7 @@ export default class VarsTabsSubsController {
      * Multithreading notes :
      *  - any data or action in this controller needs to be done on the main thread
      */
-    public static notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+    public static notify_vardatas = ThrottleHelper.declare_throttle_with_stackable_args(
         this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
 
     public static init() {

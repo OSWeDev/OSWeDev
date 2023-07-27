@@ -115,7 +115,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
-    private throttle_on_load_dashboard = ThrottleHelper.getInstance().declare_throttle_without_args(this.on_load_dashboard, 50);
+    private throttle_on_load_dashboard = ThrottleHelper.declare_throttle_without_args(this.on_load_dashboard, 50);
 
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
         if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {

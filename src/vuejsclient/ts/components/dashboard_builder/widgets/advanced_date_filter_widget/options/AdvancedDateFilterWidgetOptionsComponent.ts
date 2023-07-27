@@ -48,7 +48,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private is_checkbox: boolean = false;
 
     private next_update_options: AdvancedDateFilterWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private custom_filter_name: string = null;
     private is_vo_field_ref: boolean = true;

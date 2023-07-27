@@ -42,7 +42,7 @@ export default class StatsController {
 
     public static stacked_registered_stats_by_group_name: { [group_name: string]: StatClientWrapperVO[] } = {};
 
-    public static throttled_unstack_stats = ThrottleHelper.getInstance().declare_throttle_without_args(
+    public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
         StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, { leading: false, trailing: true }); // defaults to 1 minute
 
     public static get_aggregator_extension(aggregator: number): string {
@@ -382,7 +382,7 @@ export default class StatsController {
 
     set UNSTACK_THROTTLE(throttle: number) {
         this.UNSTACK_THROTTLE_ = throttle;
-        StatsController.throttled_unstack_stats = ThrottleHelper.getInstance().declare_throttle_without_args(
+        StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
             StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, { leading: false, trailing: true });
     }
 }

@@ -60,13 +60,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private new_header_columns: string = null;
 
     private column_width: number = 0;
-    private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_column_width.bind(this), 800, { leading: false, trailing: true });
+    private throttled_update_column_width = ThrottleHelper.declare_throttle_without_args(this.update_column_width.bind(this), 800, { leading: false, trailing: true });
 
     private default_sort_field: number = 0;
-    private throttled_update_default_sort_field = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_default_sort_field.bind(this), 800, { leading: false, trailing: true });
+    private throttled_update_default_sort_field = ThrottleHelper.declare_throttle_without_args(this.update_default_sort_field.bind(this), 800, { leading: false, trailing: true });
 
-    private throttled_update_enum_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_enum_colors.bind(this), 800, { leading: false, trailing: true });
-    private throttled_update_custom_filter = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_custom_filter.bind(this), 800, { leading: false, trailing: true });
+    private throttled_update_enum_colors = ThrottleHelper.declare_throttle_without_args(this.update_enum_colors.bind(this), 800, { leading: false, trailing: true });
+    private throttled_update_custom_filter = ThrottleHelper.declare_throttle_without_args(this.update_custom_filter.bind(this), 800, { leading: false, trailing: true });
 
     private filter_by_access_options: string[] = [];
 

@@ -19,6 +19,7 @@ export default class EnvParam implements IEnvParam {
     public NODE_VERBOSE: boolean;
     public ACTIVATE_LONG_JOHN: boolean;
     public MAX_POOL: number = 20;
+    public MAX_NB_AUTO_UNION_IN_SELECT?: number = 10;
     public SERVER_START_BOOSTER: boolean;
     public SERVER_ENCODING: string;
     public CONSOLE_LOG_TO_FILE: boolean = true;

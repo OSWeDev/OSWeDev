@@ -99,7 +99,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public check_foreign_keys: boolean = true;
 
-    public throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
+    public throttled_refuse = ThrottleHelper.declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
 
     private copy_dedicated_pool = null;
     private log_db_query_perf_uid: number = 0;
@@ -115,7 +115,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // private semaphore_check_throttled_select_query_size_ms: boolean = false;
 
-    private current_select_query_promises: { [full_paramerterized_query: string]: Promise<any> } = {};
+    private current_select_query_promises: { [query_index: number]: Promise<any> } = {};
+    private current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
 
     /**
      * Les params du throttled_select_query
@@ -129,7 +130,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
-    // private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 10, { leading: false, trailing: true });
+    // private throttled_select_query_ = ThrottleHelper.declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 10, { leading: false, trailing: true });
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
@@ -2952,7 +2953,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @param force_freeze si true, on force le freeze des résultats de la requête. Mis en place en particulier pour le cas d'une réponse attendue par plusieurs cbs, au niveau du dépilage des requêtes
      * @returns le résultat de la requête
      */
-    private async do_select_query(request: string, values: any[], params: ThrottledSelectQueryParam, freeze_check_passed_and_refused: { [full_parameterized_query: string]: boolean }, force_freeze: boolean = false) {
+    private async do_select_query(
+        request: string, values: any[],
+        params_by_query_index: { [query_index: number]: ThrottledSelectQueryParam },
+        freeze_check_passed_and_refused: { [query_index: number]: boolean },
+        force_freeze: { [query_index: number]: boolean }
+    ): Promise<void> {
+
         let results = null;
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'IN');
@@ -2968,46 +2975,72 @@ export default class ModuleDAOServer extends ModuleServerBase {
             ConsoleHandler.error('do_select_query:' + error);
         }
 
-        let promises = [];
-
-        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-            ConsoleHandler.log('do_select_query:results_of_index:' + (results ? JSON.stringify(results) : 'null'));
-        }
-
         /**
-         * Si on utilise plusieurs fois les mêmes datas résultantes de la query,
-         *  on clonait les résultats pour chaque cb, mais c'est très lourd.
-         *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
-         * On freeze aussi si on a un max_age_ms, car on ne veut pas que les données changent quand on les met en cache
+         * On ventile les résultats par index
          */
-        if ((results && (param.cbs.length > 1)) || (param.context_query.max_age_ms) || force_freeze) {
-            Object.freeze(results);
-        } else {
-            freeze_check_passed_and_refused[param.parameterized_full_query] = true;
+        let results_by_index: { [index: number]: any[] } = {};
+        for (let i in results) {
+            let result = results[i];
+
+            let index = result['___throttled_select_query___index'];
+            if (!results_by_index[index]) {
+                results_by_index[index] = [];
+            }
+            delete result['___throttled_select_query___index'];
+            results_by_index[index].push(result);
         }
 
-        /**
-         * On ajoute la gestion du cache - attention a freeze les données avant de les mettre en cache
-         */
-        if (param.context_query.max_age_ms) {
-            DAOCacheHandler.set_cache(param.parameterized_full_query, results, param.context_query.max_age_ms);
+        let all_params_promises = [];
+        for (let i in params_by_query_index) {
+            let index = parseInt(i);
+            let results_of_index = results_by_index[index];
+            let param = params_by_query_index[index];
+            let this_param_promises = [];
+
+            all_params_promises.push((async () => {
+
+                if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+                    ConsoleHandler.log('do_select_query:results_of_index:' + (results_of_index ? JSON.stringify(results_of_index) : 'null'));
+                }
+
+                /**
+                 * Si on utilise plusieurs fois les mêmes datas résultantes de la query,
+                 *  on clonait les résultats pour chaque cb, mais c'est très lourd.
+                 *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
+                 * On freeze aussi si on a un max_age_ms, car on ne veut pas que les données changent quand on les met en cache
+                 */
+                if ((results_of_index && (param.cbs.length > 1)) || (param.context_query.max_age_ms) || force_freeze[param.index]) {
+                    Object.freeze(results_of_index);
+                } else {
+                    freeze_check_passed_and_refused[param.index] = true;
+                }
+
+                /**
+                 * On ajoute la gestion du cache - attention a freeze les données avant de les mettre en cache
+                 */
+                if (param.context_query.max_age_ms) {
+                    DAOCacheHandler.set_cache(param.parameterized_full_query, results_of_index, param.context_query.max_age_ms);
+                }
+
+                param.register_precbs_stats();
+                let cbs_time_in = Dates.now_ms();
+
+                for (let cbi in param.cbs) {
+                    let cb = param.cbs[cbi];
+
+                    this_param_promises.push(cb(results_of_index ? results_of_index : null));
+                }
+                await all_promises(this_param_promises);
+
+                StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'cbs_OUT');
+                StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'cbs_OUT', Dates.now_ms() - cbs_time_in);
+                StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'OUT', Dates.now_ms() - time_in);
+
+                await this.current_promise_resolvers[param.index](results_of_index);
+            })());
         }
 
-        param.register_precbs_stats();
-        let cbs_time_in = Dates.now_ms();
-
-        for (let cbi in param.cbs) {
-            let cb = param.cbs[cbi];
-
-            promises.push(cb(results ? results : null));
-        }
-        await all_promises(promises);
-
-        StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'cbs_OUT');
-        StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'cbs_OUT', Dates.now_ms() - cbs_time_in);
-        StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'OUT', Dates.now_ms() - time_in);
-
-        return results;
+        await all_promises(all_params_promises);
     }
 
     /**
@@ -3300,8 +3333,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async shift_select_queries(): Promise<void> {
 
         let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL, 'ModuleDAOServer:shift_select_queries');
-        let force_freeze: { [index: string]: boolean } = {};
-        let freeze_check_passed_and_refused: { [index: string]: boolean } = {};
+        let force_freeze: { [query_index: number]: boolean } = {};
+        let freeze_check_passed_and_refused: { [query_index: number]: boolean } = {};
+        let MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.MAX_NB_AUTO_UNION_IN_SELECT;
         let waiter = 1;
         while (true) {
 
@@ -3311,17 +3345,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             waiter = 1;
-            let param: ThrottledSelectQueryParam = this.throttled_select_query_params.shift();
+            let fields_labels: string = this.throttled_select_query_params.shift().fields_labels;
+            let same_field_labels_params: ThrottledSelectQueryParam[] = this.throttled_select_query_params_by_fields_labels[fields_labels];
+            delete this.throttled_select_query_params_by_fields_labels[fields_labels];
 
-            let same_field_labels_params: ThrottledSelectQueryParam[] = this.throttled_select_query_params_by_fields_labels[param.fields_labels];
             // "dedoublonned" - JNE Copyright 2023
-            let dedoublonned_same_field_labels_params: ThrottledSelectQueryParam[] = [];
+            let dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } } = {};
 
             if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.log('shift_select_queries:pushing param');
             }
 
-            let current_promise_resolvers: { [parameterized_full_query: string]: (value: unknown) => void } = {};
+            let group_id = 0;
+            let nb_union_in_current_group_id = 0;
+            let request_by_group_id: { [group_id: number]: string } = {};
             for (let i in same_field_labels_params) {
                 let same_field_labels_param = same_field_labels_params[i];
 
@@ -3335,40 +3372,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
+                /**
+                 * On veut limiter à X le nombre de requêtes regroupées, pour pas lancer une requete de 50 unions, mais plutôt 10 requetes de 5 unions par exemple
+                 */
+                if (nb_union_in_current_group_id >= MAX_NB_AUTO_UNION_IN_SELECT) {
+                    group_id++;
+                    nb_union_in_current_group_id = 0;
+                }
+
                 let current_promise = new Promise(async (resolve, reject) => {
-                    current_promise_resolvers[same_field_labels_param.parameterized_full_query] = resolve;
+                    this.current_promise_resolvers[same_field_labels_param.index] = resolve;
                 });
 
-                this.current_select_query_promises[param.parameterized_full_query] = current_promise;
+                this.current_select_query_promises[same_field_labels_param.index] = current_promise;
 
                 /**
                  * On ajoute la gestion du cache ici
                  */
                 if (same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
-                    let res = DAOCacheHandler.get_cache(same_field_labels_param.parameterized_full_query);
-                    if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
-                        ConsoleHandler.log('shift_select_queries:do_shift_select_queries:cache:' + same_field_labels_param.parameterized_full_query);
-                    }
-                    StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'from_cache');
-
-                    await promise_pipeline.push(async () => {
-
-                        same_field_labels_param.register_precbs_stats();
-
-                        let promises = [];
-                        for (let cbi in same_field_labels_param.cbs) {
-                            let cb = same_field_labels_param.cbs[cbi];
-
-                            promises.push((async () => {
-                                await cb(res);
-                            })());
-                        }
-                        promises.push(current_promise_resolvers[same_field_labels_param.parameterized_full_query](res));
-
-                        await all_promises(promises);
-                        same_field_labels_param.register_postcbs_stats();
-                    });
-
+                    await promise_pipeline.push(this.handle_load_from_cache(same_field_labels_param, this.current_promise_resolvers[same_field_labels_param.index]));
                     continue;
                 }
                 StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');
@@ -3378,29 +3400,99 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                dedoublonned_same_field_labels_params.push(same_field_labels_param);
-            }
+                nb_union_in_current_group_id++;
 
-            if ((!dedoublonned_same_field_labels_params) || (!dedoublonned_same_field_labels_params.length)) {
-                continue;
-            }
-
-            await promise_pipeline.push(async () => {
+                if (!dedoublonned_same_field_labels_params_by_group_id[group_id]) {
+                    dedoublonned_same_field_labels_params_by_group_id[group_id] = {};
+                    request_by_group_id[group_id] = null;
+                }
+                dedoublonned_same_field_labels_params_by_group_id[group_id][same_field_labels_param.index] = same_field_labels_param;
 
                 /**
                  * On doit faire l'union
                  */
+                let this_request = "(SELECT " + same_field_labels_param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" +
+                    same_field_labels_param.parameterized_full_query + ") ___throttled_select_query___query)";
 
-                let request = "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" +
-                    dedoublonned_same_field_labels_params.join(") UNION ALL (") + ") ___throttled_select_query___query)";
-                let results = await this.do_select_query(request, null, param, freeze_check_passed_and_refused, force_freeze[param.parameterized_full_query]);
+                if (request_by_group_id[group_id]) {
+                    request_by_group_id[group_id] += " UNION ALL " + this_request;
+                } else {
+                    request_by_group_id[group_id] = this_request;
+                }
+            }
 
-                delete this.current_select_query_promises[param.parameterized_full_query];
-                delete force_freeze[param.parameterized_full_query];
-                delete freeze_check_passed_and_refused[param.parameterized_full_query];
-                await current_promise_resolver(results);
+            await this.handle_groups_queries(
+                dedoublonned_same_field_labels_params_by_group_id,
+                request_by_group_id,
+                freeze_check_passed_and_refused,
+                force_freeze,
+                promise_pipeline
+            );
+        }
+    }
+
+    private async handle_groups_queries(
+        dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } },
+        request_by_group_id: { [group_id: number]: string },
+        freeze_check_passed_and_refused: { [query_index: number]: boolean },
+        force_freeze: { [query_index: number]: boolean },
+        promise_pipeline: PromisePipeline
+    ) {
+        for (let group_id_s in request_by_group_id) {
+            let gr_id = parseInt(group_id_s);
+
+            let request = request_by_group_id[gr_id];
+            let dedoublonned_same_field_labels_params = dedoublonned_same_field_labels_params_by_group_id[gr_id];
+
+            await promise_pipeline.push(async () => {
+
+
+                await this.do_select_query(
+                    request,
+                    null,
+                    dedoublonned_same_field_labels_params,
+                    freeze_check_passed_and_refused,
+                    force_freeze
+                );
+
+                for (let index in dedoublonned_same_field_labels_params) {
+
+                    delete this.current_promise_resolvers[index];
+                    delete this.current_select_query_promises[index];
+                    delete force_freeze[index];
+                    delete freeze_check_passed_and_refused[index];
+                }
             });
         }
+    }
+
+    private handle_load_from_cache(
+        same_field_labels_param: ThrottledSelectQueryParam,
+        current_promise_resolver: (value: unknown) => void
+    ): () => Promise<void> {
+        let res = DAOCacheHandler.get_cache(same_field_labels_param.parameterized_full_query);
+        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+            ConsoleHandler.log('shift_select_queries:do_shift_select_queries:cache:' + same_field_labels_param.parameterized_full_query);
+        }
+        StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'from_cache');
+
+        return async () => {
+
+            same_field_labels_param.register_precbs_stats();
+
+            let promises = [];
+            for (let cbi in same_field_labels_param.cbs) {
+                let cb = same_field_labels_param.cbs[cbi];
+
+                promises.push((async () => {
+                    await cb(res);
+                })());
+            }
+            promises.push(current_promise_resolver(res));
+
+            await all_promises(promises);
+            same_field_labels_param.register_postcbs_stats();
+        };
     }
 
     /**
@@ -3410,15 +3502,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private dedoublonnage(
         param: ThrottledSelectQueryParam,
-        force_freeze: { [parameterized_full_query: string]: boolean },
-        freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean }): Promise<void> {
+        force_freeze: { [query_index: number]: boolean },
+        freeze_check_passed_and_refused: { [query_index: number]: boolean }): Promise<void> {
 
         // Ici on voudrait un système de dédoublonnage, qui permette de dire cette requete est déjà en cours, on
         //  attend que la promise déjà construite soit terminée au lieu d'en faire encore une autre. ça nécessite de garder une trace des
         //  promises en cours
-        if (this.current_select_query_promises[param.parameterized_full_query]) {
+        if (this.current_select_query_promises[param.index]) {
 
-            if (!!freeze_check_passed_and_refused[param.parameterized_full_query]) {
+            if (!!freeze_check_passed_and_refused[param.index]) {
                 // si on a bloqué l'usage du current_select_query_promises, on ne doit pas en relancer avec la même requête
                 // on doit attendre la fin de la précédente. Donc on attend la suppression du current_select_query_promises
                 this.throttled_select_query_params.push(param);
@@ -3427,8 +3519,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let res = new Promise<void>(async (resolve, reject) => {
 
-                force_freeze[param.parameterized_full_query] = true;
-                let results = await this.current_select_query_promises[param.parameterized_full_query];
+                force_freeze[param.index] = true;
+                let results = await this.current_select_query_promises[param.index];
                 param.register_precbs_stats();
                 let promises = [];
                 for (let cbi in param.cbs) {

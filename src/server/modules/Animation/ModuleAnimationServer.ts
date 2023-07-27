@@ -380,7 +380,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                     theme_id_ranges,
                     [RangeHandler.create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
                     [RangeHandler.create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
-                ), 'ModuleAnimationServer.endModule');
+                ).index);
             } catch (error) {
                 ConsoleHandler.error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
             }

@@ -105,7 +105,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     private entered_once: boolean = false;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false, trailing: true });
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false, trailing: true });
 
     // Pour éviter de rentrer en conflit avec le clic
     private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);

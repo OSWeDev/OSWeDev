@@ -17,6 +17,7 @@ export default interface IEnvParam {
     NODE_VERBOSE: boolean;
     ACTIVATE_LONG_JOHN: boolean;
     MAX_POOL: number;
+    MAX_NB_AUTO_UNION_IN_SELECT?: number;
     SERVER_START_BOOSTER: boolean;
     SERVER_ENCODING: string;
     CONSOLE_LOG_TO_FILE: boolean;

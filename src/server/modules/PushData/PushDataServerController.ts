@@ -76,7 +76,7 @@ export default class PushDataServerController {
      * ----- Global application cache - Handled by Main process
      */
 
-    private throttled_notifyVarsDatasBySocket = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(async (stackable_args: any[]) => {
+    private throttled_notifyVarsDatasBySocket = ThrottleHelper.declare_throttle_with_stackable_args(async (stackable_args: any[]) => {
         if (!stackable_args) {
             return;
         }

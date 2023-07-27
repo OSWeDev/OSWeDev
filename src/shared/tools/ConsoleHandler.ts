@@ -71,7 +71,7 @@ export default class ConsoleHandler {
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
 
     private static log_to_console_cache: Array<{ msg: string, params: any[], log_type: string }> = [];
-    private static log_to_console_throttler = ThrottleHelper.getInstance().declare_throttle_without_args(this.log_to_console.bind(this), 1000);
+    private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
 
     // On throttle pour laisser du temps de calcul, et on indique l'heure d'exécution du throttle pour bien identifier le décalage de temps lié au throttle et la durée de loggage sur la console pour le pack.
     private static log_to_console() {

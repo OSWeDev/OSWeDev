@@ -24,7 +24,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
     private is_prepared: boolean = false;
 
     private log_to_file_cache: string[] = [];
-    private log_to_file_throttler = ThrottleHelper.getInstance().declare_throttle_without_args(this.log_to_file.bind(this), 1000);
+    private log_to_file_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_file.bind(this), 1000);
 
     private constructor() { }
 
