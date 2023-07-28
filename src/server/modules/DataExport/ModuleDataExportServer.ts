@@ -1556,7 +1556,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // May be better to not alter the original data rows
         let rows: IDistantVOBase[] = cloneDeep(datatable_rows);
 
-        let limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let limit = 20000; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(limit, 'convert_varparamfields_to_vardatas');
         let debug_uid: number = 0;
         let has_errors: boolean = false;
@@ -1567,6 +1567,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (ConfigurationService.node_configuration.DEBUG_convert_varparamfields_to_vardatas) {
             ConsoleHandler.log('convert_varparamfields_to_vardatas:nb rows:' + rows.length);
         }
+
         for (let j in rows) {
             let row = rows[j];
             let data_n: number = parseInt(j) + 1;
@@ -1618,7 +1619,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         row[column.datatable_field_uid] = var_data?.value ?? null;
                     } catch (error) {
                         ConsoleHandler.error('convert_varparamfields_to_vardatas:FAILED get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
-                        has_errors = true;
+
+                        /**
+                         * On retente. Si ça ne passe pas non plus on abandonne
+                         */
+                        try {
+
+                            let var_data = await VarsServerCallBackSubsController.get_var_data(var_param.index);
+                            row[column.datatable_field_uid] = var_data?.value ?? null;
+                        } catch (error) {
+                            ConsoleHandler.error('convert_varparamfields_to_vardatas:FAILED 2 get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
+                            has_errors = true;
+                        }
                     }
                 });
             }

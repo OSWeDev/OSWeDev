@@ -849,11 +849,13 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
+            let promises = [];
             for (let api_type_id in VarsServerController.varcacheconf_by_api_type_ids) {
 
                 let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
-                await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
+                promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
             }
+            await all_promises(promises);
 
             CurrentVarDAGHolder.current_vardag = new VarDAG();
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};

@@ -18,19 +18,21 @@ export default class ThrottlePipelineHelper {
      *  limiter le nombre de process de ce type, car ils sont permanents et ne se terminent jamais. Le wait_ms doit être
      *  bien paramétré pour ne pas être trop petit si ce n'est pas absolument nécessaire.
      * @param func
-     * @param wait_ms
-     * @param pipeline_size
+     * @param wait_ms Le temps d'attente entre chaque check des éléments en attente, si il n'y en a pas à date (sinon on boucle sans attente)
+     * @param pipeline_size Le nombre max d'appel à la func d'aggrégat en //
+     * @param max_stack_size Le nombre max de params qu'on aggrège dans un seul appel à la func d'aggrégat
      * @returns
      */
     public static declare_throttled_pipeline<ParamType, ResultType>(
         func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
         wait_ms: number,
-        pipeline_size: number
+        pipeline_size: number,
+        max_stack_size: number
     ) {
 
         let UID = ThrottlePipelineHelper.UID++;
         setTimeout(() => {
-            ThrottlePipelineHelper.unstack_throttled_pipeline_process(UID, func, wait_ms, pipeline_size);
+            ThrottlePipelineHelper.unstack_throttled_pipeline_process(UID, func, wait_ms, pipeline_size, max_stack_size);
         }, 1);
 
         return async (index: number | string, param: ParamType): Promise<ResultType> => {
@@ -95,7 +97,8 @@ export default class ThrottlePipelineHelper {
         UID: number,
         func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
         wait_ms: number,
-        pipeline_size: number
+        pipeline_size: number,
+        max_stack_size: number
     ) {
 
         let promise_pipeline = new PromisePipeline(pipeline_size);
@@ -110,30 +113,53 @@ export default class ThrottlePipelineHelper {
             let params_by_call_id: { [call_id: number]: ParamType } = ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
             delete ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
 
-            await promise_pipeline.push(async () => {
+            // On fait des paquets de params en fonction du max_stack_size
+            let current_stack_size = 0;
+            let params_by_index: { [index: string | number]: ParamType } = {};
+            let current_stack_param_by_call_id: { [call_id: number]: ParamType } = {};
 
-                let params_by_index: { [index: string | number]: ParamType } = {};
+            for (let call_id in params_by_call_id) {
+                let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+                params_by_index[index] = params_by_call_id[call_id];
+                current_stack_param_by_call_id[call_id] = params_by_call_id[call_id];
 
-                for (let call_id in params_by_call_id) {
-                    let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
-                    params_by_index[index] = params_by_call_id[call_id];
+                current_stack_size++;
+                if (current_stack_size >= max_stack_size) {
+                    await ThrottlePipelineHelper.handle_throttled_pipeline_call(UID, func, current_stack_param_by_call_id, promise_pipeline, params_by_index);
+                    params_by_index = {};
+                    current_stack_param_by_call_id = {};
+                    current_stack_size = 0;
                 }
+            }
 
-                let func_result: { [index: string | number]: ResultType } = await func(params_by_index);
-
-                // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
-                let promises = [];
-                for (let i in params_by_call_id) {
-                    let call_id = parseInt(i);
-                    let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
-
-                    promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id](func_result ? func_result[index] : null));
-
-                    delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
-                    delete ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
-                }
-                await all_promises(promises);
-            });
+            if (!!current_stack_size) {
+                await ThrottlePipelineHelper.handle_throttled_pipeline_call(UID, func, current_stack_param_by_call_id, promise_pipeline, params_by_index);
+            }
         }
+    }
+
+    private static async handle_throttled_pipeline_call<ParamType, ResultType>(
+        UID: number,
+        func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
+        params_by_call_id: { [call_id: number]: ParamType },
+        promise_pipeline: PromisePipeline,
+        params_by_index: { [index: string | number]: ParamType }
+    ) {
+        await promise_pipeline.push(async () => {
+            let func_result: { [index: string | number]: ResultType } = await func(params_by_index);
+
+            // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
+            let promises = [];
+            for (let i in params_by_call_id) {
+                let call_id = parseInt(i);
+                let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+
+                promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id](func_result ? func_result[index] : null));
+
+                delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
+                delete ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+            }
+            await all_promises(promises);
+        });
     }
 }

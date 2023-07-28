@@ -49,6 +49,7 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 
 export default class ContextQueryServerController {
 
@@ -1010,9 +1011,17 @@ export default class ContextQueryServerController {
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
                 let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
+                seg_query = this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query);
 
-                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_vos();
-                let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
+                // On ajoute des fasttracks pour ne pas avoir besoin de faire en base une requête dont le résultat est évident
+                // Typiquement si on construit une requete de type select id from t0 where t0.id = 10, la réponse est 10 dans ce contexte
+                //  car le 10 n'a pas pu être inventé, il estdonc existant en base. et la requête est executée en tant que serveur donc on ne peut pas le rater
+                let ids: number[] = this.get_fasttracks_ids(seg_query);
+
+                if (!ids) {
+                    let ids_map: IDistantVOBase[] = await seg_query.select_vos();
+                    ids = ids_map ? ids_map.map((id_map) => id_map.id) : null;
+                }
 
                 if (!ids || !ids.length) {
                     return null;
@@ -1074,7 +1083,19 @@ export default class ContextQueryServerController {
                  */
                 let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
 
-                return await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_count();
+                // On ajoute des fasttracks pour ne pas avoir besoin de faire en base une requête dont le résultat est évident
+                // Typiquement si on construit une requete de type select id from t0 where t0.id = 10, la réponse est 10 dans ce contexte
+                //  car le 10 n'a pas pu être inventé, il estdonc existant en base. et la requête est executée en tant que serveur donc on ne peut pas le rater
+                let ids: number[] = this.get_fasttracks_ids(seg_query);
+                let nb = 0;
+
+                if (!ids) {
+                    nb = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_count();
+                } else {
+                    nb = ids.length;
+                }
+
+                return nb;
             default:
                 throw new Error('Invalid segmentation_moduletable');
         }
@@ -2773,5 +2794,113 @@ export default class ContextQueryServerController {
         }
 
         return null;
+    }
+
+    /**
+     * On veut gérer sans requete des cas très simple et obligatoirement simples
+     * On est en exec_as_server donc ya aucun filtre sur les ids à trouver en base
+     * On a un champs id uniquement dans la requête
+     * On a un filtre en id_has ou id_eq et uniquement ça, sur le type principal de la query
+     * Dans ce cas on retourne le contenu du filtre
+     * @param context_query
+     * @returns null if not simple case, else the ids list
+     */
+    private get_fasttracks_ids(context_query: ContextQueryVO): number[] {
+
+        let res: number[] = [];
+
+        if (!context_query || !context_query.filters) {
+            return null;
+        }
+
+        if (!context_query.is_server) {
+            return null;
+        }
+
+        if ((!!context_query.query_limit) || (!!context_query.query_offset)) {
+            return null;
+        }
+
+        if (context_query.fields.length != 1) {
+            return null;
+        }
+
+        if (context_query.fields[0].field_id != 'id') {
+            return null;
+        }
+
+        if (context_query.fields[0].api_type_id != context_query.base_api_type_id) {
+            return null;
+        }
+
+        let id_filter = this.get_id_valid_filter(context_query);
+        if (!id_filter) {
+            return null;
+        }
+
+        if ((id_filter.filter_type != ContextFilterVO.TYPE_NUMERIC_INTERSECTS) && (id_filter.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) && (id_filter.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
+            return null;
+        }
+
+        if (!!id_filter.param_numeric_array) {
+            return Array.from(id_filter.param_numeric_array);
+        }
+
+        if (!!id_filter.param_numranges) {
+            RangeHandler.foreach_ranges_sync(id_filter.param_numranges, (id: number) => {
+                res.push(id);
+            });
+            return res;
+        }
+
+        return [id_filter.param_numeric];
+    }
+
+    /**
+     * On veut confirmer le plus rapidement possible qu'il n'y a qu'un filtre id valide sur l'api_type en param, tous les autres
+     * doivent être inapplicables (pas de chemin)
+     * @returns le filtre id valide, ou null sinon
+     */
+    private get_id_valid_filter(context_query: ContextQueryVO): ContextFilterVO {
+
+        if (!context_query || !context_query.filters) {
+            return null;
+        }
+
+        let id_filter = null;
+
+        for (let i in context_query.filters) {
+            let filter = context_query.filters[i];
+
+            if (filter.vo_type != context_query.base_api_type_id) {
+                // On doit checker les chemins
+                let path_between_types = ContextFieldPathServerController.getInstance().get_path_between_types(
+                    context_query.discarded_field_paths,
+                    context_query.use_technical_field_versioning,
+                    context_query.active_api_type_ids,
+                    [context_query.base_api_type_id],
+                    filter.vo_type
+                );
+                if (!path_between_types) {
+                    // pas de chemin
+                    continue;
+                }
+
+                return null;
+            }
+
+            if (filter.field_id != 'id') {
+                // pas valid
+                return null;
+            }
+
+            if (id_filter) {
+                return null;
+            }
+
+            id_filter = filter;
+        }
+
+        return id_filter;
     }
 }

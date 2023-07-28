@@ -74,7 +74,7 @@ export default class VarsDatasProxy {
     }
 
     private static get_var_data_or_ask_to_bgthread: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
-        this._get_var_datas_or_ask_to_bgthread.bind(this), 10, 500
+        this._get_var_datas_or_ask_to_bgthread.bind(this), 10, 500, 20
     );
 
     /**
@@ -156,7 +156,11 @@ export default class VarsDatasProxy {
                     continue;
                 }
 
-                if (node.tags[VarDAGNode.TAG_5_NOTIFIED_END]) {
+                // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
+                // Car le noeud pourrait ne pas être notifié sinon
+                // Si le noeud est déjà notifiable, on peut le notifier aussi pour gagner du temps
+                // Or tous les noeuds node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_5_NOTIFYING_END] sont is_notifiable
+                if (node.is_notifiable) {
                     vars_to_notify.push(node.var_data as T);
                 }
             }

@@ -115,7 +115,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // private semaphore_check_throttled_select_query_size_ms: boolean = false;
 
-    private current_select_query_promises: { [query_index: number]: Promise<any> } = {};
+    private current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
     private current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
 
     /**
@@ -2956,8 +2956,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async do_select_query(
         request: string, values: any[],
         params_by_query_index: { [query_index: number]: ThrottledSelectQueryParam },
-        freeze_check_passed_and_refused: { [query_index: number]: boolean },
-        force_freeze: { [query_index: number]: boolean }
+        freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean },
+        force_freeze: { [parameterized_full_query: string]: boolean }
     ): Promise<void> {
 
         let results = null;
@@ -3009,10 +3009,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
                  * On freeze aussi si on a un max_age_ms, car on ne veut pas que les données changent quand on les met en cache
                  */
-                if ((results_of_index && (param.cbs.length > 1)) || (param.context_query.max_age_ms) || force_freeze[param.index]) {
+                if ((results_of_index && (param.cbs.length > 1)) || (param.context_query.max_age_ms) || force_freeze[param.parameterized_full_query]) {
                     Object.freeze(results_of_index);
                 } else {
-                    freeze_check_passed_and_refused[param.index] = true;
+                    freeze_check_passed_and_refused[param.parameterized_full_query] = true;
                 }
 
                 /**
@@ -3333,8 +3333,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async shift_select_queries(): Promise<void> {
 
         let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL, 'ModuleDAOServer:shift_select_queries');
-        let force_freeze: { [query_index: number]: boolean } = {};
-        let freeze_check_passed_and_refused: { [query_index: number]: boolean } = {};
+        let force_freeze: { [parameterized_full_query: string]: boolean } = {};
+        let freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
         let MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.MAX_NB_AUTO_UNION_IN_SELECT;
         let waiter = 1;
         while (true) {
@@ -3359,6 +3359,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let group_id = 0;
             let nb_union_in_current_group_id = 0;
             let request_by_group_id: { [group_id: number]: string } = {};
+            let dedoublonnage_promises = []; // A priori on a pas d'usage à attendre leur résolution... on pourrait ne pas les stocker du coup
             for (let i in same_field_labels_params) {
                 let same_field_labels_param = same_field_labels_params[i];
 
@@ -3366,9 +3367,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let doublon_promise = this.dedoublonnage(same_field_labels_param, force_freeze, freeze_check_passed_and_refused);
                 if (doublon_promise) {
-                    await promise_pipeline.push(async () => {
-                        await doublon_promise;
-                    });
+                    dedoublonnage_promises.push(doublon_promise);
                     continue;
                 }
 
@@ -3384,7 +3383,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     this.current_promise_resolvers[same_field_labels_param.index] = resolve;
                 });
 
-                this.current_select_query_promises[same_field_labels_param.index] = current_promise;
+                this.current_select_query_promises[same_field_labels_param.parameterized_full_query] = current_promise;
 
                 /**
                  * On ajoute la gestion du cache ici
@@ -3434,8 +3433,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async handle_groups_queries(
         dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } },
         request_by_group_id: { [group_id: number]: string },
-        freeze_check_passed_and_refused: { [query_index: number]: boolean },
-        force_freeze: { [query_index: number]: boolean },
+        freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean },
+        force_freeze: { [parameterized_full_query: string]: boolean },
         promise_pipeline: PromisePipeline
     ) {
         for (let group_id_s in request_by_group_id) {
@@ -3457,10 +3456,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 for (let index in dedoublonned_same_field_labels_params) {
 
+                    let same_field_labels_param = dedoublonned_same_field_labels_params[index];
+
                     delete this.current_promise_resolvers[index];
-                    delete this.current_select_query_promises[index];
-                    delete force_freeze[index];
-                    delete freeze_check_passed_and_refused[index];
+                    delete this.current_select_query_promises[same_field_labels_param.parameterized_full_query];
+                    delete force_freeze[same_field_labels_param.parameterized_full_query];
+                    delete freeze_check_passed_and_refused[same_field_labels_param.parameterized_full_query];
                 }
             });
         }
@@ -3502,15 +3503,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private dedoublonnage(
         param: ThrottledSelectQueryParam,
-        force_freeze: { [query_index: number]: boolean },
+        force_freeze: { [parameterized_full_query: string]: boolean },
         freeze_check_passed_and_refused: { [query_index: number]: boolean }): Promise<void> {
 
         // Ici on voudrait un système de dédoublonnage, qui permette de dire cette requete est déjà en cours, on
         //  attend que la promise déjà construite soit terminée au lieu d'en faire encore une autre. ça nécessite de garder une trace des
         //  promises en cours
-        if (this.current_select_query_promises[param.index]) {
+        if (this.current_select_query_promises[param.parameterized_full_query]) {
 
-            if (!!freeze_check_passed_and_refused[param.index]) {
+            if (!!freeze_check_passed_and_refused[param.parameterized_full_query]) {
                 // si on a bloqué l'usage du current_select_query_promises, on ne doit pas en relancer avec la même requête
                 // on doit attendre la fin de la précédente. Donc on attend la suppression du current_select_query_promises
                 this.throttled_select_query_params.push(param);
@@ -3519,8 +3520,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let res = new Promise<void>(async (resolve, reject) => {
 
-                force_freeze[param.index] = true;
-                let results = await this.current_select_query_promises[param.index];
+                force_freeze[param.parameterized_full_query] = true;
+                let results = await this.current_select_query_promises[param.parameterized_full_query];
                 param.register_precbs_stats();
                 let promises = [];
                 for (let cbi in param.cbs) {

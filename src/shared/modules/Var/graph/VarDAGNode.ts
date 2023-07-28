@@ -616,4 +616,8 @@ export default class VarDAGNode extends DAGNodeBase {
         // On impacte les parents sur un potentiel is_computable
         this.update_parent_is_computable_if_needed();
     }
+
+    get is_notifiable(): boolean {
+        return VarsServerController.has_valid_value(this.var_data);
+    }
 }
