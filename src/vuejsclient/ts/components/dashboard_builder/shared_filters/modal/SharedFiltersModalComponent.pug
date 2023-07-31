@@ -120,7 +120,7 @@
                                                 div.option.col-md-12
                                                     .input_wrapper(:class="{'disabled': !is_sharable_field_filter(option)}")
                                                         toggle-button(
-                                                            @change="handle_toggle_select_field_filters(option)"  
+                                                            @change="toggle_select_field_filters(option)"  
 
                                                             v-model="is_readable_field_filter_selected(option)" 
 

@@ -1,10 +1,13 @@
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import WidgetOptionsMetadataVO from "../vos/WidgetOptionsMetadataVO";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import RangeHandler from "../../../tools/RangeHandler";
 import NumSegment from "../../DataRender/vos/NumSegment";
 import NumRange from "../../DataRender/vos/NumRange";
+import DashboardWidgetVO from "../vos/DashboardWidgetVO";
 
 /**
  * MonthFilterWidgetManager
@@ -16,10 +19,9 @@ export default class MonthFilterWidgetManager {
 
     /**
      * create_context_filter_from_widget_options
-     *  - TODO: when is_month_cumulable is true, we must create a ContextFilterVO that contains all months relative to the preselected month_relative_mode
+     *  - TODO: when is_month_cumulated_selected is true, we must create a ContextFilterVO that contains all months relative to the preselected month_relative_mode
      *
      * @param {MonthFilterWidgetOptionsVO} [widget_options]
-     *
      * @returns {ContextFilterVO}
      */
     public static create_context_filter_from_widget_options(
@@ -63,9 +65,41 @@ export default class MonthFilterWidgetManager {
     }
 
     /**
+     * get_relative_page_widget_by_widget_options
+     *
+     * @param {MonthFilterWidgetOptionsVO} [widget_options]
+     * @returns {DashboardPageWidgetVO}
+     */
+    public static async get_relative_page_widget_by_widget_options(
+        widget_options: MonthFilterWidgetOptionsVO
+    ): Promise<DashboardPageWidgetVO> {
+        if (!widget_options) {
+            return null;
+        }
+
+        if (!widget_options.auto_select_month_relative_mode) {
+            return null;
+        }
+
+        if (!widget_options.is_relative_to_other_filter) {
+            return null;
+        }
+
+        if (!widget_options.relative_to_other_filter_id) {
+            return null;
+        }
+
+        const relative_page_widget: DashboardPageWidgetVO = await DashboardPageWidgetVOManager.find_page_widget(
+            widget_options.relative_to_other_filter_id
+        );
+
+        return relative_page_widget;
+    }
+
+    /**
      * get_available_months_from_widget_options
      *
-     * @param {MonthFilterWidgetOptionsVO} widget_options
+     * @param {MonthFilterWidgetOptionsVO} [widget_options]
      * @returns {string[]}
      */
     public static get_available_months_from_widget_options(
@@ -108,7 +142,7 @@ export default class MonthFilterWidgetManager {
      * get_selected_months_from_widget_options
      * - Get default selected months
      *
-     * @param {MonthFilterWidgetOptionsVO} widget_options
+     * @param {MonthFilterWidgetOptionsVO} [widget_options]
      * @returns { { [month: number]: boolean }}
      */
     public static get_selected_months_from_widget_options(
@@ -133,6 +167,11 @@ export default class MonthFilterWidgetManager {
 
             selected_months[month_key] = false;
 
+            if (widget_options.is_all_months_selected) {
+                selected_months[month_key] = true;
+                continue;
+            }
+
             if (!widget_options.auto_select_month) {
                 continue;
             }
@@ -145,7 +184,7 @@ export default class MonthFilterWidgetManager {
             }
 
             if (
-                widget_options.is_month_cumulable &&
+                widget_options.is_month_cumulated_selected &&
                 widget_options.auto_select_month_relative_mode
             ) {
                 // Is auto select month relative to current month ?
@@ -173,8 +212,37 @@ export default class MonthFilterWidgetManager {
     }
 
     /**
+     * get_selected_months_from_other_selected_months
+     *
+     * @param {MonthFilterWidgetOptionsVO} [widget_options]
+     * @returns { { [month: number]: boolean }}
+     */
+    public static get_selected_months_from_other_selected_months(
+        widget_options: MonthFilterWidgetOptionsVO,
+        other_selected_months: { [month: number]: boolean }
+    ): { [month: number]: boolean } {
+        const selected_months: { [month: number]: boolean } = {};
+
+        for (let month in other_selected_months) {
+            let month_int = parseInt(month);
+
+            if (!other_selected_months[month]) {
+                continue;
+            }
+
+            const month_from = month_int + widget_options.auto_select_month_min;
+            const month_to = month_int + widget_options.auto_select_month_max;
+
+            for (let month_i = month_from; month_i <= month_to; month_i++) {
+                selected_months[month_i] = true;
+            }
+        }
+
+        return selected_months;
+    }
+
+    /**
      * get_selected_months_from_context_filter
-     * - Get Selected Months By Context Filter
      *
      * @param {ContextFilterVO} context_filter
      * @param {string[]} available_months
@@ -206,23 +274,24 @@ export default class MonthFilterWidgetManager {
     /**
      * Get Month Filters Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: WidgetOptionsMetadataVO }}
      */
     public static async get_month_filters_widgets_options_metadata(
         dashboard_page_id: number,
     ): Promise<
         {
-            [title_name_code: string]: { widget_options: MonthFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+            [title_name_code: string]: WidgetOptionsMetadataVO
         }
     > {
 
         const month_page_widgets: {
-            [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
-        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name([dashboard_page_id], 'monthfilter');
+            [page_widget_id: string]: WidgetOptionsMetadataVO
+        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
+            [dashboard_page_id],
+            DashboardWidgetVO.WIDGET_NAME_monthfilter
+        );
 
-        const res: {
-            [title_name_code: string]: { widget_options: MonthFilterWidgetOptionsVO, widget_name: string, dashboard_page_id: number, page_widget_id: number }
-        } = {};
+        const res: { [title_name_code: string]: WidgetOptionsMetadataVO } = {};
 
         for (const key in month_page_widgets) {
             const options = month_page_widgets[key];
@@ -230,12 +299,12 @@ export default class MonthFilterWidgetManager {
             const widget_options = new MonthFilterWidgetOptionsVO().from(options.widget_options);
             const name = widget_options.get_placeholder_name_code_text(options.page_widget_id);
 
-            res[name] = {
+            res[name] = new WidgetOptionsMetadataVO().from({
                 dashboard_page_id: options.dashboard_page_id,
                 page_widget_id: options.page_widget_id,
                 widget_name: options.widget_name,
                 widget_options: widget_options
-            };
+            });
         }
 
         return res;

@@ -15,6 +15,7 @@ export default class FavoritesFiltersWidgetOptionsVO extends AbstractVO {
         public vo_field_ref?: VOFieldRefVO,
         public max_visible_options?: number,
         public can_configure_export?: boolean,
+        public can_configure_date_filters?: boolean, // If true, the widget will allow the user to configure each Month/Year WidgetOptions for the export
     ) {
         super();
     }

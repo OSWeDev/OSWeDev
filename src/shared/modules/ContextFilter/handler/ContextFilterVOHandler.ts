@@ -8,8 +8,8 @@ import ManyToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToM
 import ManyToOneReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
-import FieldFiltersVO from '../../DashboardBuilder/vos/FieldFiltersVO';
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
+import FieldFiltersVO from '../../DashboardBuilder/vos/FieldFiltersVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../DataRender/vos/DataFilterOption';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
@@ -17,8 +17,8 @@ import TSRange from '../../DataRender/vos/TSRange';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTableField from '../../ModuleTableField';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ContextFilterVOManager from '../manager/ContextFilterVOManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
 import { query } from '../vos/ContextQueryVO';
 
@@ -472,13 +472,24 @@ export default class ContextFilterVOHandler {
     }
 
     /**
+     * find_context_filter_by_type
+     *
      * @param context_filter_tree_root
      * @param type
      * @returns the context_filter that has the asked type from the tree_root
      */
     public find_context_filter_by_type(context_filter_tree_root: ContextFilterVO, type: number): ContextFilterVO {
-        if (context_filter_tree_root && (context_filter_tree_root.filter_type != type) && context_filter_tree_root.left_hook && context_filter_tree_root.right_hook) {
-            return this.find_context_filter_by_type(context_filter_tree_root.left_hook, type) || this.find_context_filter_by_type(context_filter_tree_root.right_hook, type);
+        if (
+            context_filter_tree_root &&
+            (context_filter_tree_root.filter_type != type) &&
+            context_filter_tree_root.left_hook &&
+            context_filter_tree_root.right_hook
+        ) {
+
+            return (
+                this.find_context_filter_by_type(context_filter_tree_root.left_hook, type) ||
+                this.find_context_filter_by_type(context_filter_tree_root.right_hook, type)
+            );
         }
 
         if (context_filter_tree_root.filter_type != type) {
@@ -492,6 +503,7 @@ export default class ContextFilterVOHandler {
      * Remove the context_filter_to_delete from context_filter_tree_root and returns the new root
      * Need to ask the deletion with the real contextfilter object and not a description or clone of it.
      * Tests are done on the objects adresses, not deeply on the contents.
+     *
      * @param context_filter_tree_root
      * @param context_filter_to_delete
      * @returns

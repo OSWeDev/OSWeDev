@@ -2,17 +2,17 @@ import ConsoleHandler from "../../../tools/ConsoleHandler";
 import WeightHandler from "../../../tools/WeightHandler";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
-import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
-import DashboardWidgetVO from "../vos/DashboardWidgetVO";
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
-import { query } from "../../ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../DAO/ModuleDAO";
-import MonthFilterWidgetManager from "./MonthFilterWidgetManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
+import { query } from "../../ContextFilter/vos/ContextQueryVO";
+import DashboardWidgetVO from "../vos/DashboardWidgetVO";
+import ModuleDAO from "../../DAO/ModuleDAO";
 import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
-import YearFilterWidgetManager from "./YearFilterWidgetManagers";
+import MonthFilterWidgetManager from "./MonthFilterWidgetManager";
+import YearFilterWidgetManager from "./YearFilterWidgetManager";
 
 /**
  * WidgetOptionsVOManager
@@ -112,13 +112,24 @@ export default class WidgetOptionsVOManager {
         }
     }
 
+    /**
+     * register_widget_type
+     * - This method is responsible for registering the given widget type
+     *
+     * @deprecated TODO: Shall be in the DashboardWidgetVOManager
+     *
+     * @param {DashboardWidgetVO} widget_type
+     * @param {Function} options_constructor
+     * @param {Function} get_selected_fields
+     * @returns {Promise<void>}
+     */
     public static async register_widget_type(
         widget_type: DashboardWidgetVO,
         options_constructor: () => any,
         get_selected_fields: (page_widget: DashboardPageWidgetVO) => {
             [api_type_id: string]: { [field_id: string]: boolean }
         }
-    ) {
+    ): Promise<void> {
 
         const self = WidgetOptionsVOManager.getInstance();
 
@@ -152,6 +163,8 @@ export default class WidgetOptionsVOManager {
     /**
      * find_all_sorted_widgets_types
      * - This method is responsible for loading all sorted widgets types
+     *
+     * @deprecated TODO: Shall be in the DashboardWidgetVOManager
      *
      * @returns {Promise<DashboardWidgetVO[]>}
      */

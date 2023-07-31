@@ -21,7 +21,7 @@ import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalCompon
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
 import MonthFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
-import YearFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagers';
+import YearFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManager';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
@@ -213,6 +213,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             widgets_options.push(widget_options);
         }
 
+        // Get field_filters from active_field_filters by filtering with visible widgets
         const field_filters = FieldFiltersVOManager.filter_visible_field_filters(
             widgets_options,
             this.get_active_field_filters,

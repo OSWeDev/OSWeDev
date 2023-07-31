@@ -1,25 +1,30 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
+import YearFilterWidgetHandler from '../../../../../../shared/modules/DashboardBuilder/handlers/YearFilterWidgetHandler';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManager';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import YearFilterInputComponent from '../../../year_filter_input/YearFilterInputComponent';
+import VueComponentBase from '../../../VueComponentBase';
 import './YearFilterWidgetComponent.scss';
 
 @Component({
     template: require('./YearFilterWidgetComponent.pug'),
-    components: {}
+    components: {
+        Yearfilterinputcomponent: YearFilterInputComponent,
+    }
 })
 export default class YearFilterWidgetComponent extends VueComponentBase {
 
@@ -61,6 +66,13 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private is_relative_to_other_filter: boolean = false;
     private relative_to_other_filter_id: number = null;
 
+    private other_filter_selected_years: { [year: string]: boolean } = null;
+
+    // Relative page widget (if relative_to_other_filter_id is set)
+    private relative_page_widget: DashboardPageWidgetVO = null;
+
+    private widget_options: YearFilterWidgetOptionsVO = null;
+
     protected async mounted() {
         this.set_page_widget_component_by_pwid({
             pwid: this.page_widget.id,
@@ -69,78 +81,18 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * Handle toggle selected year
-     *  - Called when we click on toggle year button
-     * @param i index in selected year array
+     * onchange_page_widget
+     *  - Called when page_widget is changed
+     *
+     * @returns {void}
      */
-    private handle_toggle_selected_year(i: string): void {
-        Vue.set(this.selected_years, i, !this.selected_years[i]);
-
-        if (!(Object.keys(this.selected_years)?.length > 0)) {
-            // if there is no selected_years
-            this.is_all_years_selected = true;
-        } else {
-            this.is_all_years_selected = false;
-        }
-    }
-
-    /**
-     * Handle Toggle Select All
-     *  - Called when we click on toggle select all
-     */
-    private handle_toggle_select_all() {
-        this.is_all_years_selected = !this.is_all_years_selected;
-
-        if (this.is_all_years_selected) {
-            // If is all years selected reset selected_years
-            this.selected_years = {};
-            this.force_selected_years_reset = true;
-        }
-    }
-
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    /**
-     * computed widget_options
-     *  - Called on component|widget creation
-     */
-    get widget_options(): YearFilterWidgetOptionsVO {
+    @Watch('page_widget', { immediate: true, deep: true })
+    private onchange_page_widget(): void {
         if (!this.page_widget) {
-            return null;
+            return;
         }
 
-        let options: YearFilterWidgetOptionsVO = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptionsVO;
-                options = options ? new YearFilterWidgetOptionsVO(
-                    options.is_vo_field_ref,
-                    options.vo_field_ref,
-                    options.custom_filter_name,
-                    options.year_relative_mode,
-                    options.min_year,
-                    options.max_year,
-                    options.auto_select_year,
-                    options.auto_select_year_relative_mode,
-                    options.auto_select_year_min,
-                    options.auto_select_year_max,
-                    options.is_relative_to_other_filter,
-                    options.relative_to_other_filter_id,
-                    options.hide_filter,
-                    options.can_select_all
-                ) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
+        this.widget_options = this.get_widget_options();
     }
 
     /**
@@ -149,7 +101,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
      *  - Initialize the selected_years with default widget options
      * @returns void
      */
-    @Watch('widget_options', { immediate: true })
+    @Watch('widget_options', { immediate: true, deep: true })
     private onchange_widget_options(): void {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
@@ -181,98 +133,46 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
         this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
 
-        let selected_years = {};
+        let selected_years = YearFilterWidgetManager.get_selected_years_from_widget_options(
+            this.widget_options,
+        );
 
-        let years = this.years;
-        if (years && (!!years.length)) {
-            for (let i in years) {
-                let year = years[i];
-                // if (this.selected_years[year]) {
-                //     selected_years[year] = true;
-                //     continue;
-                // }
+        this.selected_years = selected_years;
+    }
 
-                if (this.widget_options.auto_select_year) {
-
-                    if ((this.widget_options.auto_select_year_min == null) || (this.widget_options.auto_select_year_max == null)) {
-                        continue;
-                    }
-
-                    if (this.widget_options.auto_select_year_relative_mode) {
-                        let current_year = Dates.year(Dates.now());
-                        let year_int = parseInt(year);
-                        if ((year_int >= (current_year + this.widget_options.auto_select_year_min)) &&
-                            (year_int <= (current_year + this.widget_options.auto_select_year_max))) {
-                            selected_years[year] = true;
-                            continue;
-                        }
-                    } else {
-                        let year_int = parseInt(year);
-                        if ((year_int >= this.widget_options.auto_select_year_min) &&
-                            (year_int <= this.widget_options.auto_select_year_max)) {
-                            selected_years[year] = true;
-                            continue;
-                        }
-                    }
-                }
-
-                selected_years[year] = false;
-            }
+    @Watch('other_filter_selected_years', { immediate: true, deep: true })
+    private onchange_other_filter_selected_years() {
+        if (!this.relative_to_this_filter) {
+            return;
         }
+
+        const selected_years = YearFilterWidgetManager.get_selected_years_from_other_selected_years(
+            this.widget_options,
+            this.other_filter_selected_years,
+        );
+
         this.selected_years = selected_years;
     }
 
     /**
-     * Get active field filters
-     *  - Shall initialize the selected years by using context filter
-     * @returns void
+     * onchange_relative_to_other_filter_id
+     *
+     * @returns {Promise<void>}
      */
-    @Watch("get_active_field_filters", { immediate: true })
-    private try_preload_selected_years(): void {
-
-        // 1 on cherche le contextfilter correspondant à ce type de filtre
-        let root_context_filter: ContextFilterVO = null;
-        if (this.is_vo_field_ref) {
-            if (!this.vo_field_ref) {
-                return null;
-            }
-            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
-        } else {
-            if (!this.custom_filter_name) {
-                return null;
-            }
-            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
-        }
-
-        /**
-         * Si on a un root_context_filter, on cherche celui qui est du type concerné
-         */
-        let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
-            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
-        }
-
-        // If no context filter that mean there is no initialization
-        // - Then keep let all selected years with default values
-        if (!context_filter) {
+    @Watch('relative_to_other_filter_id', { immediate: true, })
+    private async onchange_relative_to_other_filter_id(): Promise<void> {
+        if (!this.relative_to_other_filter_id) {
+            this.other_filter_selected_years = null;
+            this.relative_page_widget = null;
             return;
         }
 
-        // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
-        let new_value: { [year: number]: boolean } = {};
-        for (let i in this.years) {
-            new_value[this.years[i]] = false;
-        }
-        RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (year: number) => {
-            new_value[year] = true;
-        });
+        this.relative_page_widget = await YearFilterWidgetManager.get_relative_page_widget_by_widget_options(
+            this.widget_options,
+        );
 
-        for (let i in new_value) {
-            if (new_value[i] != this.selected_years[i]) {
-                this.selected_years = new_value;
-                break;
-            }
-        }
+        // We want to get the actual selected years from the other filter
+        this.other_filter_selected_years = this.relative_to_this_filter?.selected_years; // Check if that keep the ref on the other filter selected years
     }
 
     /**
@@ -284,25 +184,23 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     @Watch('selected_years', { immediate: true, deep: true })
     private onchange_selected_years(): void {
         // 1 on cherche le contextfilter correspondant à ce type de filtre
-        let root_context_filter: ContextFilterVO = null;
-        if (this.is_vo_field_ref) {
-            if (!this.vo_field_ref) {
-                return null;
-            }
-            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
-        } else {
-            if (!this.custom_filter_name) {
-                return null;
-            }
-            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
-        }
+        const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_by_widget_options_from_field_filters(
+            this.widget_options,
+            this.get_active_field_filters,
+        );
 
         let years_ranges: NumRange[] = [];
         for (let i in this.selected_years) {
             if (!this.selected_years[i]) {
                 continue;
             }
-            years_ranges.push(RangeHandler.create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
+
+            years_ranges.push(
+                RangeHandler.create_single_elt_NumRange(
+                    parseInt(i.toString()),
+                    NumSegment.TYPE_INT
+                )
+            );
         }
         years_ranges = RangeHandler.getRangesUnion(years_ranges);
 
@@ -311,7 +209,10 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(
+                root_context_filter,
+                ContextFilterVO.TYPE_DATE_YEAR
+            );
         }
 
         /**
@@ -399,6 +300,96 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * Get active field filters
+     *  - Shall initialize the selected years by using context filter
+     * @returns void
+     */
+    @Watch("get_active_field_filters", { immediate: true, deep: true })
+    private try_preload_selected_years(): void {
+
+        // 1 on cherche le contextfilter correspondant à ce type de filtre
+        const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_by_widget_options_from_field_filters(
+            this.widget_options,
+            this.get_active_field_filters,
+        );
+
+        /**
+         * Si on a un root_context_filter, on cherche celui qui est du type concerné
+         */
+        let context_filter: ContextFilterVO = null;
+        if (!!root_context_filter) {
+            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(
+                root_context_filter,
+                ContextFilterVO.TYPE_DATE_YEAR
+            );
+        }
+
+        // If no context filter that mean there is no initialization
+        // - Then keep let all selected years with default values
+        if (!context_filter) {
+            return;
+        }
+
+        const selected_years_has_changed: boolean = YearFilterWidgetHandler.has_selectected_years_changed(
+            context_filter,
+            this.selected_years,
+            this.years
+        );
+
+        // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
+        if (selected_years_has_changed) {
+            this.selected_years = YearFilterWidgetManager.get_selected_years_from_context_filter(
+                context_filter,
+                this.years
+            );
+        }
+    }
+
+    /**
+     * computed widget_options
+     *  - Called on component|widget creation
+     */
+    private get_widget_options(): YearFilterWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: YearFilterWidgetOptionsVO = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptionsVO;
+                options = options ? new YearFilterWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    /**
+     * Handle Select All Change
+     */
+    private handle_all_years_selected_change(is_all_years_selected: boolean): void {
+        this.is_all_years_selected = is_all_years_selected;
+    }
+
+    /**
+     * Handle Selected Month Change
+     */
+    private handle_selected_year_change(selected_years: { [year: number]: boolean }): void {
+        this.selected_years = selected_years;
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
     get is_vo_field_ref(): boolean {
         if (!this.widget_options) {
             return true;
@@ -454,62 +445,10 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as YearFilterWidgetComponent;
     }
 
-    get other_filter_selected_years(): { [year: string]: boolean } {
-        if (!this.relative_to_this_filter) {
-            return null;
-        }
-
-        let other_filter_selected_years = this.relative_to_this_filter.selected_years;
-        if (!other_filter_selected_years) {
-            return null;
-        }
-
-        return other_filter_selected_years;
-    }
-
-    @Watch('other_filter_selected_years', { immediate: true, deep: true })
-    private onchange_other_filter_selected_years() {
-        if (!this.relative_to_this_filter) {
-            return;
-        }
-
-        let selected_years = {};
-        for (let year in this.other_filter_selected_years) {
-            let year_int = parseInt(year);
-
-            if (!this.other_filter_selected_years[year]) {
-                continue;
-            }
-
-            for (let year_i = year_int + this.widget_options.auto_select_year_min; year_i <= year_int + this.widget_options.auto_select_year_max; year_i++) {
-                selected_years[year_i] = true;
-            }
-        }
-        this.selected_years = selected_years;
-    }
-
     get years(): string[] {
-        let res: string[] = [];
-
-        if ((!this.widget_options) || (this.widget_options.min_year == null) || (this.widget_options.max_year == null)) {
-            return [];
-        }
-
-        if ((this.widget_options.max_year - this.widget_options.min_year) > 15) {
-            return [];
-        }
-
-        if (this.widget_options.year_relative_mode) {
-
-            let current_year = Dates.year(Dates.now());
-            for (let i = current_year + this.widget_options.min_year; i <= current_year + this.widget_options.max_year; i++) {
-                res.push(i.toString());
-            }
-        } else {
-            for (let i = this.widget_options.min_year; i <= this.widget_options.max_year; i++) {
-                res.push(i.toString());
-            }
-        }
+        let res: string[] = YearFilterWidgetManager.get_available_years_from_widget_options(
+            this.widget_options,
+        );
 
         return res;
     }

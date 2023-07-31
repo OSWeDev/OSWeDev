@@ -22,7 +22,15 @@
         }
     }
 
-    .favorites_filters_overwrite_active_field_filters {
+    .favorites_filters_date_custom_configs_wrapper {
+        .date_custom_configs_item {
+            border: 1px solid #e8e8e8;
+            margin-bottom: 5px;
+        }
+    }
+
+    .favorites_filters_overwrite_active_field_filters,
+    .favorites_filters_is_field_filters_fixed_dates {
         .input_wrapper {
             display: inline;
             margin-right: 10px;

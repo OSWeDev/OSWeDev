@@ -56,12 +56,12 @@
                 :labels="{checked: label('month_filter_widget_component.auto_select_month.data'), unchecked: label('month_filter_widget_component.auto_select_month.value')}")
 
     template
-        .is_month_cumulable
-            .input_label {{ label('month_filter_widget_component.is_month_cumulable') }}
+        .is_month_cumulated_selected
+            .input_label {{ label('month_filter_widget_component.is_month_cumulated_selected') }}
             .input_wrapper
                 toggle-button(
-                    @change="toggle_is_month_cumulable" 
-                    v-model="is_month_cumulable" 
+                    @change="toggle_is_month_cumulated" 
+                    v-model="is_month_cumulated_selected" 
                     :sync="true"
                     :width="150"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"

@@ -29,3 +29,14 @@
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 ) 
+
+        .can_configure_date_filters
+            .input_label {{ label('favorites_filters_widget_component.can_configure_date_filters') }}
+            .input_wrapper
+                toggle-button(
+                    @change="toggle_can_configure_date_filters" 
+                    :value="can_configure_date_filters" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 

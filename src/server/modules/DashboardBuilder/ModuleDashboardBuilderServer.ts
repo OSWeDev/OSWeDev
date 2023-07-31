@@ -409,6 +409,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Non'
         }, 'year_filter_widget_component.auto_select_year.value.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer la pré-sélection relative'
+        }, 'year_filter_widget_component.configure_auto_select_year_relative_mode.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-sélection relative à une date'
         }, 'year_filter_widget_component.auto_select_year_relative_mode.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -442,6 +445,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer le filtre'
+        }, 'month_filter_widget_component.button_setter_widget_title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurations du filtre des mois'
+        }, 'month_filter_widget_component.configurations_summary_title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtre de données ou de valeurs'
         }, 'month_filter_widget_component.is_vo_field_ref.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -472,8 +481,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Mois maximum (...,Décembre=12)'
         }, 'month_filter_widget_component.max_month.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Sélection cumulée jusqu\'à la selection relative'
-        }, 'month_filter_widget_component.is_month_cumulable.___LABEL___'));
+            'fr-fr': 'Sélection de tous les mois'
+        }, 'month_filter_widget_component.is_all_months_selected.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cumul à date'
+        }, 'month_filter_widget_component.is_month_cumulated_selected.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-selection automatique'
         }, 'month_filter_widget_component.auto_select_month.___LABEL___'));
@@ -483,6 +495,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non'
         }, 'month_filter_widget_component.auto_select_month.value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer la pré-sélection relative'
+        }, 'month_filter_widget_component.configure_auto_select_month_relative_mode.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-sélection relative'
         }, 'month_filter_widget_component.auto_select_month_relative_mode.___LABEL___'));
@@ -524,6 +539,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner Tout" },
             'month_filter_widget_component.select_all.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres invalides (max 12 mois)'
+        }, 'month_filter_input_component.no_month.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'month_filter_input_component.select_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Cumuler les mois" },
+            'month_filter_input_component.month_cumulated.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -648,6 +675,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Réaliser des modifications en masse'
         }, 'dashboards.widgets.icons_tooltips.bulkops.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer le filtre'
+        }, 'year_filter_widget_component.button_setter_widget_title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurations du filtre des années'
+        }, 'year_filter_widget_component.configurations_summary_title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Paramètres invalides (max 15 années)'
         }, 'year_filter_widget_component.no_year.___LABEL___'));
@@ -672,6 +706,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année maximale'
         }, 'year_filter_widget_component.max_year.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélection de toutes les années'
+        }, 'year_filter_widget_component.is_all_years_selected.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Option Selectionner Tout" },
             'year_filter_widget_component.can_select_all_option.___LABEL___'
@@ -679,6 +716,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner Tout" },
             'year_filter_widget_component.select_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres invalides (max 15 années)'
+        }, 'year_filter_input_component.no_year.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'year_filter_input_component.select_all.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -1849,6 +1893,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurez vos filres à dates des exports" },
+            'dashboard_viewer.favorites_filters.date_custom_configs.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Configurez vos requêtes" },
             'dashboard_viewer.favorites_filters.modal_title.___LABEL___'
         ));
@@ -1861,7 +1909,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.export_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Selectionner vos filtres de requête" },
+            { 'fr-fr': "Sélectionnez vos filtres de requête" },
             'dashboard_viewer.favorites_filters.select_favorites.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1907,6 +1955,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Remplacer les filtres actifs" },
             'dashboard_viewer.favorites_filters.overwrite_active_field_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Utiliser les dates fixes des filtres actifs" },
+            'dashboard_viewer.favorites_filters.use_field_filters_fixed_dates.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Souhaitez-vous planifier les export ?" },

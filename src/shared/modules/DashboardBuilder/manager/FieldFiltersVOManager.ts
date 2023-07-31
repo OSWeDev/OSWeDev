@@ -175,7 +175,6 @@ export default class FieldFiltersVOManager {
                         return has_api_type_id && has_field_id;
                     });
 
-
                     is_filter_hidden = field_filters_prop?.is_filter_hidden ?? false;
                     vo_field_ref = field_filters_prop?.vo_field_ref ?? null;
                 }
@@ -212,6 +211,7 @@ export default class FieldFiltersVOManager {
             }
         }
 
+        // Sort by label (alphabetical order)
         return ObjectHandler.sort_by_key<{ [translatable_label_code: string]: IReadableFieldFilters }>(
             human_readable_field_filters
         );

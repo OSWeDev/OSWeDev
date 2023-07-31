@@ -1,0 +1,84 @@
+.year_filter_widget_options_button_setter_component
+    .row 
+        .col-md-12
+            .widget_title {{ label('year_filter_widget_component.button_setter_widget_title')}} : 
+                template(v-if='is_vo_field_ref')
+                    .label {{ input_label }}
+                template(v-else-id='!!custom_filter_name')
+                    .custom_filter_name {{ custom_filter_name }}
+    .row 
+        .col-md-6
+            .year_filter_input_wrapper
+                Yearfilterinputcomponent(
+                    mode='configuration'
+                    :years='years' 
+                    :selected_years='selected_years' 
+                    :is_years_selectionnable='false'
+                    :can_use_year_cumulated='true'
+                    :can_select_all='true' 
+                    :is_year_cumulated_selected='is_year_cumulated_selected' 
+                    :is_all_years_selected='is_all_years_selected' 
+                    :is_vo_field_ref='is_vo_field_ref' 
+                    :custom_filter_name='custom_filter_name' 
+                    :input_label='vo_field_ref_label' 
+                    @onchange_all_years_selected='handle_all_years_selected_change'
+                    @onchange_year_cumulated='handle_year_cumulated_change' 
+                    @onchange_selected_year='handle_selected_year_change' 
+                )
+        .col-md-6
+            div
+                //- Read & display the configurations to human readable
+                .widget_title {{ label('year_filter_widget_component.configurations_summary_title')}}
+
+                div {{ label('year_filter_widget_component.is_all_years_selected') }} : 
+                    template(v-if='is_all_years_selected')
+                        span {{ label('crud.field.boolean.true') }}
+                    template(v-else)
+                        span {{ label('crud.field.boolean.false') }}
+
+                div {{ label('year_filter_widget_component.auto_select_year_relative_mode') }} : 
+                    template(v-if='auto_select_year_relative_mode')
+                        span {{ label('year_filter_widget_component.auto_select_year_relative_mode.data') }}
+                    template(v-else)
+                        span {{ label('year_filter_widget_component.auto_select_year_relative_mode.value') }}
+
+                div.toggle_input_group
+                    .input_wrapper
+                        toggle-button(
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            name="can_configure_auto_select_year_relative_mode"
+                            @change="toggle_can_configure_auto_select_year_relative_mode" 
+                            :value="can_configure_auto_select_year_relative_mode" 
+                            :sync="true"
+                            :width="60"
+                        )
+                    .input_label {{ label('year_filter_widget_component.configure_auto_select_year_relative_mode') }}
+
+                template(v-if='can_configure_auto_select_year_relative_mode')
+                    .auto_select_year_min(v-tooltip='(auto_select_year_relative_mode && is_relative_to_other_filter) ? label("year_filter_widget_component.auto_select_year.is_relative_to_other_filter.tooltip") : null')
+                        .input_label {{ label('year_filter_widget_component.auto_select_year_min') }}
+                        .input_wrapper
+                            input(
+                                type="number"
+                                v-model="auto_select_year_min"
+                            )
+
+                    .auto_select_year_max(v-tooltip='(auto_select_year_relative_mode && is_relative_to_other_filter) ? label("year_filter_widget_component.auto_select_year.is_relative_to_other_filter.tooltip") : null')
+                        .input_label {{ label('year_filter_widget_component.auto_select_year_max') }}
+                        .input_wrapper
+                            input(
+                                type="number"
+                                v-model="auto_select_year_max"
+                            )
+
+
+                template(v-if='is_relative_to_other_filter')
+                    div {{ label('year_filter_widget_component.is_relative_to_other_filter') }}
+                        
+                    template(v-if='relative_to_other_filter_id')
+                        span {{ label('year_filter_widget_component.relative_to_other_filter_id') }} :
+                        span {{ other_filters_by_name[relative_to_other_filter_id].name }}
+                    
+                    span {{ label('year_filter_widget_component.auto_select_year_min') }}
+                    
+                    span {{ label('year_filter_widget_component.auto_select_year_max') }}

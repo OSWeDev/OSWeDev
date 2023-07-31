@@ -1,11 +1,12 @@
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 
 /**
  * MonthFilterWidgetOptionsVO
  */
-export default class MonthFilterWidgetOptionsVO {
+export default class MonthFilterWidgetOptionsVO extends AbstractVO {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "MonthFilterWidgetOptions.vo_field_ref.placeholder.";
 
@@ -50,19 +51,10 @@ export default class MonthFilterWidgetOptionsVO {
         public hide_filter?: boolean,
         public can_select_all?: boolean,
         public is_month_cumulable?: boolean,
-    ) { }
-
-    /**
-     * Hydrate from the given properties
-     *
-     * @param props {MonthFilterWidgetOptionsVO}
-     * @returns {MonthFilterWidgetOptionsVO}
-     */
-    public from(props: Partial<MonthFilterWidgetOptionsVO>): MonthFilterWidgetOptionsVO {
-
-        Object.assign(this, props);
-
-        return this;
+        public is_month_cumulated_selected?: boolean,
+        public is_all_months_selected?: boolean,
+    ) {
+        super();
     }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

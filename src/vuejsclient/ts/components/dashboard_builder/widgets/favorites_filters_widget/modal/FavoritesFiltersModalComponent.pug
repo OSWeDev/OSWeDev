@@ -56,24 +56,55 @@
                                                 toggle-button(
                                                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                                                     name="favorites_filters_overwrite_active_field_filters"
-                                                    @change="handle_toggle_overwrite_active_field_filters" 
+                                                    @change="toggle_overwrite_active_field_filters" 
                                                     :value="overwrite_active_field_filters" 
                                                     :sync="true"
                                                     :width="60"
                                                 )
                                             .input_label {{ label('dashboard_viewer.favorites_filters.overwrite_active_field_filters') }}
                                     
+                                        template(v-if="can_configure_date_filters")
+                                            div.favorites_filters_is_field_filters_fixed_dates
+                                                .input_wrapper
+                                                    toggle-button(
+                                                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                                        name="favorites_filters_is_field_filters_fixed_dates"
+                                                        @change="toggle_is_field_filters_fixed_dates" 
+                                                        :value="is_field_filters_fixed_dates" 
+                                                        :sync="true"
+                                                        :width="60"
+                                                    )
+                                                .input_label {{ label('dashboard_viewer.favorites_filters.use_field_filters_fixed_dates') }}
+
                                     hr.my-12
+
+                                    template(v-if="!is_field_filters_fixed_dates")
+                                        div.favorites_filters_date_custom_configs_wrapper
+                                            h5.input_label {{ label('dashboard_viewer.favorites_filters.date_custom_configs') }}
+                                            template(v-for="(date_config, key) in dates_page_widgets_custom_options_by_field_id")
+                                                .date_custom_configs_item
+                                                    div
+                                                        Monthfilterwidgetoptionsbuttonsettercomponent(  
+                                                            :page_widget="date_config.monthfilter"
+                                                            @onchange_page_widget="handle_change_monthfilter_page_widget(key, $event)"
+                                                        )
+                                                    div 
+                                                        Yearfilterwidgetoptionsbuttonsettercomponent(  
+                                                            :page_widget="date_config.yearfilter"
+                                                            @onchange_page_widget="handle_change_yearfilter_page_widget(key, $event)"
+                                                        )
+                                        hr.my-12
+                                            
 
                                     div.select_favorites_filters
                                         h5.input_label {{ label('dashboard_viewer.favorites_filters.select_favorites') }}
                                         .row.select_favorites_filters_options
-                                            template(v-for="(option, translatable_field_filters_code) in readable_active_field_filters")
+                                            template(v-for="(option, translatable_field_filters_code) in readable_field_filters")
                                                 div.option.col-md-12
                                                     .input_wrapper  
                                                         toggle-button(
                                                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                                                            @change="handle_toggle_select_favorite_filter(option)"  
+                                                            @change="toggle_select_favorite_filter(option)"  
                                                             :name="base_filter + '_' + translatable_field_filters_code" 
                                                             :id="base_filter + '_' + translatable_field_filters_code" 
                                                             :value="is_field_filter_selected(option)" 
@@ -92,7 +123,7 @@
                                             .input_wrapper  
                                                 toggle-button(
                                                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                                                    @change="handle_toggle_is_export_planned"  
+                                                    @change="toggle_is_export_planned"  
                                                     :value="is_export_planned" 
                                                     :sync="true"
                                                     :width="60"  
@@ -159,7 +190,7 @@
                                                             .input_wrapper  
                                                                 toggle-button(
                                                                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                                                                    @change="handle_toggle_select_exportable_data(title_name_code)"   
+                                                                    @change="toggle_select_exportable_data(title_name_code)"   
                                                                     :value="is_exportable_data_selected(title_name_code)" 
                                                                     :name="base_filter + '_' + title_name_code" 
                                                                     :id="base_filter + '_' + title_name_code" 

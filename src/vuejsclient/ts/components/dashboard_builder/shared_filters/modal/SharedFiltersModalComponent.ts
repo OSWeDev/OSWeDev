@@ -793,7 +793,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      * @param {IReadableFieldFilters} [readable_field_filters]
      * @returns {void}
      */
-    private handle_toggle_select_field_filters(readable_field_filters: IReadableFieldFilters): void {
+    private toggle_select_field_filters(readable_field_filters: IReadableFieldFilters): void {
         const vo_field_ref = readable_field_filters.vo_field_ref;
 
         const field_filters_selection: { [api_type_id: string]: { [field_id: string]: any } } = {};

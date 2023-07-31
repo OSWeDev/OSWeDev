@@ -1,10 +1,11 @@
-import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import Component from 'vue-class-component';
+import { cloneDeep } from 'lodash';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
@@ -19,7 +20,6 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import './FavoritesFiltersWidgetOptionsComponent.scss';
-import { cloneDeep } from 'lodash';
 
 @Component({
     template: require('./FavoritesFiltersWidgetOptionsComponent.pug'),
@@ -52,14 +52,28 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
     private next_update_options: FavoritesFiltersWidgetOptionsVO = null;
 
+    private widget_options: FavoritesFiltersWidgetOptionsVO = null;
+
     // Allow to the user to export its exportable data
     private can_configure_export: boolean = false;
 
-    // Perform the action of update options
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    // Allow to the user to configure date filters
+    private can_configure_date_filters: boolean = false;
 
-    private last_calculation_cpt: number = 0;
+    // Perform the action of update options
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_options.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
+
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_visible_options.bind(this),
+        300,
+        { leading: false, trailing: true }
+    );
+
+    private last_launch_cpt: number = 0;
 
     /**
      * Watch on page_widget
@@ -67,16 +81,30 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
      *
      * @returns {void}
      */
-    @Watch('page_widget', { immediate: true })
+    @Watch('page_widget', { immediate: true, deep: true })
     private onchange_page_widget(): void {
-        if (!this.get_widget_options()) {
+        this.widget_options = this.get_widget_options();
+    }
+
+    /**
+     * Watch on widget_options
+     *  - Shall happen first on component init or each time widget_options changes
+     *
+     * @returns {void}
+     */
+    @Watch('widget_options', { immediate: true })
+    private onchange_widget_options(): void {
+        if (!this.widget_options) {
             this.max_visible_options = null;
             return;
         }
 
-        this.can_configure_export = this.get_widget_options().can_configure_export;
-        this.max_visible_options = this.get_widget_options().max_visible_options;
+        this.can_configure_date_filters = this.widget_options.can_configure_date_filters;
+        this.can_configure_export = this.widget_options.can_configure_export;
+        this.max_visible_options = this.widget_options.max_visible_options;
     }
+
+
 
     /**
      * Watch on max_visible_options
@@ -86,12 +114,12 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
      */
     @Watch('max_visible_options')
     private async onchange_max_visible_options(): Promise<void> {
-        if (!this.get_widget_options()) {
+        if (!this.widget_options) {
             return;
         }
 
-        if (this.get_widget_options().max_visible_options != this.max_visible_options) {
-            this.next_update_options = this.get_widget_options();
+        if (this.widget_options.max_visible_options != this.max_visible_options) {
+            this.next_update_options = this.widget_options;
             this.next_update_options.max_visible_options = this.max_visible_options;
 
             this.throttled_update_options();
@@ -99,21 +127,37 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     }
 
     /**
-     * Toggle Can Select All
+     * toggle_can_configure_export
      *  - Allow to the user to show select_all of the active filter options
      */
     private async toggle_can_configure_export() {
-        if (!this.get_widget_options()) {
-            return;
-        }
-
-        this.can_configure_export = !this.can_configure_export;
+        this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = cloneDeep(this.get_widget_options());
+            this.next_update_options = this.create_widget_options().from(
+                { can_configure_export: this.can_configure_export }
+            );
         }
 
-        this.next_update_options.can_configure_export = this.can_configure_export;
+        this.next_update_options.can_configure_export = !this.next_update_options.can_configure_export;
+
+        this.throttled_update_options();
+    }
+
+    /**
+     * toggle_can_configure_date_filters
+     *  - Allow to the user to show select_all of the active filter options
+     */
+    private async toggle_can_configure_date_filters() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.create_widget_options().from(
+                { can_configure_date_filters: this.can_configure_date_filters }
+            );
+        }
+
+        this.next_update_options.can_configure_date_filters = !this.next_update_options.can_configure_date_filters;
 
         this.throttled_update_options();
     }
@@ -125,11 +169,12 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
      */
     private async update_visible_options(): Promise<void> {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        // Last time this method has been launched
+        let launch_cpt: number = (this.last_launch_cpt + 1);
 
-        this.last_calculation_cpt = launch_cpt;
+        this.last_launch_cpt = launch_cpt;
 
-        if ((!this.get_widget_options()) || (!this.vo_field_ref)) {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
             this.filter_visible_options = [];
             return;
         }
@@ -142,7 +187,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
             .select_vos<FavoritesFiltersVO>();
 
         // Si je ne suis pas sur la dernière demande, je me casse
-        if (this.last_calculation_cpt != launch_cpt) {
+        if (this.last_launch_cpt != launch_cpt) {
             return;
         }
 
@@ -185,7 +230,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
      * @return {Promise<void>}
      */
     private async handle_remove_field_ref(): Promise<void> {
-        this.next_update_options = this.get_widget_options();
+        this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
             return null;
@@ -206,7 +251,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
      * @return {Promise<void>}
      */
     private async handle_add_field_ref(api_type_id: string, field_id: string): Promise<void> {
-        this.next_update_options = this.get_widget_options();
+        this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
             this.next_update_options = new FavoritesFiltersWidgetOptionsVO().from({
@@ -245,6 +290,24 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
         }
 
         return options;
+    }
+
+    /**
+     * create_widget_options
+     * - Return default widget options
+     *
+     * @returns {FavoritesFiltersWidgetOptionsVO}
+     */
+    private create_widget_options(
+        props?: Partial<FavoritesFiltersWidgetOptionsVO>
+    ): FavoritesFiltersWidgetOptionsVO {
+
+        return new FavoritesFiltersWidgetOptionsVO(
+            null,
+            50,
+            false,
+            false,
+        ).from(props);
     }
 
     /**

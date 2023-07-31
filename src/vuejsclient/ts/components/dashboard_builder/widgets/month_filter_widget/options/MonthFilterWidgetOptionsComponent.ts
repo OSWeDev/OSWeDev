@@ -54,7 +54,11 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     private auto_select_month_max: string = null;
 
     private next_update_options: MonthFilterWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_options.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
 
     private relative_to_other_filter_id: number = null;
     private is_relative_to_other_filter: boolean = false;
@@ -63,7 +67,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     // Current filter may show select_all of selectable months
     private can_select_all: boolean = false;
     // Current filter may cumulate months
-    private is_month_cumulable: boolean = false;
+    private is_month_cumulated_selected: boolean = false;
 
     private widget_options: MonthFilterWidgetOptionsVO = null;
 
@@ -173,7 +177,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             this.is_relative_to_other_filter = false;
             this.hide_filter = false;
             this.can_select_all = false;
-            this.is_month_cumulable = false;
+            this.is_month_cumulated_selected = false;
             return;
         }
 
@@ -190,18 +194,16 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
         this.hide_filter = this.widget_options.hide_filter;
         this.can_select_all = this.widget_options.can_select_all;
-        this.is_month_cumulable = this.widget_options.is_month_cumulable;
+        this.is_month_cumulated_selected = this.widget_options.is_month_cumulated_selected;
     }
 
     private async switch_hide_filter() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.hide_filter = this.hide_filter;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from(
+                { hide_filter: this.hide_filter }
+            );
         }
 
         this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
@@ -213,11 +215,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.is_relative_to_other_filter = this.is_relative_to_other_filter;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from(
+                { is_relative_to_other_filter: this.is_relative_to_other_filter }
+            );
         }
 
         this.next_update_options.is_relative_to_other_filter = !this.next_update_options.is_relative_to_other_filter;
@@ -332,11 +332,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.month_relative_mode = this.month_relative_mode;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from(
+                { month_relative_mode: this.month_relative_mode }
+            );
         }
 
         this.next_update_options.month_relative_mode = !this.next_update_options.month_relative_mode;
@@ -348,11 +346,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.auto_select_month = this.auto_select_month;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from(
+                { auto_select_month: this.auto_select_month }
+            );
         }
 
         this.next_update_options.auto_select_month = !this.next_update_options.auto_select_month;
@@ -364,11 +360,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.auto_select_month_relative_mode = this.auto_select_month_relative_mode;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from(
+                { auto_select_month_relative_mode: this.auto_select_month_relative_mode }
+            );
         }
 
         this.next_update_options.auto_select_month_relative_mode = !this.next_update_options.auto_select_month_relative_mode;
@@ -384,11 +378,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.can_select_all = this.can_select_all;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from({
+                can_select_all: this.can_select_all
+            });
         }
 
         this.next_update_options.can_select_all = !this.next_update_options.can_select_all;
@@ -397,21 +389,19 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     }
 
     /**
-     * toggle_is_month_cumulable
+     * toggle_is_month_cumulated
      * - Allow to the user to cumulate the months
      */
-    private async toggle_is_month_cumulable() {
+    private async toggle_is_month_cumulated() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.is_month_cumulable = this.is_month_cumulable;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from(
+                { is_month_cumulated_selected: this.is_month_cumulated_selected }
+            );
         }
 
-        this.next_update_options.is_month_cumulable = !this.next_update_options.is_month_cumulable;
+        this.next_update_options.is_month_cumulated_selected = !this.next_update_options.is_month_cumulated_selected;
 
         this.throttled_update_options();
     }
@@ -420,11 +410,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.is_vo_field_ref = this.is_vo_field_ref;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options().from(
+                { is_vo_field_ref: this.is_vo_field_ref }
+            );
         }
 
         this.next_update_options.is_vo_field_ref = !this.next_update_options.is_vo_field_ref;
@@ -481,8 +469,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     }
 
     /**
-     * Computed widget options
-     *  - Called on component|widget creation
+     * get_widget_options
      *
      * @returns MonthFilterWidgetOptionsVO
      */
@@ -508,11 +495,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            const widget_options = this.create_widget_options();
-
-            widget_options.is_vo_field_ref = this.is_vo_field_ref;
-
-            this.next_update_options = widget_options;
+            this.next_update_options = this.create_widget_options(
+                { is_vo_field_ref: this.is_vo_field_ref }
+            );
         }
 
         let vo_field_ref = new VOFieldRefVO();
@@ -530,7 +515,24 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
      * - Return default widget options
      * @returns {MonthFilterWidgetOptionsVO}
      */
-    private create_widget_options(): MonthFilterWidgetOptionsVO {
-        return new MonthFilterWidgetOptionsVO(true, null, null, true, null, null, true, true, null, null, false, null, false);
+    private create_widget_options(
+        props?: Partial<MonthFilterWidgetOptionsVO>
+    ): MonthFilterWidgetOptionsVO {
+
+        return new MonthFilterWidgetOptionsVO(
+            true,
+            null,
+            null,
+            true,
+            null,
+            null,
+            true,
+            true,
+            null,
+            null,
+            false,
+            null,
+            false
+        ).from(props);
     }
 }

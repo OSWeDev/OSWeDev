@@ -77,6 +77,8 @@ export default class VOFieldRefVOManager {
 
     /**
      * Create a VOFieldRefVO from a widget_options
+     * - Question: Is it a VOFieldRefVO if is_vo_field_ref is false ????
+     * - Maybe we should call it FieldRefVO instead of VOFieldRefVO (as it is not a VO)
      *
      * @param {any} widget_options
      * @returns {VOFieldRefVO}
@@ -92,20 +94,24 @@ export default class VOFieldRefVOManager {
         }
     ): VOFieldRefVO {
 
-        let vo_field_ref: Partial<VOFieldRefVO> = widget_options?.vo_field_ref;
-
-        if (!(vo_field_ref instanceof VOFieldRefVO)) {
-            vo_field_ref = new VOFieldRefVO().from(vo_field_ref);
+        if (!widget_options?.vo_field_ref && !widget_options?.custom_filter_name) {
+            return null;
         }
+
+        const vo_field_ref: Partial<VOFieldRefVO> = widget_options?.vo_field_ref;
+
+        let api_type_id = vo_field_ref?.api_type_id;
+        let field_id = vo_field_ref?.field_id;
 
         if (widget_options?.is_vo_field_ref === false) {
-            vo_field_ref = new VOFieldRefVO().from({
-                api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE,
-                field_id: widget_options.custom_filter_name
-            });
+            api_type_id = ContextFilterVO.CUSTOM_FILTERS_TYPE;
+            field_id = widget_options?.custom_filter_name;
         }
 
-        return vo_field_ref as VOFieldRefVO;
+        return new VOFieldRefVO().from({
+            api_type_id,
+            field_id,
+        });
     }
 
     public static getInstance(): VOFieldRefVOManager {
