@@ -28,11 +28,13 @@ import './YearFilterWidgetComponent.scss';
 })
 export default class YearFilterWidgetComponent extends VueComponentBase {
 
+    public selected_years: { [year: number]: boolean } = {};
+
     @Prop({ default: null })
-    public page_widget: DashboardPageWidgetVO;
+    private page_widget: DashboardPageWidgetVO;
 
     @ModuleDashboardPageAction
-    protected set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
+    private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
 
     @ModuleDashboardPageGetter
     private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
@@ -49,8 +51,6 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
 
-    private selected_years: { [year: number]: boolean } = {};
-
     // Is All Years Selected Toggle Button
     // - Shall be highlight or true when selected_years empty
     // - Shall be false when selected_years has at least one selected
@@ -65,8 +65,6 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private old_widget_options: YearFilterWidgetOptionsVO = null;
     private is_relative_to_other_filter: boolean = false;
     private relative_to_other_filter_id: number = null;
-
-    private other_filter_selected_years: { [year: string]: boolean } = null;
 
     // Relative page widget (if relative_to_other_filter_id is set)
     private relative_page_widget: DashboardPageWidgetVO = null;
@@ -152,27 +150,6 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         );
 
         this.selected_years = selected_years;
-    }
-
-    /**
-     * onchange_relative_to_other_filter_id
-     *
-     * @returns {Promise<void>}
-     */
-    @Watch('relative_to_other_filter_id', { immediate: true, })
-    private async onchange_relative_to_other_filter_id(): Promise<void> {
-        if (!this.relative_to_other_filter_id) {
-            this.other_filter_selected_years = null;
-            this.relative_page_widget = null;
-            return;
-        }
-
-        this.relative_page_widget = await YearFilterWidgetManager.get_relative_page_widget_by_widget_options(
-            this.widget_options,
-        );
-
-        // We want to get the actual selected years from the other filter
-        this.other_filter_selected_years = this.relative_to_this_filter?.selected_years; // Check if that keep the ref on the other filter selected years
     }
 
     /**
@@ -443,6 +420,19 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         }
 
         return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as YearFilterWidgetComponent;
+    }
+
+    get other_filter_selected_years(): { [year: string]: boolean } {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let other_filter_selected_years = this.relative_to_this_filter.selected_years;
+        if (!other_filter_selected_years) {
+            return null;
+        }
+
+        return other_filter_selected_years;
     }
 
     get years(): string[] {

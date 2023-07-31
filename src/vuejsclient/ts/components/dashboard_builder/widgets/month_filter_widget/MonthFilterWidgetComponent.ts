@@ -30,6 +30,8 @@ import './MonthFilterWidgetComponent.scss';
 })
 export default class MonthFilterWidgetComponent extends VueComponentBase {
 
+    public selected_months: { [month: number]: boolean } = {};
+
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
@@ -57,8 +59,6 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private selected_months: { [month: number]: boolean } = {};
-
     // Is All Months Selected Toggle Button
     // - Shall be highlight or true when selected_months empty
     // - Shall be false when selected_months has at least one selected
@@ -72,8 +72,6 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     private old_widget_options: MonthFilterWidgetOptionsVO = null;
     private is_relative_to_other_filter: boolean = false;
     private relative_to_other_filter_id: number = null;
-
-    private other_filter_selected_months: { [month: string]: boolean } = null;
 
     // Relative page widget (if relative_to_other_filter_id is set)
     private relative_page_widget: DashboardPageWidgetVO = null;
@@ -170,27 +168,6 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         );
 
         this.selected_months = selected_months;
-    }
-
-    /**
-     * onchange_relative_to_other_filter_id
-     *
-     * @returns {Promise<void>}
-     */
-    @Watch('relative_to_other_filter_id', { immediate: true, })
-    private async onchange_relative_to_other_filter_id(): Promise<void> {
-        if (!this.relative_to_other_filter_id) {
-            this.other_filter_selected_months = null;
-            this.relative_page_widget = null;
-            return;
-        }
-
-        this.relative_page_widget = await MonthFilterWidgetManager.get_relative_page_widget_by_widget_options(
-            this.widget_options,
-        );
-
-        // We want to get the actual selected months from the other filter
-        this.other_filter_selected_months = this.relative_to_this_filter?.selected_months; // Check if that keep the ref on the other filter selected months
     }
 
     /**
@@ -410,6 +387,19 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
      */
     private handle_selected_month_change(selected_months: { [month: number]: boolean }): void {
         this.selected_months = selected_months;
+    }
+
+    get other_filter_selected_months(): { [year: string]: boolean } {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let other_filter_selected_months = this.relative_to_this_filter.selected_months;
+        if (!other_filter_selected_months) {
+            return null;
+        }
+
+        return other_filter_selected_months;
     }
 
     get vo_field_ref_label(): string {

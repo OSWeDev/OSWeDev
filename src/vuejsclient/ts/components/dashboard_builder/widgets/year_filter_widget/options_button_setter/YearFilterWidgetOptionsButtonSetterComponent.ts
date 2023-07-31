@@ -65,8 +65,6 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
     private is_relative_to_other_filter: boolean = false;
     private relative_to_other_filter_id: number = null;
 
-    private other_filter_selected_years: { [year: string]: boolean } = null;
-
     // Relative page widget (if relative_to_other_filter_id is set)
     private all_years_page_widgets: DashboardPageWidgetVO[] = null;
 
@@ -531,6 +529,19 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
         }
 
         return res;
+    }
+
+    get other_filter_selected_years(): { [year: string]: boolean } {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let other_filter_selected_years = this.relative_to_this_filter.selected_years;
+        if (!other_filter_selected_years) {
+            return null;
+        }
+
+        return other_filter_selected_years;
     }
 
     get default_placeholder_translation(): string {

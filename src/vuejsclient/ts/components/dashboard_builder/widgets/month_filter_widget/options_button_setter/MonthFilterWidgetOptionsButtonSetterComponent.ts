@@ -66,8 +66,6 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     private is_relative_to_other_filter: boolean = false;
     private relative_to_other_filter_id: number = null;
 
-    private other_filter_selected_months: { [month: string]: boolean } = null;
-
     // Relative page widget (if relative_to_other_filter_id is set)
     private all_months_page_widgets: DashboardPageWidgetVO[] = null;
 
@@ -510,6 +508,19 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             null,
             false
         ).from(props);
+    }
+
+    get other_filter_selected_months(): { [year: string]: boolean } {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let other_filter_selected_months = this.relative_to_this_filter.selected_months;
+        if (!other_filter_selected_months) {
+            return null;
+        }
+
+        return other_filter_selected_months;
     }
 
     get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
