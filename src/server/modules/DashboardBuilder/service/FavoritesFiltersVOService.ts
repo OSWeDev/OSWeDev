@@ -133,6 +133,7 @@ export default class FavoritesFiltersVOService {
     public async export_favorites_filters_datatable(favorites_filters: FavoritesFiltersVO): Promise<void> {
         const export_params: IExportParamsProps = favorites_filters.export_params;
         const favorites_field_filters = favorites_filters.field_filters;
+        const favorites_filters_options = favorites_filters.options;
         const exportable_data = export_params.exportable_data;
 
         // Actual context field filters to be used for the export
@@ -169,6 +170,14 @@ export default class FavoritesFiltersVOService {
                     filters[field_id]
                 );
             }
+        }
+
+        // Create field_filters depend on if the user choose to config its dates filters
+        if (
+            favorites_filters_options &&
+            favorites_filters_options?.is_field_filters_fixed_dates === false
+        ) {
+            // Overwrite active field filters with custom dates widget_options (month, year, etc.)
         }
 
         // Export all exportable data
