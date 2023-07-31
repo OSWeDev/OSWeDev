@@ -106,7 +106,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.widget_options = this.get_widget_options();
     }
 
-    @Watch('widget_options', { immediate: true })
+    @Watch('widget_options', { immediate: true, deep: true })
     private onchange_widget_options() {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
@@ -148,8 +148,8 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
         this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
         this.hide_filter = this.widget_options.hide_filter;
         // this.can_select_all = this.widget_options.can_select_all;
-        this.is_month_cumulated_selected = this.widget_options.is_month_cumulated_selected;
-        this.is_all_months_selected = this.widget_options.is_all_months_selected;
+        this.is_month_cumulated_selected = this.widget_options.is_month_cumulated_selected ?? false;
+        this.is_all_months_selected = this.widget_options.is_all_months_selected ?? false;
 
         this.selected_months = MonthFilterWidgetManager.get_selected_months_from_widget_options(
             this.widget_options

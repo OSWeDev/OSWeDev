@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import MonthFilterWidgetOptionsButtonSetterComponent from '../../month_filter_widget/options_button_setter/MonthFilterWidgetOptionsButtonSetterComponent';
+import YearFilterWidgetOptionsButtonSetterComponent from '../../year_filter_widget/options_button_setter/YearFilterWidgetOptionsButtonSetterComponent';
 import IReadableFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableFieldFilters';
 import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
@@ -20,11 +21,10 @@ import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuil
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import './FavoritesFiltersModalComponent.scss';
-import YearFilterWidgetOptionsButtonSetterComponent from '../../year_filter_widget/options_button_setter/YearFilterWidgetOptionsButtonSetterComponent';
 
 export enum ExportFrequencyGranularity {
     DAY = "day",
@@ -106,8 +106,8 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         { leading: false, trailing: true }
     );
 
-    private throttled_load_all_page_widgets_dates = ThrottleHelper.getInstance().declare_throttle_without_args(
-        this.load_all_page_widgets_dates.bind(this),
+    private throttled_load_all_dates_page_widgets = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.load_all_dates_page_widgets.bind(this),
         50,
         { leading: false, trailing: true }
     );
@@ -179,37 +179,13 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         this.favorites_filters = props?.favorites_filters ?? null;
 
-        const favorites_filters: FavoritesFiltersVO = props?.favorites_filters ?? null;
-
         this.is_modal_open = true;
 
-        // Favorites filters name
-        this.favorites_filters_name = favorites_filters.name;
+        // Load the modal data from the favorites_filters
+        this.load_modal_data_from_favorite_filters();
 
-        // Favorites filters behaviors options
-        this.overwrite_active_field_filters = favorites_filters.options?.overwrite_active_field_filters ?? true;
-
-        // Fields filters settings
-        // Modal selectionnable filters
+        // Selectionnable fields filters from the page_widget
         this.selectionnable_active_field_filters = props.selectionnable_active_field_filters ? cloneDeep(props.selectionnable_active_field_filters) : null;
-        this.selected_favorite_field_filters = favorites_filters.field_filters;
-
-        // Export settings
-        this.is_export_planned = favorites_filters.export_params?.is_export_planned ?? false;
-        this.export_frequency = favorites_filters.export_params?.export_frequency ?? {
-            every: null, granularity: null, day_in_month: null
-        };
-
-        const export_frequency_granularity = this.export_frequency.granularity ?? null;
-        if (export_frequency_granularity) {
-            this.selected_export_frequency_granularity = {
-                label: ExportFrequencyGranularityLabel[export_frequency_granularity],
-                value: export_frequency_granularity
-            };
-        }
-
-        // Exportable data settings
-        this.selected_exportable_data = favorites_filters.export_params?.exportable_data ?? null;
         // TODO: find the actual exportable data of the current dashboard page
         this.exportable_data = props?.exportable_data ?? null;
 
@@ -254,8 +230,8 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         this.widget_options = this.get_widget_options();
 
-        // Throttle load_all_page_widgets_dates
-        this.throttled_load_all_page_widgets_dates();
+        // Throttle load_all_dates_page_widgets
+        this.throttled_load_all_dates_page_widgets();
     }
 
     /**
@@ -325,8 +301,63 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     }
 
     /**
+     * load_modal_data_from_favorite_filters
+     *
+     * @returns {void}
+     */
+    private load_modal_data_from_favorite_filters(): void {
+        const favorites_filters: FavoritesFiltersVO = this.favorites_filters ?? null;
+
+        // Favorites filters name
+        this.favorites_filters_name = favorites_filters.name;
+
+        // Favorites filters behaviors options
+        this.overwrite_active_field_filters = favorites_filters.options?.overwrite_active_field_filters ?? true;
+        this.is_field_filters_fixed_dates = favorites_filters.options?.is_field_filters_fixed_dates ?? true;
+
+        // Dates page_widgets (month, year, etc.) where we can update the custom configs
+        for (const field_id in favorites_filters.options?.dates_custom_widgets_options_by_field_id) {
+            const yearfilter = favorites_filters.options?.dates_custom_widgets_options_by_field_id[field_id]?.yearfilter;
+            const monthfilter = favorites_filters.options?.dates_custom_widgets_options_by_field_id[field_id]?.monthfilter;
+
+            if (!yearfilter || !monthfilter) {
+                continue;
+            }
+
+            this.dates_page_widgets_custom_options_by_field_id[field_id] = {
+                monthfilter: new DashboardPageWidgetVO().from_widget_options(monthfilter),
+                yearfilter: new DashboardPageWidgetVO().from_widget_options(yearfilter),
+            };
+        }
+
+        // Fields filters settings
+        // Modal selectionnable filters
+        this.selected_favorite_field_filters = favorites_filters.field_filters;
+
+        // Export settings
+        this.is_export_planned = favorites_filters.export_params?.is_export_planned ?? false;
+        this.export_frequency = favorites_filters.export_params?.export_frequency ?? {
+            every: null, granularity: null, day_in_month: null
+        };
+
+        const export_frequency_granularity = this.export_frequency.granularity ?? null;
+        if (export_frequency_granularity) {
+            this.selected_export_frequency_granularity = {
+                label: ExportFrequencyGranularityLabel[export_frequency_granularity],
+                value: export_frequency_granularity
+            };
+        }
+
+        // Exportable data settings
+        this.selected_exportable_data = favorites_filters.export_params?.exportable_data ?? null;
+    }
+
+    /**
      * handle_change_monthfilter_page_widget
      *  - Happen on component each time a monthfilter page_widget changes
+     *
+     * @param {string} field_id
+     * @param {DashboardPageWidgetVO} page_widget
      */
     private handle_change_monthfilter_page_widget(field_id: string, page_widget: DashboardPageWidgetVO): void {
         this.dates_page_widgets_by_field_id[field_id].monthfilter = page_widget;
@@ -335,6 +366,9 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     /**
      * handle_change_yearfilter_page_widget
      *  - Happen on component each time a yearfilter page_widget changes
+     *
+     * @param {string} field_id
+     * @param {DashboardPageWidgetVO} page_widget
      */
     private handle_change_yearfilter_page_widget(field_id: string, page_widget: DashboardPageWidgetVO): void {
         this.dates_page_widgets_by_field_id[field_id].yearfilter = page_widget;
@@ -410,8 +444,36 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         const is_export_planned = this.is_export_planned;
 
+        let dates_custom_widgets_options_by_field_id = null;
+
+        if (!this.is_field_filters_fixed_dates) {
+            dates_custom_widgets_options_by_field_id = {};
+
+            for (const field_id in this.dates_page_widgets_custom_options_by_field_id) {
+                const yearfilter = this.dates_page_widgets_custom_options_by_field_id[field_id]?.yearfilter;
+                const monthfilter = this.dates_page_widgets_custom_options_by_field_id[field_id]?.monthfilter;
+
+                if (
+                    !yearfilter ||
+                    !monthfilter
+                ) {
+                    continue;
+                }
+
+                const monthfilter_options = JSON.parse(monthfilter.json_options) as MonthFilterWidgetOptionsVO;
+                const yearfilter_options = JSON.parse(yearfilter.json_options) as YearFilterWidgetOptionsVO;
+
+                dates_custom_widgets_options_by_field_id[field_id] = {
+                    monthfilter: monthfilter_options,
+                    yearfilter: yearfilter_options,
+                };
+            }
+        }
+
         const options: IFavoritesFiltersOptions = {
             overwrite_active_field_filters: this.overwrite_active_field_filters,
+            is_field_filters_fixed_dates: this.is_field_filters_fixed_dates,
+            dates_custom_widgets_options_by_field_id,
         };
 
         const export_frequency: IExportFrequency = is_export_planned ? this.export_frequency : null;
@@ -764,12 +826,12 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
     }
 
     /**
-     * load_all_page_widgets_dates
+     * load_all_dates_page_widgets
      * - Load all page_widgets of type dates
      *
      * @returns {Promise<void>}
      */
-    private async load_all_page_widgets_dates(): Promise<void> {
+    private async load_all_dates_page_widgets(): Promise<void> {
         if (!this.dashboard_page) {
             return;
         }

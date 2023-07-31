@@ -445,7 +445,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Configurer le filtre'
+            'fr-fr': 'Configurer le filtre des mois'
         }, 'month_filter_widget_component.button_setter_widget_title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Configurations du filtre des mois'
@@ -677,7 +677,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Configurer le filtre'
+            'fr-fr': 'Configurer le filtre des années'
         }, 'year_filter_widget_component.button_setter_widget_title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Configurations du filtre des années'

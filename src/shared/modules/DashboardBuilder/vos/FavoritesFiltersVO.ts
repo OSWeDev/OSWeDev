@@ -27,9 +27,6 @@ export default class FavoritesFiltersVO extends AbstractVO implements IDistantVO
     // Name which the owner gave to the current favorites field_filters
     public name: string;
 
-    // Is the current favorites field_filters fixed dates
-    public is_field_filters_fixed_dates: boolean; // if true, use fixed dates field_filters, else use custom dates widget_options
-
     // JSON object of favorites active field filters
     public field_filters: FieldFiltersVO;
 

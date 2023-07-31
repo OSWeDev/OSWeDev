@@ -105,7 +105,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
         this.widget_options = this.get_widget_options();
     }
 
-    @Watch('widget_options', { immediate: true })
+    @Watch('widget_options', { immediate: true, deep: true })
     private onchange_widget_options() {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
