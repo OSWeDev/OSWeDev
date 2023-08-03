@@ -19,7 +19,8 @@ export default class MonthFilterWidgetManager {
 
     /**
      * create_context_filter_from_widget_options
-     *  - TODO: when is_month_cumulated_selected is true, we must create a ContextFilterVO that contains all months relative to the preselected month_relative_mode
+     *
+     * TODO: When depend on other filter, we should take care of the relative mode
      *
      * @param {MonthFilterWidgetOptionsVO} [widget_options]
      * @returns {ContextFilterVO}
@@ -30,16 +31,18 @@ export default class MonthFilterWidgetManager {
         let context_filter: ContextFilterVO = new ContextFilterVO();
 
         const vo_field_ref = widget_options.vo_field_ref ?? null;
+
         const selected_months: any = MonthFilterWidgetManager.get_selected_months_from_widget_options(
             widget_options
         );
 
         let months_ranges: NumRange[] = [];
 
-        for (let i in selected_months) {
+        for (const i in selected_months) {
             if (!selected_months[i]) {
                 continue;
             }
+
             months_ranges.push(
                 RangeHandler.create_single_elt_NumRange(
                     parseInt(i),

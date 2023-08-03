@@ -316,9 +316,9 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         this.is_field_filters_fixed_dates = favorites_filters.options?.is_field_filters_fixed_dates ?? true;
 
         // Dates page_widgets (month, year, etc.) where we can update the custom configs
-        for (const field_id in favorites_filters.options?.dates_custom_widgets_options_by_field_id) {
-            const yearfilter = favorites_filters.options?.dates_custom_widgets_options_by_field_id[field_id]?.yearfilter;
-            const monthfilter = favorites_filters.options?.dates_custom_widgets_options_by_field_id[field_id]?.monthfilter;
+        for (const field_id in favorites_filters.options?.custom_dates_widgets_options_by_field_id) {
+            const yearfilter = favorites_filters.options?.custom_dates_widgets_options_by_field_id[field_id]?.yearfilter;
+            const monthfilter = favorites_filters.options?.custom_dates_widgets_options_by_field_id[field_id]?.monthfilter;
 
             if (!yearfilter || !monthfilter) {
                 continue;
@@ -444,10 +444,10 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         const is_export_planned = this.is_export_planned;
 
-        let dates_custom_widgets_options_by_field_id = null;
+        let custom_dates_widgets_options_by_field_id = null;
 
         if (!this.is_field_filters_fixed_dates) {
-            dates_custom_widgets_options_by_field_id = {};
+            custom_dates_widgets_options_by_field_id = {};
 
             for (const field_id in this.dates_page_widgets_custom_options_by_field_id) {
                 const yearfilter = this.dates_page_widgets_custom_options_by_field_id[field_id]?.yearfilter;
@@ -463,7 +463,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
                 const monthfilter_options = JSON.parse(monthfilter.json_options) as MonthFilterWidgetOptionsVO;
                 const yearfilter_options = JSON.parse(yearfilter.json_options) as YearFilterWidgetOptionsVO;
 
-                dates_custom_widgets_options_by_field_id[field_id] = {
+                custom_dates_widgets_options_by_field_id[field_id] = {
                     monthfilter: monthfilter_options,
                     yearfilter: yearfilter_options,
                 };
@@ -473,7 +473,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         const options: IFavoritesFiltersOptions = {
             overwrite_active_field_filters: this.overwrite_active_field_filters,
             is_field_filters_fixed_dates: this.is_field_filters_fixed_dates,
-            dates_custom_widgets_options_by_field_id,
+            custom_dates_widgets_options_by_field_id,
         };
 
         const export_frequency: IExportFrequency = is_export_planned ? this.export_frequency : null;
@@ -481,6 +481,16 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         const exportable_data: {
             [title_name_code: string]: ExportContextQueryToXLSXParamVO
         } = is_export_planned ? this.selected_exportable_data : null;
+
+        for (const title_name_code in exportable_data) {
+            const exportable = exportable_data[title_name_code];
+
+            if (!exportable) {
+                continue;
+            }
+
+            exportable.target_user_id = VueAppController.getInstance().data_user.id; // TODO: find another way to get the target_user_id
+        }
 
         const favorites_filters: FavoritesFiltersVO = new FavoritesFiltersVO().from({
             ...this.favorites_filters,

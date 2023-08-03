@@ -250,7 +250,15 @@ export default class VarsDatasProxy {
             ConsoleHandler.log("prepend_var_datas:IN:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
         }
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, client_user_id, client_tab_id, is_server_request, reason, does_not_need_insert_or_update)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(
+            VarsdatasComputerBGThread.getInstance().name,
+            VarsDatasProxy.TASK_NAME_prepend_var_datas,
+            var_datas,
+            client_user_id,
+            client_tab_id,
+            is_server_request, reason,
+            does_not_need_insert_or_update
+        )) {
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("prepend_var_datas:OUT not bgthread:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
             }

@@ -2311,8 +2311,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(
-            ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
-            this.start_export_datatable_using_favorites_filters.bind(this)
+            ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
+            this.start_export_favorites_filters_datatable.bind(this)
         );
     }
 
@@ -2321,7 +2321,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
      *
      * @return {Promise<void>}
      */
-    public async start_export_datatable_using_favorites_filters(): Promise<void> {
+    public async start_export_favorites_filters_datatable(): Promise<void> {
         FavoritesFiltersVOService.getInstance().export_all_favorites_filters_datatable();
     }
 

@@ -2012,15 +2012,21 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         export_name = slug(export_name, { lower: false }) + ".xlsx";
 
-        // The actual fields to be exported
-        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
+        const widget_options_fields = TableWidgetManager.get_table_fields_by_widget_options(
+            this.dashboard,
+            this.widget_options,
+            { default: true },
+        );
 
-        for (let i in this.default_widget_options_fields) {
-            let field = this.default_widget_options_fields[i];
+        // The actual fields to be exported
+        const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
+
+        for (let i in widget_options_fields) {
+            const field = widget_options_fields[i];
             fields[field.datatable_field_uid] = field;
         }
 
-        return new ExportContextQueryToXLSXParamVO(
+        const exportable_xlsx_params = new ExportContextQueryToXLSXParamVO(
             export_name,
             xlsx_context_query,
             this.exportable_datatable_default_widget_options_columns,
@@ -2040,6 +2046,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.export_options,
             this.vars_indicator,
         );
+
+        return exportable_xlsx_params;
     }
 
     get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {

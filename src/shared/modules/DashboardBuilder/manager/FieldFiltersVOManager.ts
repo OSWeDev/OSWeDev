@@ -46,6 +46,7 @@ export default class FieldFiltersVOManager {
         // Get widgets of the given favorites filters page
         const page_widgets: DashboardPageWidgetVO[] = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
             dashboard_page_id,
+            { refresh: options?.refresh }
         );
 
         // Get all widgets_types

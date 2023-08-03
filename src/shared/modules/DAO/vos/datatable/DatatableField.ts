@@ -3,7 +3,6 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import WeightHandler from '../../../../tools/WeightHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
-import DefaultTranslation from '../../../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
 
@@ -40,6 +39,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public _type: string;
 
     public _vo_type_id: string;
+
     public vo_type_full_name: string;
 
 
@@ -148,7 +148,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     }
 
     set vo_type_id(vo_type_id: string) {
+        if (!vo_type_id) {
+            return;
+        }
+
         this._vo_type_id = vo_type_id;
+
         this.update_moduleTableField();
     }
 
@@ -156,6 +161,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         if (!this.vo_type_id) {
             return null;
         }
+
         return VOsTypesManager.moduleTables_by_voType[this.vo_type_id];
     }
 
@@ -163,6 +169,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         if (!this.moduleTable) {
             return null;
         }
+
         return this.moduleTable.getFieldFromId(this.module_table_field_id);
     }
 

@@ -373,9 +373,11 @@ export default class ContextQueryServerController {
                     columns_by_field_id &&
                     fields &&
                     fields[field_id] &&
-                    (fields[field_id] instanceof DatatableField) && (
-                        (!columns_by_field_id[field_id]) ||
-                        columns_by_field_id[field_id].readonly)
+                    (fields[field_id] instanceof DatatableField) &&
+                    (
+                        !(columns_by_field_id[field_id]) ||
+                        columns_by_field_id[field_id].readonly
+                    )
                 ) {
                     await promise_pipeline.push(async () => {
                         query_res[i] = await ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(

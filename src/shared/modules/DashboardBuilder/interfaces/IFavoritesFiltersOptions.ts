@@ -12,5 +12,5 @@ export default interface IFavoritesFiltersOptions {
     is_field_filters_fixed_dates: boolean; // if true, use fixed dates field_filters, else use custom dates widget_options
 
     // dates widgets_options (month, year, etc.) where we can update the custom configs
-    dates_custom_widgets_options_by_field_id?: { [field_id: string]: { yearfilter: YearFilterWidgetOptionsVO, monthfilter: MonthFilterWidgetOptionsVO } };
+    custom_dates_widgets_options_by_field_id?: { [field_id: string]: { yearfilter: YearFilterWidgetOptionsVO, monthfilter: MonthFilterWidgetOptionsVO } };
 }

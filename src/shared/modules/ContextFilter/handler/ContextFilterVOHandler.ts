@@ -243,6 +243,7 @@ export default class ContextFilterVOHandler {
     ): Promise<any> {
 
         try {
+            field.auto_update_datatable_field_uid_with_vo_type();
 
             switch (field.type) {
 

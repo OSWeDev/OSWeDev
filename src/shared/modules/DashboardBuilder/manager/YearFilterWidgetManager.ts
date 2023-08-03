@@ -15,6 +15,8 @@ export default class YearFilterWidgetManager {
     /**
      * Create Context Filter From Year Filter Widget Options
      *
+     * TODO: When depend on other filter, we should take care of the relative mode
+     *
      * @param {YearFilterWidgetOptionsVO} [widget_options]
      *
      * @returns {ContextFilterVO}
@@ -22,63 +24,31 @@ export default class YearFilterWidgetManager {
     public static create_context_filter_from_widget_options(
         widget_options: YearFilterWidgetOptionsVO
     ): ContextFilterVO {
-        let context_filter: ContextFilterVO = null;
+        let context_filter: ContextFilterVO = new ContextFilterVO();
 
         const vo_field_ref = widget_options.vo_field_ref ?? null;
-        const default_selected_years: any = {};
-        const years = [];
 
-        if (widget_options.year_relative_mode) {
-            const current_year = Dates.year(Dates.now());
-            for (let i = current_year + widget_options.min_year; i <= current_year + widget_options.max_year; i++) {
-                years.push(i.toString());
-            }
-        } else {
-            for (let i = widget_options.min_year; i <= widget_options.max_year; i++) {
-                years.push(i.toString());
-            }
-        }
-
-        for (const key in years) {
-            const year = years[key];
-
-            if (widget_options.auto_select_year) {
-
-                if ((widget_options.auto_select_year_min == null) || (widget_options.auto_select_year_max == null)) {
-                    continue;
-                }
-
-                if (widget_options.auto_select_year_relative_mode) {
-                    let current_year = Dates.year(Dates.now());
-                    let year_int = parseInt(year);
-                    if ((year_int >= (current_year + widget_options.auto_select_year_min)) &&
-                        (year_int <= (current_year + widget_options.auto_select_year_max))) {
-                        default_selected_years[year] = true;
-                        continue;
-                    }
-                } else {
-                    let year_int = parseInt(year);
-                    if ((year_int >= widget_options.auto_select_year_min) &&
-                        (year_int <= widget_options.auto_select_year_max)) {
-                        default_selected_years[year] = true;
-                        continue;
-                    }
-                }
-            }
-
-            default_selected_years[year] = false;
-        }
+        const selected_years: any = YearFilterWidgetManager.get_selected_years_from_widget_options(
+            widget_options
+        );
 
         let years_ranges: NumRange[] = [];
-        for (let key in default_selected_years) {
-            if (!default_selected_years[key]) {
+
+        for (const key in selected_years) {
+            if (!selected_years[key]) {
                 continue;
             }
-            years_ranges.push(RangeHandler.create_single_elt_NumRange(parseInt(key.toString()), NumSegment.TYPE_INT));
+
+            years_ranges.push(
+                RangeHandler.create_single_elt_NumRange(
+                    parseInt(key.toString()),
+                    NumSegment.TYPE_INT
+                )
+            );
         }
+
         years_ranges = RangeHandler.getRangesUnion(years_ranges);
 
-        context_filter = new ContextFilterVO();
         context_filter.filter_type = ContextFilterVO.TYPE_DATE_YEAR;
         context_filter.param_numranges = years_ranges;
 

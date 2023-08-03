@@ -1449,6 +1449,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         switch (column.filter_type) {
             case FilterObj.FILTER_TYPE_percent:
                 value = (value as any).replace(/%/g, '');
+                value = parseFloat(value as any) / 100;
+                break;
             case FilterObj.FILTER_TYPE_toFixed:
             case FilterObj.FILTER_TYPE_toFixedCeil:
             case FilterObj.FILTER_TYPE_toFixedFloor:

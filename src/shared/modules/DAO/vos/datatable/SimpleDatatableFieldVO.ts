@@ -27,7 +27,13 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     public static createNew(datatable_field_uid: string): SimpleDatatableFieldVO<any, any> {
 
         let res = new SimpleDatatableFieldVO();
-        res.init(SimpleDatatableFieldVO.API_TYPE_ID, DatatableField.SIMPLE_FIELD_TYPE, datatable_field_uid);
+
+        res.init(
+            SimpleDatatableFieldVO.API_TYPE_ID,
+            DatatableField.SIMPLE_FIELD_TYPE,
+            datatable_field_uid
+        );
+
         return res;
     }
 

@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -37,7 +38,11 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     }
 
     public async push_export_query(export_query: ExportContextQueryToXLSXQueryVO) {
-        if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(ExportContextQueryToXLSXBGThread.getInstance().name, ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query, export_query)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(
+            ExportContextQueryToXLSXBGThread.getInstance().name,
+            ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query,
+            export_query
+        )) {
             return;
         }
 

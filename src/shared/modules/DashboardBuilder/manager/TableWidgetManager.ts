@@ -34,6 +34,7 @@ import DashboardPageVO from '../vos/DashboardPageVO';
 import VOFieldRefVOManager from './VOFieldRefVOManager';
 import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
 import FieldFiltersVO from '../vos/FieldFiltersVO';
+import slug from 'slug';
 
 /**
  * @class TableWidgetManager
@@ -59,9 +60,17 @@ export default class TableWidgetManager {
 
         const res: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = {};
 
-        const export_name = dashboard_page.translatable_name_code_text ?
-            `Export-${LocaleManager.getInstance().t(dashboard_page.translatable_name_code_text)}-{#Date}.xlsx` :
-            `Export-{#Date}.xlsx`;
+        let export_name: string = 'Export-';
+
+        if (!!dashboard?.translatable_name_code_text) {
+            export_name += 'Dashboard-' + LocaleManager.getInstance().t(dashboard.translatable_name_code_text) + '-';
+        }
+
+        if (!!dashboard_page?.translatable_name_code_text) {
+            export_name += 'Page-' + LocaleManager.getInstance().t(dashboard_page.translatable_name_code_text) + '-';
+        }
+
+        export_name = slug(export_name, { lower: false }) + "{#Date}.xlsx";
 
         const valuetables_widgets_options = await TableWidgetManager.get_valuetables_widgets_options(dashboard_page.id);
 
@@ -106,7 +115,7 @@ export default class TableWidgetManager {
                 discarded_field_paths,
                 false,
                 null,
-                null,
+                null, // get user id
                 null,
                 TableWidgetManager.get_export_options_by_widget_options(widget_options),
                 await VarWidgetManager.get_exportable_vars_indicator(dashboard_page_id),
@@ -169,10 +178,9 @@ export default class TableWidgetManager {
         // Get page_widgets (or all_page_widgets from dashboard)
         const { page_widgets } = DashboardPageWidgetVOManager.getInstance();
 
-        const fields = TableWidgetManager.get_table_fields_by_widget_options(
+        const table_fields = TableWidgetManager.get_table_fields_by_widget_options(
             dashboard,
-            widget_options,
-            { default: true }
+            widget_options
         );
 
         const limit = (widget_options?.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : widget_options.limit;
@@ -180,8 +188,8 @@ export default class TableWidgetManager {
 
         let crud_api_type_id = widget_options.crud_api_type_id ? widget_options.crud_api_type_id : null;
         if (!crud_api_type_id) {
-            for (const column_id in fields) {
-                const field = fields[column_id];
+            for (const column_id in table_fields) {
+                const field = table_fields[column_id];
 
                 if (!field.vo_type_id) {
                     continue;
@@ -211,7 +219,7 @@ export default class TableWidgetManager {
             const discarded_field_paths_vo_type = discarded_field_paths[vo_type];
 
             for (const field_id in discarded_field_paths_vo_type) {
-                context_query.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+                context_query.set_discarded_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
             }
         }
 
@@ -229,8 +237,8 @@ export default class TableWidgetManager {
             }
         }
 
-        for (const column_id in fields) {
-            const field = fields[column_id];
+        for (const column_id in table_fields) {
+            const field = table_fields[column_id];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
                 (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
@@ -678,7 +686,9 @@ export default class TableWidgetManager {
                         data_field['set_translatable_title'](field.field_label.code_text);
                     }
 
-                    data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                    data_field.setModuleTable(moduleTable)
+                        .auto_update_datatable_field_uid_with_vo_type();
+
                     field_by_column_id[column.id] = data_field;
 
                     break;
