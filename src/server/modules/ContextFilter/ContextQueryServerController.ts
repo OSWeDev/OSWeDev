@@ -667,17 +667,6 @@ export default class ContextQueryServerController {
                  */
                 await ModuleDAOServer.getInstance().confirm_segmented_tables_existence(preupdate_vos);
 
-                if (ModuleDAOServer.getInstance().check_foreign_keys) {
-                    preupdate_vos = await ModuleDAOServer.getInstance().filterByForeignKeys(preupdate_vos);
-                    preupdate_vos_by_ids = VOsTypesManager.vosArray_to_vosByIds(preupdate_vos);
-                    preupdate_vos_by_ids_length = preupdate_vos ? preupdate_vos.length : 0;
-
-                    if (!preupdate_vos_by_ids_length) {
-                        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'filteredByForeignKeys');
-                        continue;
-                    }
-                }
-
                 let vos_to_update: IDistantVOBase[] = ObjectHandler.clone_vos(preupdate_vos);
 
                 vos_to_update.forEach((vo) => {
@@ -700,6 +689,16 @@ export default class ContextQueryServerController {
                         vo[field_id] = moduletable.default_field_from_api_version(new_api_translated_value, fields_by_id[field_id]);
                     }
                 });
+
+                // On check les foreign keys avant d'essayer d'enregistrer les vos
+                if (ModuleDAOServer.getInstance().check_foreign_keys) {
+                    vos_to_update = await ModuleDAOServer.getInstance().filterByForeignKeys(vos_to_update);
+
+                    if (!vos_to_update?.length) {
+                        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'filteredByForeignKeys');
+                        continue;
+                    }
+                }
 
                 let promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2)));
 
