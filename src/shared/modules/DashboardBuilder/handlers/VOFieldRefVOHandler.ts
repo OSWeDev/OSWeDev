@@ -52,10 +52,6 @@ export default class VOFieldRefVOHandler {
         const field = VOsTypesManager.get_field_from_vo_field_ref(vo_field_ref);
 
         if (!field) {
-            return false;
-        }
-
-        if (!field) {
 
             /**
              * Cas spécifique du field_id == 'id' qu'on voudrait pouvoir filtrer comme un number

@@ -24,7 +24,7 @@ export default class FieldFiltersVOManager {
 
     /**
      * find_default_field_filters_by_dashboard_page_id
-     * - This method is responsible for loading the default field_filters of the given dashboard_page
+     * - This method is responsible for loading the default field_filters of the given dashboard_page id
      * - Default field_filters are the field_filters of each page_widget_options that have been preconfigured by the admin user
      *
      * @param {number} dashboard_page_id

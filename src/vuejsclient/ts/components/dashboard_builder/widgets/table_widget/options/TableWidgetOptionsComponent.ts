@@ -45,7 +45,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: TableWidgetOptionsVO = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_options.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
 
     private crud_api_type_id_selected: string = null;
     private vocus_button: boolean = false;
@@ -376,6 +381,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.throttled_update_options();
     }
 
+    /**
+     * update_column
+     *  - Update column configuration in widget_options
+     *
+     * @param {TableColumnDescVO} update_column
+     * @returns
+     */
     private async update_column(update_column: TableColumnDescVO) {
 
         this.next_update_options = cloneDeep(this.widget_options);
@@ -397,6 +409,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 old_column = column;
                 return true;
             }
+
             if (column.type == TableColumnDescVO.TYPE_header) {
                 for (let u in column.children) {
                     let child = column.children[u];
@@ -580,6 +593,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         } catch (error) {
             ConsoleHandler.error(error);
         }
+
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         if (!this.widget_options) {

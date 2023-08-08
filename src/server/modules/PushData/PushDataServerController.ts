@@ -818,7 +818,15 @@ export default class PushDataServerController {
 
     public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(
+            PushDataServerController.TASK_NAME_notifySimpleINFO,
+            user_id,
+            client_tab_id,
+            code_text,
+            auto_read_if_connected,
+            simple_notif_json_params,
+            simple_downloadable_link
+        )) {
             return;
         }
 

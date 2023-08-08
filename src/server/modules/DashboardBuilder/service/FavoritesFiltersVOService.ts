@@ -113,7 +113,7 @@ export default class FavoritesFiltersVOService {
         );
 
         // TODO: Deduct default_field_filters behaviors depending on the favorites_filters_options
-        //  - If the user choose to config its dates filters, the default_field_filters must be updated
+        //  - (For related filters) If the user choose to config its dates filters, the default_field_filters must be updated
         //    depending on if default_field_filters has one related to a date widget_options
 
         // Create context_field_filters with the default one
@@ -144,7 +144,7 @@ export default class FavoritesFiltersVOService {
             }
         }
 
-        // Create field_filters depend on if the user choose to config its dates filters
+        // Create field_filters depend on if the user choose to config a custom dates filters
         if (
             favorites_filters_options &&
             favorites_filters_options?.is_field_filters_fixed_dates === false

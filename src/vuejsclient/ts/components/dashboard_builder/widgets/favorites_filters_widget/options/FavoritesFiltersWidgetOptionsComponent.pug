@@ -40,3 +40,14 @@
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 ) 
+
+        .can_send_export_email
+            .input_label {{ label('favorites_filters_widget_component.can_send_export_email') }}
+            .input_wrapper
+                toggle-button(
+                    @change="toggle_can_send_export_email" 
+                    :value="can_send_export_email" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 

@@ -17,13 +17,14 @@ import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/
 import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
 import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
 import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import TableWidgetOptionsVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import { ConditionStatement } from '../../../../../../../../shared/tools/ConditionHandler';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -59,13 +60,36 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private new_header_columns: string = null;
 
     private column_width: number = 0;
-    private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_column_width.bind(this), 800, { leading: false, trailing: true });
+    private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_column_width.bind(this),
+        800,
+        { leading: false, trailing: true }
+    );
 
     private default_sort_field: number = 0;
-    private throttled_update_default_sort_field = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_default_sort_field.bind(this), 800, { leading: false, trailing: true });
+    private throttled_update_default_sort_field = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_default_sort_field.bind(this),
+        800,
+        { leading: false, trailing: true }
+    );
 
-    private throttled_update_enum_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_enum_colors.bind(this), 800, { leading: false, trailing: true });
-    private throttled_update_custom_filter = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_custom_filter.bind(this), 800, { leading: false, trailing: true });
+    private throttled_update_enum_colors = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_enum_colors.bind(this),
+        800,
+        { leading: false, trailing: true }
+    );
+
+    private throttled_update_colors_by_value_and_conditions = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_colors_by_value_and_conditions.bind(this),
+        800,
+        { leading: false, trailing: true }
+    );
+
+    private throttled_update_custom_filter = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_custom_filter.bind(this),
+        800,
+        { leading: false, trailing: true }
+    );
 
     private filter_by_access_options: string[] = [];
 
@@ -84,6 +108,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private kanban_use_weight: boolean = false;
     private kanban_column: boolean = false;
+
+    private colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }> = [];
+    private selectionnable_cell_color_conditions: Array<{ value: string, label: string }> = [];
 
     private async switch_kanban_use_weight() {
         this.kanban_use_weight = !this.kanban_use_weight;
@@ -295,39 +322,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res.join(' > ');
     }
 
-    private async update_enum_colors() {
-        if ((!this.object_column) || (!this.object_column.is_enum)) {
-            return;
-        }
-
-        /**
-         * Si on a pas de différence entre les confs, on update rien
-         */
-        let has_diff = false;
-        for (let i in this.enum_bg_colors) {
-            if (this.object_column.enum_bg_colors && (this.enum_bg_colors[i] == this.object_column.enum_bg_colors[i])) {
-                continue;
-            }
-            has_diff = true;
-            break;
-        }
-        for (let i in this.enum_fg_colors) {
-            if (this.object_column.enum_fg_colors && (this.enum_fg_colors[i] == this.object_column.enum_fg_colors[i])) {
-                continue;
-            }
-            has_diff = true;
-            break;
-        }
-
-        if (!has_diff) {
-            return;
-        }
-
-        this.object_column.enum_fg_colors = this.enum_fg_colors;
-        this.object_column.enum_bg_colors = this.enum_bg_colors;
-        this.$emit('update_column', this.object_column);
-    }
-
     private unhide_options() {
         this.show_options = true;
     }
@@ -423,6 +417,28 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
             }
         }
+
+        if (
+            this.object_column &&
+            (
+                this.object_column.is_number ||
+                this.object_column.is_var
+            )
+        ) {
+            this.colors_by_value_and_conditions = (this.object_column.colors_by_value_and_conditions?.length > 0) ?
+                cloneDeep(this.object_column.colors_by_value_and_conditions) :
+                [];
+
+            for (const i in ConditionStatement) {
+                const condition = ConditionStatement[i];
+
+                this.selectionnable_cell_color_conditions.push({
+                    value: condition,
+                    label: condition,
+                });
+            }
+        }
+
         this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
         this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
         this.kanban_column = this.object_column ? this.object_column.kanban_column : false;
@@ -439,6 +455,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.throttled_update_default_sort_field();
     }
 
+    @Watch('colors_by_value_and_conditions', { deep: true })
+    private onchange_colors_by_value_and_conditions() {
+        this.throttled_update_colors_by_value_and_conditions();
+    }
+
     private async update_column_width() {
 
         if (this.object_column && (this.column_width != this.object_column.column_width)) {
@@ -453,6 +474,121 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             this.object_column.default_sort_field = this.default_sort_field;
             this.$emit('update_column', this.object_column);
         }
+    }
+
+    private async update_enum_colors() {
+        if ((!this.object_column) || (!this.object_column.is_enum)) {
+            return;
+        }
+
+        /**
+         * Si on a pas de différence entre les confs, on update rien
+         */
+        let has_diff = false;
+        for (let i in this.enum_bg_colors) {
+            if (this.object_column.enum_bg_colors && (this.enum_bg_colors[i] == this.object_column.enum_bg_colors[i])) {
+                continue;
+            }
+            has_diff = true;
+            break;
+        }
+        for (let i in this.enum_fg_colors) {
+            if (this.object_column.enum_fg_colors && (this.enum_fg_colors[i] == this.object_column.enum_fg_colors[i])) {
+                continue;
+            }
+            has_diff = true;
+            break;
+        }
+
+        if (!has_diff) {
+            return;
+        }
+
+        this.object_column.enum_fg_colors = this.enum_fg_colors;
+        this.object_column.enum_bg_colors = this.enum_bg_colors;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    /**
+     * update_colors_by_value_and_conditions
+     *  - update the colors by value and conditions of the column
+     *
+     * @returns {void}
+     */
+    private update_colors_by_value_and_conditions(): void {
+        if (
+            !this.object_column ||
+            (
+                !this.object_column.is_number &&
+                !this.object_column.is_var
+            )
+        ) {
+            return;
+        }
+
+        if (isEqual(this.object_column.colors_by_value_and_conditions, this.colors_by_value_and_conditions)) {
+            return;
+        }
+
+        this.object_column.colors_by_value_and_conditions = this.colors_by_value_and_conditions;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    /**
+     * handle_add_header_column
+     * - add a new header column
+     *
+     * @returns {void}
+     */
+    private handle_add_conditional_cell_color(): void {
+        this.colors_by_value_and_conditions.push({ value: null, condition: null, color: { bg: null, text: null } });
+    }
+
+    /**
+     * handle_remove_conditional_cell_color
+     *  - remove the color at the given index
+     *
+     * @param {number} index
+     * @returns {void}
+     */
+    private handle_remove_conditional_cell_color(index: number): void {
+        this.colors_by_value_and_conditions.splice(index, 1);
+
+        this.throttled_update_colors_by_value_and_conditions();
+    }
+
+    /**
+     * handle_conditional_cell_colors_bg_change
+     *
+     * @param {number} index
+     * @param {string} color
+     */
+    private handle_conditional_cell_colors_bg_change(index: number, color: string) {
+        if (!this.colors_by_value_and_conditions[index].color) {
+            this.colors_by_value_and_conditions[index].color = { bg: null, text: null };
+        }
+
+        this.colors_by_value_and_conditions[index].color.bg = color;
+
+        this.throttled_update_colors_by_value_and_conditions();
+    }
+
+    /**
+     * handle_conditional_cell_colors_text_change
+     *
+     * @param {number} index
+     * @param {string} color
+     */
+    private handle_conditional_cell_colors_text_change(index: number, color: string) {
+        if (!this.colors_by_value_and_conditions[index].color) {
+            this.colors_by_value_and_conditions[index].color = { bg: null, text: null };
+        }
+
+        this.colors_by_value_and_conditions[index].color.text = color;
+
+        this.throttled_update_colors_by_value_and_conditions();
     }
 
     private clear_tmp_bg_color_header() {
@@ -814,6 +950,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.custom_filter_names = this.column.filter_custom_field_filters ? cloneDeep(this.column.filter_custom_field_filters) : {};
+
         return Object.assign(new TableColumnDescVO(), this.column);
     }
 

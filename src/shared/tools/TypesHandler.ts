@@ -2,6 +2,16 @@ import { isMoment, isDuration, Moment, isDate } from 'moment';
 
 export default class TypesHandler {
 
+    public static isNumeric(e: any): boolean {
+        const rgx = /^(([0-9]*)|(([0-9]*)\.([0-9]*)))$/;
+
+        if (e === null) {
+            return (null);
+        }
+
+        return rgx.test(e);
+    }
+
     /* istanbul ignore next: ,othing to test here */
     public static getInstance(): TypesHandler {
         if (!TypesHandler.instance) {

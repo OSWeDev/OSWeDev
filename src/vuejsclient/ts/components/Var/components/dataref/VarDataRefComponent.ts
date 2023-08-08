@@ -42,7 +42,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     public var_param: VarDataBaseVO;
 
     @Prop({ default: null })
-    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
+    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any; // Should return the parent (caller) component value
 
     @Prop({ default: null })
     public filter: () => any;

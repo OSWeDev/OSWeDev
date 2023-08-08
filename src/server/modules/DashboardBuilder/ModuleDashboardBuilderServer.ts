@@ -1706,12 +1706,44 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.show_pagination_slider.visible.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer les couleurs" },
+            'table_widget_column_conf.color_configuration_section.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Couleur de fond de l'entête" },
             'table_widget_column_conf.editable_column.bg_color_header.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Couleur du texte de l'entête" },
             'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer les themes de cellules par valeurs" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Condition" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.condition.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeur" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.value.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur cellule" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.bg_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur texte" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.text_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aperçu" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.preview.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ajouter theme cellule" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.add.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Format" },
@@ -2302,6 +2334,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Peut configurer les filtres à dates dynamique" },
             'favorites_filters_widget_component.can_configure_date_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Envoyer un email des exports" },
+            'favorites_filters_widget_component.can_send_export_email.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

@@ -490,6 +490,10 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
             }
 
             exportable.target_user_id = VueAppController.getInstance().data_user.id; // TODO: find another way to get the target_user_id
+            exportable.export_options = {
+                ...exportable.export_options,
+                send_email: this.can_send_export_email,
+            };
         }
 
         const favorites_filters: FavoritesFiltersVO = new FavoritesFiltersVO().from({
@@ -947,6 +951,14 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         }
 
         return this.widget_options?.can_configure_date_filters ?? false;
+    }
+
+    get can_send_export_email(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return this.widget_options?.can_send_export_email ?? false;
     }
 
     /**

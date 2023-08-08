@@ -456,7 +456,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     active_api_type_ids,
                     discarded_field_paths,
                 );
+
                 sheets.push(vars_indicator_sheet);
+
             } catch (error) {
                 ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
                 await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
@@ -481,14 +483,27 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
 
         if (target_user_id) {
-            let fullpath = ConfigurationService.node_configuration.BASE_URL + filepath;
-            await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.file_ready.___LABEL___', false, null, fullpath);
-            let SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+            const fullpath = ConfigurationService.node_configuration.BASE_URL + filepath;
+
+            await PushDataServerController.getInstance().notifySimpleINFO(
+                target_user_id,
+                null,
+                'exportContextQueryToXLSX.file_ready.___LABEL___',
+                false,
+                null,
+                fullpath
+            );
+
+            const SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(
+                ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
+            );
 
             // Send mail
-            if (!!SEND_IN_BLUE_TEMPLATE_ID) {
+            if (!!SEND_IN_BLUE_TEMPLATE_ID && export_options?.send_email) {
 
-                let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).select_vo<UserVO>();
+                const user: UserVO = await query(UserVO.API_TYPE_ID)
+                    .filter_by_id(target_user_id)
+                    .select_vo<UserVO>();
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(

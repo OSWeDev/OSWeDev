@@ -60,6 +60,9 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     // Allow to the user to configure date filters
     private can_configure_date_filters: boolean = false;
 
+    // Allow to the user to send an email with the export
+    private can_send_export_email: boolean = false;
+
     // Perform the action of update options
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(
         this.update_options.bind(this),
@@ -100,11 +103,10 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
         }
 
         this.can_configure_date_filters = this.widget_options.can_configure_date_filters;
+        this.can_send_export_email = this.widget_options.can_send_export_email;
         this.can_configure_export = this.widget_options.can_configure_export;
         this.max_visible_options = this.widget_options.max_visible_options;
     }
-
-
 
     /**
      * Watch on max_visible_options
@@ -158,6 +160,23 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
         }
 
         this.next_update_options.can_configure_date_filters = !this.next_update_options.can_configure_date_filters;
+
+        this.throttled_update_options();
+    }
+
+    /**
+     * toggle_can_send_export_email
+     */
+    private async toggle_can_send_export_email() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.create_widget_options().from(
+                { can_send_export_email: this.can_send_export_email }
+            );
+        }
+
+        this.next_update_options.can_send_export_email = !this.next_update_options.can_send_export_email;
 
         this.throttled_update_options();
     }

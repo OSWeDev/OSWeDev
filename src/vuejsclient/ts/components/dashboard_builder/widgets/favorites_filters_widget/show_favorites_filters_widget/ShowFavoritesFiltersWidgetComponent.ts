@@ -147,7 +147,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     }
 
     /**
-     * On Change Tmp Filter Active Options
+     * onchange_tmp_filter_active_options
      * tmp_active_favorites_filters_option is the visible active filters of the widget
      *  - Handle change on tmp filter active options
      *  - Happen each time tmp_active_favorites_filters_option changes
@@ -297,14 +297,18 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      *  - Update page filters, we must have a delay
      *  - Must have to be a combination between current active_field_filters and favorites_field_filters
      *  - Overwrite active_field_filters with the favorites one
+     *  - We should keep the hidden page field filters
      *
      * @returns {void}
      */
-    private update_active_field_filters(): void {
+    private async update_active_field_filters(): Promise<void> {
         const favorites_filters: FavoritesFiltersVO = this.tmp_active_favorites_filters_option;
         const old_active_field_filters = this.old_active_field_filters;
 
-        let field_filters: FieldFiltersVO = {};
+        // get default hidden field_filters of the dashboard_page
+        let field_filters: FieldFiltersVO = await FieldFiltersVOManager.find_default_field_filters_by_dashboard_page_id(
+            this.dashboard_page.id
+        );
 
         if (!favorites_filters?.options?.overwrite_active_field_filters) {
             field_filters = FieldFiltersVOManager.merge_field_filters(field_filters, old_active_field_filters);

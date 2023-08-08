@@ -21,6 +21,8 @@ import ValidationFiltersWidgetController from '../../../../dashboard_builder/wid
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import './db_var_datatable_field.scss';
+import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
@@ -63,6 +65,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @Prop({ default: null })
+    private var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -209,6 +214,21 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         }
 
         this.is_loading = false;
+    }
+
+    /**
+     * handle_var_value_callback
+     * - keep track of the var value
+     *
+     * @param {VarDataValueResVO} var_value
+     * @param {VarDataRefComponent} component
+     */
+    private handle_var_value_callback(var_value: VarDataValueResVO, component: VarDataRefComponent): any {
+        if (this.var_value_callback && (typeof this.var_value_callback == 'function')) {
+            this.var_value_callback(var_value, component);
+        }
+
+        return var_value.value;
     }
 
     get var_filter(): string {
