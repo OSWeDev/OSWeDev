@@ -393,11 +393,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             columns_by_field_id[column.datatable_field_uid] = column;
         }
 
-        let datas = (context_query.fields?.length > 0) ?
+        const datas = (context_query.fields?.length > 0) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
 
-        let datas_with_vars = await this.add_var_columns_values_for_xlsx_datas(
+        const datas_with_vars = await this.add_var_columns_values_for_xlsx_datas(
             datas,
             ordered_column_list,
             columns,

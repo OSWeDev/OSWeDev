@@ -198,11 +198,11 @@ export default class DatatableComponentField extends VueComponentBase {
                 color_by_value_and_condition.value;
 
             if (column.is_number && ConditionHandler.dynamic_statement(this.field_value, condition, value)) {
-                style += `; background-color: ${color_by_value_and_condition.color.bg}; color: ${color_by_value_and_condition.color.text};`;
+                style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
             }
 
             if (column.is_var && ConditionHandler.dynamic_statement(this.var_value.value, condition, value)) {
-                style += `; background-color: ${color_by_value_and_condition.color.bg}; color: ${color_by_value_and_condition.color.text};`;
+                style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
             }
         }
 

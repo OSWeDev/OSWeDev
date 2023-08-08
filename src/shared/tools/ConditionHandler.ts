@@ -51,10 +51,10 @@ export default class ConditionHandler {
         let result: boolean = null;
         let type: string = null;
 
-        if (typeof a === 'string' && typeof b === 'string') {
+        if (typeof a === 'string' && typeof b === 'string' || (Array.isArray(b) && b.every((x) => typeof x == 'string'))) {
             // may also be an array of strings
             type = 'string';
-        } else if (typeof a === 'number' && typeof b === 'number') {
+        } else if (typeof a === 'number' && (typeof b === 'number' || (Array.isArray(b) && b.every((x) => typeof x == 'number')))) {
             // may also be an array of numbers
             type = 'number';
         } else if (typeof a === 'boolean' && typeof b === 'boolean') {
