@@ -1,7 +1,7 @@
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import slug from 'slug';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
@@ -21,6 +21,7 @@ import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import BulkActionVO from '../../../../../../../shared/modules/DashboardBuilder/vos/BulkActionVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -34,8 +35,10 @@ import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/
 import ExportVarIndicator from '../../../../../../../shared/modules/DataExport/vos/ExportVarIndicator';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
+import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
@@ -80,7 +83,7 @@ import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBu
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
-        Crudcreatemodalcomponent: CRUDCreateModalComponent
+        Crudcreatemodalcomponent: CRUDCreateModalComponent,
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
@@ -175,6 +178,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private widgets_options_metadata: TableWidgetOptionsVO = null;
 
     private table_columns: TableColumnDescVO[] = [];
+
+    private selected_vos: { [id: number]: boolean } = {};
+    private vos_by_id: { [id: number]: any } = {};
+
+    private show_export_alert: boolean = false;
 
     get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
@@ -543,12 +551,24 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return res;
     }
 
+    private get_identifier(vo: any): number {
+        return vo.__crud_actions;
+    }
+
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
     }
 
+    get show_export_maintenance_alert(): boolean {
+        return this.widget_options && this.widget_options.has_export_maintenance_alert;
+    }
+
     get can_export(): boolean {
         return this.widget_options && this.widget_options.export_button;
+    }
+
+    get show_bulk_edit(): boolean {
+        return this.widget_options && this.widget_options.show_bulk_edit;
     }
 
     get default_export_option(): number {
@@ -836,6 +856,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
             this.pagination_offset = new_offset;
+
+            this.selected_vos = {};
+
             await this.throttle_do_update_visible_options();
         }
     }
@@ -1377,6 +1400,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
+
+        this.selected_vos = {};
+
         await this.throttle_update_visible_options();
     }
 
@@ -1571,6 +1597,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     }
                 } else if (column.is_nullable) {
                     aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
+                } else if (column.sum_numeral_datas) {
+                    aggregator = VarConfVO.SUM_AGGREGATOR;
                 }
             }
 
@@ -1665,6 +1693,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             fields
         );
 
+        let vos_by_id: { [id: number]: any } = {};
+        for (let i in rows) {
+            let row = rows[i];
+            vos_by_id[this.get_identifier(row)] = row;
+        }
+
+        this.vos_by_id = vos_by_id;
+
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             this.update_cpt_live--;
@@ -1745,6 +1781,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.set_query_api_type_ids([this.widget_options.crud_api_type_id]);
         }
 
+        this.selected_vos = {};
+
         // Si j'ai un tri par defaut, je l'applique au tableau
         if (this.columns) {
             this.order_asc_on_id = null;
@@ -1770,6 +1808,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         ];
 
         await all_promises(promises);
+    }
+
+    private select_unselect_all(value: boolean) {
+        for (let i in this.data_rows) {
+            let vo = this.data_rows[i];
+
+            let id: number = this.get_identifier(vo);
+
+            Vue.set(this.selected_vos, id, value);
+        }
     }
 
     private async update_filter_by_access_cache() {
@@ -2361,6 +2409,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
     }
 
+    private dismiss_export_alert() {
+        this.show_export_alert = false;
+    }
+
     /**
      * Export de toutes les données (en appliquant les filtrages)
      * @param limit_to_page se limiter à la page vue, ou renvoyer toutes les datas suivant les filtres actifs
@@ -2369,6 +2421,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         let param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
 
         if (!!param) {
+
+            this.show_export_alert = false;
+
+            if (this.show_export_maintenance_alert) {
+                this.show_export_alert = true;
+                return;
+            }
+
             await ModuleDataExport.getInstance().exportContextQueryToXLSX(
                 param.filename,
                 param.context_query,
@@ -2547,6 +2607,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         await all_promises(promises);
     }
 
+    private async callback_action(action: BulkActionVO) {
+        if (!action) {
+            return;
+        }
+
+        await action.callback(this.selected_vos_true);
+
+        this.refresh();
+    }
+
     get dashboard_vo_action() {
         return this.$route.params.dashboard_vo_action;
     }
@@ -2631,6 +2701,49 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             { name: 'Nom', value: 'Valeur' },
             varcolumn_conf
         );
+    }
+
+    get show_bulk_select_all(): boolean {
+        return this.widget_options && this.widget_options.show_bulk_select_all;
+    }
+
+    get cb_bulk_actions(): BulkActionVO[] {
+        let res: BulkActionVO[] = [];
+
+        if (this.show_bulk_select_all) {
+            res.push(BulkActionVO.createNew(
+                this.widget_options.crud_api_type_id,
+                'table_widget_component.select_all',
+                this.select_unselect_all.bind(this, true)
+            ));
+            res.push(BulkActionVO.createNew(
+                this.widget_options.crud_api_type_id,
+                'table_widget_component.unselect_all',
+                this.select_unselect_all.bind(this, false)
+            ));
+        }
+
+        for (let i in this.widget_options.cb_bulk_actions) {
+            if (!TableWidgetController.getInstance().cb_bulk_actions_by_translatable_title[this.widget_options.cb_bulk_actions[i]]) {
+                continue;
+            }
+
+            res.push(TableWidgetController.getInstance().cb_bulk_actions_by_translatable_title[this.widget_options.cb_bulk_actions[i]]);
+        }
+
+        return res;
+    }
+
+    get selected_vos_true(): number[] {
+        let res: number[] = [];
+
+        for (let vo_id in this.selected_vos) {
+            if (this.selected_vos[vo_id]) {
+                res.push(parseInt(vo_id));
+            }
+        }
+
+        return res;
     }
 
     private has_validation_page_widgets(): boolean {

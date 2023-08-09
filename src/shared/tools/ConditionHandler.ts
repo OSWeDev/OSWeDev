@@ -42,21 +42,30 @@ export default class ConditionHandler {
      *
      * TODO: to be continued there are more conditions to handle
      *
-     * @param {unknown} a
-     * @param {string} condition
-     * @param {unknown} b
+     * @param {unknown} a // value to compare from
+     * @param {ConditionStatement} condition
+     * @param {unknown} b // value to compare to
      * @returns {boolean}
      */
-    public static dynamic_statement(a: unknown, condition: string, b?: unknown): boolean {
+    public static dynamic_statement(a: unknown, condition: ConditionStatement, b?: unknown): boolean {
         let result: boolean = null;
         let type: string = null;
 
-        if (typeof a === 'string' && typeof b === 'string' || (Array.isArray(b) && b.every((x) => typeof x == 'string'))) {
-            // may also be an array of strings
-            type = 'string';
-        } else if (typeof a === 'number' && (typeof b === 'number' || (Array.isArray(b) && b.every((x) => typeof x == 'number')))) {
+        if (
+            typeof a === 'number' &&
+            (
+                (typeof b === 'number') ||
+                (
+                    Array.isArray(b) &&
+                    b.every((x) => typeof x == 'number')
+                )
+            )
+        ) {
             // may also be an array of numbers
             type = 'number';
+        } else if (typeof a === 'string' && typeof b === 'string' || (Array.isArray(b) && b.every((x) => typeof x == 'string'))) {
+            // may also be an array of strings
+            type = 'string';
         } else if (typeof a === 'boolean' && typeof b === 'boolean') {
             type = 'boolean';
         } else if (typeof a === 'object' && typeof b === 'object') {
@@ -98,7 +107,7 @@ export default class ConditionHandler {
         return result;
     }
 
-    private static dynamic_statement_string(a: unknown, condition: string, c?: unknown): boolean {
+    private static dynamic_statement_string(a: unknown, condition: ConditionStatement, c?: unknown): boolean {
         const expected_conditions: ConditionStatement[] = [
             ConditionStatement.EQUALS,
             ConditionStatement.NOT_EQUALS,
@@ -140,7 +149,7 @@ export default class ConditionHandler {
      * @param {number | number[]} c
      * @returns {boolean}
      */
-    private static dynamic_statement_number(a: number, condition: string, c?: number | number[]): boolean {
+    private static dynamic_statement_number(a: number, condition: ConditionStatement, c?: number | number[]): boolean {
         const expected_conditions: ConditionStatement[] = [
             ConditionStatement.EQUALS,
             ConditionStatement.STRICT_EQUALS,
@@ -218,7 +227,7 @@ export default class ConditionHandler {
         }
     }
 
-    private static dynamic_statement_object(a: unknown, condition: string, c?: unknown): boolean {
+    private static dynamic_statement_object(a: unknown, condition: ConditionStatement, c?: unknown): boolean {
         const expected_conditions: ConditionStatement[] = [
             ConditionStatement.EQUALS,
             ConditionStatement.NOT_EQUALS,

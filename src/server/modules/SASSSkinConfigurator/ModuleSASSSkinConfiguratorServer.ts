@@ -1,11 +1,16 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
@@ -20,6 +25,15 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleSASSSkinConfigurator.getInstance().name);
+    }
+
+    public async configure() {
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUpdateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handlePostUpdateParam);
+
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handlePostCreateParam);
+
     }
 
     public registerServerApiHandlers() {
@@ -88,5 +102,19 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private getSassVariableDefinition(name: string, value: string): string {
         return "$" + name + ": " + (((value == '') || (typeof value == 'undefined')) ? 'null' : value) + ";";
+    }
+
+    private async handlePostUpdateParam(update: DAOUpdateVOHolder<ParamVO>) {
+        await this.handlePostCreateParam(update.post_update_vo);
+    }
+
+    private async handlePostCreateParam(vo: ParamVO) {
+        let name: string = vo.name.replace(ModuleSASSSkinConfigurator.MODULE_NAME + '.', '');
+
+        if (!ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[name]) {
+            return;
+        }
+
+        await this.generate();
     }
 }

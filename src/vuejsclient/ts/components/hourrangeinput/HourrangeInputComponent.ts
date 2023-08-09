@@ -50,7 +50,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
 
     get segmentation_type_value() {
         if (this.segmentation_type == null) {
-            return this.field.moduleTableField.segmentation_type;
+            return this.field.segmentation_type;
         }
 
         return this.segmentation_type;

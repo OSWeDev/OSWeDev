@@ -1120,8 +1120,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private async mounted() {
-
-
         let self = this;
         await navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
             if (result.state == "granted" || result.state == "prompt") {
@@ -1130,12 +1128,18 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         });
 
         let body = document.getElementById('page-top');
-        body.classList.add("sidenav-toggled");
+
+        if (body) {
+            body.classList.add("sidenav-toggled");
+        }
     }
 
     private beforeDestroy() {
         let body = document.getElementById('page-top');
-        body.classList.remove("sidenav-toggled");
+
+        if (body) {
+            body.classList.remove("sidenav-toggled");
+        }
     }
 
     private reverse_collapse_fields_wrapper() {

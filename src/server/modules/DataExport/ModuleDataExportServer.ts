@@ -53,6 +53,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
@@ -65,6 +66,7 @@ import DataExportServerController from './DataExportServerController';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import default_export_mail_html_template from './default_export_mail_html_template.html';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -132,6 +134,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Export terminé'
         }, 'exportContextQueryToXLSX.file_ready.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cette fonctionnalité est actuellement en maintenance. Elle sera de retour prochainement.'
+        }, 'exportContextQueryToXLSX.maintenance.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Téléchargement de votre tableau'
+        }, 'mails.export.dashboard.subject'));
     }
 
     public registerServerApiHandlers() {
@@ -485,6 +494,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (target_user_id) {
             const fullpath = ConfigurationService.node_configuration.BASE_URL + filepath;
 
+            const SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(
+                ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
+            );
+
             await PushDataServerController.getInstance().notifySimpleINFO(
                 target_user_id,
                 null,
@@ -494,16 +507,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 fullpath
             );
 
-            const SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(
-                ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
-            );
+            const user: UserVO = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(target_user_id)
+                .select_vo<UserVO>();
 
             // Send mail
             if (!!SEND_IN_BLUE_TEMPLATE_ID && export_options?.send_email) {
-
-                const user: UserVO = await query(UserVO.API_TYPE_ID)
-                    .filter_by_id(target_user_id)
-                    .select_vo<UserVO>();
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -516,6 +525,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         UID: user.id.toString(),
                         FILEPATH: filepath
                     });
+            } else {
+
+                // Using APP
+                let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ModuleDataExport.CODE_TEXT_MAIL_SUBJECT_export_dashboard);
+                let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
+                await ModuleMailerServer.getInstance().sendMail({
+                    to: user.email,
+                    subject: translated_mail_subject.translated,
+                    html: await ModuleMailerServer.getInstance().prepareHTML(default_export_mail_html_template, user.lang_id, {
+                        FILE_URL: ConfigurationService.node_configuration.BASE_URL + filepath.substring(2, filepath.length)
+                    })
+                });
             }
         }
     }
@@ -1197,7 +1218,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                             dest_vo[dest_field_id] += ', ';
                         }
                         dest_vo[dest_field_id] += Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
-                            Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type);
+                            Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset), src_vo[src_field_id].segment_type);
                     }
                 }
                 break;
@@ -1243,7 +1264,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         ) + ' - ' +
                             RangeHandler.getSegmentedMax(
                                 src_vo[src_field_id],
-                                src_vo[src_field_id].segment_type
+                                src_vo[src_field_id].segment_type,
+                                field.max_range_offset
                             );
                     }
                 }
@@ -1251,12 +1273,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tsrange:
                 dest_vo[dest_field_id] = Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
-                    Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type);
+                    Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset), src_vo[src_field_id].segment_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
-                dest_vo[dest_field_id] = RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type);
+                dest_vo[dest_field_id] = RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:

@@ -198,7 +198,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (!!this.field) {
             if (this.segmentation_type == null) {
                 if (this.field.moduleTableField) {
-                    this.segmentation_type_ = this.field.moduleTableField.segmentation_type;
+                    this.segmentation_type_ = this.field.segmentation_type;
                 }
                 return;
             }
@@ -222,7 +222,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
-        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_);
+        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_, this.field.max_range_offset);
 
         if (min) {
             this.tsrange_start = new Date(min * 1000);
@@ -254,7 +254,10 @@ export default class TSRangeInputComponent extends VueComponentBase {
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
-            true, this.ts_end ? true : false, this.segmentation_type_);
+            true,
+            this.ts_end ? true : false,
+            this.segmentation_type_
+        );
 
         /**
          * On check que c'est bien une nouvelle value
@@ -348,7 +351,14 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return null;
         }
 
-        return Dates.startOf(moment(this.tsrange_end).utc(true).unix(), this.segmentation_type_);
+        let start_date_unix: number = moment(this.tsrange_start).utc(true).unix();
+        let end_date_unix: number = moment(this.tsrange_end).utc(true).unix();
+
+        if (start_date_unix == end_date_unix) {
+            return Dates.startOf(end_date_unix, this.segmentation_type_);
+        }
+
+        return Dates.startOf(Dates.add(end_date_unix, -this.field.max_range_offset, this.segmentation_type_), this.segmentation_type_);
     }
 
     /**
@@ -375,7 +385,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
+            return (this.field as SimpleDatatableFieldVO<any, any>).format_localized_time;
         }
 
         return null;

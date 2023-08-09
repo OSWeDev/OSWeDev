@@ -4,7 +4,17 @@ import IDistantVOBase from '../../IDistantVOBase';
 export default class NotificationVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "notification";
 
-    public static TYPE_NAMES: string[] = ['notification.TYPE_NOTIF_SIMPLE', 'notification.TYPE_NOTIF_DAO', 'notification.TYPE_NOTIF_HOOK', 'notification.TYPE_NOTIF_VARDATA', 'notification.TYPE_NOTIF_WRAPPER', 'notification.TYPE_NOTIF_TECH', 'notification.TYPE_NOTIF_PROMPT', 'notification.TYPE_NOTIF_REDIRECT'];
+    public static TYPE_NAMES: string[] = [
+        'notification.TYPE_NOTIF_SIMPLE',
+        'notification.TYPE_NOTIF_DAO',
+        'notification.TYPE_NOTIF_HOOK',
+        'notification.TYPE_NOTIF_VARDATA',
+        'notification.TYPE_NOTIF_WRAPPER',
+        'notification.TYPE_NOTIF_TECH',
+        'notification.TYPE_NOTIF_PROMPT',
+        'notification.TYPE_NOTIF_REDIRECT',
+        'notification.TYPE_NOTIF_APIRESULT'
+    ];
     public static TYPE_NOTIF_SIMPLE: number = 0;
     public static TYPE_NOTIF_DAO: number = 1;
     public static TYPE_NOTIF_HOOK: number = 2;
@@ -13,6 +23,7 @@ export default class NotificationVO implements IDistantVOBase {
     public static TYPE_NOTIF_TECH: number = 5;
     public static TYPE_NOTIF_PROMPT: number = 6;
     public static TYPE_NOTIF_REDIRECT: number = 7;
+    public static TYPE_NOTIF_APIRESULT: number = 8;
 
     public static TECH_DISCONNECT_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_DISCONNECT_AND_REDIRECT_HOME";
     public static TECH_LOGGED_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_LOGGED_AND_REDIRECT_HOME";

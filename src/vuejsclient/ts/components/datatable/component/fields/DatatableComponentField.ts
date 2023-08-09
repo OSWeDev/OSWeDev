@@ -5,6 +5,7 @@ import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
@@ -18,7 +19,7 @@ import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
-import ConditionHandler from '../../../../../../shared/tools/ConditionHandler';
+import ConditionHandler, { ConditionStatement } from '../../../../../../shared/tools/ConditionHandler';
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 
@@ -69,6 +70,9 @@ export default class DatatableComponentField extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @Prop({ default: null })
+    private dashboard_page: DashboardPageVO;
 
     @Prop({ default: null })
     private filter: () => any;
@@ -197,11 +201,11 @@ export default class DatatableComponentField extends VueComponentBase {
                 parseFloat(color_by_value_and_condition.value) :
                 color_by_value_and_condition.value;
 
-            if (column.is_number && ConditionHandler.dynamic_statement(this.field_value, condition, value)) {
+            if (column.is_number && ConditionHandler.dynamic_statement(this.field_value, condition as ConditionStatement, value)) {
                 style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
             }
 
-            if (column.is_var && ConditionHandler.dynamic_statement(this.var_value.value, condition, value)) {
+            if (column.is_var && ConditionHandler.dynamic_statement(this.var_value.value, condition as ConditionStatement, value)) {
                 style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
             }
         }
@@ -235,16 +239,27 @@ export default class DatatableComponentField extends VueComponentBase {
         // switch (this.field.type) {
         //     case DatatableField.SIMPLE_FIELD_TYPE:
 
-        //         switch (this.simple_field.moduleTableField.field_type) {
+        //         switch (this.simple_field.field_type) {
         //             case ModuleTableField.FIELD_TYPE_enum:
 
         //                 let enum_val = this.vo[this.field.datatable_field_uid];
-        //                 return this.t(this.simple_field.moduleTableField.enum_values[enum_val]);
+        //                 return this.t(this.simple_field.enum_values[enum_val]);
 
         //             default:
         //                 return this.vo[this.field.datatable_field_uid];
         //         }
         //     default:
+
+        // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
+        if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+            if (
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html) ||
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html_array)
+            ) {
+                return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
+            }
+        }
+
         return this.vo[this.field.datatable_field_uid];
         // }
     }
@@ -259,7 +274,7 @@ export default class DatatableComponentField extends VueComponentBase {
 
     get custom_field_types(): TableFieldTypeControllerBase {
         if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.moduleTableField.field_type];
+            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.field_type];
         }
 
         return null;

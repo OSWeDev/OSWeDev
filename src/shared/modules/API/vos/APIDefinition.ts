@@ -10,6 +10,10 @@ export default abstract class APIDefinition<T, U> {
     public static API_RETURN_TYPE_JSON: number = 0;
     public static API_RETURN_TYPE_RES: number = 1;
     public static API_RETURN_TYPE_FILE: number = 2;
+    /**
+     * ATTENTION : à ce jour pas de timeOut defini
+     */
+    public static API_RETURN_TYPE_NOTIF: number = 3;
 
     /**
      * Les params du SERVER_HANDLER doivent être les mêmes que ceux du shared et déclarés dans le même ordre (et avec les mêmes valeurs par défaut)

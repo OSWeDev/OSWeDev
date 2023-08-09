@@ -18,6 +18,8 @@ import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
+import APINotifTypeResultVO from "../../../../shared/modules/PushData/vos/APINotifTypeResultVO";
+import ClientAPIController from "../API/ClientAPIController";
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -134,6 +136,10 @@ export default class PushDataVueModule extends VueModuleBase {
             self.throttled_notifications_handler([notification]);
         });
 
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_APIRESULT], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_TECH], async function (notification: NotificationVO) {
             self.throttled_notifications_handler([notification]);
         });
@@ -201,6 +207,7 @@ export default class PushDataVueModule extends VueModuleBase {
         let TYPE_NOTIF_TECH: NotificationVO[] = [];
         let TYPE_NOTIF_PROMPT: NotificationVO[] = [];
         let TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
+        let TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
 
         for (let i in notifications) {
             let notification = notifications[i];
@@ -214,6 +221,9 @@ export default class PushDataVueModule extends VueModuleBase {
                     break;
                 case NotificationVO.TYPE_NOTIF_VARDATA:
                     TYPE_NOTIF_VARDATA.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_APIRESULT:
+                    TYPE_NOTIF_APIRESULT.push(notification);
                     break;
                 case NotificationVO.TYPE_NOTIF_TECH:
                     TYPE_NOTIF_TECH.push(notification);
@@ -249,6 +259,36 @@ export default class PushDataVueModule extends VueModuleBase {
 
         if (TYPE_NOTIF_REDIRECT && TYPE_NOTIF_REDIRECT.length) {
             await this.notifications_handler_TYPE_NOTIF_REDIRECT(TYPE_NOTIF_REDIRECT);
+        }
+
+        if (TYPE_NOTIF_APIRESULT && TYPE_NOTIF_APIRESULT.length) {
+            await this.notifications_handler_TYPE_NOTIF_APIRESULT(TYPE_NOTIF_APIRESULT);
+        }
+    }
+
+    private async notifications_handler_TYPE_NOTIF_APIRESULT(notifications: NotificationVO[]) {
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            let api_result: APINotifTypeResultVO = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos))[0];
+
+            if (!api_result) {
+                ConsoleHandler.error("API result not found for notification:", notification);
+                continue;
+            }
+
+            if (!api_result.api_call_id) {
+                ConsoleHandler.error("API result not found for notification:", notification);
+                continue;
+            }
+
+            if (!ClientAPIController.api_waiting_for_result_notif_solvers) {
+                ClientAPIController.api_waiting_for_result_notif_waiting_for_solvers[api_result.api_call_id] = () => {
+                    ClientAPIController.api_waiting_for_result_notif_solvers[api_result.api_call_id](api_result.res);
+                };
+            } else {
+                ClientAPIController.api_waiting_for_result_notif_solvers[api_result.api_call_id](api_result.res);
+            }
         }
     }
 

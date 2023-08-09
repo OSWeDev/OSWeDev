@@ -2,14 +2,21 @@ import { isMoment, isDuration, Moment, isDate } from 'moment';
 
 export default class TypesHandler {
 
-    public static isNumeric(e: any): boolean {
+    /**
+     * isNumeric
+     *  - Check if the given value is a number or a string that can be converted to a number
+     * 
+     * @param {unknown} e
+     * @returns {boolean}
+     */
+    public static isNumeric(e: unknown): boolean {
         const rgx = /^(([0-9]*)|(([0-9]*)\.([0-9]*)))$/;
 
         if (e === null) {
             return (null);
         }
 
-        return rgx.test(e);
+        return rgx.test(e.toString());
     }
 
     /* istanbul ignore next: ,othing to test here */

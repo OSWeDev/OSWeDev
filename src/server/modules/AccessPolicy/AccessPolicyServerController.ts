@@ -217,7 +217,7 @@ export default class AccessPolicyServerController {
         /**
          * Si on a le rôle admin on dégage immédiatement
          */
-        if (roles_ids && (roles_ids.indexOf(AccessPolicyServerController.role_admin.id) >= 0)) {
+        if (roles_ids && AccessPolicyServerController.role_admin && (roles_ids.indexOf(AccessPolicyServerController.role_admin.id) >= 0)) {
             return true;
         }
 
@@ -721,14 +721,14 @@ export default class AccessPolicyServerController {
         //  - si c'est le rôle 'admin', son parent est 'identifié'
         //  - pour tout autre rôle, son parent est soit 'identifié' soit un autre rôle ajouté (ne peut dépendre de 'anonyme' ou de 'admin')
 
-        if (role.translatable_name == AccessPolicyServerController.role_anonymous.translatable_name) {
+        if (AccessPolicyServerController.role_anonymous && (role.translatable_name == AccessPolicyServerController.role_anonymous.translatable_name)) {
             role.parent_role_id = null;
-        } else if (role.translatable_name == AccessPolicyServerController.role_logged.translatable_name) {
+        } else if (AccessPolicyServerController.role_logged && (role.translatable_name == AccessPolicyServerController.role_logged.translatable_name)) {
             role.parent_role_id = AccessPolicyServerController.role_anonymous.id;
-        } else if (role.translatable_name == AccessPolicyServerController.role_admin.translatable_name) {
+        } else if (AccessPolicyServerController.role_admin && (role.translatable_name == AccessPolicyServerController.role_admin.translatable_name)) {
             role.parent_role_id = AccessPolicyServerController.role_logged.id;
         } else {
-            if ((!role.parent_role_id) || (role.parent_role_id == AccessPolicyServerController.role_anonymous.id) || (role.parent_role_id == AccessPolicyServerController.role_admin.id)) {
+            if ((!role.parent_role_id) || (AccessPolicyServerController.role_anonymous && (role.parent_role_id == AccessPolicyServerController.role_anonymous.id)) || (AccessPolicyServerController.role_admin && (role.parent_role_id == AccessPolicyServerController.role_admin.id))) {
                 role.parent_role_id = AccessPolicyServerController.role_logged.id;
             }
         }
@@ -1026,7 +1026,7 @@ export default class AccessPolicyServerController {
                 let role: RoleVO = AccessPolicyServerController.registered_roles[j];
 
                 // On ignore l'admin qui a accès à tout
-                if (role.id == AccessPolicyServerController.role_admin.id) {
+                if (AccessPolicyServerController.role_admin && (role.id == AccessPolicyServerController.role_admin.id)) {
                     continue;
                 }
 
@@ -1134,7 +1134,7 @@ export default class AccessPolicyServerController {
             }
 
             // Cas 0
-            if (user_role.id == AccessPolicyServerController.role_admin.id) {
+            if (AccessPolicyServerController.role_admin && (user_role.id == AccessPolicyServerController.role_admin.id)) {
                 return true;
             }
 
@@ -1166,7 +1166,7 @@ export default class AccessPolicyServerController {
                     case AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE:
                         return true;
                     case AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS:
-                        if (user_role.id != AccessPolicyServerController.role_anonymous.id) {
+                        if (AccessPolicyServerController.role_anonymous && (user_role.id != AccessPolicyServerController.role_anonymous.id)) {
                             return true;
                         }
                         break;

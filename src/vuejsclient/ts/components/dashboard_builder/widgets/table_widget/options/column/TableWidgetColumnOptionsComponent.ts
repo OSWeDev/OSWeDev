@@ -880,6 +880,24 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async switch_sum_numeral_datas() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.sum_numeral_datas = !this.column.sum_numeral_datas;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_explicit_html() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.explicit_html = !this.column.explicit_html;
+        this.$emit('update_column', this.column);
+    }
+
     private async switch_hide_from_table() {
         if (!this.column) {
             return;
@@ -1035,4 +1053,25 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     get is_type_var_ref(): boolean {
         return this.object_column.type == TableColumnDescVO.TYPE_var_ref;
     }
+
+    private is_simple_number(field_type: string): boolean {
+        if (field_type == ModuleTableField.FIELD_TYPE_int
+            || field_type == ModuleTableField.FIELD_TYPE_enum
+            || field_type == ModuleTableField.FIELD_TYPE_amount
+            || field_type == ModuleTableField.FIELD_TYPE_float
+            || field_type == ModuleTableField.FIELD_TYPE_decimal_full_precision) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    get is_type_number_vo_field_ref(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && this.is_simple_number(this.field.field_type);
+    }
+
+    get is_type_html(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && (this.field.field_type == ModuleTableField.FIELD_TYPE_html);
+    }
+
 }

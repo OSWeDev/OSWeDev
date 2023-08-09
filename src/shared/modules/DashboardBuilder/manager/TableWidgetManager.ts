@@ -31,6 +31,7 @@ import { cloneDeep } from 'lodash';
 import VarWidgetManager from './VarWidgetManager';
 import IExportOptions from '../../DataExport/interfaces/IExportOptions';
 import DashboardPageVO from '../vos/DashboardPageVO';
+import BulkActionVO from '../vos/BulkActionVO';
 import VOFieldRefVOManager from './VOFieldRefVOManager';
 import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
 import FieldFiltersVO from '../vos/FieldFiltersVO';
@@ -391,7 +392,8 @@ export default class TableWidgetManager {
                     );
 
                     const is_active_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
-                        vo_field_ref, options.active_field_filters
+                        vo_field_ref,
+                        options.active_field_filters
                     );
 
                     if (!is_active_field_filters_empty) {
@@ -753,6 +755,9 @@ export default class TableWidgetManager {
     public components_by_crud_api_type_id: { [api_type_id: string]: Array<ComponentDatatableFieldVO<any, any>> } = {};
     public components_by_translatable_title: { [translatable_title: string]: ComponentDatatableFieldVO<any, any> } = {};
 
+    public cb_bulk_actions_by_crud_api_type_id: { [api_type_id: string]: BulkActionVO[] } = {};
+    public cb_bulk_actions_by_translatable_title: { [translatable_title: string]: BulkActionVO } = {};
+
     protected constructor() { }
 
     public register_component(component: ComponentDatatableFieldVO<any, any>) {
@@ -762,5 +767,15 @@ export default class TableWidgetManager {
         this.components_by_crud_api_type_id[component.vo_type_id].push(component);
 
         this.components_by_translatable_title[component.translatable_title] = component;
+    }
+
+    public register_bulk_action(bulk_action: BulkActionVO) {
+
+        if (!this.cb_bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id]) {
+            this.cb_bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id] = [];
+        }
+        this.cb_bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id].push(bulk_action);
+
+        this.cb_bulk_actions_by_translatable_title[bulk_action.translatable_title] = bulk_action;
     }
 }
