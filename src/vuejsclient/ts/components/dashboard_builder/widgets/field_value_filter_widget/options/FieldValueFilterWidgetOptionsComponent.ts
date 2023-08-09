@@ -34,6 +34,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import BooleanFilter from '../boolean/BooleanFilter';
 import AdvancedStringFilter from '../string/AdvancedStringFilter';
 import './FieldValueFilterWidgetOptionsComponent.scss';
+import VueAppController from '../../../../../../VueAppController';
 
 @Component({
     template: require('./FieldValueFilterWidgetOptionsComponent.pug'),

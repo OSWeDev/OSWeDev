@@ -75,6 +75,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private excludes_values_labels: { [label: string]: boolean } = {};
     private count_by_filter_visible_opt_id: { [id: number]: number } = {};
+    private is_loading_count_by_filter_visible_opt_id: { [id: number]: boolean } = {};
 
     private is_init: boolean = false;
 
@@ -303,6 +304,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
         }
 
+        this.set_all_count_by_filter_visible_loading(true);
+
         let data_filter_options: DataFilterOption[] = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
             this.dashboard,
             this.widget_options,
@@ -310,6 +313,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             {
                 active_api_type_ids: this.get_active_api_type_ids,
                 query_api_type_ids: this.get_query_api_type_ids,
+                user: this.data_user,
             }
         );
 
@@ -370,6 +374,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return a.numeric_value - b.numeric_value;
         });
 
+        this.set_all_count_by_filter_visible_loading(true);
+
         // Si on doit afficher le compteur, on fait les requêtes nécessaires
         await this.set_count_value();
     }
@@ -404,6 +410,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private async set_count_value() {
 
         if (!this.show_count_value) {
+            this.is_loading_count_by_filter_visible_opt_id = {};
             this.count_by_filter_visible_opt_id = {};
             return;
         }
@@ -416,8 +423,26 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             {
                 active_api_type_ids: this.get_active_api_type_ids,
                 query_api_type_ids: this.get_query_api_type_ids,
+                user: this.data_user,
             }
         );
+
+        this.set_all_count_by_filter_visible_loading(false);
+    }
+
+    /**
+     * set_all_count_by_filter_visible_loading
+     *  - Set all count by filter visible loading
+     *
+     * @param {boolean} val
+     * @returns {void}
+     */
+    private set_all_count_by_filter_visible_loading(val: boolean): void {
+        for (const key in this.filter_visible_options) {
+            const enum_data_filter = this.filter_visible_options[key];
+
+            this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = val;
+        }
     }
 
     /**

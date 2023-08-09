@@ -10,7 +10,10 @@
                     :style="getStyle(filter_visible_opt)"
                 ) 
                     span {{ filter_visible_label(filter_visible_opt) }}
-                    span.ml-2(v-if="show_count_value") {{ count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] }}
+                    template(v-if="show_count_value") 
+                            span.ml-2 {{ count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] }}
+                                template(v-if="is_loading_count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] === true") 
+                                    i.ml-2.fa-duotone.fa-spinner-third.fa-spin
 
         template(v-else)
             .vo_field_ref_filter

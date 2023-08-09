@@ -16,11 +16,69 @@ import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManag
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
+import UserVO from "../../AccessPolicy/vos/UserVO";
 
 /**
  * FieldValueFilterEnumWidgetManager
  */
 export default class FieldValueFilterEnumWidgetManager {
+
+    public static getInstance(): FieldValueFilterEnumWidgetManager {
+        if (!FieldValueFilterEnumWidgetManager.instance) {
+            FieldValueFilterEnumWidgetManager.instance = new FieldValueFilterEnumWidgetManager();
+        }
+        return FieldValueFilterEnumWidgetManager.instance;
+    }
+
+    /**
+     * check_dashboard_widget_access
+     * - Check if user has access to dashboard_widget vo
+     *
+     * @param {string} access_type
+     * @returns {Promise<boolean>}
+     */
+    public static async check_api_type_id_access(
+        api_type_id: string,
+        access_type?: string,
+        options?: {
+            user_id?: number;
+        }
+    ): Promise<boolean> {
+        const self = FieldValueFilterEnumWidgetManager.getInstance();
+        let has_access: boolean = false;
+
+        access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
+
+        // Check access
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
+            api_type_id
+        );
+
+        if (options?.user_id) {
+            if (!self.access_policy_by_user_id[options.user_id]) {
+                self.access_policy_by_user_id[options.user_id] = {};
+            }
+
+            // May have been loaded once
+            if (self.access_policy_by_user_id[options.user_id][access_policy_name] !== undefined) {
+                has_access = self.access_policy_by_user_id[options.user_id][access_policy_name];
+            } else {
+                has_access = await ModuleAccessPolicy.getInstance().testAccess(
+                    access_policy_name
+                );
+
+                self.access_policy_by_user_id[options.user_id][access_policy_name] = has_access;
+            }
+        } else {
+            has_access = await ModuleAccessPolicy.getInstance().testAccess(
+                access_policy_name
+            );
+        }
+
+        return has_access;
+    }
+
 
     /**
      * Load enum data filters from widget options
@@ -42,6 +100,7 @@ export default class FieldValueFilterEnumWidgetManager {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
             with_count?: boolean; // Setted from widget options to have count on each data_filter
+            user?: UserVO;
         }
     ): Promise<DataFilterOption[]> {
 
@@ -74,8 +133,14 @@ export default class FieldValueFilterEnumWidgetManager {
             const api_type_id: string = available_api_type_ids[key];
 
             await promise_pipeline.push(async () => {
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                    api_type_id,
+                    ModuleDAO.DAO_ACCESS_TYPE_READ,
+                    {
+                        user_id: options?.user?.id
+                    }
+                );
 
                 if (!has_access) {
                     return;
@@ -259,9 +324,10 @@ export default class FieldValueFilterEnumWidgetManager {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
             with_count?: boolean; // Setted from widget options to have count on each data_filter
+            user?: UserVO;
         }
     ): Promise<{ [enum_value: number]: number }> {
-        let count_by_enum_data_filter: { [enum_value: number]: number } = {};
+        const count_by_enum_data_filter: { [enum_value: number]: number } = {};
 
         // We should set all enum count to 0
         for (const key in enum_data_filters) {
@@ -304,8 +370,14 @@ export default class FieldValueFilterEnumWidgetManager {
             // We must check access on each api_type_id
             await promise_pipeline.push(async () => {
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+                // Check access on each api_type_id
+                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                    api_type_id,
+                    ModuleDAO.DAO_ACCESS_TYPE_READ,
+                    {
+                        user_id: options?.user?.id
+                    }
+                );
 
                 if (!has_access) {
                     return;
@@ -454,7 +526,12 @@ export default class FieldValueFilterEnumWidgetManager {
         return api_type_ids;
     }
 
+    private static instance: FieldValueFilterEnumWidgetManager = null;
+
+    public access_policy_by_user_id: { [user_id: number]: { [access_policy: string]: boolean } } = {};
+
     constructor() { }
+
 
     public load(): void {
     }

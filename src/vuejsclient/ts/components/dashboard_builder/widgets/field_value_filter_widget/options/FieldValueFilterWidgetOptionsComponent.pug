@@ -358,8 +358,8 @@
 
         .default_showed_filter_opt_values 
             .input_label {{ label('field_value_filter_widget_component.default_showed_filter_opt_values') }}
-            span.fa-stack.fa-lg(v-tooltip="{content: read_label('field_value_filter_widget_component.default_showed_filter_opt_values.ca_tooltip'), theme: 'info-tooltip'}")
-                i.fa-solid.fa-question-circle.fa-stack-1x
+                span.fa-stack.fa-lg(v-tooltip="{content: label('field_value_filter_widget_component.default_showed_filter_opt_values.ca_tooltip'), theme: 'info-tooltip'}")
+                    i.fa-solid.fa-question-circle.fa-stack-1x
             .input_wrapper
                 template(v-if="is_type_string || is_type_number || is_type_enum")
                     multiselect(
