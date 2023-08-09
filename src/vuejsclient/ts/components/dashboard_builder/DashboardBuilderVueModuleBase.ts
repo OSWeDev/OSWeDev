@@ -5,8 +5,9 @@ import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/D
 import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -19,7 +20,6 @@ import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/Mont
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
-import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
@@ -210,7 +210,10 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false, false, false, false, [], false, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
+            null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
+            false, null, false, true, true, false, false, false, false, false, false, [], false, false
+        ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -229,7 +232,10 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false, false, false, false, [], false, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
+            null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false,
+            false, null, false, true, true, false, false, false, false, false, false, [], false, false
+        ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));

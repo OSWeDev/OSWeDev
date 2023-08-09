@@ -79,9 +79,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private limit: string = TableWidgetOptionsVO.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptionsVO.DEFAULT_LIMIT_SELECTABLE;
     private tmp_nbpages_pagination_list: number = TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST;
-    private limit: string = TableWidgetOptionsVO.DEFAULT_LIMIT.toString();
-    private limit_selectable: string = TableWidgetOptionsVO.DEFAULT_LIMIT_SELECTABLE;
-    private tmp_nbpages_pagination_list: number = TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST;
     private show_bulk_edit: boolean = false;
     private show_bulk_select_all: boolean = true;
 
@@ -418,20 +415,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     existing_column.api_type_id = this.crud_api_type_id_selected;
                 }
             }
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('cb_bulk_actions')
-    private async onchange_cb_bulk_actions() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.cb_bulk_actions != this.cb_bulk_actions) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.cb_bulk_actions = this.cb_bulk_actions;
 
             this.throttled_update_options();
         }

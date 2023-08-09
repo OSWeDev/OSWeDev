@@ -54,13 +54,13 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
-import TableWidgetOptions from './../options/TableWidgetOptions';
 import TableWidgetController from './../TableWidgetController';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './TableWidgetKanbanComponent.scss';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
+import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -165,7 +165,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     private last_calculation_cpt: number = 0;
 
-    private old_widget_options: TableWidgetOptions = null;
+    private old_widget_options: TableWidgetOptionsVO = null;
 
     private table_columns: TableColumnDescVO[] = [];
     private drag: boolean = false;
@@ -1385,7 +1385,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get columns(): TableColumnDescVO[] {
-        let options: TableWidgetOptions = this.widget_options;
+        let options: TableWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.columns)) {
             return null;
@@ -2184,8 +2184,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
 
-        this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptions.DEFAULT_LIMIT : this.widget_options.limit;
-        this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
+        this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.widget_options.limit;
+        this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
         let promises = [
             this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
@@ -2226,50 +2226,16 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
-    get widget_options(): TableWidgetOptions {
+    get widget_options(): TableWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: TableWidgetOptions = null;
+        let options: TableWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = options ? new TableWidgetOptions(
-                    options.columns,
-                    options.is_focus_api_type_id,
-                    options.limit,
-                    options.crud_api_type_id,
-                    options.vocus_button,
-                    options.delete_button,
-                    options.delete_all_button,
-                    options.create_button,
-                    options.update_button,
-                    options.refresh_button,
-                    options.export_button,
-                    options.can_filter_by,
-                    options.show_pagination_resumee,
-                    options.show_pagination_slider,
-                    options.show_pagination_form,
-                    options.show_limit_selectable,
-                    options.limit_selectable,
-                    options.show_pagination_list,
-                    options.nbpages_pagination_list,
-                    options.has_table_total_footer,
-                    options.hide_pagination_bottom,
-                    options.default_export_option,
-                    options.has_default_export_option,
-                    options.use_kanban_by_default_if_exists,
-                    options.use_kanban_column_weight_if_exists,
-                    options.use_for_count,
-                    options.archive_button,
-                    options.can_export_active_field_filters,
-                    options.can_export_vars_indicator,
-                    options.show_bulk_edit,
-                    options.cb_bulk_actions,
-                    options.show_bulk_select_all,
-                    options.has_export_maintenance_alert,
-                ) : null;
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

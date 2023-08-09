@@ -1869,6 +1869,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.default_showed_filter_opt_values.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            {
+                'fr-fr': "Util dans le cas où on souhaite forcé une valeur visible en filtre " +
+                    "qui ne sera pas toujours présente dans le résultat de la requête des valeurs " +
+                    "en base de données"
+            },
+            'field_value_filter_widget_component.default_showed_filter_opt_values.ca_tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valeurs par défaut du filtre" },
             'field_value_filter_widget_component.default_filter_opt_values.___LABEL___'
         ));

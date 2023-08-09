@@ -7,7 +7,7 @@
                 template(v-if="field.field_type == 'boolean'")
                     template(v-if="field_value == 'true' || field_value === true")
                         i.boolean_value.is_true.fa-duotone(:class="{[field.moduleTableField.boolean_icon_true]: true, 'text-success': !field.moduleTableField.boolean_invert_colors, 'text-danger': field.moduleTableField.boolean_invert_colors}")
-                    template(v-if="field_value == 'false' || field_va²lue === false")
+                    template(v-if="field_value == 'false' || field_value === false")
                         i.boolean_value.is_false.fa-duotone(:class="{[field.moduleTableField.boolean_icon_false]: true, 'text-success': field.moduleTableField.boolean_invert_colors, 'text-danger': !field.moduleTableField.boolean_invert_colors}")
                 
                 template(v-else-if="field.field_type == 'password'")
