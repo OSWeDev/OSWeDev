@@ -22,6 +22,7 @@ import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ConditionHandler, { ConditionStatement } from '../../../../../../shared/tools/ConditionHandler';
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
