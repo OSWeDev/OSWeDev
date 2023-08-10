@@ -1870,7 +1870,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             {
-                'fr-fr': "Util dans le cas où on souhaite forcé une valeur visible en filtre " +
+                'fr-fr': "Utile dans le cas où on souhaite forcer une valeur visible en filtre " +
                     "qui ne sera pas toujours présente dans le résultat de la requête des valeurs " +
                     "en base de données"
             },

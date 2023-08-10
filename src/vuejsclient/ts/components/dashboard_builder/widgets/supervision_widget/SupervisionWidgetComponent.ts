@@ -89,7 +89,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
-        this.available_supervision_api_type_ids = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(this.dashboard);
+        this.available_supervision_api_type_ids = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(
+            this.dashboard
+        );
     }
 
     @Watch('widget_options', { immediate: true })

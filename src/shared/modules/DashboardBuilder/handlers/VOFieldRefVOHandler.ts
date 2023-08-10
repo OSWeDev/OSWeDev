@@ -56,7 +56,7 @@ export default class VOFieldRefVOHandler {
             /**
              * Cas spécifique du field_id == 'id' qu'on voudrait pouvoir filtrer comme un number
              */
-            return vo_field_ref.field_id == 'id';
+            return vo_field_ref?.field_id == 'id';
         }
 
         return VOsTypesHandler.is_type_number(field);
