@@ -2652,7 +2652,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     /**
      * Var Indicator
-     *  - All vars indicator on the actual page to be exported
+     *  - All vars indicator on the current page to be exported
      *
      * @return {ExportVarIndicator}
      */

@@ -759,7 +759,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
     private getResourceName(first_name, name) {
-        return ProgramPlanTools.getResourceName(first_name, name);
+        const resource_name = ProgramPlanTools.getResourceName(first_name, name);
+        return resource_name;
     }
 
     get planningResources() {
