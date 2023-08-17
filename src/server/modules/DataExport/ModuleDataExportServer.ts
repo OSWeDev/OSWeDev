@@ -425,6 +425,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         // - Update to columns format (percent, toFixed etc...)
+        // TODO- Code to review (not sure if it is still useful)
         const translated_datas = await this.translate_context_query_fields_from_bdd(
             datas_with_vars,
             context_query,
@@ -576,8 +577,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         const promise_pipeline = new PromisePipeline(max);
-        for (let i in datas) {
-            let data = datas[i];
+        for (let i in res) {
+            let data = res[i];
 
             for (let j in context_query.fields) {
                 const field = context_query.fields[j];
@@ -1428,7 +1429,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 // We keep the raw value in case we need it later
-                row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
+                row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid + '__raw'] ?? row[column.datatable_field_uid];
 
                 let value = row[column.datatable_field_uid] ?? null;
                 let format: XlsxCellFormatByFilterType = null;
@@ -1444,7 +1445,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     continue;
                 }
 
-                const params = [value].concat(filter_additional_params);
+                // Rather use the raw value (not the formatted one) to apply the filter
+                const raw_value = row[column.datatable_field_uid + '__raw'] ?? null;
+                const params = [raw_value].concat(filter_additional_params);
 
                 // We update the value to the column format (FilterObj => percent, decimal, toFixed etc...)
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {

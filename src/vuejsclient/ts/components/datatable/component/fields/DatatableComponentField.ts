@@ -216,7 +216,7 @@ export default class DatatableComponentField extends VueComponentBase {
 
     /**
      * handle_var_value_callback
-     * - keep track of the var value
+     * - keep track of the var value (from the VarDataRefComponent child)
      *
      * @param {VarDataValueResVO} var_value
      * @param {VarDataRefComponent} component
