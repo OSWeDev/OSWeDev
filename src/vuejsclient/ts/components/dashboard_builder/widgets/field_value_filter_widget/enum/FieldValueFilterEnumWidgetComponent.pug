@@ -11,9 +11,10 @@
                 ) 
                     span {{ filter_visible_label(filter_visible_opt) }}
                     template(v-if="show_count_value") 
-                            span.ml-2 {{ count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] }}
-                                template(v-if="is_loading_count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] === true") 
-                                    i.ml-2.fa-duotone.fa-spinner-third.fa-spin
+                        span.ml-2(v-if="(!(tmp_filter_active_options?.length > 0) || (tmp_filter_active_options && tmp_filter_active_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value)))")
+                            span {{ count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] }}
+                        template(v-if="is_loading_count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] === true") 
+                            i.ml-2.fa-duotone.fa-spinner-third.fa-spin
 
         template(v-else)
             .vo_field_ref_filter

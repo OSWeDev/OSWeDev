@@ -137,64 +137,19 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private placeholder_advanced_string_filter: string = null;
     private last_calculation_cpt: number = 0;
 
-    /**
-     * Update Colors
-     *  - Update the widget options before the actual filter update
-     * @returns Promise<void>
-     */
-    private async update_colors(): Promise<void> {
-        if (!this.get_widget_options()) {
-            return;
-        }
-
-        const widget_options: FieldValueFilterWidgetOptionsVO = this.get_widget_options();
-
-        widget_options.fg_color_value = this.fg_color_value;
-        widget_options.fg_color_text = this.fg_color_text;
-        widget_options.bg_color = this.bg_color;
-
-        if (!this.next_update_options) {
-            this.next_update_options = cloneDeep(widget_options);
-        }
-
-        await this.throttled_update_options();
-    }
+    private widget_options: FieldValueFilterWidgetOptionsVO = null;
 
     /**
-     * Handle Colors Change
-     * - Happen each time we change color by using color-picker
+     * Watch on page_widget
+     *
+     * @returns {void}
      */
-    private handle_colors_change() {
-        this.throttled_update_colors();
-    }
-
-    private crud_api_type_id_select_label(api_type_id: string): string {
-        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
-    }
-
-    @Watch('placeholder_advanced_string_filter')
-    private async onchange_placeholder_advanced_string_filter() {
-        this.next_update_options = this.get_widget_options();
-
-        if (this.next_update_options.placeholder_advanced_mode != this.placeholder_advanced_string_filter) {
-            this.next_update_options.placeholder_advanced_mode = this.placeholder_advanced_string_filter;
-
-            await this.throttled_update_options();
-        }
-    }
-
-    @Watch('crud_api_type_id_selected')
-    private async onchange_crud_api_type_id_selected() {
-        this.next_update_options = this.get_widget_options();
-
-        if (this.next_update_options.other_ref_api_type_id != this.crud_api_type_id_selected) {
-            this.next_update_options.other_ref_api_type_id = this.crud_api_type_id_selected;
-
-            await this.throttled_update_options();
-        }
-    }
-
     @Watch('page_widget', { immediate: true })
+    private onchange_page_widget_options(): void {
+        this.widget_options = this.get_widget_options();
+    }
+
+    @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.get_widget_options()) {
             this.max_visible_options = null;
@@ -246,6 +201,28 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         if (!(this.filter_visible_options?.length > 0)) {
             await this.throttled_update_visible_options();
+        }
+    }
+
+    @Watch('placeholder_advanced_string_filter')
+    private async onchange_placeholder_advanced_string_filter() {
+        this.next_update_options = this.get_widget_options();
+
+        if (this.next_update_options.placeholder_advanced_mode != this.placeholder_advanced_string_filter) {
+            this.next_update_options.placeholder_advanced_mode = this.placeholder_advanced_string_filter;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('crud_api_type_id_selected')
+    private async onchange_crud_api_type_id_selected() {
+        this.next_update_options = this.get_widget_options();
+
+        if (this.next_update_options.other_ref_api_type_id != this.crud_api_type_id_selected) {
+            this.next_update_options.other_ref_api_type_id = this.crud_api_type_id_selected;
+
+            await this.throttled_update_options();
         }
     }
 
@@ -313,9 +290,11 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         this.next_update_options = this.get_widget_options();
 
-        this.next_update_options.default_filter_opt_values = (
-            this.tmp_default_filter_opt_values && this.tmp_default_filter_opt_values.length > 0
-        ) ? this.tmp_default_filter_opt_values : null;
+        if (this.tmp_default_filter_opt_values) {
+            this.next_update_options.default_filter_opt_values = this.tmp_default_filter_opt_values;
+        } else {
+            this.next_update_options.default_filter_opt_values = null;
+        }
 
         await this.throttled_update_options();
     }
@@ -328,9 +307,11 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         this.next_update_options = this.get_widget_options();
 
-        this.next_update_options.default_showed_filter_opt_values = (
-            this.tmp_default_showed_filter_opt_values?.length > 0
-        ) ? this.tmp_default_showed_filter_opt_values : null;
+        if (this.tmp_default_showed_filter_opt_values?.length > 0) {
+            this.next_update_options.default_showed_filter_opt_values = this.tmp_default_showed_filter_opt_values;
+        } else {
+            this.next_update_options.default_showed_filter_opt_values = null;
+        }
 
         await this.throttled_update_options();
     }
@@ -405,6 +386,41 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options.enum_fg_colors = this.enum_fg_colors;
 
         await this.throttled_update_options();
+    }
+
+    /**
+     * Update Colors
+     *  - Update the widget options before the actual filter update
+     * @returns Promise<void>
+     */
+    private async update_colors(): Promise<void> {
+        if (!this.get_widget_options()) {
+            return;
+        }
+
+        const widget_options: FieldValueFilterWidgetOptionsVO = this.get_widget_options();
+
+        widget_options.fg_color_value = this.fg_color_value;
+        widget_options.fg_color_text = this.fg_color_text;
+        widget_options.bg_color = this.bg_color;
+
+        if (!this.next_update_options) {
+            this.next_update_options = cloneDeep(widget_options);
+        }
+
+        await this.throttled_update_options();
+    }
+
+    /**
+     * Handle Colors Change
+     * - Happen each time we change color by using color-picker
+     */
+    private handle_colors_change() {
+        this.throttled_update_colors();
+    }
+
+    private crud_api_type_id_select_label(api_type_id: string): string {
+        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
     }
 
     private switch_can_select_multiple() {
@@ -588,21 +604,17 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     /**
-     * Toggle Can Select All
+     * toggle_can_select_all
      *  - Allow to the user to show select_all of the active filter options
      */
     private async toggle_can_select_all() {
-        if (!this.get_widget_options()) {
-            return;
-        }
-
-        const widget_options: FieldValueFilterWidgetOptionsVO = this.get_widget_options();
-
-        widget_options.can_select_all = !this.can_select_all;
+        this.next_update_options = this.get_widget_options();
 
         if (!this.next_update_options) {
-            this.next_update_options = cloneDeep(widget_options);
+            this.next_update_options = this.default_widget_props;
         }
+
+        this.next_update_options.can_select_all = !this.next_update_options.can_select_all;
 
         await this.throttled_update_options();
     }

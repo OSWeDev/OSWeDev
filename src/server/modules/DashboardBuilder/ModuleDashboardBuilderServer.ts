@@ -2334,7 +2334,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.show_bulk_edit.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            { 'fr-fr': "Afficher Option Sélectionner Tout" },
             'field_value_filter_widget_component.can_select_all_option.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

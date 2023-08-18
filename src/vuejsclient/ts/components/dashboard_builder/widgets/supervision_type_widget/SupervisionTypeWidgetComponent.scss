@@ -1,1 +1,10 @@
-.supervision_type_widget_component {}
+.supervision_type_widget_component {
+    .button_opacity {
+        opacity: 0.4;
+
+        &:hover,
+        &.active {
+            opacity: 1;
+        }
+    }
+}

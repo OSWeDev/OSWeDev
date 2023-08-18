@@ -484,6 +484,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private handle_select_all(): void {
         let selection: DataFilterOption[] = [];
 
+        // Case when we are on a button filter and we cannot select multiple options
+        if (this.is_button && !this.can_select_multiple) {
+            this.tmp_filter_active_options = [];
+            return;
+        }
+
         selection = this.filter_visible_options?.map((_filter) =>
             new DataFilterOption(DataFilterOption.STATE_SELECTED, _filter.label, _filter.id)
         );
@@ -1105,7 +1111,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         if (this.separation_active_filter && (tmp.length > 0)) {
             for (const key in this.tmp_filter_active_options) {
                 let tfao = this.tmp_filter_active_options[key];
-                let index_opt = tmp.findIndex((e) => e.label == tfao.label);
+                let index_opt = tmp?.findIndex((e) => e.label == tfao.label);
                 if (index_opt > -1) {
                     tmp.splice(index_opt, 1);
                 }
@@ -1287,8 +1293,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             tmp_filter_active_options = [];
         }
 
-        let opt_index: number = tmp_filter_active_options.findIndex((e) => e.label == opt.label);
-        let opt_splice: number = this.filter_visible_options.findIndex((e) => e.label == opt.label);
+        let opt_index: number = tmp_filter_active_options?.findIndex((e) => e.label == opt.label);
+        let opt_splice: number = this.filter_visible_options?.findIndex((e) => e.label == opt.label);
 
         if (opt_index >= 0) {
             // toggle the active filter to false
@@ -1326,7 +1332,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let opt_index: number = -1;
 
         if (tmp_filter_active_options_lvl2[optlvl1.label]) {
-            opt_index = tmp_filter_active_options_lvl2[optlvl1.label].findIndex((e) => e.label == opt.label);
+            opt_index = tmp_filter_active_options_lvl2[optlvl1.label]?.findIndex((e) => e.label == opt.label);
         }
 
         if (opt_index >= 0) {
@@ -1512,17 +1518,36 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
     }
 
-    private select_option(dfo: DataFilterOption) {
+    /**
+     * select_option
+     *  - Select option
+     *
+     * @param {DataFilterOption} dfo
+     * @returns {void}
+     */
+    private select_option(dfo: DataFilterOption): void {
         if (!dfo) {
             return;
         }
 
-        let index: number = this.tmp_filter_active_options.findIndex((e) => e.label == dfo.label);
+        // Find index of data_filter in tmp_filter_active_options
+        const index: number = this.tmp_filter_active_options?.findIndex(
+            (e) => e.label == dfo.label
+        );
 
         if (index >= 0) {
+            // If data_filter is already in tmp_filter_active_options, remove it
             this.tmp_filter_active_options.splice(index, 1);
         } else {
+            // If data_filter is not in tmp_filter_active_options, add it
             this.tmp_filter_active_options.push(dfo);
+        }
+
+        // If it not multi select, we just keep the given data_filter
+        if (!this.can_select_multiple) {
+            this.tmp_filter_active_options = this.tmp_filter_active_options.filter(
+                (e) => e.label == dfo.label
+            );
         }
     }
 

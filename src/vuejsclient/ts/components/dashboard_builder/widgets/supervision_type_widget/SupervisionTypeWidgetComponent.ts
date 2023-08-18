@@ -11,6 +11,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import VueComponentBase from '../../../VueComponentBase';
+import './SupervisionTypeWidgetComponent.scss';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -106,12 +107,15 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private handle_select_api_type_id(api_type_id: string) {
-
         if (this.selected_api_type_id === api_type_id) {
             this.selected_api_type_id = null;
         } else {
             this.selected_api_type_id = api_type_id;
         }
+    }
+
+    private is_all_selected(): boolean {
+        return !this.selected_api_type_id;
     }
 
     get title_name_code_text() {
