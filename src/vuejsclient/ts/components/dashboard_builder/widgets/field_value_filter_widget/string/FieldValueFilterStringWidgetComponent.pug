@@ -122,7 +122,7 @@
 
                 template(v-else-if="is_button")
                     
-                    template(v-if="can_select_all")
+                    template(v-if="can_select_all && (filter_visible_options?.length > 0)")
                         .btn.btn-info.button_opacity.mr-1(
                             @click='handle_select_all'
                             :class="{'active': (!tmp_filter_active_options || (tmp_filter_active_options?.length == 0))}"
