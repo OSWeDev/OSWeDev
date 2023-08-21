@@ -96,6 +96,10 @@ let readToTstzFilter = (
         return null;
     }
 
+    if (typeof value == 'string' && Dates.isDate(value)) {
+        value = Dates.parse(value);
+    }
+
     value = parseInt(value.toString());
 
     if (value <= 0) {

@@ -243,6 +243,17 @@ export default class Dates {
     }
 
     /**
+     * isDate
+     *
+     * @param {string} date
+     * @returns {boolean}
+     */
+    public static isDate(date: string): boolean {
+        const dateWithHourRegex = /^([0-9]{4})[\-|\/]([0-9]{1,2})[\-|\/]([0-9]{1,2})( ([0-2][0-9]|[0-1][0-9]|2[0-3]):([0-5][0-9])(?:\:([0-5][0-9]))?)?$/; // YYYY-MM-DD HH:MM:SS or YYYY/MM/DD HH:MM
+        return dateWithHourRegex.test(date);
+    }
+
+    /**
      * @param a
      * @param b
      * @param segmentation
