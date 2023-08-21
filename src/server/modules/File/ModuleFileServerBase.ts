@@ -117,8 +117,14 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
         PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'file.upload.success');
 
-        let name: string = import_file.name;
-        let filepath: string = ModuleFile.FILES_ROOT + 'upload/' + name;
+        let file_name: string = import_file.name;
+        let folder_name: string = ModuleFile.FILES_ROOT + 'upload/';
+        let filepath: string = folder_name + file_name;
+
+        while (fs.existsSync(filepath)) {
+            file_name = '_' + file_name;
+            filepath = folder_name + file_name;
+        }
 
         return import_file.mv(filepath, async (err) => {
             if (err) {
