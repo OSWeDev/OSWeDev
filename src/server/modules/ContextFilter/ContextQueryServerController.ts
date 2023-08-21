@@ -382,7 +382,7 @@ export default class ContextQueryServerController {
                     await promise_pipeline.push(async () => {
                         query_res[i] = await ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(
                             row,
-                            cloneDeep(row), // Do not keep query result row as reference
+                            row,
                             fields[field_id]
                         );
                     });
