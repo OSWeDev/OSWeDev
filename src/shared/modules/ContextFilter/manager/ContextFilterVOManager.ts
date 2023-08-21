@@ -190,7 +190,11 @@ export default class ContextFilterVOManager {
      * @param {string[]} from_vo_types
      * @returns {ContextFilterVO}
      */
-    public static filter_context_filter_tree_by_vo_type(context_filter: ContextFilterVO, vo_type: string, from_vo_types?: string[]): ContextFilterVO {
+    public static filter_context_filter_tree_by_vo_type(
+        context_filter: ContextFilterVO,
+        vo_type: string,
+        from_vo_types?: string[]
+    ): ContextFilterVO {
 
         let right: ContextFilterVO = null;
 

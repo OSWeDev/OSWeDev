@@ -319,14 +319,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     }
 
     /**
-     * On Change Tmp Filter Active Options
+     * onchange_tmp_filter_active_options
      * tmp_filter_active_options is the visible active filters of the widget
-     *  - Handle change on tmp filter active options
-     *  - Happen each time tmp_filter_active_options changes
-     * @returns void
+     * - Happen each time tmp_filter_active_options changes
+     * - Update the active_field_filters
+     * @returns {void}
      */
-    @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options() {
+    @Watch('tmp_filter_active_options', { deep: true })
+    private onchange_tmp_filter_active_options(): void {
 
         if (!this.widget_options) {
             return;

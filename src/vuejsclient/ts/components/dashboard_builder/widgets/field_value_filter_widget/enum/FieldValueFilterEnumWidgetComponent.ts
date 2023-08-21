@@ -109,10 +109,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     /**
      * Watch on page_widget
      *
-     * @returns
+     * @returns {void}
      */
-    @Watch('page_widget', { immediate: true, deep: true })
-    private onchange_page_widget_options() {
+    @Watch('page_widget', { immediate: true })
+    private onchange_page_widget_options(): void {
         this.widget_options = this.get_widget_options();
     }
 
@@ -123,7 +123,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      *
      * @returns {void}
      */
-    @Watch('widget_options', { deep: true })
+    @Watch('widget_options')
     private async onchange_widget_options(): Promise<void> {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
@@ -143,18 +143,18 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     @Watch('get_active_field_filters', { deep: true })
-    @Watch('get_active_api_type_ids')
-    @Watch('get_query_api_type_ids')
+    @Watch('get_active_api_type_ids', { deep: true })
+    @Watch('get_query_api_type_ids', { deep: true })
     private async onchange_active_field_filters() {
         this.throttled_update_visible_options();
     }
 
     /**
-     * On Change Tmp Filter Active Options
+     * onchange_tmp_filter_active_options
      * tmp_filter_active_options is the visible active filters of the widget
-     *  - Handle change on tmp filter active options
      *  - Happen each time tmp_filter_active_options changes
-     * @returns void
+     *
+     * @returns {void}
      */
     @Watch('tmp_filter_active_options')
     private onchange_tmp_filter_active_options(): void {
@@ -163,22 +163,23 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return;
         }
 
-        let locale_tmp_filter_active_options: DataFilterOption[] = null;
+        let filter_active_options: DataFilterOption[] = null;
         let translated_active_options: ContextFilterVO = null;
 
         if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
-            locale_tmp_filter_active_options = this.tmp_filter_active_options;
+            filter_active_options = this.tmp_filter_active_options;
         } else if (this.tmp_filter_active_options != null) {
-            locale_tmp_filter_active_options = [this.tmp_filter_active_options as any];
+            filter_active_options = [this.tmp_filter_active_options as any];
         }
 
         // If it not multi select, we take the first value
-        if (!this.can_select_multiple) {
-            locale_tmp_filter_active_options = locale_tmp_filter_active_options.slice(0, 1);
+        if (!this.can_select_multiple && filter_active_options?.length > 1) {
+            filter_active_options = filter_active_options.slice(0, 1);
+            this.tmp_filter_active_options = filter_active_options;
         }
 
         // If there is no active filter, we remove the filter
-        if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
+        if ((!filter_active_options) || (!filter_active_options.length)) {
             this.remove_active_field_filter({
                 vo_type: this.vo_field_ref.api_type_id,
                 field_id: this.vo_field_ref.field_id
@@ -191,8 +192,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let has_null_value: boolean = false;
 
         // Translate active options to context filter
-        for (let i in locale_tmp_filter_active_options) {
-            let active_option: DataFilterOption = locale_tmp_filter_active_options[i];
+        for (let i in filter_active_options) {
+            let active_option: DataFilterOption = filter_active_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
@@ -272,13 +273,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         // Init context filter of the current filter
-        let root_context_filter: ContextFilterVO = null;
-
         // Get context filter from store
-        root_context_filter = this.get_active_field_filters &&
-            this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
-            this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
-            null;
+        let root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_from_field_filters(
+            this.vo_field_ref,
+            this.get_active_field_filters
+        );
 
         // Say if has active field filter
         const has_active_field_filter: boolean = !!(root_context_filter);
@@ -315,7 +314,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         if (has_active_field_filter &&
             (!(this.tmp_filter_active_options?.length > 0))) {
 
-            this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
+            this.warn_existing_external_filters = !this.try_apply_context_filter(root_context_filter);
         }
 
         this.set_all_count_by_filter_visible_loading(true);
@@ -340,6 +339,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             data_filter_options = [];
         }
 
+        // Default showed filter opt values (force all filters to be shown if not already in the query result)
         const default_showed_filter_opt_values = this.widget_options.default_showed_filter_opt_values;
 
         if (default_showed_filter_opt_values?.length > 0) {
@@ -525,14 +525,15 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     /**
-     * Try Apply Actual Active Filters
-     *  - Make the showable active filter options by the given filter
-     * @param filter ContextFilterVO
-     * @returns boolean
+     * try_apply_context_filter
+     *  - Make the active filter options by the given context_filter
+     *
+     * @param {ContextFilterVO} filter
+     * @returns {boolean}
      */
-    private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
+    private try_apply_context_filter(context_filter: ContextFilterVO): boolean {
 
-        // create single data filter to apply
+        // create single data context_filter to apply
         const createDataFilter = (val: number): DataFilterOption => {
             const dataFilter = new DataFilterOption(
                 DataFilterOption.STATE_SELECTED,
@@ -545,8 +546,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return dataFilter;
         };
 
-        // case when no filter reset visible active filter options
-        if (!filter) {
+        // case when no context_filter reset visible active context_filter options
+        if (!context_filter) {
             if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
                 this.tmp_filter_active_options = [];
             }
@@ -555,10 +556,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         let active_filter_options: DataFilterOption[] = [];
 
-        // filter must have one of the given param to continue
-        if (!(filter.param_numranges?.length > 0)
+        // context_filter must have one of the given param to continue
+        if (!(context_filter.param_numranges?.length > 0)
             // TODO: Seen With Michael Waiting to Fix the final comportment
-            // && filter.param_numeric == null
+            // && context_filter.param_numeric == null
         ) {
             if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
                 this.tmp_filter_active_options = [];
@@ -566,16 +567,16 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return true;
         }
 
-        // case filter param_numeric is sets
+        // case context_filter param_numeric is sets
         // TODO: Seen With Michael Waiting to Fix the final comportment
-        // if (filter.param_numeric != null) {
-        //     const dataFilter = createDataFilter(filter.param_numeric);
+        // if (context_filter.param_numeric != null) {
+        //     const dataFilter = createDataFilter(context_filter.param_numeric);
         //     active_filter_options.push(dataFilter);
         // }
 
-        // case filter param_numranges is sets
-        if (filter.param_numranges?.length > 0) {
-            RangeHandler.foreach_ranges_sync(filter.param_numranges, (num: number) => {
+        // case context_filter param_numranges is sets
+        if (context_filter.param_numranges?.length > 0) {
+            RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (num: number) => {
                 const dataFilter = createDataFilter(num);
                 active_filter_options.push(dataFilter);
             });
@@ -729,7 +730,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return null;
         }
 
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+        return new VOFieldRefVO().from(options.vo_field_ref);
     }
 
     get no_inter_filter(): boolean {
