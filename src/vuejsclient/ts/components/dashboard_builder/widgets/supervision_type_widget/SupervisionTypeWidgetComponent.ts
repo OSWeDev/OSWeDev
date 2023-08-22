@@ -52,7 +52,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private onchange_selected_api_type_id() {
 
         if (!this.selected_api_type_id) {
-            this.set_active_api_type_ids(null);
+            this.set_active_api_type_ids([]);
             return;
         }
 

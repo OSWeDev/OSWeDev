@@ -604,7 +604,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     res[i] = await this.field_to_xlsx(
                         table_field,
                         res[i],
-                        cloneDeep(res[i]),
+                        res[i],
                         field.alias,
                         use_raw_field,
                     );
@@ -1273,7 +1273,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 break;
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                dest_vo[dest_field_id] = Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
+                dest_vo[dest_field_id] = Dates.format_segment(
+                    RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
                     Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset), src_vo[src_field_id].segment_type);
                 break;
 

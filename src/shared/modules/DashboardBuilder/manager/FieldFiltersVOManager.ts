@@ -376,7 +376,9 @@ export default class FieldFiltersVOManager {
 
     /**
      * get_context_filter_from_field_filters
-     * - The aim of this function is to get the context_filter from the given field_filters
+     * - Get the context_filter from the given field_filters
+     *
+     * @TODO: I would rather use it in ContextFilterVOManager
      *
      * @param {FieldFiltersVO} field_filters
      * @param {VOFieldRefVO} vo_field_ref

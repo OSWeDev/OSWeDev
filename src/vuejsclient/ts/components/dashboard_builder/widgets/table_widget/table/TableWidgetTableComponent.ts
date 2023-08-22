@@ -1190,10 +1190,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     //     break;
                     // }
 
-                    if (!field) {
-                        return;
-                    }
-
                     let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                     // sur un simple on set le label
@@ -2652,7 +2648,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     /**
      * Var Indicator
-     *  - All vars indicator on the current page to be exported
+     *  - All vars indicator on the actual page to be exported
      *
      * @return {ExportVarIndicator}
      */

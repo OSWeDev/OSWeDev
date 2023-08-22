@@ -112,10 +112,6 @@ export default class CRUD<T extends IDistantVOBase> {
     public static get_dt_field(field: ModuleTableField<any>): DatatableField<any, any> {
         let dt_field: DatatableField<any, any> = null;
 
-        if (!field) {
-            return;
-        }
-
         if (field.manyToOne_target_moduletable) {
 
             let dt_fields: Array<DatatableField<any, any>> = [
@@ -124,6 +120,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     ModuleDAO.getInstance().get_compute_function_uid(field.manyToOne_target_moduletable.vo_type)
                 )
             ];
+
             if (field.manyToOne_target_moduletable.default_label_field) {
                 dt_fields = [
                     SimpleDatatableFieldVO.createNew(field.manyToOne_target_moduletable.default_label_field.field_id).setValidatInputFunc(field.validate_input)
@@ -136,6 +133,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                     dt_fields
                 ).setValidatInputFunc(field.validate_input);
+
             } else {
                 if (VOsTypesManager.isManyToManyModuleTable(field.module_table)) {
                     if (field.manyToOne_target_moduletable.default_label_field) {

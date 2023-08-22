@@ -17,6 +17,7 @@ import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import UserVO from "../../AccessPolicy/vos/UserVO";
+import { cloneDeep } from "lodash";
 
 /**
  * FieldValueFilterEnumWidgetManager
@@ -103,6 +104,8 @@ export default class FieldValueFilterEnumWidgetManager {
             user?: UserVO;
         }
     ): Promise<DataFilterOption[]> {
+
+        widget_options = cloneDeep(widget_options);
 
         let added_data_filter: { [numeric_value: number]: boolean } = {};
         let enum_data_filters: DataFilterOption[] = [];
@@ -327,6 +330,9 @@ export default class FieldValueFilterEnumWidgetManager {
             user?: UserVO;
         }
     ): Promise<{ [enum_value: number]: number }> {
+
+        widget_options = cloneDeep(widget_options);
+
         const count_by_enum_data_filter: { [enum_value: number]: number } = {};
 
         // We should set all enum count to 0

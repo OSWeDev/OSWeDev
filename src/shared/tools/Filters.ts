@@ -96,9 +96,8 @@ let readToTstzFilter = (
         return null;
     }
 
-    // Having date of type Date may happen and be a problem
-    if ((value as any) instanceof Date) {
-        value = (value as any).getTime() / 1000;
+    if (typeof value == 'string' && Dates.isDate(value)) {
+        value = Dates.parse(value);
     }
 
     value = parseInt(value.toString());
