@@ -1285,14 +1285,30 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                dest_vo[dest_field_id] = DataExportServerController.format_date_utc_excel(src_vo[src_field_id], (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type);
+                if (field instanceof DatatableField) {
+                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                } else {
+                    dest_vo[dest_field_id] = Dates.format_segment(
+                        src_vo[src_field_id],
+                        (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type,
+                        field.format_localized_time
+                    );
+                }
+
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
-                if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
+                if (field instanceof DatatableField) {
+                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                } else if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
                     dest_vo[dest_field_id] = src_vo[src_field_id];
                 } else {
-                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map((ts: number) => DataExportServerController.format_date_utc_excel(ts, (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type));
+                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map(
+                        (ts: number) => Dates.format_segment(
+                            ts,
+                            (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type
+                        )
+                    );
                 }
                 break;
 
