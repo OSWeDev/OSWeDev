@@ -2370,8 +2370,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'favorites_filters_widget_component.can_configure_date_filters.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Envoyer un email des exports" },
-            'favorites_filters_widget_component.can_send_export_email.___LABEL___'
+            { 'fr-fr': "Envoyer un email avec notification d'exports" },
+            'favorites_filters_widget_component.send_email_with_export_notification.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Alerte de maintenance de l\'export'

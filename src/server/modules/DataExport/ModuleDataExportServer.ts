@@ -70,6 +70,7 @@ import default_export_mail_html_template from './default_export_mail_html_templa
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
+    public static PARAM_NAME_SEND_IN_BLUE_EXPORT_NOTIFICATION_TEMPLATE_ID: string = 'ModuleDataExport.export_notification_mail_template_id';
     public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'ModuleDataExport.export_mail_template_id';
     public static MAILCATEGORY_export_file_ready = 'MAILCATEGORY.ModuleDataExport_export_file_ready';
 
@@ -495,9 +496,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (target_user_id) {
             const fullpath = ConfigurationService.node_configuration.BASE_URL + filepath;
 
-            const SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(
-                ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
-            );
+            let SEND_IN_BLUE_TEMPLATE_ID: number = null;
+
+            if (export_options?.send_email_with_export_notification) {
+                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                    ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_EXPORT_NOTIFICATION_TEMPLATE_ID
+                );
+            } else {
+                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                    ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
+                );
+            }
 
             await PushDataServerController.getInstance().notifySimpleINFO(
                 target_user_id,
@@ -513,7 +522,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 .select_vo<UserVO>();
 
             // Send mail
-            if (!!SEND_IN_BLUE_TEMPLATE_ID && export_options?.send_email) {
+            if (!!SEND_IN_BLUE_TEMPLATE_ID) {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(

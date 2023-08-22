@@ -6,5 +6,5 @@
 export default interface IExportOptions {
     export_active_field_filters?: boolean;
     export_vars_indicator?: boolean;
-    send_email?: boolean; // - Send email with export file
+    send_email_with_export_notification?: boolean; // - For the user to connect to the platform and download the file
 }

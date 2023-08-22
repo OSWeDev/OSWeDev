@@ -492,7 +492,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
             exportable.target_user_id = VueAppController.getInstance().data_user.id; // TODO: find another way to get the target_user_id
             exportable.export_options = {
                 ...exportable.export_options,
-                send_email: this.can_send_export_email,
+                send_email_with_export_notification: this.send_email_with_export_notification,
             };
         }
 
@@ -953,12 +953,12 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
         return this.widget_options?.can_configure_date_filters ?? false;
     }
 
-    get can_send_export_email(): boolean {
+    get send_email_with_export_notification(): boolean {
         if (!this.widget_options) {
             return false;
         }
 
-        return this.widget_options?.can_send_export_email ?? false;
+        return this.widget_options?.send_email_with_export_notification ?? false;
     }
 
     /**

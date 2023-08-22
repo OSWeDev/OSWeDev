@@ -61,7 +61,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     private can_configure_date_filters: boolean = false;
 
     // Allow to the user to send an email with the export
-    private can_send_export_email: boolean = false;
+    private send_email_with_export_notification: boolean = false;
 
     // Perform the action of update options
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(
@@ -102,8 +102,8 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
             return;
         }
 
+        this.send_email_with_export_notification = this.widget_options.send_email_with_export_notification;
         this.can_configure_date_filters = this.widget_options.can_configure_date_filters;
-        this.can_send_export_email = this.widget_options.can_send_export_email;
         this.can_configure_export = this.widget_options.can_configure_export;
         this.max_visible_options = this.widget_options.max_visible_options;
     }
@@ -165,18 +165,18 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     }
 
     /**
-     * toggle_can_send_export_email
+     * toggle_send_email_with_export_notification
      */
-    private async toggle_can_send_export_email() {
+    private async toggle_send_email_with_export_notification() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
             this.next_update_options = this.create_widget_options().from(
-                { can_send_export_email: this.can_send_export_email }
+                { send_email_with_export_notification: this.send_email_with_export_notification }
             );
         }
 
-        this.next_update_options.can_send_export_email = !this.next_update_options.can_send_export_email;
+        this.next_update_options.send_email_with_export_notification = !this.next_update_options.send_email_with_export_notification;
 
         this.throttled_update_options();
     }
