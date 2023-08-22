@@ -313,6 +313,8 @@ export default class FieldValueFilterEnumWidgetManager {
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
      * @param {FieldFiltersVO} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {DataFilterOption[]} selected_active_filter_options Selected filter active options from the actual dashboard
+     * @param {DataFilterOption[]} enum_data_filters All enum data filters from the actual dashboard
      * @param {options.active_api_type_ids} options.active_api_type_ids - Setted on user selection (select option) to specify query on specified vos api ids
      * @param {options.query_api_type_ids} options.query_api_type_ids - Setted from widget options to have custom|default query on specified vos api ids
      * @param {options.with_count} options.with_count - Setted from widget options to have count on each data_filter
@@ -322,6 +324,7 @@ export default class FieldValueFilterEnumWidgetManager {
         dashboard: DashboardVO,
         widget_options: FieldValueFilterWidgetOptionsVO,
         active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
+        selected_active_filter_options: DataFilterOption[], // Selected filter active options from the actual dashboard
         enum_data_filters: DataFilterOption[], // Enum data filters from the actual dashboard
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
@@ -425,6 +428,14 @@ export default class FieldValueFilterEnumWidgetManager {
             const filter_opt: DataFilterOption = enum_data_filters[enum_data_key];
 
             if (!filter_opt) {
+                continue;
+            }
+
+            const is_selected = selected_active_filter_options?.find((selected_filter_active_option: DataFilterOption) => {
+                return selected_filter_active_option.numeric_value == filter_opt.numeric_value;
+            });
+
+            if ((selected_active_filter_options?.length > 0) && !is_selected) {
                 continue;
             }
 

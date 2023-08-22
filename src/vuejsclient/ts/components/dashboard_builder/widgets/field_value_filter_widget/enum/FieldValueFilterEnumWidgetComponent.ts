@@ -84,11 +84,19 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private old_widget_options: FieldValueFilterWidgetOptionsVO = null;
     private widget_options: FieldValueFilterWidgetOptionsVO = null;
 
+    private should_load_filter_visible_options: boolean = false;
+
     private last_calculation_cpt: number = 0;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(
         this.update_visible_options.bind(this),
-        300,
+        50,
+        { leading: false, trailing: true }
+    );
+
+    private throttled_load_filter_visible_options_count = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.load_filter_visible_options_count.bind(this),
+        50,
         { leading: false, trailing: true }
     );
 
@@ -104,6 +112,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.page_widget,
             this.reset_visible_options.bind(this),
         );
+        this.should_load_filter_visible_options = true;
     }
 
     /**
@@ -147,6 +156,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     @Watch('get_query_api_type_ids', { deep: true })
     private async onchange_active_field_filters() {
         this.throttled_update_visible_options();
+        this.set_all_count_by_filter_visible_loading(true);
     }
 
     /**
@@ -239,6 +249,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             vo_type: this.vo_field_ref.api_type_id,
             active_field_filter: translated_active_options,
         });
+
+        this.set_all_count_by_filter_visible_loading(true);
     }
 
     private async query_update_visible_options(queryStr: string) {
@@ -319,6 +331,29 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         this.set_all_count_by_filter_visible_loading(true);
 
+        // Load filter visible options once
+        if (this.should_load_filter_visible_options) {
+            // is_button and default_showed_filter_opt_values may not change
+            if (this.is_button && this.widget_options?.default_showed_filter_opt_values?.length > 0) {
+                this.should_load_filter_visible_options = false;
+            }
+            // Load filter visible options from widget options
+            await this.load_filter_visible_options(launch_cpt);
+        }
+
+        // Si on doit afficher le compteur, on fait les requêtes nécessaires
+        this.throttled_load_filter_visible_options_count();
+    }
+
+    /**
+     * load_filter_visible_options
+     * - Load filter visible options from widget options
+     *
+     * @param {number} launch_cpt
+     * @returns {Promise<void>}
+     */
+    private async load_filter_visible_options(launch_cpt: number): Promise<void> {
+
         let data_filter_options: DataFilterOption[] = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
             this.dashboard,
             this.widget_options,
@@ -388,10 +423,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return a.numeric_value - b.numeric_value;
         });
 
-        this.set_all_count_by_filter_visible_loading(true);
-
-        // Si on doit afficher le compteur, on fait les requêtes nécessaires
-        await this.set_count_value();
     }
 
     /**
@@ -417,11 +448,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     /**
-     * TODO: when filter actif and count result is 0, the filter shall stay visible
+     * TODO: load filter visible options count value only on the selected filters
      *
      * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
      */
-    private async set_count_value() {
+    private async load_filter_visible_options_count() {
 
         if (!this.show_count_value) {
             this.is_loading_count_by_filter_visible_opt_id = {};
@@ -433,6 +464,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
+            this.tmp_filter_active_options,
             this.filter_visible_options,
             {
                 active_api_type_ids: this.get_active_api_type_ids,
