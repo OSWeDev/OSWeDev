@@ -174,7 +174,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         let filter_active_options: DataFilterOption[] = null;
-        let translated_active_options: ContextFilterVO = null;
+        let context_filter: ContextFilterVO = null;
 
         if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
             filter_active_options = this.tmp_filter_active_options;
@@ -210,23 +210,23 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 continue;
             }
 
-            let new_translated_active_options = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
                 field,
                 this.vo_field_ref
             );
 
-            if (!new_translated_active_options) {
+            if (!new_context_filter) {
                 continue;
             }
 
-            if (!translated_active_options) {
-                translated_active_options = new_translated_active_options;
+            if (!context_filter) {
+                context_filter = new_context_filter;
             } else {
-                translated_active_options = ContextFilterVOHandler.merge_context_filter_vos(
-                    translated_active_options,
-                    new_translated_active_options
+                context_filter = ContextFilterVOHandler.merge_context_filter_vos(
+                    context_filter,
+                    new_context_filter
                 );
             }
         }
@@ -237,17 +237,17 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             cf_null_value.vo_type = this.vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
-            if (!translated_active_options) {
-                translated_active_options = cf_null_value;
+            if (!context_filter) {
+                context_filter = cf_null_value;
             } else {
-                translated_active_options = ContextFilterVO.or([cf_null_value, translated_active_options]);
+                context_filter = ContextFilterVO.or([cf_null_value, context_filter]);
             }
         }
 
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
-            active_field_filter: translated_active_options,
+            active_field_filter: context_filter,
         });
 
         this.set_all_count_by_filter_visible_loading(true);
@@ -448,11 +448,12 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     /**
-     * TODO: load filter visible options count value only on the selected filters
+     * load_filter_visible_options_count
+     *  - Load filter visible options count from widget options
      *
-     * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
+     * @returns {Promise<void>}
      */
-    private async load_filter_visible_options_count() {
+    private async load_filter_visible_options_count(): Promise<void> {
 
         if (!this.show_count_value) {
             this.is_loading_count_by_filter_visible_opt_id = {};

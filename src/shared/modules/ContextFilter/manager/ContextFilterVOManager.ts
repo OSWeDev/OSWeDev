@@ -73,7 +73,7 @@ export default class ContextFilterVOManager {
      * @param {VOFieldRefVO} vo_field_ref
      * @returns {ContextFilterVO}
      */
-    public static get_context_filter_from_data_filter_option(
+    public static create_context_filter_from_data_filter_option(
         active_option: DataFilterOption,
         ts_range: TSRange,
         field: ModuleTableField<any>,

@@ -1623,6 +1623,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Liste des champs pour la recherche multiple" },
             'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtrer" },
+            'CurrentUserFilterWidget.filter_placeholder.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Texte champs de sélection" },
+            'current_user_filter_widget_options_component.placeholder_name_code_text.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ de référence" },
+            'current_user_filter_widget_options_component.vo_field_ref.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Glisser / Déposer les champs pour la recherche multiple" },
             'multiple_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'

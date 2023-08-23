@@ -450,7 +450,7 @@ export default class FieldValueFilterEnumWidgetManager {
                     api_type_field_filters
                 );
 
-                const enum_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+                const enum_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                     filter_opt,
                     null,
                     VOsTypesManager.get_field_from_vo_field_ref(vo_field_ref),

@@ -16,7 +16,8 @@
                     v-if='get_widget_options() && get_widget_options().get_placeholder_name_code_text(page_widget.id)'
                     :code_text="get_widget_options().get_placeholder_name_code_text(page_widget.id)" 
                     :is_editable="true"
-                    :default_translation="default_placeholder_translation")
+                    :default_translation="default_placeholder_translation"
+                )
         .max_visible_options
             .input_label {{ label('field_value_filter_widget_component.max_visible_options') }}
             .input_wrapper

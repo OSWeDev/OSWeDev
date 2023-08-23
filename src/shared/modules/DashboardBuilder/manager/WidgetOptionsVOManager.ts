@@ -146,7 +146,7 @@ export default class WidgetOptionsVOManager {
             self.widgets_get_selected_fields[widget_type.name] = get_selected_fields;
         }
 
-        if (self.sorted_widgets.find((w) => w.name == widget_type.name)) {
+        if (self.sorted_widgets_types.find((w) => w.name == widget_type.name)) {
             return;
         }
 

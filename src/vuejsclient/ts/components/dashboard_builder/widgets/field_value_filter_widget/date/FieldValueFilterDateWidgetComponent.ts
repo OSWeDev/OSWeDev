@@ -173,7 +173,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         if (!context_filter) {
             let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
             let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-            context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(null, this.ts_range, field, this.vo_field_ref);
+            context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(null, this.ts_range, field, this.vo_field_ref);
 
             this.set_active_field_filter({
                 field_id: this.vo_field_ref.field_id,

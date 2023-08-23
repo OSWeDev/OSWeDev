@@ -1045,7 +1045,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     }
 
                     if (!active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]) {
-                        active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+                        active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                             opt,
                             null,
                             field,
