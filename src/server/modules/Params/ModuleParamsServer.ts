@@ -18,11 +18,14 @@ import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleParamsServer extends ModuleServerBase {
+
+    public static TASK_NAME_delete_params_cache = 'ModuleAccessPolicyServer.delete_params_cache';
 
     public static getInstance() {
         if (!ModuleParamsServer.instance) {
@@ -39,6 +42,8 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleParams.getInstance().name);
+
+        ForkedTasksController.getInstance().register_task(ModuleParamsServer.TASK_NAME_delete_params_cache, this.delete_params_cache.bind(this));
     }
 
     public async configure() {
@@ -190,19 +195,19 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     private async handleTriggerPostCreateParam(vo: ParamVO) {
-        this.handleTriggerParam(vo);
+        await ForkedTasksController.getInstance().broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo);
     }
 
     private async handleTriggerPostUpdateParam(update: DAOUpdateVOHolder<ParamVO>) {
-        this.handleTriggerParam(update.pre_update_vo);
-        this.handleTriggerParam(update.post_update_vo);
+        await ForkedTasksController.getInstance().broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.pre_update_vo);
+        await ForkedTasksController.getInstance().broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.post_update_vo);
     }
 
     private async handleTriggerPostDeleteParam(vo: ParamVO) {
-        this.handleTriggerParam(vo);
+        await ForkedTasksController.getInstance().broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo);
     }
 
-    private handleTriggerParam(vo: ParamVO) {
+    private delete_params_cache(vo: ParamVO) {
         delete this.throttled_param_cache_value[vo.name];
         delete this.throttled_param_cache_lastupdate_ms[vo.name];
         delete this.semaphore_param[vo.name];
