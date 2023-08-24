@@ -4,6 +4,46 @@ import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import ThrottleHelper from './ThrottleHelper';
 import ILoggerHandler from './interfaces/ILoggerHandler';
 
+// DO NOT DELETE : USED to debug Promises when there are multiple resolves =>
+// class MonitoredPromise<T> extends Promise<T> {
+//     constructor(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
+//         let hasSettled = false;
+//         // Capture la stacktrace lors de la création de la promesse
+//         const stackTrace = new Error("Promise created at:").stack;
+
+//         const wrappedExecutor: typeof executor = (resolve, reject) => {
+//             function monitoredResolve(value: T | PromiseLike<T>) {
+//                 if (hasSettled) {
+//                     emitMultipleResolves("resolved", stackTrace);
+//                     return;
+//                 }
+//                 hasSettled = true;
+//                 resolve(value);
+//             }
+
+//             function monitoredReject(reason: any) {
+//                 if (hasSettled) {
+//                     emitMultipleResolves("rejected", stackTrace);
+//                     return;
+//                 }
+//                 hasSettled = true;
+//                 reject(reason);
+//             }
+
+//             executor(monitoredResolve, monitoredReject);
+//         };
+
+//         super(wrappedExecutor);
+//     }
+// }
+
+// function emitMultipleResolves(action: string, stackTrace) {
+//     console.error(`MultipleResolvesError: A promise was already ${action} and was attempted to be ${action} again.`, stackTrace);
+//     // Vous pouvez également émettre un événement ou effectuer d'autres actions si nécessaire
+// }
+
+// tslint:disable-next-line: max-classes-per-file
+// <= DO NOT DELETE : USED to debug Promises when there are multiple resolves
 export default class ConsoleHandler {
 
     public static SEPARATOR: string = ' - ';
@@ -15,6 +55,10 @@ export default class ConsoleHandler {
         if (!!ConsoleHandler.old_console_log) {
             return;
         }
+
+        // DO NOT DELETE : USED to debug Promises when there are multiple resolves =>
+        // (global as any).Promise = MonitoredPromise;
+        // <= DO NOT DELETE : USED to debug Promises when there are multiple resolves
 
         ConsoleHandler.old_console_log = console.log;
         console.log = function (msg, ...params) {

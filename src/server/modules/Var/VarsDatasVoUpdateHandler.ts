@@ -125,10 +125,10 @@ export default class VarsDatasVoUpdateHandler {
      * @param invalidators
      * @returns
      */
-    public static async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<void> {
+    public static async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<string> {
 
         if ((!invalidators) || (!invalidators.length)) {
-            return;
+            return 'push_invalidators';
         }
 
         return new Promise(async (resolve, reject) => {
@@ -143,7 +143,7 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             VarsDatasVoUpdateHandler.throttle_push_invalidators(invalidators);
-            resolve();
+            resolve("push_invalidators");
         });
     }
 

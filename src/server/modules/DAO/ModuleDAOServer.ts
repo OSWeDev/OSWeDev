@@ -50,7 +50,7 @@ import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -121,7 +121,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * Les params du throttled_select_query
      */
-    private throttled_select_query_params: ThrottledSelectQueryParam[] = [];
+    // private throttled_select_query_params: ThrottledSelectQueryParam[] = [];
 
     /**
      * Les params du throttled_select_query
@@ -1568,20 +1568,29 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             // self.copy_dedicated_pool.connect(function (err, client, done) {
-            copy_dedicated_pool.connect(function (err, client, done) {
+            copy_dedicated_pool.connect(async (err, client, done) => {
 
                 let cb = async () => {
                     if (debug_insert_without_triggers_using_COPY) {
                         ConsoleHandler.log('insert_without_triggers_using_COPY:end');
                     }
                     await done();
-                    client.end();
+                    if (!!client) {
+                        client.end();
+                    }
                     await resolve(result);
                 };
 
                 let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (FORMAT csv, DELIMITER ';', QUOTE '''')";
                 if (debug_insert_without_triggers_using_COPY) {
                     ConsoleHandler.log('insert_without_triggers_using_COPY:query_string:' + query_string);
+                }
+
+                if (!client) {
+                    let query_res = await self.insertOrUpdateVOs_without_triggers(vos, null, exec_as_server);
+                    result = (!!query_res) && (query_res.length == vos.length);
+                    await cb();
+                    return;
                 }
                 var stream = client.query(copyFrom(query_string));
                 var rs = new Readable();
@@ -1997,7 +2006,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     self.throttled_select_query_params_by_fields_labels[param.fields_labels] = [];
                 }
                 self.throttled_select_query_params_by_fields_labels[param.fields_labels].push(param);
-                self.throttled_select_query_params.push(param);
+                // self.throttled_select_query_params.push(param);
             } catch (error) {
                 reject(error);
             }
@@ -2328,6 +2337,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         for (let i in vos) {
             let vo = vos[i];
+
+            // On ne check pas pour les varsdatas pour des raisons de perfs évidentes
+            if (vo &&
+                (!!vo[field_names<VarDataBaseVO>()._bdd_only_index]) &&
+                (!!vo[field_names<VarDataBaseVO>()._var_id]) &&
+                (!!vo[field_names<VarDataBaseVO>().value_ts])) {
+                res.push(vo);
+                continue;
+            }
 
             await promise_pipeline.push(async () => {
                 let refuse: boolean = await this.refuseVOByForeignKeys(vo);
@@ -2991,6 +3009,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         let all_params_promises = [];
+        let self = this;
         for (let i in params_by_query_index) {
             let index = parseInt(i);
             let results_of_index = results_by_index[index];
@@ -3036,11 +3055,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'cbs_OUT', Dates.now_ms() - cbs_time_in);
                 StatsController.register_stat_DUREE('ModuleDAOServer', 'do_select_query', 'OUT', Dates.now_ms() - time_in);
 
-                await this.current_promise_resolvers[param.index](results_of_index);
+                await self.current_promise_resolvers[index](results_of_index);
+                delete self.current_promise_resolvers[index];
+                delete self.current_select_query_promises[param.parameterized_full_query];
+                delete force_freeze[param.parameterized_full_query];
+                delete freeze_check_passed_and_refused[param.parameterized_full_query];
             })());
         }
 
-        await all_promises(all_params_promises);
+        // await all_promises(all_params_promises);
     }
 
     /**
@@ -3112,6 +3135,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (this.check_foreign_keys) {
+
             vos = await this.filterByForeignKeys(vos);
             if ((!vos) || (!vos.length)) {
                 StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'filteredByForeignKeys');
@@ -3339,13 +3363,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let waiter = 1;
         while (true) {
 
-            if (!this.throttled_select_query_params || !this.throttled_select_query_params.length) {
+            // if (!this.throttled_select_query_params || !this.throttled_select_query_params.length) {
+            //     await ThreadHandler.sleep(waiter, "ModuleDAOServer:shift_select_queries");
+            //     continue;
+            // }
+            let fields_labels: string = ObjectHandler.getFirstAttributeName(this.throttled_select_query_params_by_fields_labels);
+            if (!fields_labels) {
                 await ThreadHandler.sleep(waiter, "ModuleDAOServer:shift_select_queries");
                 continue;
             }
 
             waiter = 1;
-            let fields_labels: string = this.throttled_select_query_params.shift().fields_labels;
             let same_field_labels_params: ThrottledSelectQueryParam[] = this.throttled_select_query_params_by_fields_labels[fields_labels];
             delete this.throttled_select_query_params_by_fields_labels[fields_labels];
 
@@ -3359,7 +3387,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let group_id = 0;
             let nb_union_in_current_group_id = 0;
             let request_by_group_id: { [group_id: number]: string } = {};
-            let dedoublonnage_promises = []; // A priori on a pas d'usage à attendre leur résolution... on pourrait ne pas les stocker du coup
             for (let i in same_field_labels_params) {
                 let same_field_labels_param = same_field_labels_params[i];
 
@@ -3367,7 +3394,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let doublon_promise = this.dedoublonnage(same_field_labels_param, force_freeze, freeze_check_passed_and_refused);
                 if (doublon_promise) {
-                    dedoublonnage_promises.push(doublon_promise);
                     continue;
                 }
 
@@ -3389,7 +3415,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  * On ajoute la gestion du cache ici
                  */
                 if (same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
-                    await promise_pipeline.push(this.handle_load_from_cache(same_field_labels_param, this.current_promise_resolvers[same_field_labels_param.index]));
+                    this.handle_load_from_cache(same_field_labels_param, this.current_promise_resolvers[same_field_labels_param.index]);
                     continue;
                 }
                 StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');
@@ -3437,6 +3463,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         force_freeze: { [parameterized_full_query: string]: boolean },
         promise_pipeline: PromisePipeline
     ) {
+        let self = this;
         for (let group_id_s in request_by_group_id) {
             let gr_id = parseInt(group_id_s);
 
@@ -3446,23 +3473,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             await promise_pipeline.push(async () => {
 
 
-                await this.do_select_query(
+                await self.do_select_query(
                     request,
                     null,
                     dedoublonned_same_field_labels_params,
                     freeze_check_passed_and_refused,
                     force_freeze
                 );
-
-                for (let index in dedoublonned_same_field_labels_params) {
-
-                    let same_field_labels_param = dedoublonned_same_field_labels_params[index];
-
-                    delete this.current_promise_resolvers[index];
-                    delete this.current_select_query_promises[same_field_labels_param.parameterized_full_query];
-                    delete force_freeze[same_field_labels_param.parameterized_full_query];
-                    delete freeze_check_passed_and_refused[same_field_labels_param.parameterized_full_query];
-                }
             });
         }
     }
@@ -3504,7 +3521,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private dedoublonnage(
         param: ThrottledSelectQueryParam,
         force_freeze: { [parameterized_full_query: string]: boolean },
-        freeze_check_passed_and_refused: { [query_index: number]: boolean }): Promise<void> {
+        freeze_check_passed_and_refused: { [query_index: number]: boolean }): Promise<string> {
 
         // Ici on voudrait un système de dédoublonnage, qui permette de dire cette requete est déjà en cours, on
         //  attend que la promise déjà construite soit terminée au lieu d'en faire encore une autre. ça nécessite de garder une trace des
@@ -3514,11 +3531,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (!!freeze_check_passed_and_refused[param.parameterized_full_query]) {
                 // si on a bloqué l'usage du current_select_query_promises, on ne doit pas en relancer avec la même requête
                 // on doit attendre la fin de la précédente. Donc on attend la suppression du current_select_query_promises
-                this.throttled_select_query_params.push(param);
-                return Promise.resolve();
+                // this.throttled_select_query_params.push(param);
+
+                if (!this.throttled_select_query_params_by_fields_labels[param.fields_labels]) {
+                    this.throttled_select_query_params_by_fields_labels[param.fields_labels] = [];
+                }
+                this.throttled_select_query_params_by_fields_labels[param.fields_labels].push(param);
+
+                return this.current_select_query_promises[param.parameterized_full_query];
             }
 
-            let res = new Promise<void>(async (resolve, reject) => {
+            let res = new Promise<string>(async (resolve, reject) => {
 
                 force_freeze[param.parameterized_full_query] = true;
                 let results = await this.current_select_query_promises[param.parameterized_full_query];
@@ -3532,7 +3555,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     })());
                 }
                 await all_promises(promises);
-                resolve();
+                resolve("dedoublonnage");
             });
 
             return res;

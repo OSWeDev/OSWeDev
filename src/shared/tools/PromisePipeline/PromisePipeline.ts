@@ -15,7 +15,9 @@ export default class PromisePipeline {
     private all_waiting_and_running_promises_by_cb_uid: { [cb_uid: number]: Promise<any> } = {};
     // private all_running_promises_by_cb_uid: Array<Promise<any>> = [];
 
-    private end_promise_resolve: () => void | PromiseLike<void> = null;
+    private end_promise_resolve: (reason?: string) => void | PromiseLike<string> = null;
+
+    private waiting_for_race_resolver: (reason?: string) => void | PromiseLike<string> = null;
 
     /**
      * Pipeline de promesses, qui permet de limiter le nombre de promesses en parallèle, mais d'en ajouter
@@ -81,8 +83,14 @@ export default class PromisePipeline {
 
             let time_in = Dates.now_ms();
 
-            // Wait for a free slot, handle the fastest finished promise
-            await Promise.race(Object.values(this.all_waiting_and_running_promises_by_cb_uid));
+            let waiting_for_race_promise = new Promise((resolve, reject) => {
+                this.waiting_for_race_resolver = resolve;
+            });
+            await waiting_for_race_promise;
+
+            // We have a pb with race, it invokes multipleResolve, which is a perf pb : https://github.com/nodejs/node/issues/24321
+            // // Wait for a free slot, handle the fastest finished promise
+            // await Promise.race(Object.values(this.all_waiting_and_running_promises_by_cb_uid));
 
             if (this.stat_name) {
                 StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'WAIT_FOR_PUSH', Dates.now_ms() - time_in);
@@ -130,7 +138,7 @@ export default class PromisePipeline {
 
         // Promise resolever declaration that
         // will be called when all promises are finished
-        let wait_for_end = new Promise<void>((resolve, reject) => {
+        let wait_for_end = new Promise<string>((resolve, reject) => {
             self.end_promise_resolve = resolve;
         });
 
@@ -166,6 +174,14 @@ export default class PromisePipeline {
 
         // Remove the callback promise from the waitlist
         delete this.all_waiting_and_running_promises_by_cb_uid[cb_uid];
+
+        // Since we freed a slot, we can check if we can run another promise
+        if (this.waiting_for_race_resolver) {
+            let resolver = this.waiting_for_race_resolver;
+            delete this.waiting_for_race_resolver;
+            await resolver("PromisePipeline.do_cb");
+        }
+
         if (this.stat_name) {
             StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'OUT', 1);
         }
@@ -178,7 +194,7 @@ export default class PromisePipeline {
 
             let end_promise = this.end_promise_resolve;
             this.end_promise_resolve = null;
-            await end_promise();
+            await end_promise("PromisePipeline.do_cb");
         }
     }
 

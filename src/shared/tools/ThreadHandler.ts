@@ -19,7 +19,7 @@ export default class ThreadHandler {
                 let date_out_ms = Dates.now_ms();
                 StatsController.register_stat_DUREE('ThreadHandler', 'sleep', reason_ID, date_out_ms - date_in_ms);
 
-                resolve(null);
+                resolve("sleep");
             }, timeout);
         });
     }

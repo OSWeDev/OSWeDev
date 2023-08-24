@@ -62,12 +62,16 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
 
             CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'] = ((typeof data === 'undefined') ? null : data);
 
-            for (let i in this.nodes_waiting_for_semaphore) {
-                this.nodes_waiting_for_semaphore[i].datasources[this.name] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'];
+            let nodes_waiting_for_semaphore_indexes = Object.keys(this.nodes_waiting_for_semaphore);
+            for (let i in nodes_waiting_for_semaphore_indexes) {
+                let index = nodes_waiting_for_semaphore_indexes[i];
+                this.nodes_waiting_for_semaphore[index].datasources[this.name] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'];
+                delete this.nodes_waiting_for_semaphore[index];
 
-                let cb = this.promises_waiting_for_semaphore[i];
+                let cb = this.promises_waiting_for_semaphore[index];
+                delete this.promises_waiting_for_semaphore[index];
                 if (!!cb) {
-                    await cb();
+                    await cb("DataSourceControllerSimpleCacheBase.promises_waiting_for_semaphore");
                 }
             }
 

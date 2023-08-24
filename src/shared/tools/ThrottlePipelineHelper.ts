@@ -81,7 +81,7 @@ export default class ThrottlePipelineHelper {
 
         return new Promise<any>((resolve) => {
             setTimeout(() => {
-                resolve(null);
+                resolve("sleep");
             }, timeout);
         });
     }

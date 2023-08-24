@@ -440,11 +440,11 @@ export default class ModuleTableField<T> {
                 TypesHandler.getInstance().isNull(default_value) || TypesHandler.getInstance().isNumber(default_value) || TypesHandler.getInstance().isBoolean(default_value))) {
                 default_value = "'" + default_value.replace(/'/ig, "''") + "'";
             }
-            return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '') + (this.is_unique ? ' UNIQUE' : '');
+            return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : ''); // + (this.is_unique ? ' UNIQUE' : '');
         } catch (error) {
             ConsoleHandler.error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
         }
-        return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.is_unique ? ' UNIQUE' : '');
+        return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : ''); // + (this.is_unique ? ' UNIQUE' : '');
     }
 
     public getPGSqlFieldIndex(database_name: string, table_name: string) {

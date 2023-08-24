@@ -63,7 +63,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
      */
     public async register_aggregated_stats(
         aggregated_stats: StatClientWrapperVO[]
-    ): Promise<void> {
+    ): Promise<string> {
 
         if (!aggregated_stats || !aggregated_stats.length) {
             return;
@@ -85,7 +85,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
             }
 
             this.aggregated_stats = this.aggregated_stats.concat(aggregated_stats);
-            resolve();
+            resolve('register_aggregated_stats');
         });
     }
 

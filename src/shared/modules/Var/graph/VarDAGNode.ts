@@ -1,9 +1,11 @@
 import ConfigurationService from '../../../../server/env/ConfigurationService';
+import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import ObjectHandler, { field_names } from '../../../tools/ObjectHandler';
 import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import MatroidController from '../../Matroid/MatroidController';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
@@ -110,6 +112,10 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     public static async getInstance(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
 
+        if (!!var_dag.nodes[var_data.index]) {
+            return var_dag.nodes[var_data.index];
+        }
+
         /**
          * On utilise une forme de sémaphore, qui utilise les promises pour éviter de créer plusieurs fois le même noeud
          */
@@ -130,6 +136,24 @@ export default class VarDAGNode extends DAGNodeBase {
     }
 
     private static getInstance_semaphores: { [var_dag_uid: number]: { [var_data_index: number]: Promise<VarDAGNode> } } = {};
+
+    private static async load_from_db_if_exists(_type: string, index: string): Promise<VarDataBaseVO> {
+        let table = VOsTypesManager.moduleTables_by_voType[_type];
+
+        if (table.is_segmented) {
+            throw new Error('VarDAGNode.load_from_db_if_exists :: table.is_segmented not implemented');
+        }
+
+        let res = await ModuleDAOServer.getInstance().query('select * from ' + table.full_name + ' where _bdd_only_index = $1', [index]);
+
+        if ((!res) || (!res.length)) {
+            return null;
+        }
+
+        let data = res[0];
+        data._type = table.vo_type;
+        return table.forceNumeric(data);
+    }
 
     /**
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
@@ -163,7 +187,8 @@ export default class VarDAGNode extends DAGNodeBase {
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
             /* istanbul ignore next: impossible to test - await query */
             if ((!already_tried_load_cache_complet) && (!ConfigurationService.IS_UNIT_TEST_MODE)) {
-                let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, node.var_data.index).select_vo();
+                let db_data: VarDataBaseVO = await VarDAGNode.load_from_db_if_exists(node.var_data._type, node.var_data.index); // Version optimisée de la ligne ci-dessous
+                // let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, node.var_data.index).select_vo();
                 if (!!db_data) {
                     node.var_data = db_data;
                     already_tried_load_cache_complet = true;

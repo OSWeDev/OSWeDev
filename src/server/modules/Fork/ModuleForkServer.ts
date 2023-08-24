@@ -106,8 +106,8 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         let resolver = ForkedTasksController.registered_task_result_wrappers[msg.callback_id].resolver;
-        resolver(msg.message_content);
         delete ForkedTasksController.registered_task_result_wrappers[msg.callback_id];
+        resolver(msg.message_content);
         return true;
     }
 

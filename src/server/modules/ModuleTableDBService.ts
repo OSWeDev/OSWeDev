@@ -706,16 +706,16 @@ export default class ModuleTableDBService {
         }
 
         /**
-         * Ajout des clés d'unicité sur plusieurs colonnes
+         * Ajout des clés d'unicité
          */
         let uniq_constraints = '';
         if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
             for (let i in moduleTable.uniq_indexes) {
                 let uniq_index = moduleTable.uniq_indexes[i];
 
-                if (uniq_index.length <= 1) {
-                    continue;
-                }
+                // if (uniq_index.length <= 1) {
+                //     continue;
+                // }
 
                 uniq_constraints += ', UNIQUE (' + uniq_index.map((f) => f.field_id).join(', ') + ')';
             }

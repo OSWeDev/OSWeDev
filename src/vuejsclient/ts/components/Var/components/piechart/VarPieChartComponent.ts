@@ -112,17 +112,17 @@ export default class VarPieChartComponent extends VueComponentBase {
     /**
      * Waiting for all_data_loaded
      */
-    private async wait_for_datas(): Promise<void> {
+    private async wait_for_datas(): Promise<string> {
 
         if (this.all_data_loaded) {
-            return;
+            return 'wait_for_datas';
         }
 
         return new Promise((resolve) => {
             let interval = setInterval(() => {
                 if (this.all_data_loaded) {
                     clearInterval(interval);
-                    resolve();
+                    resolve('wait_for_datas');
                 }
             }, 100);
         });

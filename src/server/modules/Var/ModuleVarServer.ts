@@ -444,9 +444,9 @@ export default class ModuleVarServer extends ModuleServerBase {
                 preUTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_u);
 
                 // On invalide l'arbre par intersection si on passe un type en import, ou si on change la valeur d'un import, ou si on passe de import à calculé
-                postCTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_c);
-                postUTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_u);
-                postDTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_d);
+                postCTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_c as any);
+                postUTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_u as any);
+                postDTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_d as any);
             }
 
             VarsServerController.init_varcontrollers_dag();
@@ -486,7 +486,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
-    public async invalidate_imports_for_c(vo: VarDataBaseVO): Promise<void> {
+    public async invalidate_imports_for_c(vo: VarDataBaseVO): Promise<string> {
 
         return new Promise(async (resolve, reject) => {
 
@@ -508,11 +508,11 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
             }
-            resolve();
+            resolve('invalidate_imports_for_c');
         });
     }
 
-    public async invalidate_imports_for_d(vo: VarDataBaseVO): Promise<void> {
+    public async invalidate_imports_for_d(vo: VarDataBaseVO): Promise<string> {
 
         return new Promise(async (resolve, reject) => {
 
@@ -530,12 +530,12 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
             }
-            resolve();
+            resolve('invalidate_imports_for_d');
         });
     }
 
 
-    public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>): Promise<void> {
+    public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>): Promise<string> {
 
         return new Promise(async (resolve, reject) => {
 
@@ -558,7 +558,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
             }
-            resolve();
+            resolve('invalidate_imports_for_u');
         });
     }
 
