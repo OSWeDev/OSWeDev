@@ -69,7 +69,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     /**
      * Watch on active_field_filters
      *  - Shall happen first on component init or each time active_field_filters changes
-     *  - Initialize the tmp_filter_active_options with default widget options
+     *  - Initialize the tmp_active_filter_options with default widget options
      *
      * @returns {Promise<void>}
      */

@@ -117,7 +117,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({ default: true })
     private preselect_first_if_one_element: boolean;
 
-    private tmp_filter_active_options: DataFilterOption[] = [];
+    private tmp_active_filter_options: DataFilterOption[] = [];
 
     private filter_state_selected: number = DataFilterOption.STATE_SELECTED;
     private filter_state_selectable: number = DataFilterOption.STATE_SELECTABLE;
@@ -129,46 +129,46 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
      * Utilisable pour forcer les options actives depuis le composant parent en utilisant une $refs
      */
     public force_active_options(active_options: DataFilterOption[]) {
-        this.tmp_filter_active_options = active_options;
+        this.tmp_active_filter_options = active_options;
     }
 
-    @Watch('tmp_filter_active_options')
-    public onchange_tmp_filter_active_options() {
+    @Watch('tmp_active_filter_options')
+    public onchange_tmp_active_filter_options() {
 
         /**
          * On check avant le commit si il y a une modification de la sélection
          */
-        let old_value = this.filter_active_options;
-        let new_value = this.tmp_filter_active_options;
+        let old_value = this.active_filter_options;
+        let new_value = this.tmp_active_filter_options;
 
         if (ArrayHandler.is_same(old_value, new_value)) {
             return;
         }
 
         if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
-            this.$store.commit(this.internal_store_filter_commit_uid, this.tmp_filter_active_options);
+            this.$store.commit(this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
         } else {
-            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_uid, this.tmp_filter_active_options);
+            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
         }
     }
 
     @Watch('$route', { immediate: true })
     public async onRouteChange() {
         try {
-            this.tmp_filter_active_options = this.filter_active_options;
+            this.tmp_active_filter_options = this.active_filter_options;
             this.actual_query = null;
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
-    @Watch('filter_active_options')
-    public async onchange_filter_active_options() {
+    @Watch('active_filter_options')
+    public async onchange_active_filter_options() {
         this.actual_query = null;
 
-        if (!isEqual(this.tmp_filter_active_options, this.filter_active_options)) {
+        if (!isEqual(this.tmp_active_filter_options, this.active_filter_options)) {
 
-            if (!(this.filter_active_options?.length > 0)) {
+            if (!(this.active_filter_options?.length > 0)) {
                 let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
 
                 if (ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
@@ -180,12 +180,12 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                         selected.id
                     );
 
-                    this.tmp_filter_active_options = [option];
+                    this.tmp_active_filter_options = [option];
                 } else {
-                    this.tmp_filter_active_options = this.filter_active_options;
+                    this.tmp_active_filter_options = this.active_filter_options;
                 }
             } else {
-                this.tmp_filter_active_options = this.filter_active_options;
+                this.tmp_active_filter_options = this.active_filter_options;
             }
         }
     }
@@ -252,7 +252,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     }
 
     private select_none() {
-        this.tmp_filter_active_options = [];
+        this.tmp_active_filter_options = [];
     }
 
     private async select_all() {
@@ -270,7 +270,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             res.push(option);
         }
 
-        this.tmp_filter_active_options = res;
+        this.tmp_active_filter_options = res;
     }
 
     private mounted() {
@@ -282,8 +282,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         let res: DataFilterOption[] = [];
         let id_marker: number[] = [];
 
-        for (let i in this.filter_active_options) {
-            let filter_zone_active_option: DataFilterOption = this.filter_active_options[i];
+        for (let i in this.active_filter_options) {
+            let filter_zone_active_option: DataFilterOption = this.active_filter_options[i];
 
             const option = new DataFilterOption(
                 DataFilterOption.STATE_SELECTED,
@@ -324,7 +324,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return res;
     }
 
-    get filter_active_options(): DataFilterOption[] {
+    get active_filter_options(): DataFilterOption[] {
         try {
 
             return this.$store.state[this.store_module_uid][this.internal_store_filter_state_uid];
@@ -401,7 +401,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                     selected.id
                 );
 
-                this.tmp_filter_active_options = [option];
+                this.tmp_active_filter_options = [option];
             }
 
             return res;

@@ -431,8 +431,8 @@ export default class FieldValueFilterEnumWidgetManager {
                 continue;
             }
 
-            const is_selected = selected_active_filter_options?.find((selected_filter_active_option: DataFilterOption) => {
-                return selected_filter_active_option.numeric_value == filter_opt.numeric_value;
+            const is_selected = selected_active_filter_options?.find((selected_active_filter_option: DataFilterOption) => {
+                return selected_active_filter_option.numeric_value == filter_opt.numeric_value;
             });
 
             if ((selected_active_filter_options?.length > 0) && !is_selected) {

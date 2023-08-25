@@ -68,7 +68,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
 
-    private tmp_filter_active_options: DataFilterOption[] = null;
+    private tmp_active_filter_options: DataFilterOption[] = null;
 
     private filter_visible_options: DataFilterOption[] = [];
 
@@ -127,25 +127,25 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         );
     }
 
-    @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options() {
+    @Watch('tmp_active_filter_options')
+    private onchange_tmp_active_filter_options() {
 
         if (!this.widget_options) {
             return;
         }
 
         let context_filter: ContextFilterVO = null;
-        let locale_tmp_filter_active_options = null;
+        let locale_tmp_active_filter_options = null;
 
-        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
-            locale_tmp_filter_active_options = this.tmp_filter_active_options;
+        if (TypesHandler.getInstance().isArray(this.tmp_active_filter_options)) {
+            locale_tmp_active_filter_options = this.tmp_active_filter_options;
         } else {
-            if (this.tmp_filter_active_options != null) {
-                locale_tmp_filter_active_options = [this.tmp_filter_active_options];
+            if (this.tmp_active_filter_options != null) {
+                locale_tmp_active_filter_options = [this.tmp_active_filter_options];
             }
         }
 
-        if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
+        if ((!locale_tmp_active_filter_options) || (!locale_tmp_active_filter_options.length)) {
             this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
             return;
         }
@@ -154,8 +154,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
-        for (let i in locale_tmp_filter_active_options) {
-            let active_option = locale_tmp_filter_active_options[i];
+        for (let i in locale_tmp_active_filter_options) {
+            let active_option = locale_tmp_active_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
@@ -293,7 +293,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private async switch_advanced_filters() {
         this.advanced_filters = !this.advanced_filters;
 
-        this.tmp_filter_active_options = null;
+        this.tmp_active_filter_options = null;
         if (!!this.vo_field_ref) {
             this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
         }
@@ -308,7 +308,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     private async reset_visible_options() {
-        this.tmp_filter_active_options = [];
+        this.tmp_active_filter_options = [];
         this.filter_visible_options = [];
         this.advanced_number_filters = [new AdvancedNumberFilter()];
         // On update le visuel de tout le monde suite au reset
@@ -344,7 +344,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
                 if (!has_active_field_filter || this.default_values_changed) {
                     this.default_values_changed = false;
-                    this.tmp_filter_active_options = this.default_values;
+                    this.tmp_active_filter_options = this.default_values;
 
                     ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
                         new ValidationFiltersCallUpdaters(
@@ -378,7 +378,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
          */
         if (this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
             this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] &&
-            ((!this.tmp_filter_active_options) || (!this.tmp_filter_active_options.length))) {
+            ((!this.tmp_active_filter_options) || (!this.tmp_active_filter_options.length))) {
 
             /**
              * On essaye d'appliquer les filtres. Si on peut pas appliquer un filtre, on garde l'info pour afficher une petite alerte
@@ -495,8 +495,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             // if (this.advanced_filters) {
             //     this.advanced_filters = false;
             // }
-            if (this.tmp_filter_active_options) {
-                this.tmp_filter_active_options = null;
+            if (this.tmp_active_filter_options) {
+                this.tmp_active_filter_options = null;
             }
             if (this.advanced_number_filters) {
                 this.advanced_number_filters = [new AdvancedNumberFilter()];
@@ -513,8 +513,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             if (!this.advanced_filters) {
                 this.advanced_filters = true;
             }
-            if (this.tmp_filter_active_options) {
-                this.tmp_filter_active_options = null;
+            if (this.tmp_active_filter_options) {
+                this.tmp_active_filter_options = null;
             }
 
             let advanced_filters: AdvancedNumberFilter[] = [];
@@ -529,7 +529,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 this.advanced_number_filters = [new AdvancedNumberFilter()];
             }
 
-            let tmp_filter_active_options: DataFilterOption[] = [];
+            let tmp_active_filter_options: DataFilterOption[] = [];
 
             for (let i in filter.param_textarray) {
                 let text = filter.param_textarray[i];
@@ -539,9 +539,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     parseInt(i.toString())
                 );
                 datafilter.string_value = text;
-                tmp_filter_active_options.push(datafilter);
+                tmp_active_filter_options.push(datafilter);
             }
-            this.tmp_filter_active_options = tmp_filter_active_options;
+            this.tmp_active_filter_options = tmp_active_filter_options;
         }
         return true;
     }
