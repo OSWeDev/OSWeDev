@@ -10,7 +10,7 @@ let instance: ContextQueryServerController;
 ConsoleHandler.init();
 
 test('check_filters_arbo_ET: should do nothing when filter type is not TYPE_FILTER_AND', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
     let q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
@@ -22,7 +22,7 @@ test('check_filters_arbo_ET: should do nothing when filter type is not TYPE_FILT
 });
 
 test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
 
     let filters = [
         filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
@@ -39,7 +39,7 @@ test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
 
 
 test('check_filters_arbo_ET: should change the filters to an array when simple AND', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
     let q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
@@ -57,7 +57,7 @@ test('check_filters_arbo_ET: should change the filters to an array when simple A
 });
 
 test('check_filters_arbo_ET: should do nnothing when an error is detected', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
     let q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();

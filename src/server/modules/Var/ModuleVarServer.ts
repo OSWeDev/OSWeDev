@@ -894,7 +894,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 .filter_by_num_eq('var_id', vo_update_handler.pre_update_vo.id)
                 .filter_by_num_eq('value_type', VarDataBaseVO.VALUE_TYPE_COMPUTED);
 
-            await ContextQueryServerController.getInstance().delete_vos(delete_cache_query);
+            await ContextQueryServerController.delete_vos(delete_cache_query);
         }
     }
 
@@ -1350,7 +1350,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         let cache_local: { [full_request: string]: Promise<any> } = {};
 
-        let promise_pipeline = new PromisePipeline(max_concurrent_promises);
+        let promise_pipeline = new PromisePipeline(max_concurrent_promises, 'ModuleVarServer.throttled_getVarParamsFromContextFilters');
         for (let i in params) {
 
             await promise_pipeline.push(async () => {
@@ -1415,7 +1415,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                                     let query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
                                     if (!cache_local[query_wrapper.query]) {
-                                        cache_local[query_wrapper.query] = ContextQueryServerController.getInstance().select_vos(context_query, query_wrapper);
+                                        cache_local[query_wrapper.query] = ContextQueryServerController.select_vos(context_query, query_wrapper);
                                     }
 
                                     ids_db = await cache_local[query_wrapper.query];

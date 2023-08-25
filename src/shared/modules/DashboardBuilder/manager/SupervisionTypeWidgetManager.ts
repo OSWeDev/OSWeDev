@@ -113,7 +113,7 @@ export default class SupervisionTypeWidgetManager {
         }
 
         const pipeline_limit = registered_supervision_api_type_ids.length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_available_supervision_type_ids');
 
         const allowed_supervision_api_type_ids: string[] = [];
 
@@ -143,7 +143,7 @@ export default class SupervisionTypeWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_available_supervision_type_ids');
 
         for (const key in allowed_supervision_api_type_ids) {
             const api_type_id: string = allowed_supervision_api_type_ids[key];
@@ -163,7 +163,7 @@ export default class SupervisionTypeWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_available_supervision_type_ids');
 
         for (const key in allowed_supervision_api_type_ids) {
             const api_type_id: string = allowed_supervision_api_type_ids[key];

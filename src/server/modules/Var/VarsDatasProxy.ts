@@ -74,6 +74,7 @@ export default class VarsDatasProxy {
     }
 
     private static get_var_data_or_ask_to_bgthread: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
+        'VarsDatasProxy.get_var_data_or_ask_to_bgthread',
         this._get_var_datas_or_ask_to_bgthread.bind(this), 10, 500, 20
     );
 
@@ -175,7 +176,7 @@ export default class VarsDatasProxy {
         not_found_indexes: string[]) {
 
         let res: T[] = [];
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
 
         for (let api_type_id in var_datas_indexes_by_type) {
             let var_data_indexes = var_datas_indexes_by_type[api_type_id];

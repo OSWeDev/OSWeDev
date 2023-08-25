@@ -162,7 +162,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         // We must search for the actual context filter
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
         // If no context filter that mean there is no initialization
@@ -194,7 +194,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         // We must search for the actual context filter
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
         // if there is no ts_range there is no need to continue

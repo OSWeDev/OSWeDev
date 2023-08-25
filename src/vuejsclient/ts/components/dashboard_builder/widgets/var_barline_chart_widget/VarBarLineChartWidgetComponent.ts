@@ -656,11 +656,11 @@
 //             return null;
 //         }
 
-//         let year_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
-//         let month_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
-//         let dom_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
-//         let dow_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
-//         let week_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
+//         let year_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+//         let month_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
+//         let dom_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
+//         let dow_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
+//         let week_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
 
 //         /**
 //          * Pour l'instant on ne gère que mois et année, avec obligation de saisir l'année et possibilité de filtrer sur le mois

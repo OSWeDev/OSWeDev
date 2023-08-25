@@ -242,7 +242,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
         let main_query = query(DocumentVO.API_TYPE_ID);
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         return await main_query
             .filter_by_num_eq('lang_id', user.lang_id, DocumentLangVO.API_TYPE_ID)
             .add_filters([
@@ -255,12 +255,12 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 }

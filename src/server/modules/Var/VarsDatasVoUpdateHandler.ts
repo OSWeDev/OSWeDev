@@ -233,7 +233,7 @@ export default class VarsDatasVoUpdateHandler {
         let time_in = Dates.now_ms();
 
         let max = ConfigurationService.node_configuration ? Math.max(ConfigurationService.node_configuration.MAX_POOL / 2, 1) : 10;
-        let promise_pipeline = new PromisePipeline(max);
+        let promise_pipeline = new PromisePipeline(max, 'VarsDatasVoUpdateHandler.handle_buffer');
         for (let i in intersectors_by_index) {
             let intersector = intersectors_by_index[i];
 
@@ -279,7 +279,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max);
+        let promise_pipeline = new PromisePipeline(max, 'VarsDatasVoUpdateHandler.delete_vars_pack_without_triggers');
 
         for (let api_type_id in varindexes_by_api_type_id) {
             let indexes = varindexes_by_api_type_id[api_type_id];
@@ -325,7 +325,7 @@ export default class VarsDatasVoUpdateHandler {
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         while (ObjectHandler.hasAtLeastOneAttribute(intersectors_by_index)) {
-            let promise_pipeline = new PromisePipeline(max);
+            let promise_pipeline = new PromisePipeline(max, 'VarsDatasVoUpdateHandler.invalidate_datas_and_parents');
 
             for (let i in intersectors_by_index) {
                 let intersector = intersectors_by_index[i];
@@ -424,7 +424,7 @@ export default class VarsDatasVoUpdateHandler {
          * Puis réinsérer dans l'arbre : les registers (clients et serveurs) + les vars pixel never delete qui ont été invalidées en db
          */
         let invalidated_pixels_never_delete: VarDataBaseVO[] = [];
-        let promise_pipeline: PromisePipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_Vars_invalidators);
+        let promise_pipeline: PromisePipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_Vars_invalidators, 'VarsDatasVoUpdateHandler.handle_invalidators');
 
         for (let i in invalidators) {
             let invalidator = invalidators[i];

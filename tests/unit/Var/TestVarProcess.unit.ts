@@ -84,7 +84,7 @@ test('DAG: test var process', async () => {
     });
 
     // Si on tente un autre process que le notify_start sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
-    let promise_pipeline = new PromisePipeline(10);
+    let promise_pipeline = new PromisePipeline(10, 'test');
     let did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
     did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
     did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);

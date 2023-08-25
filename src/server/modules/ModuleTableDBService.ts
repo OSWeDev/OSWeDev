@@ -11,6 +11,7 @@ import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
 import ConfigurationService from '../env/ConfigurationService';
+import DAOServerController from './DAO/DAOServerController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ForkedTasksController from './Fork/ForkedTasksController';
 import TableColumnDescriptor from './TableColumnDescriptor';
@@ -198,7 +199,7 @@ export default class ModuleTableDBService {
                     let table_name = moduleTable.get_segmented_name(segmented_value);
 
                     // Une fois la création de la table terminée, on peut faire la migration des datas si on attendait de le faire.
-                    let field_where_clause = ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
+                    let field_where_clause = DAOServerController.getClauseWhereRangeIntersectsField(
                         moduleTable.table_segmented_field.field_type, moduleTable.table_segmented_field.field_id,
                         RangeHandler.create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
 

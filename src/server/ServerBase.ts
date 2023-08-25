@@ -1067,7 +1067,7 @@ export default abstract class ServerBase {
 
             let user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+                async () => await ModuleAccessPolicyServer.getSelfUser());
 
             res.json(JSON.stringify(
                 {
@@ -1085,7 +1085,7 @@ export default abstract class ServerBase {
 
             let user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+                async () => await ModuleAccessPolicyServer.getSelfUser());
 
             res.json(JSON.stringify(
                 {

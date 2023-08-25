@@ -28,12 +28,12 @@ export default class PromisePipeline {
      */
     public constructor(
         public max_concurrent_promises: number = 1,
-        public stat_name: string = null,
-        public stat_worker: boolean = true
+        public stat_name: string,
+        public stat_worker: boolean = false
     ) {
         this.uid = PromisePipeline.GLOBAL_UID++;
 
-        if (this.stat_name) {
+        if (this.stat_name && this.stat_worker) {
             setInterval(() => {
                 StatsController.register_stat_QUANTITE('PromisePipeline', this.stat_name, 'RUNNING', this.nb_running_promises);
             }, 10000);

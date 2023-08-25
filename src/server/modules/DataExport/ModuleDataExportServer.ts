@@ -65,6 +65,7 @@ import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import OrderedPromisePipeline from '../../../shared/tools/PromisePipeline/OrderedPromisePipeline';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -397,53 +398,61 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             columns_by_field_id[column.datatable_field_uid] = column;
         }
 
+        let ordered_promise_pipeline = new OrderedPromisePipeline(100, "do_exportContextQueryToXLSX_contextuid");
         let might_have_more_datas = true;
         let xlsx_datas = [];
         let has_query_limit = !!context_query.query_limit;
-        let limit = 1000;
+        let limit = 25;
         while (might_have_more_datas) {
 
-            // let time_in = Dates.now(); Pour l'instant on fait betement des packets de 1k lignes, on verra plus tard pour optimiser en fonction des temps de traitement de chaque requete
+            await ordered_promise_pipeline.push(async () => {
 
-            if (!has_query_limit) {
-                context_query.set_limit(limit, xlsx_datas.length);
-            }
+                if (!has_query_limit) {
+                    context_query.set_limit(limit, xlsx_datas.length);
+                }
 
-            // Je sais pas pourquoi on doit le refaire à chaque fois ça ...
-            await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, columns);
-            let datas = (context_query.fields?.length > 0) ?
-                await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
-                await ModuleContextFilter.getInstance().select_vos(context_query);
+                // Je sais pas pourquoi on doit le refaire à chaque fois ça ...
+                await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, columns);
+                let datas = (context_query.fields?.length > 0) ?
+                    await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
+                    await ModuleContextFilter.getInstance().select_vos(context_query);
 
-            if (!has_query_limit) {
-                might_have_more_datas = (datas?.length >= limit);
-            } else {
-                might_have_more_datas = false;
-            }
+                if (!has_query_limit) {
+                    might_have_more_datas = (datas?.length >= limit);
+                } else {
+                    might_have_more_datas = false;
+                }
 
-            if (!datas?.length) {
-                break;
-            }
+                if (!datas?.length) {
+                    return null;
+                }
 
-            let datas_with_vars = await this.convert_varparamfields_to_vardatas(
-                context_query,
-                datas,
-                columns,
-                custom_filters);
+                let datas_with_vars = await this.convert_varparamfields_to_vardatas(
+                    context_query,
+                    datas,
+                    columns,
+                    custom_filters);
 
-            if (!datas_with_vars) {
-                ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
-                await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
-                return;
-            }
+                if (!datas_with_vars) {
+                    ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
+                    await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
+                    return null;
+                }
+                return datas_with_vars;
+            }, async (datas_with_vars: IDistantVOBase[]) => {
 
-            let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
+                if (!datas_with_vars?.length) {
+                    return;
+                }
 
-            await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
+                let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
 
-            // - Update to columns format (percent, toFixed etc...)
-            const this_xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
-            xlsx_datas.push(...this_xlsx_datas);
+                await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
+
+                // - Update to columns format (percent, toFixed etc...)
+                const this_xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
+                xlsx_datas.push(...this_xlsx_datas);
+            });
         }
 
         let sheets: IExportableSheet[] = [];
@@ -551,7 +560,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max);
+        let promise_pipeline = new PromisePipeline(max, 'ModuleDataExportServer.translate_context_query_fields_from_bdd');
         for (let i in datas) {
             let data = datas[i];
 
@@ -602,7 +611,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         filename = filename ? filename : api_type_id + '.xlsx';
 
         if (!lang_id) {
-            let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+            let user = await ModuleAccessPolicyServer.getSelfUser();
             if (!user) {
                 ConsoleHandler.error('Une langue doit être définie pour l\'export XLSX');
                 return null;
@@ -724,7 +733,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
         XLSX.writeFile(workbook, filepath);
 
-        let user_log_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_log_id: number = ModuleAccessPolicyServer.getLoggedUserId();
 
         // On log l'export
         if (!!user_log_id) {
@@ -817,7 +826,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         const current_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
         const limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        const promise_pipeline = new PromisePipeline(limit);
+        const promise_pipeline = new PromisePipeline(limit, 'ModuleDataExportServer.create_vars_indicator_xlsx_sheet');
         let debug_uid: number = 0;
         let has_errors: boolean = false;
 
@@ -1107,7 +1116,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
         XLSX.writeFile(workbook, filepath);
 
-        let user_log_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_log_id: number = ModuleAccessPolicyServer.getLoggedUserId();
 
         // On log l'export
         if (!!user_log_id) {
@@ -1307,7 +1316,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     ) {
 
         const max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        const promise_pipeline = new PromisePipeline(max_connections_to_use);
+        const promise_pipeline = new PromisePipeline(max_connections_to_use, 'ModuleDataExportServer.update_custom_fields');
         let cpt_custom_field_translatable_name: { [custom_field_translatable_name: string]: number } = {};
 
         for (let field_id in exportable_datatable_custom_field_columns) {
@@ -1396,14 +1405,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     format = column.filter_type as XlsxCellFormatByFilterType;
 
                     if (column.filter_type != 'tstz') {
-                        value = value.replace(/\s+/g, '');
+                        value = (value != null) ? value.replace(/\s+/g, '') : value;
                     }
 
                     if (
                         column.filter_type == FilterObj.FILTER_TYPE_percent
                     ) {
-                        value = (value as any).replace(/%/g, '');
-                        value = parseFloat(value as any) / 100;
+                        value = (value != null) ? (value as any).replace(/%/g, '') : value;
+                        value = (value != null) ? parseFloat(value as any) / 100 : value;
                     }
 
                     if (
@@ -1411,7 +1420,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         column.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
                         column.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
                     ) {
-                        value = parseFloat(value as any);
+                        value = (value != null) ? parseFloat(value as any) : value;
                     }
                 }
 
@@ -1557,7 +1566,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let rows: IDistantVOBase[] = cloneDeep(datatable_rows);
 
         let limit = 20000; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(limit, 'convert_varparamfields_to_vardatas');
+        let promise_pipeline = new PromisePipeline(limit, 'ModuleDataExportServer.convert_varparamfields_to_vardatas');
         let debug_uid: number = 0;
         let has_errors: boolean = false;
         let module_var = ModuleVar.getInstance();

@@ -587,7 +587,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let ts_ranges = ContextFilterVOHandler.getInstance().get_ts_ranges_from_context_filter_root(
+        let ts_ranges = ContextFilterVOHandler.get_ts_ranges_from_context_filter_root(
             root_context_filter,
             this.widget_options.dimension_custom_filter_segment_type,
             this.widget_options.max_dimension_values,
@@ -600,11 +600,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
         return dimension_values;
 
-        // let year_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
-        // let month_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
-        // let dom_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
-        // let dow_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
-        // let week_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        // let year_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        // let month_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        // let dom_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
+        // let dow_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
+        // let week_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
 
         // /**
         //  * Pour l'instant on ne gère que mois et année, avec obligation de saisir l'année et possibilité de filtrer sur le mois

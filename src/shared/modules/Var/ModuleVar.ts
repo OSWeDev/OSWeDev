@@ -392,7 +392,7 @@ export default class ModuleVar extends Module {
         /**
          * Si on a pas de filtre année, on peut de toutes façons rien faire
          */
-        let year = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        let year = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
         if (!year) {
             return [RangeHandler.getMaxTSRange()];
         }
@@ -402,24 +402,24 @@ export default class ModuleVar extends Module {
             return null;
         }
 
-        let month = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        let month = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
         if (!!month) {
             tsranges = this.get_ts_ranges_from_custom_filter_month(tsranges, month, limit_nb_range);
         }
 
-        let week = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        let week = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
         if (!!week) {
             throw new Error('Not implemented');
             // tsranges = this.get_ts_ranges_from_custom_filter_week(tsranges, week, limit_nb_range);
         }
 
-        let dow = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
+        let dow = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
         if (!!dow) {
             tsranges = this.get_ts_ranges_from_custom_filter_dow(tsranges, dow, limit_nb_range);
         }
 
 
-        let dom = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
+        let dom = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
         if (!!dom) {
             tsranges = this.get_ts_ranges_from_custom_filter_dom(tsranges, dom, limit_nb_range);
         }

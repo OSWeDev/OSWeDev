@@ -293,7 +293,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         let time_in: number = Dates.now_ms();
         StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "IN");
 
-        let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let uid = ModuleAccessPolicyServer.getLoggedUserId();
         let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {

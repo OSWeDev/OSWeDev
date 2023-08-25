@@ -17,79 +17,47 @@ export default class ServerAnonymizationController {
     public static registered_anonymization_field_conf_by_vo_type_and_field_id: { [vo_type: string]: { [field_id: string]: AnonymizationFieldConfVO } } = {};
     public static registered_anonymization_field_conf_by_id: { [id: number]: AnonymizationFieldConfVO } = {};
 
-    public static getInstance(): ServerAnonymizationController {
-        if (!ServerAnonymizationController.instance) {
-            ServerAnonymizationController.instance = new ServerAnonymizationController();
-        }
-        return ServerAnonymizationController.instance;
-    }
-
-    private static instance: ServerAnonymizationController = null;
-
-    /**
-     * TODO ATTENTION : On gère pas les threads pour le moment, par ce que a priori il faut toujours pouvoir identifier le user_id donc toujours
-     *  être sur une demande liée au main thread. Idem les conf sont chargées par le main thread et modifiables uniquement par le main thread...
-     *  donc a priori on a rien à gérer sur les bg en l'état. Par contre ça pose la question des exports en bg thread... ?
-     */
-
-    /**
-     * ATTENTION : cache des known_values côté serveur mainthread mais conf accessible partout
-     */
-    /**
-     * On stocke les vos anonymisés par fields / vo avec le nouveau nom, par id du vo
-     *  on ne peut anonymiser par ce système que des champs texte
-     *  on ne peut anonymiser une valeur null
-     *  on anonymise champs par champs et on met en cache en fonction de la valeur initiale du champs et non de l'id de l'objet (pour
-     *      concerver le lien sur un champ à valeur non unique, on retrouvera le côté non unique mais anonymisé)
-     */
-    private registered_anonymization_values: { [vo_type: string]: { [field_id: string]: { [before_anonymization: string]: string } } } = {};
-
-    private registered_anonymization_user_conf_by_field_conf_id: { [anon_field_id: number]: { [user_id: number]: AnonymizationUserConfVO } } = {};
-    private registered_anonymization_user_conf_by_vo_type: { [vo_type: string]: { [user_id: number]: AnonymizationUserConfVO[] } } = {};
-
-    private constructor() { }
-
     /**
      * On doit broadcaster la conf, on init les values partout mais elles seront utilisées que sur le main
      */
-    public register_anonymization_field_conf(anonymization_field_conf: AnonymizationFieldConfVO) {
+    public static register_anonymization_field_conf(anonymization_field_conf: AnonymizationFieldConfVO) {
         if (!ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type]) {
             ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type] = {};
-            ServerAnonymizationController.getInstance().registered_anonymization_values[anonymization_field_conf.vo_type] = {};
+            ServerAnonymizationController.registered_anonymization_values[anonymization_field_conf.vo_type] = {};
         }
 
         ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_field_conf.id] = anonymization_field_conf;
-        ServerAnonymizationController.getInstance().registered_anonymization_values[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = {};
+        ServerAnonymizationController.registered_anonymization_values[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = {};
         ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = anonymization_field_conf;
     }
 
     /**
      * On doit broadcaster la conf
      */
-    public register_anonymization_user_conf(anonymization_user_conf: AnonymizationUserConfVO) {
-        if (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id]) {
-            ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id] = {};
+    public static register_anonymization_user_conf(anonymization_user_conf: AnonymizationUserConfVO) {
+        if (!ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id]) {
+            ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id] = {};
         }
 
         let conf = ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_user_conf.anon_field_id];
-        if (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[conf.vo_type]) {
-            ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[conf.vo_type] = {};
+        if (!ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type]) {
+            ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type] = {};
         }
-        if (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id]) {
-            ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id] = [];
+        if (!ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id]) {
+            ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id] = [];
         }
-        ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id].push(anonymization_user_conf);
-        ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id][anonymization_user_conf.user_id] = anonymization_user_conf;
+        ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id].push(anonymization_user_conf);
+        ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id][anonymization_user_conf.user_id] = anonymization_user_conf;
     }
 
-    public async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
+    public static async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
         let res: T[] = [];
 
         for (let i in vos) {
             let vo = vos[i];
 
-            if (ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[vo._type] &&
-                ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[vo._type][uid]) {
+            if (ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type] &&
+                ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type][uid]) {
 
                 await PushDataServerController.getInstance().notifySimpleWARN(uid, null, "check_is_anonymise.failed" + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
                 ConsoleHandler.warn("Refused CUD on anonymized VO:" + vo._type + ":id:" + vo.id + ":uid:" + uid + ":");
@@ -110,7 +78,7 @@ export default class ServerAnonymizationController {
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    public async anonymiseContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    public static async anonymiseContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[moduletable.vo_type]) {
             // FIXME TODO très chaud ça... comment on peut faire ça sous forme de context filter ... ?
@@ -127,7 +95,7 @@ export default class ServerAnonymizationController {
         return null;
     }
 
-    public anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): T[] {
+    public static anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): T[] {
         let res: T[] = [];
 
         for (let i in vos) {
@@ -140,7 +108,7 @@ export default class ServerAnonymizationController {
             if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
                 for (let field_id in ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
 
-                    this.anonymise_row_field(vo, vo._type, field_id, field_id, uid);
+                    ServerAnonymizationController.anonymise_row_field(vo, vo._type, field_id, field_id, uid);
                 }
             }
             res.push(vo);
@@ -149,18 +117,18 @@ export default class ServerAnonymizationController {
         return res;
     }
 
-    public anonymise_context_filtered_rows<T>(rows: T[], fields: ContextQueryFieldVO[], uid: number): T[] {
+    public static anonymise_context_filtered_rows<T>(rows: T[], fields: ContextQueryFieldVO[], uid: number): T[] {
 
         for (let i in rows) {
             let row = rows[i];
 
-            this.anonymise_context_filtered_row(row, fields, uid);
+            ServerAnonymizationController.anonymise_context_filtered_row(row, fields, uid);
         }
 
         return rows;
     }
 
-    public anonymise_context_filtered_row<T>(row: T, fields: ContextQueryFieldVO[], uid: number): T {
+    public static anonymise_context_filtered_row<T>(row: T, fields: ContextQueryFieldVO[], uid: number): T {
 
         for (let i in fields) {
             let field = fields[i];
@@ -178,14 +146,14 @@ export default class ServerAnonymizationController {
 
             if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id] &&
                 ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id][field_id]) {
-                this.anonymise_row_field(row, api_type_id, field_id, field.alias ? field.alias : field.field_id, uid);
+                ServerAnonymizationController.anonymise_row_field(row, api_type_id, field_id, field.alias ? field.alias : field.field_id, uid);
             }
         }
 
         return row;
     }
 
-    public async get_unanonymised_row_field_value<T>(row_field_value: string, row_field_api_type_id: string, row_field_field_id: string, uid: number): Promise<string> {
+    public static async get_unanonymised_row_field_value<T>(row_field_value: string, row_field_api_type_id: string, row_field_field_id: string, uid: number): Promise<string> {
 
         if (!row_field_value) {
             return row_field_value;
@@ -203,8 +171,8 @@ export default class ServerAnonymizationController {
             /**
              * On anonymise si le user_id est connecté par la conf à ce field
              */
-            if ((!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id]) ||
-                (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id][uid])) {
+            if ((!ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id]) ||
+                (!ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id][uid])) {
                 return row_field_value;
             }
 
@@ -212,7 +180,7 @@ export default class ServerAnonymizationController {
              * on doit chercher sur le mainthread les known values
              *  et donc  on récupère dans tous les cas du mainthread (qui a la conf aussi) la valeur à mettre dans le champs
              */
-            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.getInstance().registered_anonymization_values[row_field_api_type_id][row_field_field_id];
+            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.registered_anonymization_values[row_field_api_type_id][row_field_field_id];
 
             if (known_values_by_id) {
 
@@ -228,7 +196,7 @@ export default class ServerAnonymizationController {
         return row_field_value;
     }
 
-    public anonymise_row_field<T>(row: T, row_field_api_type_id: string, row_field_field_id: string, alias: string, uid: number): T {
+    public static anonymise_row_field<T>(row: T, row_field_api_type_id: string, row_field_field_id: string, alias: string, uid: number): T {
         if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
             ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
 
@@ -241,8 +209,8 @@ export default class ServerAnonymizationController {
             /**
              * On anonymise si le user_id est connecté par la conf à ce field
              */
-            if ((!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id]) ||
-                (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id][uid])) {
+            if ((!ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id]) ||
+                (!ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id][uid])) {
                 return row;
             }
 
@@ -250,7 +218,7 @@ export default class ServerAnonymizationController {
              * on doit chercher sur le mainthread les known values
              *  et donc  on récupère dans tous les cas du mainthread (qui a la conf aussi) la valeur à mettre dans le champs
              */
-            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.getInstance().registered_anonymization_values[row_field_api_type_id][row_field_field_id];
+            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.registered_anonymization_values[row_field_api_type_id][row_field_field_id];
 
             if (known_values_by_id && known_values_by_id[row[alias]]) {
                 row[alias] = known_values_by_id[row[alias]];
@@ -258,7 +226,7 @@ export default class ServerAnonymizationController {
             }
 
             let before_anonymization = row[alias];
-            known_values_by_id[before_anonymization] = ServerAnonymizationController.getInstance().anonymize(row, anonymization_field_conf);
+            known_values_by_id[before_anonymization] = ServerAnonymizationController.anonymize(row, anonymization_field_conf);
             row[alias] = known_values_by_id[before_anonymization];
         }
         return row;
@@ -267,54 +235,76 @@ export default class ServerAnonymizationController {
     /**
      * broadcaster sur chaque update / create / delete de AnonymizationFieldConfVO et AnonymizationUserConfVO le rechargement de la conf en mémoire
      */
-    public async reload_conf() {
+    public static async reload_conf() {
 
         ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id = {};
-        ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id = {};
-        ServerAnonymizationController.getInstance().registered_anonymization_values = {};
+        ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id = {};
+        ServerAnonymizationController.registered_anonymization_values = {};
 
         let fields_confs: AnonymizationFieldConfVO[] = await query(AnonymizationFieldConfVO.API_TYPE_ID).select_vos<AnonymizationFieldConfVO>();
         let users_confs: AnonymizationUserConfVO[] = await query(AnonymizationUserConfVO.API_TYPE_ID).select_vos<AnonymizationUserConfVO>();
 
         // On est déjà sur un broadcast on a pas besoin de broadcast le register
         for (let i in fields_confs) {
-            ServerAnonymizationController.getInstance().register_anonymization_field_conf(fields_confs[i]);
+            ServerAnonymizationController.register_anonymization_field_conf(fields_confs[i]);
         }
 
         for (let i in users_confs) {
-            ServerAnonymizationController.getInstance().register_anonymization_user_conf(users_confs[i]);
+            ServerAnonymizationController.register_anonymization_user_conf(users_confs[i]);
         }
     }
 
-    private anonymize<T>(vo: T, anonymization_field_conf: AnonymizationFieldConfVO) {
+    /**
+     * TODO ATTENTION : On gère pas les threads pour le moment, par ce que a priori il faut toujours pouvoir identifier le user_id donc toujours
+     *  être sur une demande liée au main thread. Idem les conf sont chargées par le main thread et modifiables uniquement par le main thread...
+     *  donc a priori on a rien à gérer sur les bg en l'état. Par contre ça pose la question des exports en bg thread... ?
+     */
+
+    /**
+     * ATTENTION : cache des known_values côté serveur mainthread mais conf accessible partout
+     */
+    /**
+     * On stocke les vos anonymisés par fields / vo avec le nouveau nom, par id du vo
+     *  on ne peut anonymiser par ce système que des champs texte
+     *  on ne peut anonymiser une valeur null
+     *  on anonymise champs par champs et on met en cache en fonction de la valeur initiale du champs et non de l'id de l'objet (pour
+     *      concerver le lien sur un champ à valeur non unique, on retrouvera le côté non unique mais anonymisé)
+     */
+    private static registered_anonymization_values: { [vo_type: string]: { [field_id: string]: { [before_anonymization: string]: string } } } = {};
+
+    private static registered_anonymization_user_conf_by_field_conf_id: { [anon_field_id: number]: { [user_id: number]: AnonymizationUserConfVO } } = {};
+    private static registered_anonymization_user_conf_by_vo_type: { [vo_type: string]: { [user_id: number]: AnonymizationUserConfVO[] } } = {};
+
+
+    private static anonymize<T>(vo: T, anonymization_field_conf: AnonymizationFieldConfVO) {
 
         switch (anonymization_field_conf.anonymizer_type) {
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_ADDRESS:
-                return ServerAnonymizationController.getInstance().get_new_anon_TYPE_ANONYMIZER_ADDRESS();
+                return ServerAnonymizationController.get_new_anon_TYPE_ANONYMIZER_ADDRESS();
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_CITY:
-                return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_CITY();
+                return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_CITY();
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_EMAIL:
-                return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_EMAIL();
+                return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_EMAIL();
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_FIRSTNAME:
-                return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_FIRSTNAME();
+                return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_FIRSTNAME();
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_FULLNAME:
-                return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_FULLNAME();
+                return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_FULLNAME();
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_LASTNAME:
-                return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_LASTNAME();
+                return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_LASTNAME();
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_PHONE:
-                return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_PHONE();
+                return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_PHONE();
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_POSTAL:
-                return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_POSTAL();
+                return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_POSTAL();
             default:
                 return vo[anonymization_field_conf.field_id];
         }
     }
 
-    private get_new_anon_TYPE_ANONYMIZER_ADDRESS(): string {
+    private static get_new_anon_TYPE_ANONYMIZER_ADDRESS(): string {
         return "12 rue de la soie 75001 Paris";
     }
 
-    private get_new_TYPE_ANONYMIZER_CITY(): string {
+    private static get_new_TYPE_ANONYMIZER_CITY(): string {
 
         return ["Paris",
             "Marseille",
@@ -593,11 +583,11 @@ export default class ServerAnonymizationController {
             "Villemomble"][Math.floor(Math.random() * 275)];
     }
 
-    private get_new_TYPE_ANONYMIZER_EMAIL(): string {
-        return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_FIRSTNAME() + '.' + ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_LASTNAME() + '@mail.com';
+    private static get_new_TYPE_ANONYMIZER_EMAIL(): string {
+        return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_FIRSTNAME() + '.' + ServerAnonymizationController.get_new_TYPE_ANONYMIZER_LASTNAME() + '@mail.com';
     }
 
-    private get_new_TYPE_ANONYMIZER_FIRSTNAME(): string {
+    private static get_new_TYPE_ANONYMIZER_FIRSTNAME(): string {
         let firstnames = ["LUCIE",
             "ALINA",
             "MILA",
@@ -702,12 +692,12 @@ export default class ServerAnonymizationController {
         return firstnames[Math.floor(Math.random() * 100)];
     }
 
-    private get_new_TYPE_ANONYMIZER_FULLNAME(): string {
+    private static get_new_TYPE_ANONYMIZER_FULLNAME(): string {
 
-        return ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_FIRSTNAME() + ' ' + ServerAnonymizationController.getInstance().get_new_TYPE_ANONYMIZER_LASTNAME();
+        return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_FIRSTNAME() + ' ' + ServerAnonymizationController.get_new_TYPE_ANONYMIZER_LASTNAME();
     }
 
-    private get_new_TYPE_ANONYMIZER_LASTNAME(): string {
+    private static get_new_TYPE_ANONYMIZER_LASTNAME(): string {
         let names = [
             "MARTIN",
             "BERNARD",
@@ -814,7 +804,7 @@ export default class ServerAnonymizationController {
         return names[Math.floor(Math.random() * 100)];
     }
 
-    private get_new_TYPE_ANONYMIZER_PHONE(): string {
+    private static get_new_TYPE_ANONYMIZER_PHONE(): string {
 
         let numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
         let res: string = "0";
@@ -825,7 +815,7 @@ export default class ServerAnonymizationController {
         return res;
     }
 
-    private get_new_TYPE_ANONYMIZER_POSTAL(): string {
+    private static get_new_TYPE_ANONYMIZER_POSTAL(): string {
         let numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
         let res: string = "";
         for (let i = 0; i < 4; i++) {

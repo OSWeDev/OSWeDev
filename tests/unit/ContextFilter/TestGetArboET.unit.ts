@@ -7,7 +7,7 @@ let instance: ContextQueryServerController;
 ConsoleHandler.init();
 
 test('get_arbo_ET: should return null when filter type is not TYPE_FILTER_AND', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
     const filter = new ContextFilterVO();
     filter.filter_type = ContextFilterVO.TYPE_DATE_DOW;
     const result = instance['get_arbo_ET'](filter);
@@ -15,7 +15,7 @@ test('get_arbo_ET: should return null when filter type is not TYPE_FILTER_AND', 
 });
 
 test('get_arbo_ET: should return path when simple AND, and prioritize right (convention)', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
     const filter = new ContextFilterVO();
     filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
     const leftHook = new ContextFilterVO();
@@ -29,7 +29,7 @@ test('get_arbo_ET: should return path when simple AND, and prioritize right (con
 });
 
 test('get_arbo_ET: should return null when an error is detected', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
     const filter = new ContextFilterVO();
     filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
     const rightHook = new ContextFilterVO();

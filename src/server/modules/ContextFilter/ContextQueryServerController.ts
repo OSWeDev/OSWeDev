@@ -35,6 +35,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -42,6 +43,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ThrottledQueryServerController from '../DAO/ThrottledQueryServerController';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
@@ -49,28 +51,13 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
-import RangeHandler from '../../../shared/tools/RangeHandler';
+import LogDBPerfServerController from '../DAO/LogDBPerfServerController';
+import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
 
 export default class ContextQueryServerController {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ContextQueryServerController.instance) {
-            ContextQueryServerController.instance = new ContextQueryServerController();
-        }
-        return ContextQueryServerController.instance;
-    }
-
-    private static instance: ContextQueryServerController = null;
-
-    private static SORT_ALIAS_UID: number = 0;
-
-    private static INTERNAL_LABEL_REMPLACEMENT: string = '___internal___label___rplcmt____';
-
-    private constructor() { }
-
     // istanbul ignore next: cannot test configure
-    public async configure() {
+    public static async configure() {
     }
 
     /**
@@ -78,7 +65,7 @@ export default class ContextQueryServerController {
      * On peut passer le query_wrapper pour éviter de le reconstruire si ça a été fait avant (pour récupérer la requete construite par exemple pour un cache local)
      * @param context_query le champs fields doit être null pour demander des vos complets
      */
-    public async select_vos<T extends IDistantVOBase>(context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper = null): Promise<T[]> {
+    public static async select_vos<T extends IDistantVOBase>(context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper = null): Promise<T[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
@@ -100,7 +87,7 @@ export default class ContextQueryServerController {
          * indiquer d'utiliser l'anonymisation en bdd, et que la requête n'ai pas besoin de connaitre le contexte client.
          */
         if (!query_wrapper) {
-            query_wrapper = await this.build_select_query(context_query);
+            query_wrapper = await ContextQueryServerController.build_select_query(context_query);
         }
 
         //Requête
@@ -121,7 +108,7 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(
+            query_res = await ThrottledQueryServerController.throttle_select_query(
                 query_wrapper.query,
                 query_wrapper.params,
                 query_wrapper.fields,
@@ -162,7 +149,7 @@ export default class ContextQueryServerController {
         // Anonymisation
         let uid = await StackContext.get('UID');
 
-        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(
+        await ServerAnonymizationController.anonymise_context_filtered_rows(
             query_res,
             context_query.fields,
             uid
@@ -175,10 +162,10 @@ export default class ContextQueryServerController {
      * Compter les résultats
      * @param context_query description de la requête, sans fields si on compte les vos, avec fields si on veut un datatable
      */
-    public async select_count(context_query: ContextQueryVO): Promise<number> {
+    public static async select_count(context_query: ContextQueryVO): Promise<number> {
 
         context_query.do_count_results = true;
-        let query_wrapper = await this.build_select_query(context_query);
+        let query_wrapper = await ContextQueryServerController.build_select_query(context_query);
 
         if (!query_wrapper) {
             throw new Error('Invalid context_query param');
@@ -192,7 +179,7 @@ export default class ContextQueryServerController {
         let query_res = null;
 
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
+            query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -202,13 +189,13 @@ export default class ContextQueryServerController {
         return c;
     }
 
-    public async select(context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper = null): Promise<any[]> {
+    public static async select(context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper = null): Promise<any[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
         }
 
-        query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
+        query_wrapper = query_wrapper ? query_wrapper : await ContextQueryServerController.build_select_query(context_query);
         if ((!query_wrapper || !query_wrapper.query) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
@@ -226,7 +213,7 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
+            query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -244,7 +231,7 @@ export default class ContextQueryServerController {
 
         // Anonymisation
         let uid = await StackContext.get('UID');
-        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
 
         return query_res;
     }
@@ -254,7 +241,7 @@ export default class ContextQueryServerController {
      *  Compatibilité avec l'alias 'label' qui est un mot réservé en bdd
      * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
      */
-    public async select_datatable_rows(
+    public static async select_datatable_rows(
         context_query: ContextQueryVO,
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }
@@ -291,7 +278,7 @@ export default class ContextQueryServerController {
 
         // On force des résultats distincts sur un datatable row
         context_query.query_distinct = true;
-        let query_wrapper = await this.build_select_query(context_query);
+        let query_wrapper = await ContextQueryServerController.build_select_query(context_query);
         if ((!query_wrapper || !query_wrapper.query) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_datatable_rows:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
@@ -309,7 +296,7 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
+            query_res = await ThrottledQueryServerController.throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -327,13 +314,13 @@ export default class ContextQueryServerController {
 
         // Anonymisation
         let uid = await StackContext.get('UID');
-        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        await ServerAnonymizationController.anonymise_context_filtered_rows(query_res, context_query.fields, uid);
 
         /**
          * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
          */
         let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
-        let promise_pipeline = new PromisePipeline(limit);
+        let promise_pipeline = new PromisePipeline(limit, 'ContextQueryServerController.select_datatable_rows');
         for (let i in query_res) {
             let row = query_res[i];
 
@@ -395,7 +382,7 @@ export default class ContextQueryServerController {
                         columns_by_field_id[field_id].readonly)
                 ) {
                     await promise_pipeline.push(async () => {
-                        await ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(row, row, fields[field_id]);
+                        await ContextFilterVOHandler.get_datatable_row_field_data_async(row, row, fields[field_id]);
                     });
                 }
             }
@@ -420,7 +407,7 @@ export default class ContextQueryServerController {
      * Filtrer des datafilteroption (pour les filtrages type multiselect) avec les context filters, en indiquant obligatoirement le champs ciblé
      * @param context_query le champs fields doit être rempli avec un seul champs, celui qui correspond au filtrage du multiselect, et l'alias "label" a priori
      */
-    public async select_filter_visible_options(
+    public static async select_filter_visible_options(
         context_query: ContextQueryVO,
         actual_query: string
     ): Promise<DataFilterOption[]> {
@@ -442,7 +429,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
         let field = context_query.fields[0];
-        let get_active_field_filters = ContextFilterVOHandler.getInstance().get_active_field_filters(context_query.filters);
+        let get_active_field_filters = ContextFilterVOHandler.get_active_field_filters(context_query.filters);
 
         /**
          * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
@@ -478,7 +465,7 @@ export default class ContextQueryServerController {
 
         context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
 
-        let query_res: any[] = await this.select_datatable_rows(context_query, null, null);
+        let query_res: any[] = await ContextQueryServerController.select_datatable_rows(context_query, null, null);
         if ((!query_res) || (!query_res.length)) {
             return res;
         }
@@ -487,7 +474,7 @@ export default class ContextQueryServerController {
 
         for (let i in query_res) {
             let res_field = query_res[i] ? query_res[i][field.alias] : null;
-            let line_option = ContextQueryFieldServerController.getInstance().translate_db_res_to_dataoption(field, res_field);
+            let line_option = ContextQueryFieldServerController.translate_db_res_to_dataoption(field, res_field);
 
             if (line_option) {
                 res.push(line_option);
@@ -506,7 +493,7 @@ export default class ContextQueryServerController {
     //  * @param context_queries les requetes à union
     //  * @returns {Promise<any[]>}
     //  */
-    // public async union_all(context_queries: ContextQueryVO[]): Promise<any[]> {
+    // public static async union_all(context_queries: ContextQueryVO[]): Promise<any[]> {
 
     //     if (!context_query) {
     //         throw new Error('Invalid context_query param');
@@ -517,7 +504,7 @@ export default class ContextQueryServerController {
     /**
      * Construit la requête pour un select count(1) from context_filters
      */
-    public async build_query_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
+    public static async build_query_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
@@ -527,7 +514,7 @@ export default class ContextQueryServerController {
         context_query.query_offset = null;
         context_query.query_limit = null;
 
-        let query_wrapper = await this.build_select_query_not_count(context_query);
+        let query_wrapper = await ContextQueryServerController.build_select_query_not_count(context_query);
         if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
@@ -556,7 +543,7 @@ export default class ContextQueryServerController {
      * @param new_api_translated_value En cas d'update, la valeur api_translated (par exemple issue de moduletable.default_get_field_api_version)
      *  qu'on va mettre en remplacement de la valeur actuelle
      */
-    public async update_vos<T extends IDistantVOBase>(
+    public static async update_vos<T extends IDistantVOBase>(
         context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
 
         let time_in = Dates.now_ms();
@@ -574,7 +561,7 @@ export default class ContextQueryServerController {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
-                ModuleDAOServer.getInstance().throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'global_update_blocker');
             return null;
@@ -604,7 +591,7 @@ export default class ContextQueryServerController {
         let might_have_more: boolean = true;
         context_query.set_sort(new SortByVO(context_query.base_api_type_id, 'id', false));
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
-        let get_active_field_filters = ContextFilterVOHandler.getInstance().get_active_field_filters(context_query.filters);
+        let get_active_field_filters = ContextFilterVOHandler.get_active_field_filters(context_query.filters);
 
         // Si le champs modifié impact un filtrage, on doit pas faire évoluer l'offset
         // FIXME : on est bien sûr de ça ? Typiquement il se passe quoi si on demande de modifier un champs, mais qu'on lui réaffecte la même valeur ... ? On tourne en rond non ?
@@ -669,7 +656,7 @@ export default class ContextQueryServerController {
             while (might_have_more) {
 
                 let while_time_in = Dates.now_ms();
-                let preupdate_vos: T[] = await this.select_vos<T>(context_query);
+                let preupdate_vos: T[] = await ContextQueryServerController.select_vos<T>(context_query);
                 let preupdate_vos_by_ids: { [id: number]: T } = VOsTypesManager.vosArray_to_vosByIds(preupdate_vos);
                 let preupdate_vos_by_ids_length = preupdate_vos ? preupdate_vos.length : 0;
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'select_vos');
@@ -723,7 +710,7 @@ export default class ContextQueryServerController {
                     }
                 });
 
-                let promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2)));
+                let promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2)), 'ContextQueryServerController.update_vos');
 
                 for (let i in vos_to_update) {
                     let vo_to_update = vos_to_update[i];
@@ -741,12 +728,12 @@ export default class ContextQueryServerController {
                         let failed: boolean = false;
 
                         let bdd_version = moduleTable.get_bdd_version(vo_to_update);
-                        let query_uid = ModuleDAOServer.getInstance().log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
+                        let query_uid = LogDBPerfServerController.log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
                         let db_result = await ModuleServiceBase.db.oneOrNone(sql, bdd_version).catch((reason) => {
                             ConsoleHandler.error('update_vos :' + reason);
                             failed = true;
                         });
-                        ModuleDAOServer.getInstance().log_db_query_perf_end(query_uid, 'update_vos', 'type:' + vo_to_update._type);
+                        LogDBPerfServerController.log_db_query_perf_end(query_uid, 'update_vos', 'type:' + vo_to_update._type);
 
                         let this_res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
 
@@ -755,7 +742,7 @@ export default class ContextQueryServerController {
                             return null;
                         }
 
-                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update), context_query.is_server);
+                        await DAOServerController.post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update), context_query.is_server);
 
                         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'OK');
                         StatsController.register_stat_DUREE('ContextQueryServerController', 'update_vos', 'OK', Dates.now_ms() - time_in);
@@ -776,7 +763,7 @@ export default class ContextQueryServerController {
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
      */
-    public async delete_vos(context_query: ContextQueryVO): Promise<InsertOrDeleteQueryResult[]> {
+    public static async delete_vos(context_query: ContextQueryVO): Promise<InsertOrDeleteQueryResult[]> {
 
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'IN');
@@ -797,7 +784,7 @@ export default class ContextQueryServerController {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
-                ModuleDAOServer.getInstance().throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+                ThrottledRefuseServerController.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'global_update_blocker');
             return null;
@@ -817,8 +804,8 @@ export default class ContextQueryServerController {
         let has_more_to_delete: boolean = true;
         let queries: string[] = [];
         let res: InsertOrDeleteQueryResult[] = [];
-        let has_trigger_pre_delete: boolean = DAOServerController.getInstance().pre_delete_trigger_hook.has_trigger(context_query.base_api_type_id);
-        let has_trigger_post_delete: boolean = DAOServerController.getInstance().post_delete_trigger_hook.has_trigger(context_query.base_api_type_id);
+        let has_trigger_pre_delete: boolean = DAOServerController.pre_delete_trigger_hook.has_trigger(context_query.base_api_type_id);
+        let has_trigger_post_delete: boolean = DAOServerController.post_delete_trigger_hook.has_trigger(context_query.base_api_type_id);
 
         // if (has_trigger_pre_delete || has_trigger_post_delete || has_deps) { FIXME Faudrait pouvoir avoir un FastTrack si on a pas de trigger et pas de deps
         //  pour éviter au max ce select_vos()... mais très compliqué de gérer les deps  avec les blocages de suppression à mi-chemin + les triggers. ça se
@@ -841,7 +828,7 @@ export default class ContextQueryServerController {
             StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'select_vos', vos_to_delete.length);
             has_more_to_delete = (vos_to_delete.length >= context_query.query_limit);
 
-            let deleted_vos_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3);
+            let deleted_vos_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3, 'ContextQueryServerController.delete_vos');
             for (let i in vos_to_delete) {
                 let vo_to_delete = vos_to_delete[i];
 
@@ -850,8 +837,8 @@ export default class ContextQueryServerController {
                     if (has_trigger_pre_delete) {
                         // Ajout des triggers, avant et après suppression.
                         //  Attention si un des output est false avant suppression, on annule la suppression
-                        let preDeleteTrigger_res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(context_query.base_api_type_id, vo_to_delete, context_query.is_server);
-                        if (!BooleanHandler.getInstance().AND(preDeleteTrigger_res, true)) {
+                        let preDeleteTrigger_res: boolean[] = await DAOServerController.pre_delete_trigger_hook.trigger(context_query.base_api_type_id, vo_to_delete, context_query.is_server);
+                        if (!BooleanHandler.AND(preDeleteTrigger_res, true)) {
                             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'pre_delete_trigger_hook_rejection');
                             return;
                         }
@@ -868,7 +855,7 @@ export default class ContextQueryServerController {
                     //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
                     //  deps sont définitivement perdues...
                     let deps_to_delete: IDistantVOBase[] = [];
-                    let deps_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3);
+                    let deps_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3, 'ContextQueryServerController.delete_vos_deps');
 
                     for (let dep_i in deps) {
                         let dep = deps[dep_i];
@@ -977,7 +964,7 @@ export default class ContextQueryServerController {
                             ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                         }
 
-                        await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
+                        await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
                     }
                 }
                 return value;
@@ -988,16 +975,16 @@ export default class ContextQueryServerController {
         return InsertOrDeleteQueryResults;
     }
 
-    public async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
+    public static async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (context_query.do_count_results) {
-            return await this.build_query_count(context_query);
+            return await ContextQueryServerController.build_query_count(context_query);
         }
 
-        return await this.build_select_query_not_count(context_query);
+        return await ContextQueryServerController.build_select_query_not_count(context_query);
     }
 
-    public async get_valid_segmentations(moduletable: ModuleTable<any>, context_query: ContextQueryVO): Promise<number[]> {
+    public static async get_valid_segmentations(moduletable: ModuleTable<any>, context_query: ContextQueryVO): Promise<number[]> {
         let segmentation_field: ModuleTableField<any> = moduletable.table_segmented_field;
 
         switch (segmentation_field.field_type) {
@@ -1011,12 +998,12 @@ export default class ContextQueryServerController {
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
                 let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
-                seg_query = this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query);
+                seg_query = ContextQueryServerController.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query);
 
                 // On ajoute des fasttracks pour ne pas avoir besoin de faire en base une requête dont le résultat est évident
                 // Typiquement si on construit une requete de type select id from t0 where t0.id = 10, la réponse est 10 dans ce contexte
                 //  car le 10 n'a pas pu être inventé, il estdonc existant en base. et la requête est executée en tant que serveur donc on ne peut pas le rater
-                let ids: number[] = this.get_fasttracks_ids(seg_query);
+                let ids: number[] = ContextQueryServerController.get_fasttracks_ids(seg_query);
 
                 if (!ids) {
                     let ids_map: IDistantVOBase[] = await seg_query.select_vos();
@@ -1042,11 +1029,11 @@ export default class ContextQueryServerController {
         }
     }
 
-    public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
+    public static async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
 
         if (ignore_self_filter) {
             let field = context_query.fields[0];
-            let get_active_field_filters = ContextFilterVOHandler.getInstance().get_active_field_filters(context_query.filters);
+            let get_active_field_filters = ContextFilterVOHandler.get_active_field_filters(context_query.filters);
 
             /**
              * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
@@ -1086,11 +1073,11 @@ export default class ContextQueryServerController {
                 // On ajoute des fasttracks pour ne pas avoir besoin de faire en base une requête dont le résultat est évident
                 // Typiquement si on construit une requete de type select id from t0 where t0.id = 10, la réponse est 10 dans ce contexte
                 //  car le 10 n'a pas pu être inventé, il estdonc existant en base. et la requête est executée en tant que serveur donc on ne peut pas le rater
-                let ids: number[] = this.get_fasttracks_ids(seg_query);
+                let ids: number[] = ContextQueryServerController.get_fasttracks_ids(seg_query);
                 let nb = 0;
 
                 if (!ids) {
-                    nb = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_count();
+                    nb = await ContextQueryServerController.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query).select_count();
                 } else {
                     nb = ids.length;
                 }
@@ -1105,7 +1092,7 @@ export default class ContextQueryServerController {
      * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
      *  sur les fields passées dans le context_query
      */
-    public async build_select_query_not_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
+    public static async build_select_query_not_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'IN');
@@ -1120,7 +1107,7 @@ export default class ContextQueryServerController {
         /**
          * On rajoute un check sur les filtres, si on a une arbo en ET, on transforme en tableau de filtres
          */
-        this.check_filters_arbo_ET(context_query);
+        ContextQueryServerController.check_filters_arbo_ET(context_query);
 
         let main_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], null);
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
@@ -1149,7 +1136,7 @@ export default class ContextQueryServerController {
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
 
             // Si on ignore_access_hook, on ignore les droits aussi
-            if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
+            if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_api_type_ids_field_ids(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_check_access_failed');
                 return null;
             }
@@ -1176,7 +1163,7 @@ export default class ContextQueryServerController {
                 let queries: string[] = [];
 
                 if (!(context_query.union_queries?.length > 0) && base_moduletable.is_segmented) {
-                    let { queries: select_queries } = await this.build_segmented_moduletable_select_query(
+                    let { queries: select_queries } = await ContextQueryServerController.build_segmented_moduletable_select_query(
                         context_query,
                         main_query_wrapper,
                         queries,
@@ -1188,7 +1175,7 @@ export default class ContextQueryServerController {
                     }
                 }
 
-                await this.handle_context_query_union_queries(
+                await ContextQueryServerController.handle_context_query_union_queries(
                     context_query,
                     main_query_wrapper,
                     queries,
@@ -1209,14 +1196,14 @@ export default class ContextQueryServerController {
                     return main_query_wrapper;
                 }
 
-                res = await this.handle_queries_union_all(
+                res = await ContextQueryServerController.handle_queries_union_all(
                     context_query,
                     main_query_wrapper,
                     queries,
                     access_type
                 );
             } else {
-                res = await this.build_select_query_not_count_segment(
+                res = await ContextQueryServerController.build_select_query_not_count_segment(
                     context_query,
                     access_type,
                     base_moduletable,
@@ -1235,7 +1222,11 @@ export default class ContextQueryServerController {
         return res;
     }
 
-    private async handle_context_query_union_queries(
+    private static SORT_ALIAS_UID: number = 0;
+
+    private static INTERNAL_LABEL_REMPLACEMENT: string = '___internal___label___rplcmt____';
+
+    private static async handle_context_query_union_queries(
         context_query: ContextQueryVO,
         main_query_wrapper: ParameterizedQueryWrapper,
         queries: string[],
@@ -1256,7 +1247,7 @@ export default class ContextQueryServerController {
             // We should get the moduletable from each union query
             // We should get the fields from each union query
             // - The given fields shall help to force cast to the right postgresql type
-            const { all_distinct_fields } = this.get_common_fields_from_union_context_query(
+            const { all_distinct_fields } = ContextQueryServerController.get_common_fields_from_union_context_query(
                 context_query
             );
 
@@ -1266,7 +1257,7 @@ export default class ContextQueryServerController {
             for (const key in union_context_queries) {
                 const union_context_query = context_query.union_queries[key];
 
-                const has_access_api_type_id = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
+                const has_access_api_type_id = ContextAccessServerController.check_access_to_api_type_ids_field_ids(
                     union_context_query,
                     union_context_query.base_api_type_id,
                     union_context_query.fields,
@@ -1281,7 +1272,7 @@ export default class ContextQueryServerController {
 
                 if (moduletable.is_segmented) {
 
-                    let { queries: segmented_queries } = await this.build_segmented_moduletable_select_query(
+                    let { queries: segmented_queries } = await ContextQueryServerController.build_segmented_moduletable_select_query(
                         context_query,
                         main_query_wrapper,
                         queries,
@@ -1293,7 +1284,7 @@ export default class ContextQueryServerController {
                     }
 
                 } else {
-                    const parameterized_query_wrapper = await this.build_moduletable_select_query(
+                    const parameterized_query_wrapper = await ContextQueryServerController.build_moduletable_select_query(
                         union_context_query,
                         access_type,
                         null,
@@ -1322,7 +1313,7 @@ export default class ContextQueryServerController {
         }
     }
 
-    private async handle_queries_union_all(
+    private static async handle_queries_union_all(
         context_query: ContextQueryVO,
         main_query_wrapper: ParameterizedQueryWrapper,
         queries: string[],
@@ -1356,13 +1347,13 @@ export default class ContextQueryServerController {
                 return field;
             });
 
-            let GROUP_BY = await this.build_query_wrapper_group_by_clause(
+            let GROUP_BY = await ContextQueryServerController.build_query_wrapper_group_by_clause(
                 union_context_query,
                 main_query_wrapper,
                 false,
             );
 
-            let { SORT_BY, QUERY } = await this.build_query_wrapper_sort_by_clause(
+            let { SORT_BY, QUERY } = await ContextQueryServerController.build_query_wrapper_sort_by_clause(
                 union_context_query,
                 main_query_wrapper,
                 aliases_n,
@@ -1374,7 +1365,7 @@ export default class ContextQueryServerController {
             let LIMIT = "";
 
             if (!union_context_query.do_count_results) {
-                LIMIT = this.get_limit(union_context_query);
+                LIMIT = ContextQueryServerController.get_limit(union_context_query);
             }
 
             union_query = QUERY + GROUP_BY + SORT_BY + LIMIT;
@@ -1384,7 +1375,7 @@ export default class ContextQueryServerController {
         return main_query_wrapper;
     }
 
-    private async build_segmented_moduletable_select_query(
+    private static async build_segmented_moduletable_select_query(
         context_query: ContextQueryVO,
         query_wrapper: ParameterizedQueryWrapper,
         queries: string[],
@@ -1398,7 +1389,7 @@ export default class ContextQueryServerController {
             return null;
         }
 
-        ids = await this.get_valid_segmentations(moduletable, context_query);
+        ids = await ContextQueryServerController.get_valid_segmentations(moduletable, context_query);
 
         if (!(ids?.length > 0)) {
             query_wrapper.mark_as_is_segmented_non_existing_table();
@@ -1417,7 +1408,7 @@ export default class ContextQueryServerController {
 
 
             // Build sub-query for the final db request to union
-            const parameterized_query_wrapper = await this.build_moduletable_select_query(
+            const parameterized_query_wrapper = await ContextQueryServerController.build_moduletable_select_query(
                 context_query_segmented,
                 access_type,
                 moduletable,
@@ -1456,7 +1447,7 @@ export default class ContextQueryServerController {
      * @param segmented_table_field_id
      * @returns Promise<ParameterizedQueryWrapper>
      */
-    private async build_moduletable_select_query(
+    private static async build_moduletable_select_query(
         context_query: ContextQueryVO,
         access_type: string,
         base_moduletable: ModuleTable<any> = null, // If we are in a segmented table, we need to pass the base moduletable
@@ -1470,7 +1461,7 @@ export default class ContextQueryServerController {
             moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
         }
 
-        const parameterized_query_wrapper: ParameterizedQueryWrapper = await this.build_select_query_not_count_segment(
+        const parameterized_query_wrapper: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query_not_count_segment(
             context_query,
             access_type,
             moduletable,
@@ -1489,7 +1480,7 @@ export default class ContextQueryServerController {
      * @param {ContextQueryVO} context_query
      * @returns {{ fields_intersection: string[], all_field_ids: string[] }}
      */
-    private get_common_fields_from_union_context_query(
+    private static get_common_fields_from_union_context_query(
         context_query: ContextQueryVO
     ): { fields_intersection: Array<ModuleTableField<any>>, all_distinct_fields: Array<ModuleTableField<any>> } {
 
@@ -1557,7 +1548,7 @@ export default class ContextQueryServerController {
      * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
      *  sur les fields passées dans le context_query
      */
-    private async build_select_query_not_count_segment(
+    private static async build_select_query_not_count_segment(
         context_query: ContextQueryVO,
         access_type: string,
         base_moduletable: ModuleTable<any>,
@@ -1585,7 +1576,7 @@ export default class ContextQueryServerController {
             )
         });
 
-        this.add_activated_many_to_many(context_query);
+        ContextQueryServerController.add_activated_many_to_many(context_query);
 
         /**
          * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
@@ -1721,7 +1712,7 @@ export default class ContextQueryServerController {
              */
             if (!query_wrapper.tables_aliases_by_type[context_field.api_type_id]) {
 
-                aliases_n = await this.join_api_type_id(
+                aliases_n = await ContextQueryServerController.join_api_type_id(
                     context_query,
                     aliases_n,
                     context_field.api_type_id,
@@ -1819,8 +1810,7 @@ export default class ContextQueryServerController {
              *  - aggregator_prefix && aggregator_suffix: rempli par le serveur et si infos étranges, throw
              *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
              */
-            SELECT += aggregator_prefix + ContextQueryFieldServerController.getInstance()
-                .apply_modifier(context_field, field_full_name) +
+            SELECT += aggregator_prefix + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) +
                 aggregator_suffix +
                 field_alias + ' ';
 
@@ -1855,7 +1845,7 @@ export default class ContextQueryServerController {
             /**
              * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
              */
-            aliases_n = await this.join_api_type_id(
+            aliases_n = await ContextQueryServerController.join_api_type_id(
                 context_query,
                 aliases_n,
                 active_api_type_id,
@@ -1894,7 +1884,7 @@ export default class ContextQueryServerController {
             /**
              * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
              */
-            aliases_n = await this.join_api_type_id(
+            aliases_n = await ContextQueryServerController.join_api_type_id(
                 context_query,
                 aliases_n,
                 active_api_type_id,
@@ -1909,19 +1899,19 @@ export default class ContextQueryServerController {
         /**
          * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
          */
-        let WHERE = await this.build_query_wrapper_where_clause(
+        let WHERE = await ContextQueryServerController.build_query_wrapper_where_clause(
             context_query,
             query_wrapper,
             aliases_n,
         );
 
-        let GROUP_BY = await this.build_query_wrapper_group_by_clause(
+        let GROUP_BY = await ContextQueryServerController.build_query_wrapper_group_by_clause(
             context_query,
             query_wrapper,
             force_query_distinct
         );
 
-        let { SORT_BY, QUERY: SELECT_QUERY } = await this.build_query_wrapper_sort_by_clause(
+        let { SORT_BY, QUERY: SELECT_QUERY } = await ContextQueryServerController.build_query_wrapper_sort_by_clause(
             context_query,
             query_wrapper,
             aliases_n,
@@ -1929,8 +1919,8 @@ export default class ContextQueryServerController {
             SELECT,
         );
 
-        let JOINTURES = this.get_ordered_jointures(context_query, query_wrapper.jointures, query_wrapper.cross_joins);
-        let LIMIT = this.get_limit(context_query);
+        let JOINTURES = ContextQueryServerController.get_ordered_jointures(context_query, query_wrapper.jointures, query_wrapper.cross_joins);
+        let LIMIT = ContextQueryServerController.get_limit(context_query);
 
         /**
          * Check injection : OK
@@ -1947,7 +1937,7 @@ export default class ContextQueryServerController {
         return query_wrapper.set_query(QUERY);
     }
 
-    private async build_query_wrapper_where_clause(
+    private static async build_query_wrapper_where_clause(
         context_query: ContextQueryVO,
         query_wrapper: ParameterizedQueryWrapper,
         aliases_n: number = 0,
@@ -1965,7 +1955,7 @@ export default class ContextQueryServerController {
 
             // We should check if the table has the field actually
 
-            aliases_n = await this.updates_jointures_from_filter(
+            aliases_n = await ContextQueryServerController.updates_jointures_from_filter(
                 context_filter,
                 context_query,
                 query_wrapper.jointures,
@@ -1977,14 +1967,13 @@ export default class ContextQueryServerController {
             /**
              * Check injection : OK
              */
-            await ContextFilterServerController.getInstance()
-                .update_where_conditions(
-                    context_query,
-                    query_wrapper,
-                    where_conditions,
-                    context_filter,
-                    query_wrapper.tables_aliases_by_type
-                );
+            await ContextFilterServerController.update_where_conditions(
+                context_query,
+                query_wrapper,
+                where_conditions,
+                context_filter,
+                query_wrapper.tables_aliases_by_type
+            );
         }
 
         let tables_aliases_by_type_for_access_hooks = cloneDeep(query_wrapper.tables_aliases_by_type);
@@ -1992,7 +1981,7 @@ export default class ContextQueryServerController {
             /**
              * Check injection : OK
              */
-            await this.add_context_access_hooks(context_query, query_wrapper, tables_aliases_by_type_for_access_hooks, where_conditions);
+            await ContextQueryServerController.add_context_access_hooks(context_query, query_wrapper, tables_aliases_by_type_for_access_hooks, where_conditions);
         }
 
         if (where_conditions?.length > 0) {
@@ -2002,7 +1991,7 @@ export default class ContextQueryServerController {
         return WHERE;
     }
 
-    private async build_query_wrapper_group_by_clause(
+    private static async build_query_wrapper_group_by_clause(
         context_query: ContextQueryVO,
         query_wrapper: ParameterizedQueryWrapper,
         force_query_distinct: boolean,
@@ -2048,7 +2037,7 @@ export default class ContextQueryServerController {
         return GROUP_BY;
     }
 
-    private async build_query_wrapper_sort_by_clause(
+    private static async build_query_wrapper_sort_by_clause(
         context_query: ContextQueryVO,
         query_wrapper: ParameterizedQueryWrapper,
         aliases_n: number,
@@ -2150,7 +2139,7 @@ export default class ContextQueryServerController {
                     SORT_BY += modifier_start + sort_alias + modifier_end + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
 
                     if (!query_wrapper.tables_aliases_by_type[sort_by.vo_type]) {
-                        aliases_n = await this.join_api_type_id(
+                        aliases_n = await ContextQueryServerController.join_api_type_id(
                             context_query,
                             aliases_n,
                             sort_by.vo_type,
@@ -2187,7 +2176,7 @@ export default class ContextQueryServerController {
         return { SORT_BY, QUERY, aliases_n, query_wrapper };
     }
 
-    private async handle_join_context_query(
+    private static async handle_join_context_query(
         context_query_join: ContextQueryJoinVO,
         jointures: string[],
         tables_aliases_by_type: { [vo_type: string]: string }
@@ -2237,7 +2226,7 @@ export default class ContextQueryServerController {
      *  (qui n'aurait aucun impact positif sur le résultat de la requête)
      * @returns
      */
-    private async join_api_type_id(
+    private static async join_api_type_id(
         context_query: ContextQueryVO,
         aliases_n: number,
         api_type_id: string,
@@ -2256,14 +2245,14 @@ export default class ContextQueryServerController {
             let context_query_join = context_query.joined_context_queries.find((joined_context_query) => joined_context_query.joined_table_alias == api_type_id);
 
             if (context_query_join) {
-                return await this.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
+                return await ContextQueryServerController.handle_join_context_query(context_query_join, jointures, tables_aliases_by_type);
             }
         }
 
         /**
          * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
          */
-        let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+        let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
             context_query.discarded_field_paths,
             context_query.use_technical_field_versioning,
             context_query.active_api_type_ids,
@@ -2277,12 +2266,12 @@ export default class ContextQueryServerController {
                 /**
                  * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
                  */
-                if ((!context_query.is_server) && !await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_id, access_type)) {
+                if ((!context_query.is_server) && !await ContextAccessServerController.check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_id, access_type)) {
                     ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
                     return aliases_n;
                 }
 
-                return await ContextFilterServerController.getInstance().updates_cross_jointures(
+                return await ContextFilterServerController.updates_cross_jointures(
                     context_query,
                     context_query.query_tables_prefix,
                     selected_field.api_type_id,
@@ -2300,11 +2289,11 @@ export default class ContextQueryServerController {
         /**
          * On doit checker le trajet complet
          */
-        if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_fields(context_query, path, access_type)) {
+        if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_fields(context_query, path, access_type)) {
             return aliases_n;
         }
 
-        return await ContextFilterServerController.getInstance().updates_jointures(
+        return await ContextFilterServerController.updates_jointures(
             context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
@@ -2319,7 +2308,7 @@ export default class ContextQueryServerController {
      * @param aliases_n
      * @returns
      */
-    private async updates_jointures_from_filter(
+    private static async updates_jointures_from_filter(
         filter: ContextFilterVO,
         context_query: ContextQueryVO,
         jointures: string[],
@@ -2336,7 +2325,7 @@ export default class ContextQueryServerController {
             /**
              * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
              */
-            let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+            let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
                 context_query.discarded_field_paths,
                 context_query.use_technical_field_versioning,
                 context_query.active_api_type_ids,
@@ -2346,13 +2335,13 @@ export default class ContextQueryServerController {
                 // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                 return aliases_n;
             }
-            aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+            aliases_n = await ContextFilterServerController.updates_jointures(
                 context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
             // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.moduleTables_by_voType[api_type_id_i];
         }
 
         if (!!filter.left_hook) {
-            aliases_n = await this.updates_jointures_from_filter(
+            aliases_n = await ContextQueryServerController.updates_jointures_from_filter(
                 filter.left_hook,
                 context_query,
                 jointures,
@@ -2363,7 +2352,7 @@ export default class ContextQueryServerController {
         }
 
         if (!!filter.right_hook) {
-            aliases_n = await this.updates_jointures_from_filter(
+            aliases_n = await ContextQueryServerController.updates_jointures_from_filter(
                 filter.right_hook,
                 context_query,
                 jointures,
@@ -2386,7 +2375,7 @@ export default class ContextQueryServerController {
      * @param tables_aliases_by_type les tables utilisées et donc à vérifier
      * @param where_conditions les conditions actuelles et que l'on va amender
      */
-    private async add_context_access_hooks(
+    private static async add_context_access_hooks(
         context_query: ContextQueryVO,
         query_result: ParameterizedQueryWrapper,
         tables_aliases_by_type: { [vo_type: string]: string },
@@ -2410,7 +2399,7 @@ export default class ContextQueryServerController {
         for (let vo_type in tables_aliases_by_type) {
 
             // Si pas de hook, osef
-            if (!DAOServerController.getInstance().context_access_hooks[vo_type]) {
+            if (!DAOServerController.context_access_hooks[vo_type]) {
                 continue;
             }
 
@@ -2421,13 +2410,13 @@ export default class ContextQueryServerController {
                 loaded = true;
 
                 uid = StackContext.get('UID');
-                user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+                user = await ModuleAccessPolicyServer.getSelfUser();
                 user_roles_by_role_id = AccessPolicyServerController.getUsersRoles(true, uid);
                 user_roles = ObjectHandler.hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
             }
 
             let promises = [];
-            let hook_cbs = DAOServerController.getInstance().context_access_hooks[vo_type];
+            let hook_cbs = DAOServerController.context_access_hooks[vo_type];
             for (let j in hook_cbs) {
                 let hook_cb = hook_cbs[j];
 
@@ -2466,7 +2455,7 @@ export default class ContextQueryServerController {
             for (let j in querys) {
                 let query_ = querys[j];
 
-                let query_wrapper = await this.build_select_query(query_.set_query_distinct());
+                let query_wrapper = await ContextQueryServerController.build_select_query(query_.set_query_distinct());
                 if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:add_context_access_hooks:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
                     context_query.log(true);
@@ -2524,7 +2513,7 @@ export default class ContextQueryServerController {
     /**
      * Ordonner les jointures, pour ne pas référencer des aliases pas encore déclarés
      */
-    private get_ordered_jointures(context_query: ContextQueryVO, jointures: string[], cross_joins: string[]): string {
+    private static get_ordered_jointures(context_query: ContextQueryVO, jointures: string[], cross_joins: string[]): string {
         let res = '';
 
         if (cross_joins && cross_joins.length) {
@@ -2566,7 +2555,7 @@ export default class ContextQueryServerController {
      * WARN : JNE : je commence à me demander si c'est vraiment une bonne idée de permettre l'ajout auto de liaisons
      *  qui n'ont pas été explicitement citées lors de la construction de la requête. On commence par logguer les ajouts et on avisera
      */
-    private add_activated_many_to_many(context_query: ContextQueryVO) {
+    private static add_activated_many_to_many(context_query: ContextQueryVO) {
 
         let nn_tables = VOsTypesManager.get_manyToManyModuleTables();
         for (let i in nn_tables) {
@@ -2603,7 +2592,7 @@ export default class ContextQueryServerController {
      * Check injection OK :
      *  - query_limit && query_offset: on a checké le format pur nombre entier de context_field.query_limit, context_field.query_offset
      */
-    private get_limit(context_query: ContextQueryVO): string {
+    private static get_limit(context_query: ContextQueryVO): string {
 
         if (!context_query) {
             return '';
@@ -2628,7 +2617,7 @@ export default class ContextQueryServerController {
     /**
      * Le plan est de supprimer toute référence à la table segmentée, sinon on tourne en rond
      */
-    private configure_query_for_segmented_table_segment_listing(context_query: ContextQueryVO, segmented_table: ModuleTable<any>, src_context_query: ContextQueryVO): ContextQueryVO {
+    private static configure_query_for_segmented_table_segment_listing(context_query: ContextQueryVO, segmented_table: ModuleTable<any>, src_context_query: ContextQueryVO): ContextQueryVO {
 
         let filters: ContextFilterVO[] = src_context_query.filters;
         let forbidden_api_type_id = segmented_table.vo_type;
@@ -2714,7 +2703,7 @@ export default class ContextQueryServerController {
      * @param context_query
      * @returns
      */
-    private check_filters_arbo_ET(context_query: ContextQueryVO) {
+    private static check_filters_arbo_ET(context_query: ContextQueryVO) {
 
         if (!context_query || !context_query.filters) {
             return;
@@ -2727,7 +2716,7 @@ export default class ContextQueryServerController {
         for (let i in context_query.filters) {
             let f = context_query.filters[i];
 
-            let arbo_ET = this.get_arbo_ET(f);
+            let arbo_ET = ContextQueryServerController.get_arbo_ET(f);
 
             if (!arbo_ET) {
                 new_filters.push(f);
@@ -2761,7 +2750,7 @@ export default class ContextQueryServerController {
      * @param context_filter
      * @returns
      */
-    private get_arbo_ET(context_filter: ContextFilterVO): boolean[] {
+    private static get_arbo_ET(context_filter: ContextFilterVO): boolean[] {
 
         if (context_filter.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
 
@@ -2771,7 +2760,7 @@ export default class ContextQueryServerController {
             }
 
             if (context_filter.left_hook.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
-                let res_left = this.get_arbo_ET(context_filter.left_hook);
+                let res_left = ContextQueryServerController.get_arbo_ET(context_filter.left_hook);
                 if (res_left) {
                     res_left.unshift(true);
                     return res_left;
@@ -2781,7 +2770,7 @@ export default class ContextQueryServerController {
             }
 
             if (context_filter.right_hook.filter_type == ContextFilterVO.TYPE_FILTER_AND) {
-                let res_right = this.get_arbo_ET(context_filter.right_hook);
+                let res_right = ContextQueryServerController.get_arbo_ET(context_filter.right_hook);
                 if (res_right) {
                     res_right.unshift(false);
                     return res_right;
@@ -2805,7 +2794,7 @@ export default class ContextQueryServerController {
      * @param context_query
      * @returns null if not simple case, else the ids list
      */
-    private get_fasttracks_ids(context_query: ContextQueryVO): number[] {
+    private static get_fasttracks_ids(context_query: ContextQueryVO): number[] {
 
         let res: number[] = [];
 
@@ -2833,7 +2822,7 @@ export default class ContextQueryServerController {
             return null;
         }
 
-        let id_filter = this.get_id_valid_filter(context_query);
+        let id_filter = ContextQueryServerController.get_id_valid_filter(context_query);
         if (!id_filter) {
             return null;
         }
@@ -2861,7 +2850,7 @@ export default class ContextQueryServerController {
      * doivent être inapplicables (pas de chemin)
      * @returns le filtre id valide, ou null sinon
      */
-    private get_id_valid_filter(context_query: ContextQueryVO): ContextFilterVO {
+    private static get_id_valid_filter(context_query: ContextQueryVO): ContextFilterVO {
 
         if (!context_query || !context_query.filters) {
             return null;
@@ -2874,7 +2863,7 @@ export default class ContextQueryServerController {
 
             if (filter.vo_type != context_query.base_api_type_id) {
                 // On doit checker les chemins
-                let path_between_types = ContextFieldPathServerController.getInstance().get_path_between_types(
+                let path_between_types = ContextFieldPathServerController.get_path_between_types(
                     context_query.discarded_field_paths,
                     context_query.use_technical_field_versioning,
                     context_query.active_api_type_ids,

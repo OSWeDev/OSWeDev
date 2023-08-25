@@ -65,7 +65,7 @@ export default class FieldValueFilterEnumWidgetManager {
         );
 
         const pipeline_limit = available_api_type_ids.length;
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options');
 
         const allowed_api_type_ids: string[] = [];
 
@@ -86,7 +86,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options');
 
         // In some case we may need to only filter on required_api_type_ids
         // (each api_type_id will have its own filter or vo_type)
@@ -144,7 +144,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 discarded_field_paths
             );
 
-            api_type_context_query.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
+            api_type_context_query.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
                 widget_options.get_exclude_values(),
                 vo_field_ref,
                 api_type_context_query.filters,
@@ -290,7 +290,7 @@ export default class FieldValueFilterEnumWidgetManager {
         );
 
         const pipeline_limit = available_api_type_ids.length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_count_from_widget_options');
 
         const allowed_api_type_ids: string[] = [];
 
@@ -316,7 +316,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_count_from_widget_options');
 
         // In some case we may need to only filter on required_api_type_ids
         // (each api_type_id will have its own filter or vo_type)

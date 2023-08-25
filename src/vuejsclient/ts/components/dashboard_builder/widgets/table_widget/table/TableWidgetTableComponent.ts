@@ -1590,7 +1590,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
-            query_.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
+            query_.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
                 options.exclude_filter_opt_values,
                 options.vo_field_ref,
                 query_.filters,

@@ -24,6 +24,7 @@ export default class ThrottlePipelineHelper {
      * @returns
      */
     public static declare_throttled_pipeline<ParamType, ResultType>(
+        pipeline_name: string,
         func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
         wait_ms: number,
         pipeline_size: number,
@@ -31,6 +32,7 @@ export default class ThrottlePipelineHelper {
     ) {
 
         let UID = ThrottlePipelineHelper.UID++;
+        ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID] = pipeline_name;
         setTimeout(() => {
             ThrottlePipelineHelper.unstack_throttled_pipeline_process(UID, func, wait_ms, pipeline_size, max_stack_size);
         }, 1);
@@ -67,6 +69,8 @@ export default class ThrottlePipelineHelper {
 
     protected static UID: number = 0;
 
+    protected static throttled_pipeline_names_by_UID: { [UID: number]: string } = {};
+
     protected static throttled_pipeline_stack_args: { [throttle_id: number]: { [call_id: number]: any } } = {};
     protected static throttled_pipeline_call_ids: { [throttle_id: number]: number } = {};
 
@@ -101,7 +105,7 @@ export default class ThrottlePipelineHelper {
         max_stack_size: number
     ) {
 
-        let promise_pipeline = new PromisePipeline(pipeline_size);
+        let promise_pipeline = new PromisePipeline(pipeline_size, 'ThrottledPipeline.' + ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID]);
 
         while (true) {
 

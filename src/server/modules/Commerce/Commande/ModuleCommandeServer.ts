@@ -51,7 +51,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async creationPanier(): Promise<CommandeVO> {
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getInstance().getLoggedUserId());
+        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
         let panier: CommandeVO = new CommandeVO();
         panier.client_id = (client) ? client.id : null;
         panier.date = Dates.now();
@@ -89,7 +89,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
             return null;
         }
 
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getInstance().getLoggedUserId());
+        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
         let ligne: LigneCommandeVO = new LigneCommandeVO();
         ligne.commande_id = commande.id;
         ligne.informations_id = (client) ? client.informations_id : null;

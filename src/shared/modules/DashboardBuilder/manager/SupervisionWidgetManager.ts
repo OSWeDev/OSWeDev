@@ -68,7 +68,7 @@ export default class SupervisionWidgetManager {
         }
 
         const pipeline_limit = active_registered_supervision_api_type_ids.length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.find_supervision_probs_by_api_type_ids');
 
         const allowed_api_type_ids: string[] = [];
 
@@ -92,7 +92,7 @@ export default class SupervisionWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.find_supervision_probs_by_api_type_ids');
 
         // We must update|standardize|normalize the active_field_filters for the given available_api_type_ids
         const active_field_filter_by_api_type_id: {
@@ -176,7 +176,7 @@ export default class SupervisionWidgetManager {
     }> {
 
         const pipeline_limit = Object.keys(context_filters_by_api_type_id).length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.select_supervision_probs_by_api_type_id');
 
         // ContextQuery as a query builder
         let context_query: ContextQueryVO = null;

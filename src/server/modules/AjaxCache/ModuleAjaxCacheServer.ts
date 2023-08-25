@@ -64,7 +64,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         res.requests_results = {};
 
         let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
-        let promise_pipeline = new PromisePipeline(limit);
+        let promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
 
         for (let i in requests) {
             let wrapped_request: LightWeightSendableRequestVO = requests[i];

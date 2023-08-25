@@ -37,11 +37,11 @@ export default class FeedbackConfirmationMail {
     public async sendConfirmationEmail(feedback: FeedbackVO): Promise<void> {
 
         // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
-        let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
         let target_user_id: number = feedback.is_impersonated ? feedback.impersonated_from_user_id : feedback.user_id;
         let user: UserVO = null;
         if (user_id == target_user_id) {
-            user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+            user = await ModuleAccessPolicyServer.getSelfUser();
         } else {
             user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).exec_as_server().select_vo<UserVO>();
         }

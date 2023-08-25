@@ -554,7 +554,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
 
         // On encapsule les gets dans une requête de type post
-        let promise_pipeline = new PromisePipeline(nb_requests);
+        let promise_pipeline = new PromisePipeline(nb_requests, 'AjaxCacheClientController.wrap_request');
 
         for (let i in sendable_objects_by_request_num) {
             let sendable_objects = sendable_objects_by_request_num[i];
@@ -654,7 +654,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
              * (https://stackoverflow.com/questions/985431/max-parallel-http-connections-in-a-browser)
              */
             let max_query = 6;
-            let promise_pipeline: PromisePipeline = new PromisePipeline(max_query);
+            let promise_pipeline: PromisePipeline = new PromisePipeline(max_query, 'AjaxCacheClientController.processRequests');
 
             // on traite d'une part les requêtes wrappable
             if (wrappable_requests.length > 0) {

@@ -245,7 +245,7 @@ export default abstract class GeneratorBase {
     private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>): Promise<boolean> {
 
         let workers_to_execute: { [id: number]: IGeneratorWorker } = {};
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'GeneratorBase.execute_workers');
         for (let i in workers) {
             let worker = workers[i];
 

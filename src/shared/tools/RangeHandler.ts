@@ -1052,7 +1052,7 @@ export default class RangeHandler {
             ranges = ranges.slice().reverse();
         }
 
-        let promises_pipeline = new PromisePipeline(batch_size);
+        let promises_pipeline = new PromisePipeline(batch_size, 'RangeHandler.foreach_ranges_batch_await');
         for (let i in ranges) {
 
             await promises_pipeline.push(async () => {

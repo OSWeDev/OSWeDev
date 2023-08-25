@@ -156,7 +156,7 @@ export default class ForkServerController {
         /**
          * On attend le alive des forks avant de continuer
          */
-        let promises_pipeline = new PromisePipeline(100);
+        let promises_pipeline = new PromisePipeline(100, 'ForkServerController.reload_unavailable_threads');
         for (let i in ForkServerController.getInstance().forks) {
             let forked: IFork = ForkServerController.getInstance().forks[i];
 

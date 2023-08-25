@@ -7,9 +7,14 @@ import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/ICo
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
@@ -21,30 +26,6 @@ import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 
 export default class DAOServerController {
 
-    public static GLOBAL_UPDATE_BLOCKER: boolean = false;
-
-    /**
-     * Global application cache - Brocasted CUD - Local R -----
-     */
-    /**
-     * Le nombre est la valeur du segment de la table. L'existence de la table est liée à sa présence dans l'objet simplement.
-     */
-    public static segmented_known_databases: { [database_name: string]: { [table_name: string]: number } } = {};
-    /**
-     * ----- Global application cache - Brocasted CUD - Local R
-     */
-
-    public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!DAOServerController.instance) {
-            DAOServerController.instance = new DAOServerController();
-        }
-        return DAOServerController.instance;
-    }
-
-    private static instance: DAOServerController = null;
 
     /**
      * Local thread cache -----
@@ -54,7 +35,7 @@ export default class DAOServerController {
      * @deprecated utiliser les context_access_hooks
      * On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
      */
-    public access_hooks: { [api_type_id: string]: { [access_type: string]: Array<IHookFilterVos<IDistantVOBase>> } } = {};
+    public static access_hooks: { [api_type_id: string]: { [access_type: string]: Array<IHookFilterVos<IDistantVOBase>> } } = {};
 
     /**
      * Le filtrage des accès est découpé ainsi :
@@ -71,22 +52,195 @@ export default class DAOServerController {
      *      le field du sort_by (droit Select) les fields utilisés dans les paths entre objects et donc dans les jointures (droit Select)
      *      Si un des fields est refusé on supprime ce qui lui est associé (on supprime le sort_by par exemple si c'est ce champs auquel on a pas le droit)
      */
-    public context_access_hooks: { [api_type_id: string]: Array<IContextHookFilterVos<IDistantVOBase>> } = {};
+    public static context_access_hooks: { [api_type_id: string]: Array<IContextHookFilterVos<IDistantVOBase>> } = {};
 
-    public pre_update_trigger_hook: DAOPreUpdateTriggerHook;
-    public pre_create_trigger_hook: DAOPreCreateTriggerHook;
-    public pre_delete_trigger_hook: DAOPreDeleteTriggerHook;
+    public static pre_update_trigger_hook: DAOPreUpdateTriggerHook;
+    public static pre_create_trigger_hook: DAOPreCreateTriggerHook;
+    public static pre_delete_trigger_hook: DAOPreDeleteTriggerHook;
 
-    public post_update_trigger_hook: DAOPostUpdateTriggerHook;
-    public post_create_trigger_hook: DAOPostCreateTriggerHook;
-    public post_delete_trigger_hook: DAOPostDeleteTriggerHook;
+    public static post_update_trigger_hook: DAOPostUpdateTriggerHook;
+    public static post_create_trigger_hook: DAOPostCreateTriggerHook;
+    public static post_delete_trigger_hook: DAOPostDeleteTriggerHook;
     /**
      * Local thread cache -----
      */
 
-    private constructor() {
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, this.add_segmented_known_databases.bind(this));
+    public static GLOBAL_UPDATE_BLOCKER: boolean = false;
+
+    /**
+     * Global application cache - Brocasted CUD - Local R -----
+     */
+    /**
+     * Le nombre est la valeur du segment de la table. L'existence de la table est liée à sa présence dans l'objet simplement.
+     */
+    public static segmented_known_databases: { [database_name: string]: { [table_name: string]: number } } = {};
+    /**
+     * ----- Global application cache - Brocasted CUD - Local R
+     */
+
+    public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.MODULE_NAME + ".add_segmented_known_databases";
+
+    // istanbul ignore next: cannot test configure
+    public static async configure() {
+        ForkedTasksController.register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, DAOServerController.add_segmented_known_databases);
+    }
+
+    public static has_segmented_known_database(t: ModuleTable<any>, segment_value: number): boolean {
+        if ((!DAOServerController.segmented_known_databases[t.database]) || (!DAOServerController.segmented_known_databases[t.database][t.get_segmented_name(segment_value)])) {
+            return false;
+        }
+        return true;
+    }
+
+    public static checkAccessSync<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string): boolean {
+
+        if (!datatable) {
+            ConsoleHandler.error('checkAccessSync:!datatable');
+            return false;
+        }
+
+        // On applique les accès au global sur le droit de faire un SELECT
+        return AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(access_type, datatable.vo_type));
+    }
+
+    /**
+     * @depracated do not use anymore, use context queries instead - will be deleted soon
+     */
+    public static async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vos: T[]): Promise<T[]> {
+
+        // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
+        let hooks = DAOServerController.access_hooks[datatable.vo_type] && DAOServerController.access_hooks[datatable.vo_type][access_type] ? DAOServerController.access_hooks[datatable.vo_type][access_type] : [];
+        if (!StackContext.get('IS_CLIENT')) {
+            // Server
+            return vos;
+        }
+
+        for (let i in hooks) {
+            let hook = hooks[i];
+
+            let uid: number = StackContext.get('UID');
+            vos = await hook(datatable, vos, uid, null) as T[];
+        }
+
+        if (vos && vos.length && !DAOServerController.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
+
+            for (let j in vos) {
+                let vo: IDistantVOBase = vos[j];
+
+                for (let i in datatable.get_fields()) {
+                    let field: ModuleTableField<any> = datatable.get_fields()[i];
+
+                    if (datatable.default_label_field &&
+                        (field.field_id == datatable.default_label_field.field_id)) {
+                        continue;
+                    }
+
+                    if (datatable.table_label_function_field_ids_deps && datatable.table_label_function_field_ids_deps.length &&
+                        (datatable.table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
+                        continue;
+                    }
+
+                    delete vo[field.field_id];
+                }
+            }
+        }
+
+        return vos;
+    }
+
+    /**
+     * Check injection OK
+     * @param field_type
+     * @param field_id
+     * @param intersector_range
+     * @returns
+     */
+    public static getClauseWhereRangeIntersectsField(field_type: string, field_id: string, intersector_range: IRange): string {
+
+        ContextQueryInjectionCheckHandler.assert_integer(intersector_range.min);
+        ContextQueryInjectionCheckHandler.assert_integer(intersector_range.max);
+
+        switch (field_type) {
+
+            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
+                if (intersector_range.range_type == TSRange.RANGE_TYPE) {
+                    return field_id + "::timestamp with time zone <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
+                }
+                break;
+
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_image_ref:
+            case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+                // Si on vise un type int, on sait que si le max = min + 1 et segment type du range = int et max exclusiv on est cool, on peut passer par un = directement.
+                // Sinon on fait comme pour les float et autres, on prend >= ou > et <= ou < suivant inclusive ou inclusive
+                if ((intersector_range.segment_type == NumSegment.TYPE_INT) && (intersector_range.min_inclusiv && !intersector_range.max_inclusiv) && (intersector_range.min == (intersector_range.max - 1))) {
+                    // TODO : généraliser le concept, là on spécifie un truc très particulier pour faire vite et efficace, mais ya d'autres cas qu'on peut optimiser de la sorte
+                    return field_id + " = " + intersector_range.min;
+                }
+
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableField.FIELD_TYPE_prct:
+                return field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
+
+            case ModuleTableField.FIELD_TYPE_tstz:
+                return field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
+
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numeric[])";
+
+            case ModuleTableField.FIELD_TYPE_int_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numeric[])";
+
+            case ModuleTableField.FIELD_TYPE_float_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numeric[])";
+
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
+
+            case ModuleTableField.FIELD_TYPE_date:
+            case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_month:
+                return field_id + "::date <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
+
+            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                // TODO FIXME
+                break;
+
+            case ModuleTableField.FIELD_TYPE_daterange:
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
+
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+
+            case ModuleTableField.FIELD_TYPE_numrange:
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
+
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
+
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            default:
+                return null;
+        }
     }
 
     /**
@@ -96,7 +250,7 @@ export default class DAOServerController {
      * @param filter_field_type
      * @returns
      */
-    public get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableField<any>, filter_field_type: string): string {
+    public static get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableField<any>, filter_field_type: string): string {
         let ranges_query: string = 'ARRAY[';
 
         let first_range: boolean = true;
@@ -110,7 +264,7 @@ export default class DAOServerController {
 
             first_range = false;
 
-            ranges_query += this.get_range_translated_to_bdd_queryable_range(range, field, filter_field_type);
+            ranges_query += DAOServerController.get_range_translated_to_bdd_queryable_range(range, field, filter_field_type);
         }
 
         ranges_query += ']';
@@ -125,7 +279,7 @@ export default class DAOServerController {
      * @param filter_field_type
      * @returns
      */
-    public get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableField<any>, filter_field_type: string): string {
+    public static get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableField<any>, filter_field_type: string): string {
 
         ContextQueryInjectionCheckHandler.assert_integer(range.min);
         ContextQueryInjectionCheckHandler.assert_integer(range.max);
@@ -201,7 +355,7 @@ export default class DAOServerController {
      * @param table_name With segmentation (complete table name)
      * @param segmented_value
      */
-    public add_segmented_known_databases(database_name: string, table_name: string, segmented_value: number) {
+    public static add_segmented_known_databases(database_name: string, table_name: string, segmented_value: number) {
         if (!DAOServerController.segmented_known_databases) {
             DAOServerController.segmented_known_databases = {};
         }
@@ -210,9 +364,11 @@ export default class DAOServerController {
             DAOServerController.segmented_known_databases[database_name] = {};
         }
         DAOServerController.segmented_known_databases[database_name][table_name] = segmented_value;
+
+        return true;
     }
 
-    public get_dao_policy(translatable_name: string, group: AccessPolicyGroupVO, isAccessConfVoType: boolean, accessConfVoType_DEFAULT_BEHAVIOUR: number): AccessPolicyVO {
+    public static get_dao_policy(translatable_name: string, group: AccessPolicyGroupVO, isAccessConfVoType: boolean, accessConfVoType_DEFAULT_BEHAVIOUR: number): AccessPolicyVO {
         let vo_read: AccessPolicyVO = new AccessPolicyVO();
         vo_read.group_id = group.id;
         vo_read.default_behaviour = isAccessConfVoType ? accessConfVoType_DEFAULT_BEHAVIOUR : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
@@ -220,7 +376,7 @@ export default class DAOServerController {
         return vo_read;
     }
 
-    public get_dao_dependency_default_granted(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {
+    public static get_dao_dependency_default_granted(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {
         if ((!from) || (!to)) {
             return null;
         }
@@ -232,11 +388,11 @@ export default class DAOServerController {
         return dependency;
     }
 
-    public get_inherited_right(DAO_ACCESS_TYPE: string, inherit_rights_from_vo_type: string): AccessPolicyVO {
+    public static get_inherited_right(DAO_ACCESS_TYPE: string, inherit_rights_from_vo_type: string): AccessPolicyVO {
         return AccessPolicyServerController.get_registered_policy(DAOController.getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
     }
 
-    public get_dao_dependency_default_denied(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {
+    public static get_dao_dependency_default_denied(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {
         if ((!from) || (!to)) {
             return null;
         }

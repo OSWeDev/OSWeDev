@@ -75,6 +75,57 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return ModuleAccessPolicyServer.instance;
     }
 
+    public static getLoggedUserId(): number {
+
+        try {
+
+            let session = StackContext.get('SESSION');
+
+            if (session && session.uid) {
+                return session.uid;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        return null;
+    }
+
+    public static async getLoggedUserName(): Promise<string> {
+
+        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        return user ? user.name : null;
+    }
+
+    /**
+     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
+     */
+    public static async getSelfUser(): Promise<UserVO> {
+
+        if (StackContext.get('SELF_USER')) {
+            return StackContext.get('SELF_USER');
+        }
+
+        /**
+         * on doit pouvoir charger son propre user
+         */
+        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        if (!user_id) {
+            return null;
+        }
+
+        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
+    }
+
+    public static async getMyLang(): Promise<LangVO> {
+
+        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        if (!user) {
+            return null;
+        }
+        return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+    }
+
+
     private static instance: ModuleAccessPolicyServer = null;
 
     private debug_check_access: boolean = false;
@@ -850,16 +901,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT, this.signinAndRedirect.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, this.getLoggedUserId.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, this.getLoggedUserName.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, ModuleAccessPolicyServer.getLoggedUserId as any);
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, ModuleAccessPolicyServer.getLoggedUserName);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, ModuleAccessPolicyServer.getMyLang);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_sendrecapture, this.sendrecapture.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwdsms, this.begininitpwdsms.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, ModuleAccessPolicyServer.getSelfUser);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_logout, this.logout.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_delete_session, this.delete_session.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_sid, this.get_my_sid.bind(this));
@@ -1038,35 +1089,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    /**
-     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
-     */
-    public async getSelfUser(): Promise<UserVO> {
-
-        if (StackContext.get('SELF_USER')) {
-            return StackContext.get('SELF_USER');
-        }
-
-        /**
-         * on doit pouvoir charger son propre user
-         */
-        let user_id: number = this.getLoggedUserId();
-        if (!user_id) {
-            return null;
-        }
-
-        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
-    }
-
-    public async getMyLang(): Promise<LangVO> {
-
-        let user: UserVO = await this.getSelfUser();
-        if (!user) {
-            return null;
-        }
-        return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
-    }
-
     public async generate_challenge(user: UserVO) {
 
         StatsController.register_stat_COMPTEUR('ModuleAccessPolicyServer', 'generate_challenge', '-');
@@ -1099,7 +1121,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let user_id: number = this.getLoggedUserId();
+        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!user_id) {
             return;
         }
@@ -1265,28 +1287,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return false;
-    }
-
-    public getLoggedUserId(): number {
-
-        try {
-
-            let session = StackContext.get('SESSION');
-
-            if (session && session.uid) {
-                return session.uid;
-            }
-            return null;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    public async getLoggedUserName(): Promise<string> {
-
-        let user: UserVO = await this.getSelfUser();
-        return user ? user.name : null;
     }
 
     public isLogedAs(): boolean {

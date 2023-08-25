@@ -415,16 +415,16 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         if (!this.programplan_shared_module.manager_type_id) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
@@ -476,16 +476,16 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         if (!this.programplan_shared_module.manager_type_id) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
@@ -527,7 +527,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
             return null;
         }
@@ -609,7 +609,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
             return null;
         }
@@ -698,12 +698,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         let is_own_facilitators_rdv_filter: ContextFilterVO = new ContextFilterVO();
@@ -759,7 +759,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         /**

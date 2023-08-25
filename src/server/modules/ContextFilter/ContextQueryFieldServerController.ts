@@ -7,23 +7,7 @@ import moment from 'moment';
 
 export default class ContextQueryFieldServerController {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ContextQueryFieldServerController.instance) {
-            ContextQueryFieldServerController.instance = new ContextQueryFieldServerController();
-        }
-        return ContextQueryFieldServerController.instance;
-    }
-
-    private static instance: ContextQueryFieldServerController = null;
-
-    private constructor() { }
-
-    // istanbul ignore next: cannot test configure
-    public async configure() {
-    }
-
-    public translate_db_res_to_dataoption(
+    public static translate_db_res_to_dataoption(
         query_field: ContextQueryFieldVO,
         db_res: any
     ): DataFilterOption {
@@ -121,7 +105,7 @@ export default class ContextQueryFieldServerController {
         return res;
     }
 
-    public apply_modifier(context_query_field: ContextQueryFieldVO, field_query_statement: string): string {
+    public static apply_modifier(context_query_field: ContextQueryFieldVO, field_query_statement: string): string {
 
         switch (context_query_field.modifier) {
             case ContextQueryFieldVO.FIELD_MODIFIER_DISTINCT:

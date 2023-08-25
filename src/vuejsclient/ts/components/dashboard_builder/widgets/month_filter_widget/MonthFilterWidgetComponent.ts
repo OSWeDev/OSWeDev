@@ -304,7 +304,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
         }
 
         // If no context filter that mean there is no initialization
@@ -371,7 +371,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
         }
 
         /**
@@ -419,7 +419,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          * Si on a un context_filter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!this.force_selected_months_reset) && (!(months_ranges?.length > 0))) {
-            let new_root = ContextFilterVOHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({

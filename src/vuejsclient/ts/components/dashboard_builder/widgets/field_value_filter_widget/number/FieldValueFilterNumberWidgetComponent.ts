@@ -407,7 +407,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        query_.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
+        query_.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
             this.exclude_values,
             this.vo_field_ref,
             query_.filters,

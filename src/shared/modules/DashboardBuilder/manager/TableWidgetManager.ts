@@ -277,7 +277,7 @@ export default class TableWidgetManager {
                 continue;
             }
 
-            context_query.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
+            context_query.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
                 options.exclude_filter_opt_values,
                 options.vo_field_ref,
                 context_query.filters,

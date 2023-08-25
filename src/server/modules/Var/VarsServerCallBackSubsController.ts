@@ -29,6 +29,7 @@ export default class VarsServerCallBackSubsController {
         VarsServerCallBackSubsController.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
 
     public static get_var_data_indexed: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
+        'VarsServerCallBackSubsController.get_var_data_indexed',
         this._get_vars_datas.bind(this), 10, 500, 20
     );
 

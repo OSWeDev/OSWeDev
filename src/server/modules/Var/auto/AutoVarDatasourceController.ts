@@ -15,7 +15,7 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
 
             for (let i in varconf.auto_param_context_api_type_ids) {
                 let api_type_id = varconf.auto_param_context_api_type_ids[i];
-                let path = ContextFieldPathServerController.getInstance().get_path_between_types(
+                let path = ContextFieldPathServerController.get_path_between_types(
                     varconf.auto_param_context_discarded_field_paths,
                     varconf.auto_param_context_use_technical_field_versioning,
                     varconf.auto_param_context_api_type_ids,

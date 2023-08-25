@@ -5,11 +5,18 @@ import ThrottleHelper from './ThrottleHelper';
 import ILoggerHandler from './interfaces/ILoggerHandler';
 
 // DO NOT DELETE : USED to debug Promises when there are multiple resolves =>
+// Can be used also to debug never ending promises
 // class MonitoredPromise<T> extends Promise<T> {
 //     constructor(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
 //         let hasSettled = false;
 //         // Capture la stacktrace lors de la création de la promesse
 //         const stackTrace = new Error("Promise created at:").stack;
+
+//         setTimeout(() => {
+//             if (!hasSettled) {
+//                 ConsoleHandler.error("Promise not settled after 181s", stackTrace);
+//             }
+//         }, 181000);
 
 //         const wrappedExecutor: typeof executor = (resolve, reject) => {
 //             function monitoredResolve(value: T | PromiseLike<T>) {
@@ -42,8 +49,8 @@ import ILoggerHandler from './interfaces/ILoggerHandler';
 //     // Vous pouvez également émettre un événement ou effectuer d'autres actions si nécessaire
 // }
 
+// <= DO NOT DELETE - including next line : USED to debug Promises when there are multiple resolves
 // tslint:disable-next-line: max-classes-per-file
-// <= DO NOT DELETE : USED to debug Promises when there are multiple resolves
 export default class ConsoleHandler {
 
     public static SEPARATOR: string = ' - ';

@@ -319,7 +319,7 @@ export default class AccessPolicyServerController {
 
         await ModulesManagerServer.getInstance().preload_modules();
         let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).exec_as_server().select_vos<AccessPolicyVO>();
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'AccessPolicyServerController.preload_registered_policies');
         for (let i in policies) {
             let policy: AccessPolicyVO = policies[i];
 

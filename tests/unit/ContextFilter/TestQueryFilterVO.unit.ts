@@ -8,7 +8,7 @@ let instance: ContextQueryServerController;
 ConsoleHandler.init();
 
 test('QueryFilterVO: Build a simple tree with and', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
 
     let f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
 
@@ -19,7 +19,7 @@ test('QueryFilterVO: Build a simple tree with and', () => {
 
 
 test('QueryFilterVO: Build a simple tree with or', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
 
     let f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').or(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
 
@@ -29,7 +29,7 @@ test('QueryFilterVO: Build a simple tree with or', () => {
 });
 
 test('QueryFilterVO: Build a tree with and in and', () => {
-    instance = ContextQueryServerController.getInstance();
+    instance = ContextQueryServerController;
 
     let f_ =
         filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b')).and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a'));

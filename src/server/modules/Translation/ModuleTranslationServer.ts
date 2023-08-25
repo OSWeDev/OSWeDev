@@ -909,7 +909,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         let res = true;
 
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleTranslationServer.isCodeOk');
         while ((!!segments) && (segments.length > 1)) {
 
             segments.pop();

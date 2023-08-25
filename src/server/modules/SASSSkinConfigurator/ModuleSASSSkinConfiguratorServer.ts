@@ -40,7 +40,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
             try {
 
                 let max = ConfigurationService.node_configuration.MAX_POOL / 2;
-                let promise_pipeline = new PromisePipeline(max);
+                let promise_pipeline = new PromisePipeline(max, 'ModuleSASSSkinConfiguratorServer.generate');
                 for (let param_name in ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES) {
                     let default_value: string = ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name];
 

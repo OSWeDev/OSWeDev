@@ -170,7 +170,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         }
         code.id = res.id;
 
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         let lang = (user && user.lang_id) ?
             await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>() :
             await ModuleTranslation.getInstance().getLang(ConfigurationService.node_configuration.DEFAULT_LOCALE);

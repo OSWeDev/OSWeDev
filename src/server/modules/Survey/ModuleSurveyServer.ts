@@ -156,7 +156,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let uid = ModuleAccessPolicyServer.getLoggedUserId();
         let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {

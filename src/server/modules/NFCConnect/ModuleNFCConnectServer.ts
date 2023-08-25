@@ -177,7 +177,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
     }
 
     private async get_own_tags(): Promise<NFCTagVO[]> {
-        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_id = await ModuleAccessPolicyServer.getLoggedUserId();
 
         if (!user_id) {
             ConsoleHandler.error("Impossible de lister les tags. Pas de user_id:" + user_id);
@@ -259,7 +259,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private async add_tag(serial_number: string): Promise<boolean> {
 
-        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_id = await ModuleAccessPolicyServer.getLoggedUserId();
 
         if (!user_id) {
             ConsoleHandler.error("Impossible de créer le nouveau tag. Pas de user_id:" + user_id);
@@ -308,7 +308,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private async remove_user_tag(serial_number: string): Promise<boolean> {
 
-        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_id = await ModuleAccessPolicyServer.getLoggedUserId();
 
         if (!user_id) {
             ConsoleHandler.error("Impossible de supprimer le tag. Pas de user_id:" + user_id);
