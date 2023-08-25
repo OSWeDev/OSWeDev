@@ -854,7 +854,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     /**
-     * Filtre par intersection de ts_ranges
+     * Filtre par inclusion de ts_ranges
      * @param ranges
      */
     public by_date_is_in_ranges(ranges: TSRange[]): ContextFilterVO {
