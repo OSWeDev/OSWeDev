@@ -333,10 +333,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         // Load filter visible options once
         if (this.should_load_filter_visible_options) {
-            // is_button and default_showed_filter_opt_values may not change
-            if (this.is_button && this.widget_options?.default_showed_filter_opt_values?.length > 0) {
-                this.should_load_filter_visible_options = false;
-            }
             // Load filter visible options from widget options
             await this.load_filter_visible_options(launch_cpt);
         }
@@ -423,6 +419,16 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return a.numeric_value - b.numeric_value;
         });
 
+        // is_button and default_showed_filter_opt_values may not change
+        // if filter_visible_options is not empty, we should not load it again
+        if (
+            this.is_button && (
+                this.widget_options?.default_showed_filter_opt_values?.length > 0 &&
+                this.filter_visible_options?.length > 0
+            )
+        ) {
+            this.should_load_filter_visible_options = false;
+        }
     }
 
     /**
@@ -478,14 +484,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     /**
      * set_all_count_by_filter_visible_loading
-     *  - Set all count by filter visible loading
+     *  - Set all count by active filter options loading
      *
      * @param {boolean} val
      * @returns {void}
      */
     private set_all_count_by_filter_visible_loading(val: boolean): void {
-        for (const key in this.filter_visible_options) {
-            const enum_data_filter = this.filter_visible_options[key];
+        for (const key in this.tmp_filter_active_options) {
+            const enum_data_filter = this.tmp_filter_active_options[key];
 
             this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = val;
         }
