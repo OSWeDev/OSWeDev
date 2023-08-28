@@ -4,16 +4,16 @@
 
         template(v-if="is_button")
             template(v-for="filter_visible_opt in filter_visible_options")
-                .btn.btn-primary.button_opacity.mr-1(
+                .btn.btn-primary.button_opacity.mr-1.mb-1(
                     @click="select_option(filter_visible_opt)"
                     :class="{'active': (tmp_active_filter_options && tmp_active_filter_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value))}"
                     :style="getStyle(filter_visible_opt)"
-                ) 
+                )
                     span {{ filter_visible_label(filter_visible_opt) }}
                     template(v-if="show_count_value") 
                         span.ml-2(v-if="(!(tmp_active_filter_options?.length > 0) || (tmp_active_filter_options && tmp_active_filter_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value)))")
                             span {{ count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] }}
-                        template(v-if="is_loading_count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] === true") 
+                        template(v-if="is_loading_count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] === true")
                             i.ml-2.fa-duotone.fa-spinner-third.fa-spin
 
         template(v-else)
@@ -33,9 +33,9 @@
                     :hide-selected="true"
 
                     track-by="text_uid"
-                    
+
                     :key="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                    
+
                     :select-label='label("multiselect.selectLabel")'
                     :select-group-label='label("multiselect.selectGroupLabel")'
                     :selected-label='label("multiselect.selectedLabel")'
@@ -54,7 +54,7 @@
                             span.option__tag {{ props.option.label }}
                             i.fa-duotone.fa-times(@click='props.remove(props.option)')
 
-                template 
+                template
                     template(v-if="can_select_all")
                         .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
                         template(v-if="can_select_all && can_select_none")
