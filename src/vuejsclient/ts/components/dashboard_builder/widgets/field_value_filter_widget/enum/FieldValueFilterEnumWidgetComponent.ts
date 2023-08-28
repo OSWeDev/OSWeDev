@@ -84,7 +84,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private old_widget_options: FieldValueFilterWidgetOptionsVO = null;
     private widget_options: FieldValueFilterWidgetOptionsVO = null;
 
-    private should_load_filter_visible_options: boolean = false;
+    private should_load_filter_visible_options: boolean = true;
 
     private last_calculation_cpt: number = 0;
 
@@ -112,7 +112,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.page_widget,
             this.reset_visible_options.bind(this),
         );
-        this.should_load_filter_visible_options = true;
     }
 
     /**
@@ -132,7 +131,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      *
      * @returns {void}
      */
-    @Watch('widget_options')
+    @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options(): Promise<void> {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
@@ -492,11 +491,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         for (const key in this.filter_visible_options) {
             const enum_data_filter = this.filter_visible_options[key];
 
-            const is_in_active_filters_options = this.tmp_filter_active_options?.find((active_filter_option) =>
+            const is_in_active_filters_options = this.tmp_active_filter_options?.find((active_filter_option) =>
                 active_filter_option.numeric_value === enum_data_filter.numeric_value
             );
 
-            if (this.tmp_filter_active_options?.length > 0 && !is_in_active_filters_options) {
+            if (this.tmp_active_filter_options?.length > 0 && !is_in_active_filters_options) {
                 this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = false;
             } else {
                 this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = val;
