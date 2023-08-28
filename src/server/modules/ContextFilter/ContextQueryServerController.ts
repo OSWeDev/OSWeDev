@@ -1463,7 +1463,9 @@ export default class ContextQueryServerController {
         }
 
         // Add all existing fields to the set
-        Object.values(fields_by_vo_type).map((fields) => fields.map((field) => all_field_ids_set.add(field.field_id)));
+        Object.values(fields_by_vo_type).map((fields) => fields.map((field) =>
+            all_field_ids_set.add(field.field_id)
+        ));
 
         fields_intersection = Object.values(fields_by_vo_type).reduce(
             // Accumulator shall keep all fields of previous iteration that are also in currentVal
