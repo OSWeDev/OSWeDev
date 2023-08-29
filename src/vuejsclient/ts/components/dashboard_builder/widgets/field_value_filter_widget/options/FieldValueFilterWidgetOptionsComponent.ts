@@ -34,6 +34,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import BooleanFilter from '../boolean/BooleanFilter';
 import AdvancedStringFilter from '../string/AdvancedStringFilter';
 import './FieldValueFilterWidgetOptionsComponent.scss';
+import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 
 @Component({
     template: require('./FieldValueFilterWidgetOptionsComponent.pug'),
@@ -1168,7 +1169,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return null;
         }
 
-        return VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        const moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+
+        return moduletable.get_field_by_id(this.vo_field_ref.field_id);
     }
 
     get title_name_code_text() {
@@ -1455,5 +1458,19 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         return this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id);
+    }
+
+    get vo_field_ref_type_code_text() {
+        if (!this.vo_field_ref) {
+            return null;
+        }
+
+        let type: string = VOFieldRefVOManager.find_vo_field_ref_vo_simple_type(this.vo_field_ref);
+
+        if (!type) {
+            return null;
+        }
+
+        return this.vo_field_ref.get_translatable_type_code_text(type);
     }
 }

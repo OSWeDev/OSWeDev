@@ -130,11 +130,12 @@ export default class CurrentUserFilterWidgetComponent extends VueComponentBase {
     }
 
     get field(): ModuleTableField<any> {
-        if (!this.vo_field_ref) {
+        if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
             return null;
         }
 
         const moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+
         return moduletable.get_field_by_id(this.vo_field_ref.field_id);
     }
 

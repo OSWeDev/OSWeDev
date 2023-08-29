@@ -9,6 +9,12 @@ import DashboardBuilderController from "../DashboardBuilderController";
  * - Its defined the api_type_id and field_id from which a filter widget shall filter on
  */
 export default class VOFieldRefVO extends AbstractVO implements IDistantVOBase, IWeightedItem {
+    public static VOFIELDREF_TYPE_ENUM_CODE: string = "vo_field_ref.type.enum";
+    public static VOFIELDREF_TYPE_STRING_CODE: string = "vo_field_ref.type.string";
+    public static VOFIELDREF_TYPE_BOOLEAN_CODE: string = "vo_field_ref.type.boolean";
+    public static VOFIELDREF_TYPE_DATE_CODE: string = "vo_field_ref.type.date";
+    public static VOFIELDREF_TYPE_NUMBER_CODE: string = "vo_field_ref.type.number";
+
     public static API_TYPE_ID: string = "vo_field_ref";
 
     public _type: string = VOFieldRefVO.API_TYPE_ID;
@@ -36,5 +42,39 @@ export default class VOFieldRefVO extends AbstractVO implements IDistantVOBase, 
         }
 
         return DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget_id + '.' + this.api_type_id + '.' + this.field_id;
+    }
+
+    /**
+     * get_translatable_type_code_text
+     *
+     * @param {string} type
+     * @returns {string}
+     */
+    public get_translatable_type_code_text(type: string): string {
+        let code_text: string = null;
+
+        if (!type) {
+            return null;
+        }
+
+        switch (type) {
+            case 'enum':
+                code_text = VOFieldRefVO.VOFIELDREF_TYPE_ENUM_CODE;
+                break;
+            case 'string':
+                code_text = VOFieldRefVO.VOFIELDREF_TYPE_STRING_CODE;
+                break;
+            case 'boolean':
+                code_text = VOFieldRefVO.VOFIELDREF_TYPE_BOOLEAN_CODE;
+                break;
+            case 'date':
+                code_text = VOFieldRefVO.VOFIELDREF_TYPE_DATE_CODE;
+                break;
+            case 'number':
+                code_text = VOFieldRefVO.VOFIELDREF_TYPE_NUMBER_CODE;
+                break;
+        }
+
+        return code_text;
     }
 }

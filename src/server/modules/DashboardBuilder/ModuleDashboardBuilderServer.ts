@@ -868,6 +868,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Champs'
         }, 'field_value_filter_widget_component.vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Référence de type '
+        }, 'field_value_filter_widget_component.vo_field_ref_type_display.___LABEL___'));
+
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Sélection multiple ?'
         }, 'field_value_filter_widget_component.can_select_multiple.___LABEL___'));
@@ -1030,6 +1036,26 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Référence de champs (donnée filtrée)'
         }, 'dow_filter_widget_component.vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'enum'
+        }, 'vo_field_ref.type.enum.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'string'
+        }, 'vo_field_ref.type.string.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'boolean'
+        }, 'vo_field_ref.type.boolean.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'date'
+        }, 'vo_field_ref.type.date.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'nombre'
+        }, 'vo_field_ref.type.number.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrer une date par le jour de la semaine'

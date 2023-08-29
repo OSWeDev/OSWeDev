@@ -3,6 +3,7 @@ import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import VOFieldRefVO from "../vos/VOFieldRefVO";
 import { isEmpty } from 'lodash';
+import VOFieldRefVOHandler from "../handlers/VOFieldRefVOHandler";
 
 /**
  * @class VOFieldRefVOManager
@@ -112,6 +113,42 @@ export default class VOFieldRefVOManager {
             api_type_id,
             field_id,
         });
+    }
+
+    /**
+     * find_vo_field_ref_vo_simple_type
+     * - Find the simple type of a VOFieldRefVO
+     *
+     * @param {VOFieldRefVO} vo_field_ref
+     * @returns {'string' | 'number' | 'boolean' | 'date' | 'enum'}
+     */
+    public static find_vo_field_ref_vo_simple_type(
+        vo_field_ref: VOFieldRefVO
+    ): 'string' | 'number' | 'boolean' | 'date' | 'enum' {
+        let type: 'string' | 'number' | 'boolean' | 'date' | 'enum' = null;
+
+        if (!vo_field_ref) {
+            return null;
+        }
+
+        if (VOFieldRefVOHandler.is_type_boolean(vo_field_ref)) {
+            type = 'boolean';
+
+        } else if (VOFieldRefVOHandler.is_type_enum(vo_field_ref)) {
+            type = 'enum';
+
+        } else if (VOFieldRefVOHandler.is_type_date(vo_field_ref)) {
+            type = 'date';
+
+        } else if (VOFieldRefVOHandler.is_type_string(vo_field_ref)) {
+            type = 'string';
+
+        } else if (VOFieldRefVOHandler.is_type_number(vo_field_ref)) {
+            type = 'number';
+
+        }
+
+        return type;
     }
 
     public static getInstance(): VOFieldRefVOManager {
