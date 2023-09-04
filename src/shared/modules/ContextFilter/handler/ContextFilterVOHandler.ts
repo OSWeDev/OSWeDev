@@ -229,6 +229,7 @@ export default class ContextFilterVOHandler {
         if (!ContextFilterVOHandler.instance) {
             ContextFilterVOHandler.instance = new ContextFilterVOHandler();
         }
+
         return ContextFilterVOHandler.instance;
     }
 
@@ -327,6 +328,46 @@ export default class ContextFilterVOHandler {
                     break;
 
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                case DatatableField.REF_RANGES_FIELD_TYPE:
+                    resData = this.get_data_relations(raw_data, resData, field);
+                    break;
+
+                default:
+                    break;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+            resData[field.datatable_field_uid] = null;
+        }
+
+        return resData;
+    }
+
+    /**
+     * get_data_relations
+     *  - Get data relations may be called for datatable row or for vo
+     *
+     * @param {IDistantVOBase} raw_data
+     * @param {any} resData
+     * @param {boolean} is_vo get data relation may be called for datatable row or for vo
+     * @param {DatatableField} field
+     * @returns {Promise<any>}
+     */
+    public async get_data_relations(
+        raw_data: IDistantVOBase,
+        resData: any,
+        field: DatatableField<any, any>,
+        is_vo: boolean = false,
+        target_field_alias: string = null
+    ): Promise<any> {
+
+        try {
+            field.auto_update_datatable_field_uid_with_vo_type();
+
+            switch (field.type) {
+                case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
 
                     let src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
@@ -338,10 +379,23 @@ export default class ContextFilterVOHandler {
                         let ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
                             .filter_by_id(raw_data[src_module_table_field_id])
                             .select_vo();
+
                         resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
                         resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                     }
+
+                    if (is_vo) {
+                        const field_alias = target_field_alias ?? field.vo_type_id;
+
+                        const ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
+                            .filter_by_id(raw_data[field.module_table_field_id])
+                            .select_vo();
+
+                        resData[field_alias + '__label'] = manyToOneField.dataToHumanReadable(ref_data);
+                        resData[field_alias] = ref_data;
+                    }
+
                     break;
 
                 case DatatableField.ONE_TO_MANY_FIELD_TYPE:
@@ -367,9 +421,9 @@ export default class ContextFilterVOHandler {
 
                         let promises = [];
 
-                        for (let i in vo_ids) {
+                        for (const i in vo_ids) {
                             promises.push((async () => {
-                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                const ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
                                     .filter_by_id(vo_ids[i])
                                     .select_vo();
 
@@ -382,6 +436,35 @@ export default class ContextFilterVOHandler {
 
                         await all_promises(promises);
                     }
+
+                    if (is_vo) {
+                        const field_alias = target_field_alias ?? field.vo_type_id;
+                        // get ids from the source data
+                        let vo_ids: any[] = raw_data[field.module_table_field_id];
+
+                        if (!isArray(vo_ids)) {
+                            vo_ids = [vo_ids];
+                        }
+
+                        resData[field_alias] = [];
+                        let promises = [];
+
+                        for (const i in vo_ids) {
+                            promises.push((async () => {
+                                const ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                    .filter_by_id(vo_ids[i])
+                                    .select_vo();
+
+                                resData[field_alias].push({
+                                    id: ref_data.id,
+                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                });
+                            })());
+                        }
+
+                        await all_promises(promises);
+                    }
+
                     break;
 
                 case DatatableField.MANY_TO_MANY_FIELD_TYPE:
@@ -409,7 +492,7 @@ export default class ContextFilterVOHandler {
 
                         for (let i in vo_ids) {
                             promises.push((async () => {
-                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                const ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
                                     .filter_by_id(vo_ids[i])
                                     .select_vo();
 
@@ -423,27 +506,75 @@ export default class ContextFilterVOHandler {
                         await all_promises(promises);
                     }
 
+                    if (is_vo) {
+                        const field_alias = target_field_alias ?? field.vo_type_id;
+
+                        let vo_ids: any[] = raw_data[field.module_table_field_id];
+
+                        if (!isArray(vo_ids)) {
+                            vo_ids = [vo_ids];
+                        }
+
+                        resData[field_alias] = [];
+                        let promises = [];
+
+                        for (let i in vo_ids) {
+                            promises.push((async () => {
+                                const ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                    .filter_by_id(vo_ids[i])
+                                    .select_vo();
+
+                                resData[field_alias].push({
+                                    id: ref_data.id,
+                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                });
+                            })());
+                        }
+
+                        await all_promises(promises);
+                    }
+
                     break;
 
                 case DatatableField.REF_RANGES_FIELD_TYPE:
-                    let refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
+                    const refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
 
-                    resData[field.datatable_field_uid] = [];
-
-                    let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                    const refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
                         refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id + '__raw' : // We are waiting for the actual converted NumRange[] value
                         refField.srcField.field_id;
 
-                    await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
-                        let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
-                            .filter_by_id(id)
-                            .select_vo();
+                    if (!!raw_data[field.datatable_field_uid]) {
+                        resData[field.datatable_field_uid] = [];
 
-                        resData[field.datatable_field_uid].push({
-                            id: id,
-                            label: refField.dataToHumanReadable(ref_data)
+                        await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
+                            const ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
+                                .filter_by_id(id)
+                                .select_vo();
+
+                            resData[field.datatable_field_uid].push({
+                                id: id,
+                                label: refField.dataToHumanReadable(ref_data)
+                            });
                         });
-                    });
+                    }
+
+                    if (is_vo) {
+                        const field_alias = target_field_alias ?? field.vo_type_id;
+
+                        resData[field_alias] = [];
+
+                        await RangeHandler.foreach_ranges_batch_await(raw_data[field.module_table_field_id], async (id: number) => {
+                            const ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
+                                .filter_by_id(id)
+                                .select_vo();
+
+                            resData[field_alias].push({
+                                id: id,
+                                label: refField.dataToHumanReadable(ref_data)
+                            });
+                        });
+                    }
+
                     break;
 
                 default:

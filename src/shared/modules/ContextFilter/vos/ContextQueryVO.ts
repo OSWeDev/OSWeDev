@@ -4,7 +4,6 @@ import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
@@ -41,7 +40,6 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      *  qui vide le cache suivant les durées de rétention
      */
     public max_age_ms: number;
-
 
     /**
      * Indicateur de select count()
@@ -107,6 +105,11 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Ce paramètre est forcé à false quand on arrive par l'API, seul le serveur peut décider de le mettre à true
      */
     public is_server: boolean;
+
+    /**
+     * Explicitly load the given relations fields (e.g. while using select_vos)
+     */
+    public relations: ContextQueryFieldVO[];
 
     /**
      * @deprecated use is_admin
@@ -330,10 +333,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
-     * has_field
+     * has_field_id
      *  - Check if the given field_id is in the fields
      */
-    public has_field(field_id: string): boolean {
+    public has_field_id(field_id: string): boolean {
         if (!this.fields) {
             return false;
         }
@@ -392,8 +395,70 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
             this.fields = [];
         }
 
-        this.fields = this.fields.concat(fields);
-        this.update_active_api_type_ids_from_fields(fields);
+        fields?.map((f) => {
+            this.add_field(
+                f.field_id,
+                f.alias,
+                f.api_type_id,
+                f.aggregator,
+                f.modifier,
+                f.cast_with
+            );
+        });
+
+        return this;
+    }
+
+    /**
+     * add_relation
+     *  - Load relation explicitly to the query (ex: foreign key user_id)
+     *
+     * @param {string} field_id
+     * @param {string} alias
+     * @param {string} api_type_id
+     * @returns {ContextQueryVO}
+     */
+    public add_relation(
+        field_id: string, // the field_id of the relation to load (ex: foreign key user_id)
+        alias: string = null, // alias of the field to load (ex: user) wich will be the actual VO loaded
+        api_type_id: string = null, // api_type_id of the field to load (ex: user)
+    ): ContextQueryVO {
+
+        const field = new ContextQueryFieldVO(
+            api_type_id ? api_type_id : this.base_api_type_id,
+            field_id,
+            alias,
+        );
+
+        if (!this.relations) {
+            this.relations = [];
+        }
+
+        this.relations.push(field);
+
+        return this;
+    }
+
+    /**
+     * add_relations
+     *  - Load relations explicitly to the query (ex: foreign key user_id)
+     *
+     * @param {ContextQueryFieldVO[]} fields
+     * @returns {ContextQueryVO}
+     */
+    public add_relations(fields: ContextQueryFieldVO[]): ContextQueryVO {
+
+        if (!this.relations) {
+            this.relations = [];
+        }
+
+        fields?.map((f) => {
+            this.add_relation(
+                f.field_id,
+                f.alias,
+                f.api_type_id,
+            );
+        });
 
         return this;
     }
@@ -1203,7 +1268,9 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         if (!fields) {
             return this;
         }
-        let api_type_ids = fields.map((f) => f.api_type_id);
+
+        const api_type_ids = fields.map((f) => f.api_type_id);
+
         return this.using(api_type_ids);
     }
 

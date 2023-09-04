@@ -2260,6 +2260,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'supervision_widget_component.table.name.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Boutique" },
+            'supervision_widget_component.table.store.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher le détail" },
             'supervision_widget_component.table.show_detail.___LABEL___'
         ));

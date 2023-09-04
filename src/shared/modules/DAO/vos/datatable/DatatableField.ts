@@ -141,6 +141,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public setModuleTable(moduleTable: ModuleTable<any>): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
+
         return this;
     }
 
@@ -429,11 +430,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    protected init(_type: string, type: string, datatable_field_uid: string) {
+    protected init(_type: string, type: string, datatable_field_uid: string, vo_type_id: string = null) {
         this._type = _type;
         this.type = type;
         this.datatable_field_uid = datatable_field_uid;
         this.module_table_field_id = datatable_field_uid;
+        this.vo_type_id = vo_type_id;
         this.validate = null;
         this.onChange = null;
         this.onEndOfChange = null;

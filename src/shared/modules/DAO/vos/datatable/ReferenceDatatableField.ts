@@ -82,7 +82,9 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         if (!has_weight) {
             this.setSort((vo1, vo2) => vo1.id - vo2.id);
         } else {
-            this.setSort(WeightHandler.getInstance().get_sort_by_weight_cb.bind(this));
+            this.setSort(
+                WeightHandler.getInstance().get_sort_by_weight_cb.bind(this)
+            );
         }
     }
 }

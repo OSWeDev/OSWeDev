@@ -47,6 +47,7 @@ import ContextFieldPathServerController from './ContextFieldPathServerController
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import ArrayHandler from '../../../shared/tools/ArrayHandler';
+import CRUD from '../../../shared/modules/DAO/vos/CRUD';
 
 export default class ContextQueryServerController {
 
@@ -73,7 +74,10 @@ export default class ContextQueryServerController {
      * On peut passer le query_wrapper pour éviter de le reconstruire si ça a été fait avant (pour récupérer la requete construite par exemple pour un cache local)
      * @param context_query le champs fields doit être null pour demander des vos complets
      */
-    public async select_vos<T extends IDistantVOBase>(context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper = null): Promise<T[]> {
+    public async select_vos<T extends IDistantVOBase>(
+        context_query: ContextQueryVO,
+        query_wrapper: ParameterizedQueryWrapper = null
+    ): Promise<T[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
@@ -145,12 +149,16 @@ export default class ContextQueryServerController {
         // Case when union_query => we need to take care of each res vo_type
         // (as we should have _explicit_api_type_id)
         for (const i in query_res) {
-            const data = query_res[i];
+            let data = query_res[i];
 
             data._type = moduletable.vo_type;
 
             if (data._explicit_api_type_id) {
                 data._type = data._explicit_api_type_id;
+            }
+
+            if (context_query.relations?.length > 0) {
+                await this.select_vo_relations(context_query, data);
             }
         }
 
@@ -164,6 +172,48 @@ export default class ContextQueryServerController {
         );
 
         return moduletable.forceNumerics(query_res);
+    }
+
+    /**
+     * select_vo_relations
+     *  - We better get the vo relations from the context_query
+     *
+     * @param {ContextQueryVO} context_query
+     * @param {IDistantVOBase} vo
+     * @returns {Promise<T>}
+     */
+    public async select_vo_relations<T extends IDistantVOBase>(
+        context_query: ContextQueryVO,
+        vo_data: T
+    ): Promise<T> {
+
+        for (const key in context_query.relations) {
+            const relation = context_query.relations[key];
+
+            if (!relation || !relation.field_id) {
+                continue;
+            }
+
+            // Check if it is a one to one relation or one to many
+            const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+            const field = moduletable.get_field_by_id(relation.field_id);
+
+            if (!field) {
+                continue;
+            }
+
+            const datatable_field = CRUD.get_dt_field(field);
+
+            vo_data = await ContextFilterVOHandler.getInstance().get_data_relations(
+                vo_data,
+                vo_data,
+                datatable_field,
+                true,
+                relation.alias
+            );
+        }
+
+        return vo_data;
     }
 
     /**
@@ -1616,7 +1666,7 @@ export default class ContextQueryServerController {
                     cast_with = field_to_add.getPGSqlFieldType();
                 }
 
-                const has_field = context_query.has_field(field_id_to_add);
+                const has_field = context_query.has_field_id(field_id_to_add);
 
                 if (has_field) {
                     context_query.replace_field(
@@ -1681,7 +1731,7 @@ export default class ContextQueryServerController {
         for (let i in context_query.fields) {
             let context_field = context_query.fields[i];
 
-            let moduletable = VOsTypesManager.moduleTables_by_voType[context_field.api_type_id];
+            const moduletable = VOsTypesManager.moduleTables_by_voType[context_field.api_type_id];
 
             const all_required_field_ids = all_required_fields?.map((field) => field.field_id);
 

@@ -107,9 +107,11 @@ export default class ModuleContextFilter extends Module {
 
     /**
      * Filtrer des vos avec les context filters
-     * @param context_query le champs fields doit être null pour demander des vos complets
+     * @param {ContextQueryVO} context_query le champs fields doit être null pour demander des vos complets
      */
-    public select_vos: <T extends IDistantVOBase>(context_query: ContextQueryVO) => Promise<T[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_vos);
+    public select_vos: <T extends IDistantVOBase>(
+        context_query: ContextQueryVO
+    ) => Promise<T[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_vos);
 
     /**
      * Delete des vos en appliquant les filtres
@@ -286,6 +288,7 @@ export default class ModuleContextFilter extends Module {
         let datatable_fields = [
             new ModuleTableField('base_api_type_id', ModuleTableField.FIELD_TYPE_string, 'base_api_type_id', true),
             new ModuleTableField('fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'fields', false),
+            new ModuleTableField('relations', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'relations', false),
             new ModuleTableField('filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'filters', false),
             new ModuleTableField('active_api_type_ids', ModuleTableField.FIELD_TYPE_string_array, 'active_api_type_ids', false),
             new ModuleTableField('query_limit', ModuleTableField.FIELD_TYPE_int, 'query_limit', true, true, 0),
@@ -300,6 +303,7 @@ export default class ModuleContextFilter extends Module {
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
+
         this.datatables.push(datatable);
     }
 

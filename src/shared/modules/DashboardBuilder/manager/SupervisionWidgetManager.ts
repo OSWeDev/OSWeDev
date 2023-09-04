@@ -1,18 +1,19 @@
 import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
-import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
 import FieldFiltersVOManager from './FieldFiltersVOManager';
 import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
-import FieldFiltersVO from "../vos/FieldFiltersVO";
-import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
+import ContextQueryFieldVO from "../../ContextFilter/vos/ContextQueryFieldVO";
+import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
-import ModuleDAO from "../../DAO/ModuleDAO";
-import SupervisionController from "../../Supervision/SupervisionController";
-import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 import DashboardVO from "../vos/DashboardVO";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
+import ModuleDAO from "../../DAO/ModuleDAO";
+import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
+import SupervisionController from "../../Supervision/SupervisionController";
 import { cloneDeep } from "lodash";
 
 /**
@@ -40,6 +41,9 @@ export default class SupervisionWidgetManager {
         active_field_filters: FieldFiltersVO,
         active_api_type_ids: string[],
         pagination?: { offset: number, limit?: number, sorts?: SortByVO[] },
+        options?: {
+            relations?: ContextQueryFieldVO[],
+        }
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
         const self = SupervisionWidgetManager.getInstance();
 
@@ -113,8 +117,23 @@ export default class SupervisionWidgetManager {
             widget_options,
             context_filters_by_api_type_id,
             pagination,
+            options
         );
     }
+
+    /**
+     * init_vo_relations
+     *  - Init the relations to add to the query (e.g. store "ou boutiques" for store_id field)
+     *  - This method is a hook that should be called from the main app side
+     *
+     * @param {ContextQueryFieldVO[]} relations
+     */
+    public static init_vo_relations(relations: ContextQueryFieldVO[]): void {
+        const self = SupervisionWidgetManager.getInstance();
+
+        self.vo_relations = relations;
+    }
+
 
     public static getInstance(): SupervisionWidgetManager {
         if (!SupervisionWidgetManager.instance) {
@@ -232,7 +251,10 @@ export default class SupervisionWidgetManager {
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
         context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
-        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] }
+        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] },
+        options?: {
+            relations?: ContextQueryFieldVO[],
+        }
     ): Promise<{
         items: ISupervisedItem[],
         total_count: number,
@@ -268,6 +290,12 @@ export default class SupervisionWidgetManager {
                 .set_query_distinct()
                 .set_sorts(sorts);
 
+            if (options?.relations) {
+                api_type_context_query.add_relations(
+                    options.relations
+                );
+            }
+
             if (!context_query) {
                 // Main first query
                 context_query = api_type_context_query;
@@ -296,6 +324,9 @@ export default class SupervisionWidgetManager {
 
     public is_item_accepted: { [dashboard_id: number]: (supervised_item: ISupervisedItem) => boolean } = {};
     public allowed_api_type_ids: string[] = [];
+
+    // Relations to add to the query (e.g. store "ou boutiques" for store_id field)
+    public vo_relations: ContextQueryFieldVO[] = [];
 
     protected constructor() { }
 

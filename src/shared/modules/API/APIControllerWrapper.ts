@@ -35,6 +35,7 @@ export default class APIControllerWrapper {
 
     /**
      * Return Shared API Handler => la fonction qui gère la demande en fonction de si l'on est client ou server
+     *
      * @param api_name
      * @param sanitize_params used to sanitize params if provided
      * @param precondition returns false if we refuse, and the api returns precondition_default_value
@@ -48,9 +49,16 @@ export default class APIControllerWrapper {
         sanitize_result: (res: any, ...params) => any = null,
         use_notif_for_result: boolean = false
     ): (...params) => Promise<U> {
+
         return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(
-            api_name, sanitize_params, precondition,
-            precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result, use_notif_for_result);
+            api_name,
+            sanitize_params,
+            precondition,
+            precondition_default_value,
+            APIControllerWrapper.registered_apis,
+            sanitize_result,
+            use_notif_for_result
+        );
     }
 
     public static registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
@@ -61,6 +69,7 @@ export default class APIControllerWrapper {
         if (!APIControllerWrapper.registered_apis[api_name]) {
             throw new Error("Registering server API Handler on unknown API:" + api_name);
         }
+
         APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
     }
 

@@ -13,7 +13,8 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
         datatable_field_uid: string,
         targetModuleTable: ModuleTable<any>,
         interModuleTable: ModuleTable<any>,
-        sortedTargetFields: Array<DatatableField<any, any>>): ManyToManyReferenceDatatableFieldVO<any, any> {
+        sortedTargetFields: Array<DatatableField<any, any>>
+    ): ManyToManyReferenceDatatableFieldVO<any, any> {
 
         let res = new ManyToManyReferenceDatatableFieldVO();
         res.init_ref_dtf(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);

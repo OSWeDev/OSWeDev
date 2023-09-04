@@ -12,7 +12,8 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
     public static createNew(
         datatable_field_uid: string,
         targetModuleTable: ModuleTable<any>,
-        sortedTargetFields: Array<DatatableField<any, any>>): ManyToOneReferenceDatatableFieldVO<any> {
+        sortedTargetFields: Array<DatatableField<any, any>>
+    ): ManyToOneReferenceDatatableFieldVO<any> {
 
         let res = new ManyToOneReferenceDatatableFieldVO();
 

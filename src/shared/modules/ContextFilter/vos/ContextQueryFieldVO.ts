@@ -1,8 +1,9 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import VarConfVO from "../../Var/vos/VarConfVO";
 
-export default class ContextQueryFieldVO implements IDistantVOBase {
+export default class ContextQueryFieldVO extends AbstractVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_query_field";
 
     public static FIELD_MODIFIER_NONE: number = 0;
@@ -53,6 +54,8 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
         modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
         cast_with: string = null
     ) {
+        super();
+
         this.api_type_id = api_type_id;
         this.field_id = field_id;
         this.alias = alias;
