@@ -19,12 +19,11 @@ import AdvancedStringFilter from './widgets/field_value_filter_widget/string/Adv
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
-import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import SupervisionWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -176,7 +175,15 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         supervision.default_background = '#f5f5f5';
         supervision.icon_component = 'Supervisionwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(supervision, () => new SupervisionWidgetOptions(100, [], true, true, 30, true), SupervisionWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            supervision,
+            () => new SupervisionWidgetOptionsVO().from({
+                supervision_api_type_ids: [],
+                auto_refresh: true,
+                auto_refresh_seconds: 30,
+            }),
+            SupervisionWidgetOptionsVO.get_selected_fields
+        );
 
         Vue.component('Supervisionwidgetcomponent', () => import('./widgets/supervision_widget/SupervisionWidgetComponent'));
         Vue.component('Supervisionwidgetoptionscomponent', () => import('./widgets/supervision_widget/options/SupervisionWidgetOptionsComponent'));

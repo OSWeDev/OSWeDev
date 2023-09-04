@@ -1,0 +1,16 @@
+.table_widget_columns_options_component {
+    .field_refs {
+        .nested_field_refs {
+            background: white;
+            padding: 1em;
+
+            .nestable-item {
+                .nestable-handle {
+                    float: left;
+                    margin-right: 1em;
+                    padding-top: 0.5em;
+                }
+            }
+        }
+    }
+}

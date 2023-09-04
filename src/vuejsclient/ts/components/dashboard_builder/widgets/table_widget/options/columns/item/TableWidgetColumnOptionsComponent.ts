@@ -1,37 +1,37 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import DashboardPageWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import TableColumnDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
-import ModuleTableField from '../../../../../../../../shared/modules/ModuleTableField';
-import InlineTranslatableText from '../../../../../InlineTranslatableText/InlineTranslatableText';
-import VueComponentBase from '../../../../../VueComponentBase';
-import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
-import './TableWidgetColumnOptionsComponent.scss';
-import TableWidgetController from '../../TableWidgetController';
-import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
-import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
-import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
-import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
+import VarsController from '../../../../../../../../../shared/modules/Var/VarsController';
+import TableWidgetController from '../../../TableWidgetController';
+import VOsTypesManager from '../../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ThrottleHelper from '../../../../../../../../../shared/tools/ThrottleHelper';
+import ConsoleHandler from '../../../../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../../../../shared/tools/ObjectHandler';
+import ModuleTableField from '../../../../../../../../../shared/modules/ModuleTableField';
+import InlineTranslatableText from '../../../../../../InlineTranslatableText/InlineTranslatableText';
+import VueComponentBase from '../../../../../../VueComponentBase';
+import ModuleTable from '../../../../../../../../../shared/modules/ModuleTable';
+import { ModuleDashboardPageGetter } from '../../../../../page/DashboardPageStore';
 import { cloneDeep, isEqual } from 'lodash';
-import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
-import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
-import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
-import TableWidgetOptionsVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import { ConditionStatement } from '../../../../../../../../shared/tools/ConditionHandler';
+import WidgetFilterOptionsComponent from '../../../../var_widget/options/filters/WidgetFilterOptionsComponent';
+import VoFieldWidgetRefComponent from '../../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
+import Dates from '../../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { all_promises } from '../../../../../../../../../shared/tools/PromiseTools';
+import DashboardPageWidgetVO from '../../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import FieldValueFilterWidgetOptions from '../../../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import TableWidgetOptionsVO from '../../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import DashboardWidgetVO from '../../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import TableColumnDescVO from '../../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import AccessPolicyVO from '../../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import { query } from '../../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { ConditionStatement } from '../../../../../../../../../shared/tools/ConditionHandler';
+import './TableWidgetColumnOptionsComponent.scss';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
     components: {
+        Widgetfilteroptionscomponent: WidgetFilterOptionsComponent,
         Vofieldwidgetrefcomponent: VoFieldWidgetRefComponent,
         Inlinetranslatabletext: InlineTranslatableText,
-        Widgetfilteroptionscomponent: WidgetFilterOptionsComponent
     }
 })
 export default class TableWidgetColumnOptionsComponent extends VueComponentBase {
@@ -44,7 +44,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     @ModuleDashboardPageGetter
     private get_page_widgets: DashboardPageWidgetVO[];
-
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -461,7 +460,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private async update_column_width() {
-
         if (this.object_column && (this.column_width != this.object_column.column_width)) {
             this.object_column.column_width = this.column_width;
             this.$emit('update_column', this.object_column);
@@ -469,7 +467,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private async update_default_sort_field() {
-
         if (this.object_column && (this.default_sort_field != this.object_column.default_sort_field)) {
             this.object_column.default_sort_field = this.default_sort_field;
             this.$emit('update_column', this.object_column);
@@ -675,7 +672,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.filter_custom_field_filters = {};
         new_column.kanban_column = false;
 
-        // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
+        // Reste le weight à configurer, enregistrer la colonne en base,
+        // et recharger les colonnes sur le client pour mettre à jour
+        // l'affichage du widget
         this.$emit('add_column', new_column);
     }
 
@@ -710,8 +709,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
-
-
     }
 
     private allowDrop(event) {

@@ -80,3 +80,10 @@
             :width="100"
             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
         )
+
+    .supervision_widget_columns_options_component_wrapper
+        Tablewidgetcolumnsoptionscomponent(
+            :page_widget="page_widget"
+            :columns="columns"
+            @change="handle_columns_changes"
+        )

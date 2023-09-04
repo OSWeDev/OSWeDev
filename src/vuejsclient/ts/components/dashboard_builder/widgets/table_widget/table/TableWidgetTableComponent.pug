@@ -242,7 +242,7 @@ include ../../../../../../views/mixins/loading.pug
                                             :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column) }' 
                                             @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null" 
                                             v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null' 
-                                            )
+                                        )
                                             template(v-for='child in column.children')
                                                 td.table_col(v-if="child.type == 1")
                                                     Datatablecomponentfield(
@@ -264,8 +264,9 @@ include ../../../../../../views/mixins/loading.pug
                                                     )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(
-                                                        v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
-                                                        )
+                                                        v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' 
+                                                        :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
+                                                    )
                                                         template(v-if='update_button')
                                                             .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
                                                                 i.fa.fa-pencil
@@ -290,6 +291,23 @@ include ../../../../../../views/mixins/loading.pug
                                 template(v-else)
                                     template(v-if="(!colspan_total_with_hidden || (parseInt(index_column) >= colspan_total_with_hidden)) && !column.hide_from_table")
                                         td.test(:field_id="column.field_id")
+
+
+
+            .table_view_widget_wrapper
+                Tableviewwidgettablecomponent(
+                    page_widget="page_widget"
+                    table_columns="table_columns"
+                    data_rows="data_rows"
+                    @confirm_archive="confirm_archive"
+                    @onchange_column="onchange_column"
+                    @confirm_delete="confirm_delete"
+                    @open_update="open_update"
+                    @open_vocus="open_vocus"
+                    @filter_by="handle_filter_by"
+                    @sort_by="sort_by"
+                )
+
 
             .lower_pagination(v-if="!hide_pagination_bottom")
                 Tablepaginationcomponent(

@@ -1,23 +1,28 @@
-import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import Component from 'vue-class-component';
+import { cloneDeep } from 'lodash';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
+import SupervisionWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
+import TableWidgetColumnsOptionsComponent from '../../table_widget/options/columns/TableWidgetColumnsOptionsComponent';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import SupervisionWidgetOptions from './SupervisionWidgetOptions';
 import './SupervisionWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./SupervisionWidgetOptionsComponent.pug'),
     components: {
+        Tablewidgetcolumnsoptionscomponent: TableWidgetColumnsOptionsComponent,
         Inlinetranslatabletext: InlineTranslatableText,
     }
 })
@@ -35,8 +40,14 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    private next_update_options: SupervisionWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private next_update_options: SupervisionWidgetOptionsVO = null;
+
+    // Update options
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_options.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
 
     private supervision_api_type_ids: string[] = [];
     private refresh_button: boolean = true;
@@ -120,18 +131,23 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
             if (!!this.supervision_api_type_ids) {
                 this.supervision_api_type_ids = [];
             }
+
             if (!!this.auto_refresh_seconds) {
                 this.auto_refresh_seconds = 30;
             }
+
             if (!!this.limit) {
                 this.limit = 100;
             }
+
             if (!this.auto_refresh) {
                 this.auto_refresh = true;
             }
+
             if (!this.show_bulk_edit) {
                 this.show_bulk_edit = true;
             }
+
             if (!this.refresh_button) {
                 this.refresh_button = true;
             }
@@ -141,18 +157,23 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         if (this.supervision_api_type_ids != this.widget_options.supervision_api_type_ids) {
             this.supervision_api_type_ids = this.widget_options.supervision_api_type_ids;
         }
+
         if (this.limit != this.widget_options.limit) {
             this.limit = this.widget_options.limit;
         }
+
         if (this.auto_refresh != this.widget_options.auto_refresh) {
             this.auto_refresh = this.widget_options.auto_refresh;
         }
+
         if (this.refresh_button != this.widget_options.refresh_button) {
             this.refresh_button = this.widget_options.refresh_button;
         }
+
         if (this.auto_refresh_seconds != this.widget_options.auto_refresh_seconds) {
             this.auto_refresh_seconds = this.widget_options.auto_refresh_seconds;
         }
+
         if (this.show_bulk_edit != this.widget_options.show_bulk_edit) {
             this.show_bulk_edit = this.widget_options.show_bulk_edit;
         }
@@ -162,8 +183,8 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         return this.label('supervision_widget_component.' + api_type_id);
     }
 
-    private get_default_options(): SupervisionWidgetOptions {
-        return new SupervisionWidgetOptions(100, [], true, true, 30, true);
+    private get_default_options(): SupervisionWidgetOptionsVO {
+        return new SupervisionWidgetOptionsVO([], true, 30);
     }
 
     private async update_options() {
@@ -228,6 +249,19 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
+    /**
+     * handle_columns_changes
+     *  - Handle columns changes
+     *
+     * @param {any[]} columns
+     */
+    private async handle_columns_changes(columns: any[]) {
+        this.next_update_options = cloneDeep(this.widget_options);
+        this.next_update_options.columns = columns;
+
+        this.throttled_update_options();
+    }
+
     get title_name_code_text(): string {
         if (!this.widget_options) {
             return null;
@@ -240,28 +274,60 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         return 'Supervision#' + this.page_widget.id;
     }
 
-    get widget_options(): SupervisionWidgetOptions {
+    get widget_options(): SupervisionWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: SupervisionWidgetOptions = null;
+        let options: SupervisionWidgetOptionsVO = null;
+
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptions;
-                options = options ? new SupervisionWidgetOptions(
-                    options.limit,
-                    options.supervision_api_type_ids,
-                    options.refresh_button,
-                    options.auto_refresh,
-                    options.auto_refresh_seconds,
-                    options.show_bulk_edit,
-                ) : null;
+                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptionsVO;
+                options = options ? new SupervisionWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
         return options;
+    }
+
+    get columns(): TableColumnDescVO[] {
+        const options: SupervisionWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.columns)) {
+            return null;
+        }
+
+        let res: TableColumnDescVO[] = [];
+
+        for (const i in options.columns) {
+            const column = options.columns[i];
+
+            if (column.readonly == null) {
+                column.readonly = true;
+            }
+            if (column.column_width == null) {
+                column.column_width = 0;
+            }
+            if (column.exportable == null) {
+                column.exportable = (column.type != TableColumnDescVO.TYPE_crud_actions);
+            }
+            if (column.hide_from_table == null) {
+                column.hide_from_table = false;
+            }
+            if (column.can_filter_by == null) {
+                column.can_filter_by = column.readonly && (
+                    (column.type != TableColumnDescVO.TYPE_crud_actions) ||
+                    (column.type != TableColumnDescVO.TYPE_vo_field_ref));
+            }
+
+            res.push(new TableColumnDescVO().from(column));
+        }
+
+        WeightHandler.getInstance().sortByWeight(res);
+
+        return res;
     }
 }

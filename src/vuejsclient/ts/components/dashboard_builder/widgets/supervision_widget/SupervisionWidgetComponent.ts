@@ -401,14 +401,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptionsVO;
-                options = options ? new SupervisionWidgetOptionsVO(
-                    options.limit,
-                    options.supervision_api_type_ids,
-                    options.refresh_button,
-                    options.auto_refresh,
-                    options.auto_refresh_seconds,
-                    options.show_bulk_edit,
-                ) : null;
+                options = options ? new SupervisionWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

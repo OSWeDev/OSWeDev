@@ -55,7 +55,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         public columns?: TableColumnDescVO[],
         public is_focus_api_type_id?: boolean,
         public limit?: number,
-        public crud_api_type_id?: string,
+        public crud_api_type_id?: string, // TODO: change to crud_api_type_ids (array) it may be a list of api_type_ids
         public vocus_button?: boolean,
         public delete_button?: boolean,
         public delete_all_button?: boolean,

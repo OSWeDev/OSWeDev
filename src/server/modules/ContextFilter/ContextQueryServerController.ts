@@ -384,13 +384,25 @@ export default class ContextQueryServerController {
          */
         let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
         let promise_pipeline = new PromisePipeline(limit);
-        for (let i in query_res) {
+        for (const i in query_res) {
             let row = query_res[i];
 
             if (row && row[label_replacement]) {
                 row['label'] = row[label_replacement];
-                row['label' + '__raw'] = row[label_replacement];
+                row['label__raw'] = row[label_replacement];
+
                 delete row[label_replacement];
+            }
+
+            // TODO: (to review) It makes no sens but it some case (supervision) we need to have the actual row vo_type
+            let row_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+
+            // Case when union_query => we need to take care of each res vo_type
+            // (as we should have _explicit_api_type_id)
+            row._type = row_moduletable.vo_type;
+
+            if (row._explicit_api_type_id) {
+                row._type = row._explicit_api_type_id;
             }
 
             for (let j in context_query.fields) {
@@ -400,10 +412,10 @@ export default class ContextQueryServerController {
                     // row['id' + '__raw'] = row['id'];
                     continue;
                 }
-                let field_id = field.alias ? field.alias : field.field_id;
+                const field_id = field.alias ? field.alias : field.field_id;
 
-                let module_table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
-                let module_field = module_table.getFieldFromId(field.field_id);
+                let field_module_table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
+                let module_field = field_module_table.getFieldFromId(field.field_id);
 
                 // switch (module_field.field_type) {
                 //     case ModuleTableField.FIELD_TYPE_tsrange:
@@ -415,7 +427,7 @@ export default class ContextQueryServerController {
                 // }
 
                 let forced_numeric_field = {};
-                module_table.force_numeric_field(module_field, row, forced_numeric_field, field_id);
+                field_module_table.force_numeric_field(module_field, row, forced_numeric_field, field_id);
                 row[field_id + '__raw'] = forced_numeric_field[field_id];
 
                 // si on est en édition on laisse la data raw
@@ -445,8 +457,9 @@ export default class ContextQueryServerController {
         /**
          * Remise du field 'label'
          */
-        for (let j in context_query.fields) {
-            let field = context_query.fields[j];
+        for (const j in context_query.fields) {
+            const field = context_query.fields[j];
+
             if (field.alias == label_replacement) {
                 field.alias = 'label';
             }

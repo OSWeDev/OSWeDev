@@ -1,11 +1,11 @@
 import Component from 'vue-class-component';
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -15,20 +15,20 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import TableWidgetColumnsOptionsComponent from './columns/TableWidgetColumnsOptionsComponent';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
-import './TableWidgetOptionsComponent.scss';
+import VueAppController from '../../../../../../VueAppController';
 import TableWidgetController from '../TableWidgetController';
 import { cloneDeep } from 'lodash';
-import VueAppController from '../../../../../../VueAppController';
+import './TableWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
     components: {
+        Tablewidgetcolumnsoptionscomponent: TableWidgetColumnsOptionsComponent,
         Inlinetranslatabletext: InlineTranslatableText,
-        Tablewidgetcolumnoptionscomponent: TableWidgetColumnOptionsComponent,
-        Vuenestable: VueNestable,
         Vuenestablehandle: VueNestableHandle,
+        Vuenestable: VueNestable,
     }
 })
 export default class TableWidgetOptionsComponent extends VueComponentBase {
@@ -434,6 +434,19 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * handle_columns_changes
+     *  - Handle columns changes from TableWidgetColumnsOptionsComponent
+     *
+     * @param {any[]} columns
+     */
+    private async handle_columns_changes(columns: any[]) {
+        this.next_update_options = cloneDeep(this.widget_options);
+        this.next_update_options.columns = columns;
+
+        this.throttled_update_options();
+    }
+
     private async changed_columns() {
 
         /**
@@ -634,7 +647,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     get columns(): TableColumnDescVO[] {
-        let options: TableWidgetOptionsVO = this.widget_options;
+        const options: TableWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.columns)) {
             this.editable_columns = null;
@@ -642,9 +655,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
 
         let res: TableColumnDescVO[] = [];
-        for (let i in options.columns) {
 
+        for (const i in options.columns) {
             let column = options.columns[i];
+
             if (column.readonly == null) {
                 column.readonly = true;
             }
@@ -663,11 +677,14 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     (column.type != TableColumnDescVO.TYPE_vo_field_ref));
             }
 
-            res.push(Object.assign(new TableColumnDescVO(), column));
+            res.push(new TableColumnDescVO().from(column));
         }
+
         WeightHandler.getInstance().sortByWeight(res);
 
-        this.editable_columns = res.map((e) => Object.assign(new TableColumnDescVO(), e));
+        this.editable_columns = res.map((column) =>
+            new TableColumnDescVO().from(column)
+        );
 
         return res;
     }

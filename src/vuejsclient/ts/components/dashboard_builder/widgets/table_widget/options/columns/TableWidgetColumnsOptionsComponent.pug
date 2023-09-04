@@ -1,0 +1,51 @@
+.table_widget_columns_options_component
+    .field_refs
+        .input_label {{ label('table_widget_options_component.columns') }}
+            span.fa-stack.fa-lg(v-tooltip="{content: read_label('table_widget_options_component.columns.ca_tooltip'), theme: 'info-tooltip'}")
+                i.fa-solid.fa-question-circle.fa-stack-1x
+
+        template(v-if='editable_columns && (editable_columns.length > 1)')
+            Vuenestable.nested_field_refs(
+                :hooks="{'beforeMove': beforeMove}"
+                v-model="editable_columns"
+                children-prop="children"
+                max_depth="1" 
+                key-prop="id"
+                @change="on_columns_change"
+            )
+                template(slot-scope="{ item }")
+
+                    Vuenestablehandle(:item="item" :class="{ header_color: item.type == 5 }")
+                        i.fa-solid.fa-bars.fa-fw(aria-hidden="true")
+
+                    .item_content
+                        Tablewidgetcolumnoptionscomponent(
+                            :get_new_column_id='get_new_column_id'
+                            :page_widget="page_widget"
+                            :column="item" 
+                            @remove_column="remove_column"
+                            @update_column="update_column"
+                            @add_column="add_column"
+                        )
+
+        template(v-if='columns && (columns.length == 1)')
+            .item_content
+                Tablewidgetcolumnoptionscomponent(
+                    :get_new_column_id='get_new_column_id'
+                    :page_widget="page_widget"
+                    :column="columns[0]" 
+                    @remove_column="remove_column"
+                    @update_column="update_column"
+                    @add_column="add_column"
+                )
+
+        .column_wrapper
+            Tablewidgetcolumnoptionscomponent(
+                :get_new_column_id='get_new_column_id'
+                :page_widget="page_widget"
+                :column="null"
+                @remove_column="remove_column"
+                @update_column="update_column"
+                @add_column="add_column"
+            )
+
