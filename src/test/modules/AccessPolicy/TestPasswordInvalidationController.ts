@@ -11,6 +11,7 @@ import moment = require('moment');
 import DateHandler from '../../../shared/tools/DateHandler';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 
 describe('TestPasswordInvalidationController', () => {
 
@@ -42,6 +43,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_invalidated: UserVO = {
@@ -64,6 +72,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_toremind1: UserVO = {
@@ -86,6 +101,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_reminded1: UserVO = {
@@ -108,6 +130,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_toremind2: UserVO = {
@@ -130,6 +159,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_toremind1_before_2: UserVO = {
@@ -152,6 +188,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_reminded2: UserVO = {
@@ -174,6 +217,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_nothingtodo: UserVO = {
@@ -196,6 +246,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
 
@@ -220,6 +277,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_invalidated_blocked: UserVO = {
@@ -242,6 +306,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_toremind1_blocked: UserVO = {
@@ -264,6 +335,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_reminded1_blocked: UserVO = {
@@ -286,6 +364,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_toremind2_blocked: UserVO = {
@@ -308,6 +393,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_toremind1_before_2_blocked: UserVO = {
@@ -330,6 +422,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_reminded2_blocked: UserVO = {
@@ -352,6 +451,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
         let user_nothingtodo_blocked: UserVO = {
@@ -374,6 +480,13 @@ describe('TestPasswordInvalidationController', () => {
             logged_once: false,
             creation_date: creation_date,
             archived: false,
+            parent_id: null,
+            trashed: false,
+            version_num: 1,
+            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_timestamp: Dates.now(),
+            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_timestamp: Dates.now(),
         };
 
 
