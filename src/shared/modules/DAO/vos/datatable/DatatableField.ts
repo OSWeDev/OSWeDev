@@ -104,8 +104,11 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     abstract get translatable_title(): string;
 
     public validate: (data: any) => string;
-    public onChange: (vo: IDistantVOBase) => void;
-    public onEndOfChange: (vo: IDistantVOBase) => void;
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
+    public onChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
+    public onEndOfChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
     public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
@@ -219,13 +222,13 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => void): this {
+    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onChange = onChange;
 
         return this;
     }
 
-    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => void): this {
+    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onEndOfChange = onEndOfChange;
 
         return this;
