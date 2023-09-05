@@ -1501,6 +1501,31 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'adv_number_fltr.not_eq'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '<' },
+            'condition_statement.lower_than'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '<=' },
+            'condition_statement.lower_than_or_equals'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '>' },
+            'condition_statement.greather_than'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '>=' },
+            'condition_statement.greather_than_or_equals'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Est null' },
+            'condition_statement.is_null'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'N\'est pas null' },
+            'condition_statement.is_not_null'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '=' },
+            'condition_statement.equals'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '!=' },
+            'condition_statement.not_equals'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Contient' },
             'adv_str_fltr.contient'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

@@ -1,0 +1,94 @@
+@import '../../../../../../scss/base/skin.scss';
+
+.field_value_filter_number_widget_component {
+
+    .vo_field_ref_label {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
+    .vo_field_ref_advanced {
+        right: 1em;
+        position: absolute;
+        top: .8em;
+    }
+
+    .advanced_number_filter_content{
+        display: inline-block;
+        width: 8em;
+
+        input {
+            width: -webkit-fill-available;
+            padding: .5em;
+            border: none;
+            margin-left: 1em;
+        }
+        margin-right: .3em;
+    }
+
+    .advanced_number_filter_add_filter {
+        padding: .4em .1em .4em .1em;
+        display: inline-block;
+        cursor: pointer;
+        color: dodgerblue;
+    }
+
+    .advanced_number_filter_validate_filter {
+        padding: .4em .1em .4em .1em;
+        display: inline-block;
+        cursor: pointer;
+        color: $success_color;
+    }
+
+    .advanced_number_filter_link_type {
+        padding: .4em 0em .4em .4em;
+        display: inline-block;
+        cursor: pointer;
+        color: dodgerblue;
+
+        .link_type {
+            position: absolute;
+            margin-top: -1.68em;
+            font-size: .7em;
+            color: white;
+            margin-left: .2em;
+        }
+    }
+
+    .advanced_number_filter_delete_filter {
+        padding: .4em .2em .4em .2em;
+        display: inline-block;
+        cursor: pointer;
+        color: $danger_color;
+    }
+
+    .multiselect__content-wrapper {
+        z-index: 0;
+    }
+
+    .advanced_number_filter_type {
+        margin-right: .2em;
+        max-width: fit-content;
+        display: inline-block;
+        min-width: 10em;
+
+        .multiselect, .multiselect__input, .multiselect__single, .multiselect__option {
+            font-size: .8em;
+        }
+    }
+
+    .vo_field_ref_filter .multiselect .pill_wrapper {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-size: smaller;
+        margin-right: 0.5rem;
+        color: white;
+
+        i.fa-solid.fa-times {
+            cursor: pointer;
+            margin-left: 8px;
+        }
+    }
+}

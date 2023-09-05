@@ -1,4 +1,36 @@
 
+export enum LogicGateLabel {
+    AND = 'logic_gate.and',
+    OR = 'logic_gate.or',
+}
+
+export const LogicGateValue = {
+    [LogicGateLabel.AND]: 0,
+    [LogicGateLabel.OR]: 1,
+};
+
+export enum NumberConditionStatementLabel {
+    LOWER_THAN = 'condition_statement.lower_than',
+    LOWER_THAN_OR_EQUALS = 'condition_statement.lower_than_or_equals',
+    GREATER_THAN = 'condition_statement.greather_than',
+    GREATER_THAN_OR_EQUALS = 'condition_statement.greather_than_or_equals',
+    IS_NULL = 'condition_statement.is_null',
+    IS_NOT_NULL = 'condition_statement.is_not_null',
+    EQUALS = 'condition_statement.equals',
+    NOT_EQUALS = 'condition_statement.not_equals',
+}
+
+export const NumberConditionStatementValue = {
+    [NumberConditionStatementLabel.LOWER_THAN]: 0,
+    [NumberConditionStatementLabel.LOWER_THAN_OR_EQUALS]: 1,
+    [NumberConditionStatementLabel.GREATER_THAN]: 2,
+    [NumberConditionStatementLabel.GREATER_THAN_OR_EQUALS]: 3,
+    [NumberConditionStatementLabel.IS_NULL]: 4,
+    [NumberConditionStatementLabel.IS_NOT_NULL]: 5,
+    [NumberConditionStatementLabel.EQUALS]: 6,
+    [NumberConditionStatementLabel.NOT_EQUALS]: 7,
+};
+
 /**
  * ConditionStatement
  */

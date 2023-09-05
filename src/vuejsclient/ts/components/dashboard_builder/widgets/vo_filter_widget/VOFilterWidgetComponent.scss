@@ -1,0 +1,10 @@
+.vo_filter_widget_component {
+    .button_opacity {
+        opacity: 0.4;
+
+        &:hover,
+        &.active {
+            opacity: 1;
+        }
+    }
+}

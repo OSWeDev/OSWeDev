@@ -19,19 +19,18 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         'context_filter.type.FILTER_AND',
         'context_filter.type.FILTER_OR',
         'context_filter.type.FILTER_XOR',
+
         'context_filter.type.FILTER_UNION',
 
         'context_filter.type.NULL_ALL',
         'context_filter.type.NULL_ANY',
         'context_filter.type.NULL_NONE',
+
         'context_filter.type.BOOLEAN_TRUE_ALL',
         'context_filter.type.BOOLEAN_TRUE_ANY',
         'context_filter.type.BOOLEAN_FALSE_ALL',
         'context_filter.type.BOOLEAN_FALSE_ANY',
-        'context_filter.type.NUMERIC_INTERSECTS',
-        'context_filter.type.NUMERIC_EQUALS',
-        'context_filter.type.NUMERIC_INCLUDES',
-        'context_filter.type.NUMERIC_IS_INCLUDED_IN',
+
         'context_filter.type.ID_INTERSECTS',
         'context_filter.type.ID_EQUALS',
         'context_filter.type.ID_INCLUDES',
@@ -60,6 +59,10 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         'context_filter.type.TYPE_DATE_MONTH',
         'context_filter.type.TYPE_DATE_YEAR',
 
+        'context_filter.type.NUMERIC_INTERSECTS',
+        'context_filter.type.NUMERIC_EQUALS',
+        'context_filter.type.NUMERIC_INCLUDES',
+        'context_filter.type.NUMERIC_IS_INCLUDED_IN',
         'context_filter.type.NUMERIC_INF_ANY',
         'context_filter.type.NUMERIC_INF_ALL',
         'context_filter.type.NUMERIC_INFEQ_ANY',
@@ -68,13 +71,13 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         'context_filter.type.NUMERIC_SUP_ALL',
         'context_filter.type.NUMERIC_SUPEQ_ANY',
         'context_filter.type.NUMERIC_SUPEQ_ALL',
+        'context_filter.type.NUMERIC_NOT_EQUALS',
+        'context_filter.type.NUMERIC_EQUALS_ANY',
 
         'context_filter.type.TYPE_IN',
         'context_filter.type.TYPE_NOT_IN',
         'context_filter.type.TYPE_NOT_EXISTS',
 
-        'context_filter.type.TYPE_NUMERIC_NOT_EQUALS',
-        'context_filter.type.TYPE_NUMERIC_EQUALS_ANY',
         'context_filter.type.TYPE_EXISTS',
 
         'context_filter.type.TYPE_UNION_ALL',
@@ -100,7 +103,12 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     public static TYPE_FILTER_AND: number = 1;
     public static TYPE_FILTER_OR: number = 2;
     public static TYPE_FILTER_XOR: number = 3;
-    public static TYPE_FILTER_UNION: number = 100;
+
+    /**
+     * Junctions that are not filters but that can be used to build filters
+     */
+    public static TYPE_JUNCTION_UNION: number = 100;
+    public static TYPE_JUNCTION_INTERSECTION: number = 101;
 
     /**
      * B - Les filtres sur les datas
@@ -294,10 +302,10 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
 
     /**
      * Sucre syntaxique pour echaîner facilement des union et obtenir le filtre résultat
-     * @param filters les filtres à joindre par une chaîne UNION
+     * @param {ContextFilterVO[]} filters les filtres à joindre par une chaîne UNION
      */
     public static union(filters: ContextFilterVO[]): ContextFilterVO {
-        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_UNION);
+        return this.chain_cond(filters, ContextFilterVO.TYPE_JUNCTION_UNION);
     }
 
     private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
