@@ -278,8 +278,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private get_date(item: ISupervisedItem): string {
-        let field = VOsTypesManager.moduleTables_by_voType[item._type].getFieldFromId('last_update');
-        return field ? Dates.format_segment(item.last_update, field.segmentation_type, field.format_localized_time) : null;
+        const moduletable = VOsTypesManager.moduleTables_by_voType[item._type];
+        const field = moduletable.getFieldFromId('last_update');
+
+        return field ? Dates.format_segment(item.last_update, field.segmentation_type) : null;
     }
 
     private get_store(item: ISupervisedItem) {
