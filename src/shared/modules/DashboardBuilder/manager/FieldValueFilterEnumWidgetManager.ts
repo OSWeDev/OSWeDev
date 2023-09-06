@@ -431,8 +431,8 @@ export default class FieldValueFilterEnumWidgetManager {
                 continue;
             }
 
-            const is_selected = selected_active_filter_options?.find((selected_filter_active_option: DataFilterOption) => {
-                return selected_filter_active_option.numeric_value == filter_opt.numeric_value;
+            const is_selected = selected_active_filter_options?.find((selected_active_filter_option: DataFilterOption) => {
+                return selected_active_filter_option.numeric_value == filter_opt.numeric_value;
             });
 
             if ((selected_active_filter_options?.length > 0) && !is_selected) {
@@ -450,7 +450,7 @@ export default class FieldValueFilterEnumWidgetManager {
                     api_type_field_filters
                 );
 
-                const enum_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+                const enum_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                     filter_opt,
                     null,
                     VOsTypesManager.get_field_from_vo_field_ref(vo_field_ref),

@@ -96,8 +96,11 @@ let readToTstzFilter = (
         return null;
     }
 
-    if (typeof value == 'string' && Dates.isDate(value)) {
-        value = Dates.parse(value);
+    if (typeof value == 'string') {
+        const date_format = Dates.find_date_format(value);
+        if (date_format) {
+            value = Dates.parse(value, date_format);
+        }
     }
 
     value = parseInt(value.toString());

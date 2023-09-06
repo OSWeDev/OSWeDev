@@ -67,7 +67,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
 
-    private tmp_filter_active_options: DataFilterOption[] = []; // Local active filter options
+    private tmp_active_filter_options: DataFilterOption[] = []; // Local active filter options
 
     private filter_visible_options: DataFilterOption[] = [];
 
@@ -84,7 +84,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private old_widget_options: FieldValueFilterWidgetOptionsVO = null;
     private widget_options: FieldValueFilterWidgetOptionsVO = null;
 
-    private should_load_filter_visible_options: boolean = false;
+    private should_load_filter_visible_options: boolean = true;
 
     private last_calculation_cpt: number = 0;
 
@@ -112,7 +112,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.page_widget,
             this.reset_visible_options.bind(this),
         );
-        this.should_load_filter_visible_options = true;
     }
 
     /**
@@ -128,11 +127,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     /**
      * Watch on widget_options
      *  - Shall happen first on component init or each time widget_options changes
-     *  - Initialize the tmp_filter_active_options with default widget_options
+     *  - Initialize the tmp_active_filter_options with default widget_options
      *
      * @returns {void}
      */
-    @Watch('widget_options')
+    @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options(): Promise<void> {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
@@ -160,36 +159,36 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     /**
-     * onchange_tmp_filter_active_options
-     * tmp_filter_active_options is the visible active filters of the widget
-     *  - Happen each time tmp_filter_active_options changes
+     * onchange_tmp_active_filter_options
+     * tmp_active_filter_options is the visible active filters of the widget
+     *  - Happen each time tmp_active_filter_options changes
      *
      * @returns {void}
      */
-    @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options(): void {
+    @Watch('tmp_active_filter_options')
+    private onchange_tmp_active_filter_options(): void {
 
         if (!this.widget_options) {
             return;
         }
 
-        let filter_active_options: DataFilterOption[] = null;
-        let translated_active_options: ContextFilterVO = null;
+        let active_filter_options: DataFilterOption[] = null;
+        let context_filter: ContextFilterVO = null;
 
-        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
-            filter_active_options = this.tmp_filter_active_options;
-        } else if (this.tmp_filter_active_options != null) {
-            filter_active_options = [this.tmp_filter_active_options as any];
+        if (TypesHandler.getInstance().isArray(this.tmp_active_filter_options)) {
+            active_filter_options = this.tmp_active_filter_options;
+        } else if (this.tmp_active_filter_options != null) {
+            active_filter_options = [this.tmp_active_filter_options as any];
         }
 
         // If it not multi select, we take the first value
-        if (!this.can_select_multiple && filter_active_options?.length > 1) {
-            filter_active_options = filter_active_options.slice(0, 1);
-            this.tmp_filter_active_options = filter_active_options;
+        if (!this.can_select_multiple && active_filter_options?.length > 1) {
+            active_filter_options = active_filter_options.slice(0, 1);
+            this.tmp_active_filter_options = active_filter_options;
         }
 
         // If there is no active filter, we remove the filter
-        if ((!filter_active_options) || (!filter_active_options.length)) {
+        if ((!active_filter_options) || (!active_filter_options.length)) {
             this.remove_active_field_filter({
                 vo_type: this.vo_field_ref.api_type_id,
                 field_id: this.vo_field_ref.field_id
@@ -197,36 +196,34 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
         // Translate active options to context filter
-        for (let i in filter_active_options) {
-            let active_option: DataFilterOption = filter_active_options[i];
+        for (let i in active_filter_options) {
+            let active_option: DataFilterOption = active_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
                 continue;
             }
 
-            let new_translated_active_options = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
-                field,
+                this.field,
                 this.vo_field_ref
             );
 
-            if (!new_translated_active_options) {
+            if (!new_context_filter) {
                 continue;
             }
 
-            if (!translated_active_options) {
-                translated_active_options = new_translated_active_options;
+            if (!context_filter) {
+                context_filter = new_context_filter;
             } else {
-                translated_active_options = ContextFilterVOHandler.merge_context_filter_vos(
-                    translated_active_options,
-                    new_translated_active_options
+                context_filter = ContextFilterVOHandler.merge_context_filter_vos(
+                    context_filter,
+                    new_context_filter
                 );
             }
         }
@@ -237,17 +234,17 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             cf_null_value.vo_type = this.vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
-            if (!translated_active_options) {
-                translated_active_options = cf_null_value;
+            if (!context_filter) {
+                context_filter = cf_null_value;
             } else {
-                translated_active_options = ContextFilterVO.or([cf_null_value, translated_active_options]);
+                context_filter = ContextFilterVO.or([cf_null_value, context_filter]);
             }
         }
 
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
-            active_field_filter: translated_active_options,
+            active_field_filter: context_filter,
         });
 
         this.set_all_count_by_filter_visible_loading(true);
@@ -259,7 +256,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     private async reset_visible_options() {
-        this.tmp_filter_active_options = [];
+        this.tmp_active_filter_options = [];
         this.filter_visible_options = [];
         // On update le visuel de tout le monde suite au reset
         this.throttled_update_visible_options();
@@ -305,7 +302,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
                 // case when does not have active filter
                 if (!has_active_field_filter || this.default_values_changed) {
-                    this.tmp_filter_active_options = this.default_values;
+                    this.tmp_active_filter_options = this.default_values;
                     this.default_values_changed = false;
 
                     ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
@@ -324,7 +321,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         // case when has active context_filter but active visible_filter empty
         // - try to apply context_filter or display filter application fail alert
         if (has_active_field_filter &&
-            (!(this.tmp_filter_active_options?.length > 0))) {
+            (!(this.tmp_active_filter_options?.length > 0))) {
 
             this.warn_existing_external_filters = !this.try_apply_context_filter(root_context_filter);
         }
@@ -442,7 +439,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             new DataFilterOption(DataFilterOption.STATE_SELECTED, filter.label, filter.id)
         );
 
-        this.tmp_filter_active_options = selection;
+        this.tmp_active_filter_options = selection;
     }
 
     /**
@@ -450,15 +447,16 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      *  - Remove all fields of the current selected active filter
      */
     private handle_select_none(): void {
-        this.tmp_filter_active_options = [];
+        this.tmp_active_filter_options = [];
     }
 
     /**
-     * TODO: load filter visible options count value only on the selected filters
+     * load_filter_visible_options_count
+     *  - Load filter visible options count from widget options
      *
-     * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
+     * @returns {Promise<void>}
      */
-    private async load_filter_visible_options_count() {
+    private async load_filter_visible_options_count(): Promise<void> {
 
         if (!this.show_count_value) {
             this.is_loading_count_by_filter_visible_opt_id = {};
@@ -470,7 +468,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
-            this.tmp_filter_active_options,
+            this.tmp_active_filter_options,
             this.filter_visible_options,
             {
                 active_api_type_ids: this.get_active_api_type_ids,
@@ -493,11 +491,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         for (const key in this.tmp_filter_active_options) {
             const enum_data_filter = this.tmp_filter_active_options[key];
 
-            const is_in_active_filters_options = this.tmp_filter_active_options?.find((active_filter_option) =>
+            const is_in_active_filters_options = this.tmp_active_filter_options?.find((active_filter_option) =>
                 active_filter_option.numeric_value === enum_data_filter.numeric_value
             );
 
-            if (this.tmp_filter_active_options?.length > 0 && !is_in_active_filters_options) {
+            if (this.tmp_active_filter_options?.length > 0 && !is_in_active_filters_options) {
                 this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = false;
             } else {
                 this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = val;
@@ -594,8 +592,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         // case when no context_filter reset visible active context_filter options
         if (!context_filter) {
-            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
-                this.tmp_filter_active_options = [];
+            if (this.tmp_active_filter_options && this.tmp_active_filter_options.length) {
+                this.tmp_active_filter_options = [];
             }
             return true;
         }
@@ -607,8 +605,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             // TODO: Seen With Michael Waiting to Fix the final comportment
             // && context_filter.param_numeric == null
         ) {
-            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
-                this.tmp_filter_active_options = [];
+            if (this.tmp_active_filter_options && this.tmp_active_filter_options.length) {
+                this.tmp_active_filter_options = [];
             }
             return true;
         }
@@ -628,7 +626,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             });
         }
 
-        this.tmp_filter_active_options = active_filter_options;
+        this.tmp_active_filter_options = active_filter_options;
 
         return true;
     }
@@ -649,22 +647,22 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return;
         }
 
-        // Find index of data_filter in tmp_filter_active_options
-        const index: number = this.tmp_filter_active_options.findIndex(
+        // Find index of data_filter in tmp_active_filter_options
+        const index: number = this.tmp_active_filter_options.findIndex(
             (e) => e.numeric_value == dfo.numeric_value
         );
 
         if (index >= 0) {
-            // If data_filter is already in tmp_filter_active_options, remove it
-            this.tmp_filter_active_options.splice(index, 1);
+            // If data_filter is already in tmp_active_filter_options, remove it
+            this.tmp_active_filter_options.splice(index, 1);
         } else {
-            // If data_filter is not in tmp_filter_active_options, add it
-            this.tmp_filter_active_options.push(dfo);
+            // If data_filter is not in tmp_active_filter_options, add it
+            this.tmp_active_filter_options.push(dfo);
         }
 
         // If it not multi select, we just keep the given data_filter
         if (!this.can_select_multiple) {
-            this.tmp_filter_active_options = this.tmp_filter_active_options.filter(
+            this.tmp_active_filter_options = this.tmp_active_filter_options.filter(
                 (e) => e.numeric_value == dfo.numeric_value
             );
         }

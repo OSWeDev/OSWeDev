@@ -152,7 +152,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return VOsTypesManager.vosArray_to_vosByIds(this.get_page_widgets);
     }
 
-    get show_if_any_filter_active_options(): number[] {
+    get show_if_any_active_filter_options(): number[] {
         let self = this;
         return this.get_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
 

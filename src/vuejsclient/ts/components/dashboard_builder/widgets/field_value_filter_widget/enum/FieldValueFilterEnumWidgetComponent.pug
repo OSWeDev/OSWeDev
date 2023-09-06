@@ -6,12 +6,12 @@
             template(v-for="filter_visible_opt in filter_visible_options")
                 .btn.btn-primary.button_opacity.mr-1.mb-1(
                     @click="select_option(filter_visible_opt)"
-                    :class="{'active': (tmp_filter_active_options && tmp_filter_active_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value))}"
+                    :class="{'active': (tmp_active_filter_options && tmp_active_filter_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value))}"
                     :style="getStyle(filter_visible_opt)"
                 )
                     span {{ filter_visible_label(filter_visible_opt) }}
-                    template(v-if="show_count_value")
-                        span.ml-2(v-if="(!(tmp_filter_active_options?.length > 0) || (tmp_filter_active_options && tmp_filter_active_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value)))")
+                    template(v-if="show_count_value") 
+                        span.ml-2(v-if="(!(tmp_active_filter_options?.length > 0) || (tmp_active_filter_options && tmp_active_filter_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value)))")
                             span {{ count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] }}
                         template(v-if="is_loading_count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] === true")
                             i.ml-2.fa-duotone.fa-spinner-third.fa-spin
@@ -22,7 +22,7 @@
                     :preselect-first="false"
                     :multiple="can_select_multiple"
                     :close-on-select="false"
-                    v-model="tmp_filter_active_options"
+                    v-model="tmp_active_filter_options"
                     :placeholder="placeholder"
                     :options="filter_visible_options"
                     :custom-label="filter_visible_label"

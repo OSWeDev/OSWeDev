@@ -51,7 +51,7 @@ export default class FieldValueFilterWidgetManager {
 
             const default_filters_options = widget_options?.default_ts_range_values;
 
-            context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+            context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 null,
                 default_filters_options,
                 field,
@@ -192,7 +192,7 @@ export default class FieldValueFilterWidgetManager {
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
                 field,
@@ -265,7 +265,7 @@ export default class FieldValueFilterWidgetManager {
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
                 field,
@@ -352,7 +352,7 @@ export default class FieldValueFilterWidgetManager {
                         continue;
                     }
 
-                    let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+                    let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                         active_option,
                         null,
                         field_multiple,
@@ -403,7 +403,7 @@ export default class FieldValueFilterWidgetManager {
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
