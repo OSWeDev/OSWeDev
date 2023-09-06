@@ -1,40 +1,40 @@
-import { cloneDeep, isEqual } from 'lodash';
+import { cloneDeep, isEqual, isEmpty } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import SupervisionWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import VueComponentBase from '../../../VueComponentBase';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
-import SupervisionWidgetOptions from './options/SupervisionWidgetOptions';
-import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './SupervisionWidgetComponent.scss';
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
     components: {
-        Inlinetranslatabletext: InlineTranslatableText,
         Tablepaginationcomponent: TablePaginationComponent,
+        Inlinetranslatabletext: InlineTranslatableText,
     }
 })
 export default class SupervisionWidgetComponent extends VueComponentBase {
@@ -83,7 +83,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private items_by_identifier: { [identifier: string]: ISupervisedItem } = {};
 
     private last_calculation_cpt: number = 0;
-    private old_widget_options: SupervisionWidgetOptions = null;
+    private old_widget_options: SupervisionWidgetOptionsVO = null;
 
     private available_supervision_api_type_ids: string[] = [];
 
@@ -192,6 +192,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             return;
         }
 
+        // Get the supervision items
         const data: { items: ISupervisedItem[], total_count: number } = await SupervisionWidgetManager.find_supervision_probs_by_api_type_ids(
             this.dashboard,
             this.widget_options,
@@ -217,7 +218,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         for (let i in this.items) {
             const item = this.items[i];
 
-            items_by_identifier[this.get_identifier(item)] = item;
+            const identifier: string = this.get_identifier(item);
+
+            items_by_identifier[identifier] = item;
         }
 
         this.items_by_identifier = items_by_identifier;
@@ -279,7 +282,19 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         return field ? Dates.format_segment(item.last_update, field.segmentation_type, field.format_localized_time) : null;
     }
 
-    private select_unselect_all(value: boolean) {
+    private get_store(item: ISupervisedItem) {
+
+    }
+
+    private select_all() {
+        this.toggle_all_selection(true);
+    }
+
+    private unselect_all() {
+        this.toggle_all_selection(false);
+    }
+
+    private toggle_all_selection(value: boolean) {
         for (let i in this.items) {
             let item = this.items[i];
 
@@ -373,23 +388,16 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         return this.widget_options.limit;
     }
 
-    get widget_options(): SupervisionWidgetOptions {
+    get widget_options(): SupervisionWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: SupervisionWidgetOptions = null;
+        let options: SupervisionWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptions;
-                options = options ? new SupervisionWidgetOptions(
-                    options.limit,
-                    options.supervision_api_type_ids,
-                    options.refresh_button,
-                    options.auto_refresh,
-                    options.auto_refresh_seconds,
-                    options.show_bulk_edit,
-                ) : null;
+                options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptionsVO;
+                options = options ? new SupervisionWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -420,5 +428,31 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
 
         return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
+    }
+
+    get is_all_selected(): boolean {
+        if (isEmpty(this.selected_items)) {
+            return false;
+        }
+
+        for (let i in this.items_by_identifier) {
+            if (!this.selected_items[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    get has_one_selected(): boolean {
+        if (isEmpty(this.selected_items)) {
+            return false;
+        }
+
+        for (let i in this.items_by_identifier) {
+            if (this.selected_items[i]) {
+                return true;
+            }
+        }
     }
 }

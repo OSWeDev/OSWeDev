@@ -10,13 +10,13 @@
         line-height: 1em;
     }
 
-    >.row {
+    > .row {
         height: -webkit-fill-available;
 
-        >.col-sm-12 {
+        > .col-sm-12 {
             height: -webkit-fill-available;
 
-            >div {
+            > div {
                 display: flex;
                 flex-direction: column;
                 height: -webkit-fill-available;
@@ -50,21 +50,28 @@
         }
     }
 
+    .bulk_action {
+        display: flex;
+        flex-direction: row;
+        .update_action_btn {
+            margin-left: auto;
+        }
+    }
+
     .table_wrapper {
         max-width: -webkit-fill-available;
         overflow-x: auto;
         flex-grow: 100;
 
         table {
-
             position: relative;
             width: -webkit-fill-available;
             clear: both;
 
             thead {
                 th {
-                    border: solid 1px #EEE;
-                    padding: .2em;
+                    border: solid 1px #eee;
+                    padding: 0.2em;
                     background: white;
                     font-size: 1em;
                     font-weight: 700;
@@ -79,7 +86,6 @@
                     .order_by {
                         float: left;
                     }
-
                 }
 
                 th.position-sticky {
@@ -88,8 +94,8 @@
             }
 
             tfoot {
-                border: solid 1px #EEE;
-                padding: .2em;
+                border: solid 1px #eee;
+                padding: 0.2em;
                 position: sticky;
                 background-color: white;
                 bottom: 0;
@@ -141,17 +147,16 @@
 
                 td {
                     color: white !important;
-                    border: solid 1px #EEE;
-                    padding: .2em;
+                    border: solid 1px #eee;
+                    padding: 0.2em;
 
                     &.type_0 {
                         width: 0;
                     }
 
                     &.can_filter {
-
                         &.is_filtering_by {
-                            background: #F2F2F2 !important;
+                            background: #f2f2f2 !important;
 
                             &:hover {
                                 cursor: zoom-out;
@@ -159,7 +164,7 @@
                         }
 
                         &:hover {
-                            background: #F2F2F2 !important;
+                            background: #f2f2f2 !important;
                             cursor: zoom-in;
                         }
                     }
@@ -178,7 +183,6 @@
                         border-radius: 4px;
                         text-align: center;
                     }
-
                 }
 
                 td.position-sticky {

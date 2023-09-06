@@ -164,7 +164,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         field.field_id,
                         VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                         dt_fields
-                    ).setValidatInputFunc(field.validate_input);
+                    ).setModuleTable(field.module_table).setValidatInputFunc(field.validate_input);
                 }
             }
         } else {
