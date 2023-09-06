@@ -106,6 +106,9 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: false })
     private bootstrap_3_modal_fallback: boolean;
 
+    @Prop({ default: true })
+    private show_pagination_datatable: boolean;
+
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
 

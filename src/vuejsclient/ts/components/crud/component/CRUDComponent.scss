@@ -15,7 +15,7 @@
     #createData {
         .form-group {
 
-            label.vue-js-switch{
+            label.vue-js-switch {
                 margin-left: 1em;
             }
 
@@ -31,7 +31,7 @@
                 margin-left: 10px;
             }
 
-            input[type=checkbox].v-switch-input{
+            input[type=checkbox].v-switch-input {
                 display: none;
             }
 
@@ -63,27 +63,34 @@
         margin-top: 25px;
 
         .VuePagination {
-            @media print{
-                display:none;
+            @media print {
+                display: none;
+            }
+        }
+
+        &.hide_pagination {
+            .VuePagination {
+                display: none;
             }
         }
 
         .table-responsive {
 
             min-height: 40em;
-            @media print{
+
+            @media print {
                 min-height: auto;
             }
 
             table {
 
-                @media print{
+                @media print {
 
                     tr th:nth-child(1),
                     tr th:nth-child(2),
                     tr td:nth-child(1),
                     tr td:nth-child(2) {
-                        display:none;
+                        display: none;
                     }
                 }
 
@@ -99,7 +106,7 @@
 
                 tr th:focus,
                 tr th:hover {
-                    
+
                     color: #23527c;
                     text-decoration: underline;
                 }
@@ -118,7 +125,7 @@
                 // }
 
                 tr th input[type=checkbox],
-                tr td input[type=checkbox]{
+                tr td input[type=checkbox] {
                     width: 18px;
                     height: 18px;
                     margin: 0.1rem 1rem;
@@ -137,4 +144,3 @@
     color: white;
     padding: 5px;
 }
-
