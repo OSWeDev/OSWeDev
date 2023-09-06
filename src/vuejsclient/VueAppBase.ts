@@ -6,6 +6,7 @@ import moment from 'moment';
 import 'select2';
 import { quillEditor } from 'vue-quill-editor';
 import VCalendar from 'v-calendar';
+import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';

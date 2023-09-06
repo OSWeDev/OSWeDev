@@ -13,10 +13,10 @@ include ../../../../views/mixins/loading.pug
                     button.btn.btn-sm.btn-secondary.m-1(v-if='!embed', @click='reload_datas()')
                         i.fa-duotone.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('crud.actions.refresh') }}
-                    button.btn.btn-sm.btn-outline-dark.m-1(v-if="isExportableToXLSX && !embed", href="#", @click="export_to_xlsx()")
+                    button.btn.btn-sm.btn-outline-dark.m-1(v-if="isExportableToXLSX && !embed" href="#", @click="export_to_xlsx()")
                         i.fa-duotone.fa-download.fa-lg.btn_icon
                         | {{ label('crud.actions.export') }}
-                    router-link.btn.btn-sm.btn-success.m-1(:to="getCRUDCreateLink(api_type_id)", v-if='(!embed) && (!crud.forced_readonly) && (!isModuleParamTable)')
+                    router-link.btn.btn-sm.btn-success.m-1(:to="getCRUDCreateLink(api_type_id)" v-if='(!embed) && (!crud.forced_readonly) && (!isModuleParamTable)')
                         i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
                         | {{ label('crud.actions.create') }}
 
@@ -32,7 +32,7 @@ include ../../../../views/mixins/loading.pug
                     //- a.btn.btn-danger(role="button" href="#deleteData" data-toggle="modal" v-if="select_options && (select_options.length > 1)")
                     //-     i.fa-duotone.fa-trash
                     //-     span {{ label('crud.actions.delete') }}
-            //- span {{ modal_show_create }} {{ modal_show_update }} {{ modal_show_delete }}
+
             Datatable.crud_datatable(
                 :key="'datatable_' + crud.readDatatable.API_TYPE_ID"
                 :datatable="crud.readDatatable",
@@ -49,10 +49,11 @@ include ../../../../views/mixins/loading.pug
                 :perpage="perpage",
                 :sort_id_descending="sort_id_descending",
                 :display_filters="display_filters"
+                :class="{hide_pagination: !show_pagination_datatable}"
             )
 
         <!-- Create Modal HTML -->
-        .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' ", v-if='!isModuleParamTable', tabindex='-1', role='dialog')
+        .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' " v-if='!isModuleParamTable' tabindex='-1' role='dialog')
             .modal-dialog.modal-lg(role='document')
                 .modal-content
                     form(v-on:submit.prevent="createVO")
@@ -65,7 +66,7 @@ include ../../../../views/mixins/loading.pug
                         .modal-body
                             .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
                             template(v-if="newVO")
-                                template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
+                                template(v-if="has_createDatatable" v-for="field in crud.createDatatable.fields")
                                     Crudcomponentfield(
                                         v-show="!field.hidden",
                                         :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
@@ -82,13 +83,13 @@ include ../../../../views/mixins/loading.pug
                                 p {{ label('crud.create.modal.content.newvo_failure') }}
                         .modal-footer
                             template(v-if="embed")
-                                a.btn.btn-default(v-if="!creating_vo", data-dismiss="modal") {{ label('crud.create.modal.cancel') }}
+                                a.btn.btn-default(v-if="!creating_vo" data-dismiss="modal") {{ label('crud.create.modal.cancel') }}
                             template(v-else)
                                 router-link.btn.btn-default(:to="callback_route" v-if="!creating_vo") {{ label('crud.create.modal.cancel') }}
                             template(v-if="newVO && !creating_vo && !is_only_readable")
                                 input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
         <!-- Edit Modal HTML -->
-        .modal.fade.in(:id="(embed) ? 'updateData_'+crud.readDatatable.API_TYPE_ID : 'updateData' ", tabindex='-1', role='dialog')
+        .modal.fade.in(:id="(embed) ? 'updateData_'+crud.readDatatable.API_TYPE_ID : 'updateData' " tabindex='-1' role='dialog')
             .modal-dialog.modal-lg(role='document')
                 .modal-content
                     form(v-on:submit.prevent="updateVO")
@@ -118,13 +119,13 @@ include ../../../../views/mixins/loading.pug
                                 p {{ label('crud.update.modal.content.selection_failure') }}
                         .modal-footer
                             template(v-if="embed")
-                                a.btn.btn-default(v-if="!updating_vo", data-dismiss="modal") {{ label('crud.update.modal.cancel') }}
+                                a.btn.btn-default(v-if="!updating_vo" data-dismiss="modal") {{ label('crud.update.modal.cancel') }}
                             template(v-else)
                                 router-link.btn.btn-default(:to="callback_route" v-if="!updating_vo") {{ label('crud.update.modal.cancel') }}
                             template(v-if="selectedVO && editableVO && !updating_vo && !is_only_readable")
                                 input.btn.btn-primary(type="submit" :value="label('crud.update.modal.save')")
 
-        .modal.fade.in(:id="(embed) ? 'deleteData_'+crud.readDatatable.API_TYPE_ID : 'deleteData' ", v-if='!isModuleParamTable', tabindex='-1', role='dialog')
+        .modal.fade.in(:id="(embed) ? 'deleteData_'+crud.readDatatable.API_TYPE_ID : 'deleteData' " v-if='!isModuleParamTable' tabindex='-1' role='dialog')
             .modal-dialog.modal-lg(role='document')
                 .modal-content
                     form(v-on:submit.prevent="deleteVO")
@@ -144,7 +145,7 @@ include ../../../../views/mixins/loading.pug
                                 p {{ label('crud.delete.modal.content.selection_failure') }}
                         .modal-footer
                             template(v-if="embed")
-                                a.btn.btn-default(v-if="!deleting_vo", data-dismiss="modal") {{ label('crud.delete.modal.cancel') }}
+                                a.btn.btn-default(v-if="!deleting_vo" data-dismiss="modal") {{ label('crud.delete.modal.cancel') }}
                             template(v-else)
                                 router-link.btn.btn-default(:to="callback_route" v-if="!deleting_vo") {{ label('crud.delete.modal.cancel') }}
                             template(v-if="selectedVO && !deleting_vo && !is_only_readable")

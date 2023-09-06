@@ -323,8 +323,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -539,8 +544,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -586,8 +596,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onEndOfChange) {
-            this.field.onEndOfChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onEndOfChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         // Si je ne suis pas en inline edit, j'appelle le onchangevo
@@ -627,8 +642,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -646,8 +666,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -1164,8 +1189,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -1192,8 +1222,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -1353,8 +1388,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
