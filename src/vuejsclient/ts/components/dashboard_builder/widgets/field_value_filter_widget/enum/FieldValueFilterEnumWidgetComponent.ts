@@ -493,7 +493,15 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         for (const key in this.tmp_filter_active_options) {
             const enum_data_filter = this.tmp_filter_active_options[key];
 
-            this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = val;
+            const is_in_active_filters_options = this.tmp_filter_active_options?.find((active_filter_option) =>
+                active_filter_option.numeric_value === enum_data_filter.numeric_value
+            );
+
+            if (this.tmp_filter_active_options?.length > 0 && !is_in_active_filters_options) {
+                this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = false;
+            } else {
+                this.is_loading_count_by_filter_visible_opt_id[enum_data_filter.numeric_value] = val;
+            }
         }
     }
 
