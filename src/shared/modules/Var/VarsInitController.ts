@@ -47,6 +47,7 @@ export default class VarsInitController {
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('last_reads_ts', ModuleTableField.FIELD_TYPE_tstz_array, 'Dates derniers accès').set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
+            new ModuleTableField('_bdd_only_is_pixel', ModuleTableField.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
         ]);
 
         let datatable = new ModuleTable(module, api_type_id, constructor, var_fields, null).defineAsMatroid();

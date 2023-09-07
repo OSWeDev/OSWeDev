@@ -155,6 +155,7 @@ export default class VarsDeployDepsHandler {
 
         let pixel_query = query(varconf.var_data_vo_type)
             .filter_by_num_eq('var_id', varconf.id)
+            .filter_is_true('_bdd_only_is_pixel')
             .field('id', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
             .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
@@ -237,6 +238,7 @@ export default class VarsDeployDepsHandler {
         let known_pixels_query = query(varconf.var_data_vo_type);
 
         known_pixels_query.filter_by_num_eq('var_id', varconf.id);
+        known_pixels_query.filter_is_true('_bdd_only_is_pixel');
 
         // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
         //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');

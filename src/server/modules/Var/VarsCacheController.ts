@@ -43,21 +43,11 @@ export default class VarsCacheController {
             case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
 
                 /**
-                 * En stratégie pixel, on stocke en bdd si card dimension pixellisée == 1.
-                 *  Du coup de la même manière, le cache exacte ne peut être demandé que si card dimension pixellisée == 1
-                 *  tout le reste est géré en amont, donc à ce niveau on doit refuser les cache C et C element
+                 * En stratégie pixel, on stocke tout en bdd maintenant. Les pixels sont identifiés par un flag is_pixel == true si card == 1
                  */
                 if (!controller.varConf.pixel_activated) {
                     ConsoleHandler.error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
                     throw new Error('Not Implemented');
-                }
-
-                for (let i in controller.varConf.pixel_fields) {
-                    let pixel_field = controller.varConf.pixel_fields[i];
-
-                    if (RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]) != 1) {
-                        return false;
-                    }
                 }
                 return true;
         }

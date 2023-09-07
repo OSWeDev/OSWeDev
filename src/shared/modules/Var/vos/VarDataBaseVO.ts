@@ -263,6 +263,7 @@ export default class VarDataBaseVO implements IMatroid {
     public value_ts: number;
 
     private _index: string;
+    private _is_pixel: boolean;
 
     public constructor() { }
 
@@ -277,6 +278,7 @@ export default class VarDataBaseVO implements IMatroid {
     public rebuild_index() {
 
         this._index = null;
+        this._is_pixel = null;
     }
 
     /**
@@ -287,9 +289,24 @@ export default class VarDataBaseVO implements IMatroid {
         if (!this._index) {
             MatroidIndexHandler.normalize_vardata_fields(this);
             this._index = MatroidIndexHandler.get_normalized_vardata(this);
+            this._is_pixel = MatroidController.get_cardinal(this) == 1;
         }
 
         return this._index;
+    }
+
+    get is_pixel(): boolean {
+
+        if (this._is_pixel == null) {
+            let a = this.index;
+        }
+
+        return this._is_pixel;
+    }
+
+    get _bdd_only_is_pixel(): boolean {
+
+        return this.is_pixel;
     }
 
     /**

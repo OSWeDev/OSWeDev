@@ -129,6 +129,7 @@ test('MatroidController: test cut_matroids', () => {
     remaning_calcs.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.log(f['index'])));
     let res = Object.assign(FakeDataHandler.get_var_data_C(), { var_id: 4 });
     res["_index"] = null;
+    res['_is_pixel'] = null;
     ConsoleHandler.log(res["index"]);
     expect(remaning_calcs[0].chopped_items).toStrictEqual([res]);
     // Le assign est juste à cause d'un pb de momentjs....
@@ -147,6 +148,7 @@ test('MatroidController: test cut_matroids', () => {
     remaning_calcs.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.log(f['index'])));
     res = Object.assign(FakeDataHandler.get_var_data_B(), { var_id: 4 });
     res["_index"] = null;
+    res['_is_pixel'] = null;
     ConsoleHandler.log(res["index"]);
     expect(remaning_calcs[0].chopped_items).toStrictEqual([res]);
     // remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_i'] = "2021-02-01";

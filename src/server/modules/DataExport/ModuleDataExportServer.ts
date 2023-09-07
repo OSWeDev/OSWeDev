@@ -402,20 +402,26 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let might_have_more_datas = true;
         let xlsx_datas = [];
         let has_query_limit = !!context_query.query_limit;
-        let limit = 25;
+        let limit = has_query_limit ? context_query.query_limit : 25;
+        let offset = 0;
+
         while (might_have_more_datas) {
+
+            let this_context_query = context_query.clone();
+            this_context_query.set_limit(limit, offset);
+            offset += limit;
 
             await ordered_promise_pipeline.push(async () => {
 
-                if (!has_query_limit) {
-                    context_query.set_limit(limit, xlsx_datas.length);
+                if (!might_have_more_datas) {
+                    return null;
                 }
 
                 // Je sais pas pourquoi on doit le refaire à chaque fois ça ...
-                await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, columns);
-                let datas = (context_query.fields?.length > 0) ?
-                    await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
-                    await ModuleContextFilter.getInstance().select_vos(context_query);
+                await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(this_context_query, columns);
+                let datas = (this_context_query.fields?.length > 0) ?
+                    await ModuleContextFilter.getInstance().select_datatable_rows(this_context_query, columns_by_field_id, fields) :
+                    await ModuleContextFilter.getInstance().select_vos(this_context_query);
 
                 if (!has_query_limit) {
                     might_have_more_datas = (datas?.length >= limit);
@@ -428,7 +434,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 let datas_with_vars = await this.convert_varparamfields_to_vardatas(
-                    context_query,
+                    this_context_query,
                     datas,
                     columns,
                     custom_filters);
@@ -436,6 +442,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 if (!datas_with_vars) {
                     ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
                     await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
+                    might_have_more_datas = false;
                     return null;
                 }
                 return datas_with_vars;
@@ -445,7 +452,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     return;
                 }
 
-                let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
+                let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, this_context_query, this_context_query.fields?.length > 0);
 
                 await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 

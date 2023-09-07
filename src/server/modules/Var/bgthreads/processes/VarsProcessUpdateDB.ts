@@ -47,9 +47,9 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         for (let i in nodes) {
             let node = nodes[i];
 
-            if (this.is_pixel_of_card_supp_1(VarsController.var_conf_by_id[node.var_data.var_id], node.var_data)) {
-                continue;
-            }
+            // if (this.is_pixel_of_card_supp_1(VarsController.var_conf_by_id[node.var_data.var_id], node.var_data)) {
+            //     continue;
+            // }
 
             /**
              * On update en base aucune data issue de la BDD, puisque si on a chargé la donnée, soit c'est un import qu'on a donc interdiction de toucher, soit c'est
@@ -99,9 +99,9 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         return true;
     }
 
-    private is_pixel_of_card_supp_1(var_conf: VarConfVO, matroid: VarDataBaseVO): boolean {
-        return var_conf.pixel_activated && (PixelVarDataController.getInstance().get_pixel_card(matroid) > 1);
-    }
+    // private is_pixel_of_card_supp_1(var_conf: VarConfVO, matroid: VarDataBaseVO): boolean {
+    //     return var_conf.pixel_activated && (PixelVarDataController.getInstance().get_pixel_card(matroid) > 1);
+    // }
 
     /**
      * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
