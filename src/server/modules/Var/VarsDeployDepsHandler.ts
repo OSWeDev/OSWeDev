@@ -19,6 +19,7 @@ import DataSourcesController from "./datasource/DataSourcesController";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import StatsController from "../../../shared/modules/Stats/StatsController";
+import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
 
 export default class VarsDeployDepsHandler {
 
@@ -154,44 +155,49 @@ export default class VarsDeployDepsHandler {
         }
 
         let pixel_query = query(varconf.var_data_vo_type)
-            .filter_by_num_eq('var_id', varconf.id)
-            .filter_is_true('_bdd_only_is_pixel')
+            // .filter_by_num_eq('var_id', varconf.id)
+            //     .filter_is_true('_bdd_only_is_pixel')
             .field('id', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
             .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
         /**
-         * On ajoute les filtrages :
-         *      sur champs pixellisés : on veut les valeurs contenues,
-         *      sur les autres champs : on veut les valeurs exactes
+         * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
          */
-        let matroid_fields = MatroidController.getMatroidFields(varconf.var_data_vo_type);
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        pixel_query.filter_by_text_has('_bdd_only_index', MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data));
 
-            let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+        // /**
+        //  * On ajoute les filtrages :
+        //  *      sur champs pixellisés : on veut les valeurs contenues,
+        //  *      sur les autres champs : on veut les valeurs exactes
+        //  */
+        // let matroid_fields = MatroidController.getMatroidFields(varconf.var_data_vo_type);
+        // for (let i in matroid_fields) {
+        //     let matroid_field = matroid_fields[i];
 
-            switch (matroid_field.field_type) {
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    if (pixellised) {
-                        pixel_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    } else {
-                        pixel_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    }
-                    break;
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    if (pixellised) {
-                        pixel_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    } else {
-                        pixel_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    }
-                    break;
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                default:
-                    throw new Error('Not implemented');
-            }
-        }
+        //     let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+
+        //     switch (matroid_field.field_type) {
+        //         case ModuleTableField.FIELD_TYPE_numrange_array:
+        //         case ModuleTableField.FIELD_TYPE_refrange_array:
+        //         case ModuleTableField.FIELD_TYPE_isoweekdays:
+        //             if (pixellised) {
+        //                 pixel_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             } else {
+        //                 pixel_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             }
+        //             break;
+        //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
+        //             if (pixellised) {
+        //                 pixel_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             } else {
+        //                 pixel_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             }
+        //             break;
+        //         case ModuleTableField.FIELD_TYPE_hourrange_array:
+        //         default:
+        //             throw new Error('Not implemented');
+        //     }
+        // }
 
         let pixel_cache: { counter: number, aggregated_value: number } = await pixel_query.select_one();
 
@@ -237,38 +243,43 @@ export default class VarsDeployDepsHandler {
          */
         let known_pixels_query = query(varconf.var_data_vo_type);
 
-        known_pixels_query.filter_by_num_eq('var_id', varconf.id);
-        known_pixels_query.filter_is_true('_bdd_only_is_pixel');
+        /**
+         * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
+         */
+        known_pixels_query.filter_by_text_has('_bdd_only_index', MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data));
 
-        // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
-        //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        // known_pixels_query.filter_by_num_eq('var_id', varconf.id);
+        // known_pixels_query.filter_is_true('_bdd_only_is_pixel');
 
-            let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+        // // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
+        // //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
+        // for (let i in matroid_fields) {
+        //     let matroid_field = matroid_fields[i];
 
-            switch (matroid_field.field_type) {
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    if (pixellised) {
-                        known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    } else {
-                        known_pixels_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    }
-                    break;
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    if (pixellised) {
-                        known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    } else {
-                        known_pixels_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
-                    }
-                    break;
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                default:
-                    throw new Error('Not implemented');
-            }
-        }
+        //     let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+
+        //     switch (matroid_field.field_type) {
+        //         case ModuleTableField.FIELD_TYPE_numrange_array:
+        //         case ModuleTableField.FIELD_TYPE_refrange_array:
+        //         case ModuleTableField.FIELD_TYPE_isoweekdays:
+        //             if (pixellised) {
+        //                 known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             } else {
+        //                 known_pixels_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             }
+        //             break;
+        //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
+        //             if (pixellised) {
+        //                 known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             } else {
+        //                 known_pixels_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //             }
+        //             break;
+        //         case ModuleTableField.FIELD_TYPE_hourrange_array:
+        //         default:
+        //             throw new Error('Not implemented');
+        //     }
+        // }
 
         let known_pixels: VarDataBaseVO[] = await known_pixels_query.select_vos<VarDataBaseVO>();
         let aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
