@@ -9,6 +9,7 @@
                     :sync="false"
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+
         .field_placeholder
             .input_label {{ label('field_value_filter_widget_component.placeholder_name_code_text') }}
             .input_wrapper
@@ -368,7 +369,7 @@
                         :multiple="true"
                         :close-on-select="false"
                         v-model="tmp_default_showed_filter_opt_values"
-                        :options="filter_visible_options"
+                        :options="default_filter_visible_options"
                         :custom-label="filter_visible_label"
                         autocomplete="off"
 
@@ -399,7 +400,7 @@
                         :multiple="can_select_multiple"
                         :close-on-select="false"
                         v-model="tmp_default_filter_opt_values"
-                        :options="filter_visible_options"
+                        :options="default_filter_visible_options"
                         :custom-label="filter_visible_label"
                         autocomplete="off"
 
@@ -461,7 +462,7 @@
                         :multiple="can_select_multiple"
                         :close-on-select="false"
                         v-model="tmp_exclude_filter_opt_values"
-                        :options="filter_visible_options"
+                        :options="default_filter_visible_options"
                         :custom-label="filter_visible_label"
                         autocomplete="off"
 
@@ -516,7 +517,7 @@
 
             template(v-if="show_hide_enum_color_options")
                 .enum_color_options
-                    template(v-for='visible_option in filter_visible_options')
+                    template(v-for='visible_option in default_filter_visible_options')
                         .enum_color_option.mb-2.mt-2
                             .enum_bg_color
                                 color-picker(v-model="enum_bg_colors[visible_option.numeric_value]")

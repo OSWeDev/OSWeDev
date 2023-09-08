@@ -121,6 +121,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private can_select_all: boolean = false;
     private can_select_none: boolean = false;
 
+    private default_filter_visible_options: DataFilterOption[] = [];
     private filter_visible_options: DataFilterOption[] = [];
     private actual_query: string = null;
 
@@ -1003,6 +1004,28 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         } else {
             this.filter_visible_options = data_filters;
         }
+
+        if (this.is_type_enum) {
+            data_filters = [];
+            for (const i in this.default_enum_filter_options) {
+                const label = this.default_enum_filter_options[i];
+
+                const data_filter = new DataFilterOption().from({
+                    select_state: DataFilterOption.STATE_SELECTABLE,
+                    numeric_value: parseInt(i),
+                    string_value: label,
+                    label: this.t(label),
+                    custom_name: i,
+                    text_uid: i,
+                });
+
+                data_filters.push(data_filter);
+            }
+
+            this.default_filter_visible_options = data_filters;
+        } else {
+            this.default_filter_visible_options = this.filter_visible_options;
+        }
     }
 
     private checkbox_columns_label(e: number): string {
@@ -1442,6 +1465,21 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         return Object.assign(new VOFieldRefVO(), options.vo_field_sort_lvl2);
+    }
+
+    get default_enum_filter_options(): { [value: number]: string } {
+        if (!this.vo_field_ref) {
+            return null;
+        }
+
+        const module_table = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        const field = module_table.getFieldFromId(this.vo_field_ref.field_id);
+
+        if (!field) {
+            return null;
+        }
+
+        return field.enum_values;
     }
 
     get crud_api_type_id_select_options(): string[] {

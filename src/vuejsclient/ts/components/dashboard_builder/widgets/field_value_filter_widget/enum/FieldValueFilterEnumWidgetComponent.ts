@@ -488,8 +488,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     private set_all_count_by_filter_visible_loading(val: boolean): void {
-        for (const key in this.tmp_filter_active_options) {
-            const enum_data_filter = this.tmp_filter_active_options[key];
+        for (const key in this.tmp_active_filter_options) {
+            const enum_data_filter = this.tmp_active_filter_options[key];
 
             const is_in_active_filters_options = this.tmp_active_filter_options?.find((active_filter_option) =>
                 active_filter_option.numeric_value === enum_data_filter.numeric_value

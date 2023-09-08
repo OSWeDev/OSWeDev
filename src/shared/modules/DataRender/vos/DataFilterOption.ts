@@ -1,7 +1,9 @@
+import AbstractVO from "../../VO/abstract/AbstractVO";
+
 /**
  * DataFilterOption
  */
-export default class DataFilterOption {
+export default class DataFilterOption extends AbstractVO {
     public static STATE_SELECTED: number = 1;
     public static STATE_SELECTABLE: number = 2;
     public static STATE_UNSELECTABLE: number = 3;
@@ -25,6 +27,8 @@ export default class DataFilterOption {
         public options: DataFilterOption[] = [],
         public custom_name: string = null,
     ) {
+        super();
+
         if (!custom_name) {
             this.custom_name = label;
         }
@@ -32,19 +36,6 @@ export default class DataFilterOption {
         if (init) {
             this.init_text_uid();
         }
-    }
-
-    /**
-     * Hydrate from the given properties
-     *
-     * @param {Partial<DataFilterOption>} [props]
-     * @returns {DataFilterOption}
-     */
-    public from(props: Partial<DataFilterOption>): DataFilterOption {
-
-        Object.assign(this, props);
-
-        return this;
     }
 
     public init_text_uid() {
