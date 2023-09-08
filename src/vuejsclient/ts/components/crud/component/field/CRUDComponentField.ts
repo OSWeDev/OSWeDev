@@ -3,7 +3,7 @@ import { watch } from 'fs';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
-import Vue from 'vue';
+import Vue, { nextTick } from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -354,6 +354,11 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async reload_field_value() {
 
+        if (!this.field) {
+            this.$nextTick(() => this.reload_field_value()); // On décale si on a pas encore le field
+            return;
+        }
+
         if (this.is_readonly != (this.field.is_readonly || this.is_disabled)) {
             this.is_readonly = this.field.is_readonly || this.is_disabled;
         }
@@ -449,6 +454,11 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private getInputValue(input: any): any {
+
+        if (!this.field) {
+            this.$nextTick(() => this.getInputValue(input)); // On décale si on a pas encore le field
+            return null;
+        }
 
         let input_value: any = null;
 
@@ -809,6 +819,12 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private async prepare_select_options() {
+
+        if (!this.field) {
+            this.$nextTick(() => this.prepare_select_options()); // On décale si on a pas encore le field
+            return;
+        }
+
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
