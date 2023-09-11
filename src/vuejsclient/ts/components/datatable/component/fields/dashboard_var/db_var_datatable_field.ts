@@ -2,7 +2,7 @@ import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO, { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
@@ -19,6 +19,12 @@ import ValidationFiltersWidgetController from '../../../../dashboard_builder/wid
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import './db_var_datatable_field.scss';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
+import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
+import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ThreadHandler from '../../../../../../../shared/tools/ThreadHandler';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
@@ -79,7 +85,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private is_loading: boolean = true;
 
     private var_param_no_value_or_param_is_invalid: boolean = false;
-    private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
+    private limit_nb_ts_ranges_on_param_by_context_filter: number = 100;
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
@@ -164,6 +170,37 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         return false;
     }
 
+    private async wait_for_custom_filters_on_tsranges(var_id: number) {
+
+        let var_conf: VarConfVO = VarsController.var_conf_by_id[var_id];
+        let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        let tries = 100;
+
+        while (tries > 0) {
+
+            let can_exit = true;
+            for (let i in matroid_fields) {
+
+                let matroid_field = matroid_fields[i];
+
+                if ((matroid_field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array)
+                    && (!this.var_custom_filters[matroid_field.field_id])) {
+                    can_exit = false;
+                    break;
+                }
+            }
+
+            if (can_exit) {
+                return;
+            }
+
+            await ThreadHandler.sleep(100, 'wait_for_custom_filters_on_tsranges');
+            tries--;
+        }
+
+        ConsoleHandler.warn('wait_for_custom_filters_on_tsranges timeout');
+    }
+
     private async throttled_do_init_param() {
 
         this.is_loading = true;
@@ -181,6 +218,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             setTimeout(this.throttled_do_init_param.bind(this), 100);
             return;
         }
+
+        // On doit attendre le chargement des filtres de date, sinon impossible de créer des params puisqu'on refuse les max ranges sur les dates
+        await this.wait_for_custom_filters_on_tsranges(this.var_id);
 
         let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
 
