@@ -9,20 +9,24 @@
                     button.tag.btn(@click='filter_tag(dt)' v-tooltip.top='dt.description' :class="{'is-checked':dt.id == filter_tag_id}") {{ dt.name }}
 
     template(v-if='loaded')
-        isotope.documents_wrapper(ref="isotope" :options='options' :list="list")
-            .document.grid-item(v-for="d in list" :key="d.id" @click="open_document(d.document_url)" target='_blank' v-tooltip.top="d.description" :class='classnames[d.importance]')
-                .document_name {{ d.name }}
+        template(v-if="(list?.length > 0)")
+            isotope.documents_wrapper(ref="isotope" :options='options' :list="list")
+                .document.grid-item(v-for="d in list" :key="d.id" @click="open_document(d.document_url)" target='_blank' v-tooltip.top="d.description" :class='classnames[d.importance]')
+                    .document_name {{ d.name }}
 
-                .document_type(v-if="d.show_icon")
-                    template(v-if='d.type==type_video')
-                        i.fa.fa-solid.fa-youtube-play.fa-fw(aria-hidden="true")
-                    template(v-if='d.type==type_pdf')
-                        i.fa.fa-solid.fa-file-pdf.fa-fw(aria-hidden="true")
-                    template(v-if='d.type==type_xls')
-                        i.fa.fa-solid.fa-file-excel.fa-fw(aria-hidden="true")
-                    template(v-if='d.type==type_doc')
-                        i.fa.fa-solid.fa-file-word.fa-fw(aria-hidden="true")
-                    template(v-if='d.type==type_ppt')
-                        i.fa.fa-solid.fa-file-powerpoint.fa-fw(aria-hidden="true")
-                    template(v-if='d.type==type_other')
-                        i.fa.fa-solid.fa-file.fa-fw(aria-hidden="true")
+                    .document_type(v-if="d.show_icon")
+                        template(v-if='d.type==type_video')
+                            i.fa.fa-solid.fa-youtube-play.fa-fw(aria-hidden="true")
+                        template(v-if='d.type==type_pdf')
+                            i.fa.fa-solid.fa-file-pdf.fa-fw(aria-hidden="true")
+                        template(v-if='d.type==type_xls')
+                            i.fa.fa-solid.fa-file-excel.fa-fw(aria-hidden="true")
+                        template(v-if='d.type==type_doc')
+                            i.fa.fa-solid.fa-file-word.fa-fw(aria-hidden="true")
+                        template(v-if='d.type==type_ppt')
+                            i.fa.fa-solid.fa-file-powerpoint.fa-fw(aria-hidden="true")
+                        template(v-if='d.type==type_other')
+                            i.fa.fa-solid.fa-file.fa-fw(aria-hidden="true")
+
+        template(v-else)
+            h2.text-center {{ label('document_handler_component.no_document') }}
