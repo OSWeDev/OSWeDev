@@ -92,6 +92,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * Used in the CREATE or UPDATE views
      */
     public translatable_place_holder: string = null;
+    public translatable_title_custom: string = null;
 
     public select_options_enabled: number[] = null;
 
@@ -335,6 +336,14 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      */
     public setPlaceholder(code_text: string): this {
         this.translatable_place_holder = code_text;
+        return this;
+    }
+
+    /**
+     * @param code_text Code du translatable text associé
+     */
+    public setTranslatableTitle(code_text: string): this {
+        this.translatable_title_custom = code_text;
         return this;
     }
 
