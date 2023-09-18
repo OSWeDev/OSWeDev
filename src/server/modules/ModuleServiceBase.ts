@@ -121,6 +121,8 @@ import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGPTServer from './GPT/ModuleGPTServer';
+import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
+import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -552,6 +554,7 @@ export default abstract class ModuleServiceBase {
             ModuleUserLogVars.getInstance(),
             ModulePlayWright.getInstance(),
             ModuleGPT.getInstance(),
+            ModuleAzureMemoryCheck.getInstance(),
         ];
     }
 
@@ -612,6 +615,7 @@ export default abstract class ModuleServiceBase {
             ModuleUserLogVarsServer.getInstance(),
             ModulePlayWrightServer.getInstance(),
             ModuleGPTServer.getInstance(),
+            ModuleAzureMemoryCheckServer.getInstance(),
         ];
     }
 
