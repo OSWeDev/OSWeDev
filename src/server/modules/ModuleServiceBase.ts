@@ -121,6 +121,8 @@ import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGPTServer from './GPT/ModuleGPTServer';
+import ModuleDalleServer from './Dalle/ModuleDalleServer';
+import ModuleDalle from '../../shared/modules/Dalle/ModuleDalle';
 
 export default abstract class ModuleServiceBase {
 
@@ -552,6 +554,7 @@ export default abstract class ModuleServiceBase {
             ModuleUserLogVars.getInstance(),
             ModulePlayWright.getInstance(),
             ModuleGPT.getInstance(),
+            ModuleDalle.getInstance(),
         ];
     }
 
@@ -612,6 +615,7 @@ export default abstract class ModuleServiceBase {
             ModuleUserLogVarsServer.getInstance(),
             ModulePlayWrightServer.getInstance(),
             ModuleGPTServer.getInstance(),
+            ModuleDalleServer.getInstance(),
         ];
     }
 

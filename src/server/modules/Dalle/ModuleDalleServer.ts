@@ -2,36 +2,31 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import { OpenAIApi, Configuration } from "openai";
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import GPTAPIMessage from '../../../shared/modules/GPT/api/GPTAPIMessage';
+import ModuleDalle from '../../../shared/modules/Dalle/ModuleDalle';
 
-export default class ModuleGPTServer extends ModuleServerBase {
+export default class ModuleDalleServer extends ModuleServerBase {
 
     public static getInstance() {
-        if (!ModuleGPTServer.instance) {
-            ModuleGPTServer.instance = new ModuleGPTServer();
+        if (!ModuleDalleServer.instance) {
+            ModuleDalleServer.instance = new ModuleDalleServer();
         }
-        return ModuleGPTServer.instance;
+        return ModuleDalleServer.instance;
     }
 
-    private static instance: ModuleGPTServer = null;
+    private static instance: ModuleDalleServer = null;
 
     private openai = null;
 
     private constructor() {
-        super(ModuleGPT.getInstance().name);
+        super(ModuleDalle.getInstance().name);
     }
 
     public async configure() {
@@ -52,17 +47,17 @@ export default class ModuleGPTServer extends ModuleServerBase {
      */
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
-        group.translatable_name = ModuleGPT.POLICY_GROUP;
+        group.translatable_name = ModuleDalle.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            'fr-fr': 'GPT'
+            'fr-fr': 'Dalle'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = ModuleGPT.POLICY_BO_ACCESS;
+        bo_access.translatable_name = ModuleDalle.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            'fr-fr': 'Administration du module GPT'
+            'fr-fr': 'Administration du module Dalle'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -74,47 +69,47 @@ export default class ModuleGPTServer extends ModuleServerBase {
         let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
         POLICY_FO_ACCESS.group_id = group.id;
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        POLICY_FO_ACCESS.translatable_name = ModuleGPT.POLICY_FO_ACCESS;
+        POLICY_FO_ACCESS.translatable_name = ModuleDalle.POLICY_FO_ACCESS;
         POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
-            'fr-fr': 'Accès front - GPT'
+            'fr-fr': 'Accès front - Dalle'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    public async generate_response(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTMessageVO> {
-        try {
-            // const modelId = "gpt-4";
-            const modelId = "gpt-3.5-turbo";
+    // public async generate_response(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTMessageVO> {
+    //     try {
+    //         // const modelId = "gpt-4";
+    //         const modelId = "gpt-3.5-turbo";
 
-            if (!conversation || !newPrompt) {
-                throw new Error("Invalid conversation or prompt");
-            }
+    //         if (!conversation || !newPrompt) {
+    //             throw new Error("Invalid conversation or prompt");
+    //         }
 
-            // Add the new message to the conversation
-            if (!conversation.messages) {
-                conversation.messages = [];
-            }
-            conversation.messages.push(newPrompt);
+    //         // Add the new message to the conversation
+    //         if (!conversation.messages) {
+    //             conversation.messages = [];
+    //         }
+    //         conversation.messages.push(newPrompt);
 
-            // Extract the currentMessages from the conversation
-            const currentMessages = GPTAPIMessage.fromConversation(conversation);
-            const result = await this.openai.createChatCompletion({
-                model: modelId,
-                messages: currentMessages,
-            });
+    //         // Extract the currentMessages from the conversation
+    //         const currentMessages = GPTAPIMessage.fromConversation(conversation);
+    //         const result = await this.openai.createChatCompletion({
+    //             model: modelId,
+    //             messages: currentMessages,
+    //         });
 
-            const responseText = result.data.choices.shift().message.content;
-            const responseMessage: GPTMessageVO = new GPTMessageVO();
-            responseMessage.date = Dates.now();
-            responseMessage.content = responseText;
-            responseMessage.role_type = GPTMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+    //         const responseText = result.data.choices.shift().message.content;
+    //         const responseMessage: GPTMessageVO = new GPTMessageVO();
+    //         responseMessage.date = Dates.now();
+    //         responseMessage.content = responseText;
+    //         responseMessage.role_type = GPTMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
 
-            // Add the assistant's response to the conversation
-            conversation.messages.push(responseMessage);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conversation);
+    //         // Add the assistant's response to the conversation
+    //         conversation.messages.push(responseMessage);
+    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conversation);
 
-            return responseMessage;
-        } catch (err) {
-            ConsoleHandler.error(err);
-        }
-    }
+    //         return responseMessage;
+    //     } catch (err) {
+    //         ConsoleHandler.error(err);
+    //     }
+    // }
 }
