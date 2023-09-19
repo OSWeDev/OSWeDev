@@ -7,7 +7,9 @@ import ObjectHandler from "../../../shared/tools/ObjectHandler";
 import PromisePipeline from "../../../shared/tools/PromisePipeline/PromisePipeline";
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
+import ThrottleHelper from "../../../shared/tools/ThrottleHelper";
 import ConfigurationService from "../../env/ConfigurationService";
+import AzureMemoryCheckServerController from "../AzureMemoryCheck/AzureMemoryCheckServerController";
 import ModuleServiceBase from "../ModuleServiceBase";
 import DAOCacheHandler from "./DAOCacheHandler";
 import LogDBPerfServerController from "./LogDBPerfServerController";
@@ -54,7 +56,18 @@ export default class ThrottledQueryServerController {
         let freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
         let MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.MAX_NB_AUTO_UNION_IN_SELECT;
         let waiter = 1;
+        let throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
+            ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
+        }, 10000, { leading: true, trailing: true });
+
         while (true) {
+
+            // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
+            if (AzureMemoryCheckServerController.dao_server_coef == 0) {
+                throttled_log_dao_server_coef_0();
+                await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
+                continue;
+            }
 
             // if (!ThrottledQueryServerController.throttled_select_query_params || !ThrottledQueryServerController.throttled_select_query_params.length) {
             //     await ThreadHandler.sleep(waiter, "ModuleDAOServer:shift_select_queries");
@@ -66,7 +79,7 @@ export default class ThrottledQueryServerController {
                 continue;
             }
 
-            waiter = 1;
+            // waiter = 1;
             let same_field_labels_params: ThrottledSelectQueryParam[] = ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
             delete ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
 
@@ -165,11 +178,32 @@ export default class ThrottledQueryServerController {
         promise_pipeline: PromisePipeline
     ) {
         let self = this;
+        let throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
+            ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
+        }, 10000, { leading: true, trailing: true });
+
+        let throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
+            ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 1');
+        }, 10000, { leading: true, trailing: true });
+        let old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
+
         for (let group_id_s in request_by_group_id) {
             let gr_id = parseInt(group_id_s);
 
             let request = request_by_group_id[gr_id];
             let dedoublonned_same_field_labels_params = dedoublonned_same_field_labels_params_by_group_id[gr_id];
+
+            // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
+            while (AzureMemoryCheckServerController.dao_server_coef == 0) {
+                throttled_log_dao_server_coef_0();
+                await ThreadHandler.sleep(100, "ModuleDAOServer:handle_groups_queries:dao_server_coef == 0");
+            }
+
+            if (AzureMemoryCheckServerController.dao_server_coef < 1) {
+                throttled_log_dao_server_coef_not_1();
+            }
+
+            promise_pipeline.max_concurrent_promises = Math.max(Math.floor(old_promise_pipeline_max_concurrent_promises * AzureMemoryCheckServerController.dao_server_coef), 1);
 
             await promise_pipeline.push(async () => {
 
@@ -183,6 +217,8 @@ export default class ThrottledQueryServerController {
                 );
             });
         }
+
+        promise_pipeline.max_concurrent_promises = old_promise_pipeline_max_concurrent_promises;
     }
 
     private static handle_load_from_cache(

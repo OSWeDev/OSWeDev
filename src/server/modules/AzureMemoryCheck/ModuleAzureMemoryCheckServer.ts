@@ -1,4 +1,5 @@
 import axios from "axios";
+import qs from 'qs';
 import ModuleAzureMemoryCheck from '../../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
@@ -88,7 +89,7 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
             serverName = res;
         }));
 
-        promises.push(ModuleParams.getInstance().getParamValueAsInt(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_USAGE_DATA_MAX_SIZE_PARAM_NAME, 60, 180000).then((res) => {
+        promises.push(ModuleParams.getInstance().getParamValueAsInt(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_USAGE_DATA_MAX_SIZE_PARAM_NAME, 10, 180000).then((res) => {
             memory_usage_data_max_size = res;
         }));
         promises.push(ModuleParams.getInstance().getParamValueAsInt(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_AZURE_MEM_SIZE_PARAM_NAME, null, 180000).then((res) => {
@@ -108,15 +109,30 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
         }
 
         const tokenEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/token`;
-        const metricEndpoint = `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.DBforPostgreSQL/servers/${serverName}/metrics?api-version=2017-12-01`;
+        const metricEndpoint = `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.DBforPostgreSQL/flexibleServers/${serverName}/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=memory_percent`;
 
         // Get token
-        const tokenResponse = await axios.post(tokenEndpoint, {
-            grant_type: "client_credentials",
+        const tokenData = qs.stringify({
+            grant_type: 'client_credentials',
             client_id: clientId,
             client_secret: clientSecret,
-            resource: "https://management.azure.com/"
+            resource: 'https://management.azure.com/'
         });
+
+        const tokenHeaders = {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        };
+
+        const tokenResponse = await axios.post(tokenEndpoint, tokenData, tokenHeaders);
+
+        // const tokenResponse = await axios.post(tokenEndpoint, {
+        //     grant_type: "client_credentials",
+        //     client_id: clientId,
+        //     client_secret: clientSecret,
+        //     resource: "https://management.azure.com/"
+        // });
 
         const token = tokenResponse.data.access_token;
 
@@ -124,16 +140,13 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
         const metricResponse = await axios.get(metricEndpoint, {
             headers: {
                 Authorization: `Bearer ${token}`
-            },
-            params: {
-                metricnames: "available_memory" // Adjust this as per the exact metric name for available memory
             }
         });
 
         // Extract available memory from the response
         const memoryData = metricResponse.data.value[0]?.timeseries[0]?.data || [];
         if (memoryData.length) {
-            AzureMemoryCheckServerController.addMemoryUsageData(this.translate_to_prct(azure_mem_size, memoryData[memoryData.length - 1].average), memory_usage_data_max_size);
+            AzureMemoryCheckServerController.addMemoryUsageData(memoryData[memoryData.length - 1].average, memory_usage_data_max_size);
         }
     }
 

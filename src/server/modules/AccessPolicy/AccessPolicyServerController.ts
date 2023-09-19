@@ -234,7 +234,7 @@ export default class AccessPolicyServerController {
         /**
          * Si on a le rôle admin on dégage immédiatement
          */
-        if (roles_ids && (roles_ids.indexOf(AccessPolicyServerController.role_admin.id) >= 0)) {
+        if (AccessPolicyServerController.role_admin && roles_ids && (roles_ids.indexOf(AccessPolicyServerController.role_admin.id) >= 0)) {
             return true;
         }
 
@@ -745,7 +745,7 @@ export default class AccessPolicyServerController {
         } else if (role.translatable_name == AccessPolicyServerController.role_admin.translatable_name) {
             role.parent_role_id = AccessPolicyServerController.role_logged.id;
         } else {
-            if ((!role.parent_role_id) || (role.parent_role_id == AccessPolicyServerController.role_anonymous.id) || (role.parent_role_id == AccessPolicyServerController.role_admin.id)) {
+            if ((!role.parent_role_id) || (role.parent_role_id == AccessPolicyServerController.role_anonymous.id) || (AccessPolicyServerController.role_admin && (role.parent_role_id == AccessPolicyServerController.role_admin.id))) {
                 role.parent_role_id = AccessPolicyServerController.role_logged.id;
             }
         }
@@ -1043,7 +1043,7 @@ export default class AccessPolicyServerController {
                 let role: RoleVO = AccessPolicyServerController.registered_roles[j];
 
                 // On ignore l'admin qui a accès à tout
-                if (role.id == AccessPolicyServerController.role_admin.id) {
+                if (AccessPolicyServerController.role_admin && (role.id == AccessPolicyServerController.role_admin.id)) {
                     continue;
                 }
 
@@ -1151,7 +1151,7 @@ export default class AccessPolicyServerController {
             }
 
             // Cas 0
-            if (user_role.id == AccessPolicyServerController.role_admin.id) {
+            if (AccessPolicyServerController.role_admin && (user_role.id == AccessPolicyServerController.role_admin.id)) {
                 return true;
             }
 
