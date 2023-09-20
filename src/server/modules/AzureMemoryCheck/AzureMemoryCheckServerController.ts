@@ -38,7 +38,7 @@ export default class AzureMemoryCheckServerController {
             AzureMemoryCheckServerController.dao_server_coef = 1 - (1 / ((90 - last_usage) / (augmentation * 10)));
         } else if (augmentation < 0) {
             ConsoleHandler.log('Ralentissement de la consommation de mémoire détectée: -' + (-augmentation) + '%/min :last_usage: ' + last_usage + '% :AzureMemoryCheckServerController.dao_server_coef AVANT: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
-            AzureMemoryCheckServerController.dao_server_coef = Math.max(AzureMemoryCheckServerController.dao_server_coef, 0.1) * 1.1;
+            AzureMemoryCheckServerController.dao_server_coef = Math.max(AzureMemoryCheckServerController.dao_server_coef, 0.1) * 2;
         }
 
         if (AzureMemoryCheckServerController.dao_server_coef > 1) {
