@@ -15,7 +15,6 @@ import TableWidgetController from '../../TableWidgetController';
 import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
 import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import NumRange from '../../../../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
 import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
@@ -523,6 +522,12 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.archive_button,
+                    options.can_export_active_field_filters,
+                    options.can_export_vars_indicator,
+                    options.show_bulk_edit,
+                    options.cb_bulk_actions,
+                    options.show_bulk_select_all,
+                    options.has_export_maintenance_alert,
                 ) : null;
             }
         } catch (error) {
@@ -773,6 +778,24 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async switch_sum_numeral_datas() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.sum_numeral_datas = !this.column.sum_numeral_datas;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_explicit_html() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.explicit_html = !this.column.explicit_html;
+        this.$emit('update_column', this.column);
+    }
+
     private async switch_hide_from_table() {
         if (!this.column) {
             return;
@@ -927,4 +950,25 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     get is_type_var_ref(): boolean {
         return this.object_column.type == TableColumnDescVO.TYPE_var_ref;
     }
+
+    private is_simple_number(field_type: string): boolean {
+        if (field_type == ModuleTableField.FIELD_TYPE_int
+            || field_type == ModuleTableField.FIELD_TYPE_enum
+            || field_type == ModuleTableField.FIELD_TYPE_amount
+            || field_type == ModuleTableField.FIELD_TYPE_float
+            || field_type == ModuleTableField.FIELD_TYPE_decimal_full_precision) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    get is_type_number_vo_field_ref(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && this.is_simple_number(this.field.field_type);
+    }
+
+    get is_type_html(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && (this.field.field_type == ModuleTableField.FIELD_TYPE_html);
+    }
+
 }

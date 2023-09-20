@@ -141,6 +141,7 @@ export default class ModuleTableField<T> {
 
     public return_min_value: boolean = true;
     public return_max_value: boolean = true;
+    public max_range_offset: number = 0;
 
     /**
      * ----- Local thread cache
@@ -251,6 +252,11 @@ export default class ModuleTableField<T> {
 
     public set_return_max_value(return_max_value: boolean): ModuleTableField<T> {
         this.return_max_value = return_max_value;
+        return this;
+    }
+
+    public set_max_range_offset(max_range_offset: number): ModuleTableField<T> {
+        this.max_range_offset = max_range_offset;
         return this;
     }
 

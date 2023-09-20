@@ -6,14 +6,17 @@ import Module from '../Module';
 import ModuleParams from '../Params/ModuleParams';
 import ModuleRequest from '../Request/ModuleRequest';
 import { FactuProInvoiceVOStatic } from './vos/apis/FactuProInvoiceVO';
+import FactuProInvoiceEmailVO, { FactuProInvoiceEmailVOStatic } from './vos/apis/FactuProInvoiceEmailVO';
 import FactuProCategoriesLISTParams from './vos/categories/FactuProCategoriesLISTParams';
 import FactuProCategoryVO from './vos/categories/FactuProCategoryVO';
 import FactuProCustomersLISTParams from './vos/customers/FactuProCustomersLISTParams';
 import FactuProCustomerVO from './vos/customers/FactuProCustomerVO';
+import FactuProInvoicesEmailParams from './vos/invoices/FactuProInvoicesEmailParams';
 import FactuProInvoicesLISTParams from './vos/invoices/FactuProInvoicesLISTParams';
 import FactuProInvoiceVO from './vos/invoices/FactuProInvoiceVO';
 import FactuProProductsLISTParams from './vos/products/FactuProProductsLISTParams';
 import FactuProProductVO from './vos/products/FactuProProductVO';
+import FactuProInvoiceFinaliseVO, { FactuProInvoiceFinaliseVOStatic } from './vos/apis/FactuProInvoiceFinaliseVO';
 
 export default class ModuleFacturationProAPI extends Module {
 
@@ -22,6 +25,8 @@ export default class ModuleFacturationProAPI extends Module {
     public static FacturationProAPI_Cle_API_PARAM_NAME: string = 'FacturationProAPI.FacturationProAPI_Cle_API';
 
     public static APINAME_download_invoice: string = "download_invoice";
+    public static APINAME_send_email_facture: string = "send_email_facture";
+    public static APINAME_finalise_invoice: string = "finalise_invoice";
 
     public static MODULE_NAME: string = 'FacturationProAPI';
 
@@ -39,6 +44,8 @@ export default class ModuleFacturationProAPI extends Module {
     private static instance: ModuleFacturationProAPI = null;
 
     public download_invoice: (firm_id: number, invoice_id: string, original: boolean) => Promise<string> = APIControllerWrapper.sah(ModuleFacturationProAPI.APINAME_download_invoice);
+    public send_email_facture: (firm_id: number, bill_id: number, params: FactuProInvoicesEmailParams) => Promise<void> = APIControllerWrapper.sah(ModuleFacturationProAPI.APINAME_send_email_facture);
+    public finalise_invoice: (firm_id: number, invoice_id: number, params: FactuProInvoiceVO) => Promise<void> = APIControllerWrapper.sah(ModuleFacturationProAPI.APINAME_finalise_invoice);
 
     private constructor() {
 
@@ -51,6 +58,20 @@ export default class ModuleFacturationProAPI extends Module {
             ModuleFacturationProAPI.APINAME_download_invoice,
             [],
             FactuProInvoiceVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<FactuProInvoiceEmailVO, void>(
+            null,
+            ModuleFacturationProAPI.APINAME_send_email_facture,
+            [],
+            FactuProInvoiceEmailVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<FactuProInvoiceFinaliseVO, void>(
+            null,
+            ModuleFacturationProAPI.APINAME_finalise_invoice,
+            [],
+            FactuProInvoiceFinaliseVOStatic
         ));
     }
 

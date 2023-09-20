@@ -106,6 +106,9 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: false })
     private bootstrap_3_modal_fallback: boolean;
 
+    @Prop({ default: true })
+    private show_pagination_datatable: boolean;
+
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
 
@@ -487,7 +490,7 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type;
+                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
                 if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
 
@@ -573,7 +576,7 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type;
+                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
                 if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
                     if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {

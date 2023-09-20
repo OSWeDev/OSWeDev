@@ -14,10 +14,18 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleParamsServer extends ModuleServerBase {
+
+    public static TASK_NAME_delete_params_cache = 'ModuleAccessPolicyServer.delete_params_cache';
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -36,6 +44,8 @@ export default class ModuleParamsServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleParams.getInstance().name);
+
+        ForkedTasksController.register_task(ModuleParamsServer.TASK_NAME_delete_params_cache, this.delete_params_cache.bind(this));
     }
 
     // istanbul ignore next: cannot test configure
@@ -49,6 +59,14 @@ export default class ModuleParamsServer extends ModuleServerBase {
             { 'fr-fr': 'Paramètres' },
             'menu.menuelements.admin.ParamsAdminVueModule.___LABEL___'));
 
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostCreateParam);
+
+        let postUpateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUpateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostUpdateParam);
+
+        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        postDeleteTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostDeleteParam);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -179,6 +197,25 @@ export default class ModuleParamsServer extends ModuleServerBase {
             default_if_undefined,
             max_cache_age_ms,
             false);
+    }
+
+    private async handleTriggerPostCreateParam(vo: ParamVO) {
+        await ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo);
+    }
+
+    private async handleTriggerPostUpdateParam(update: DAOUpdateVOHolder<ParamVO>) {
+        await ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.pre_update_vo);
+        await ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, update.post_update_vo);
+    }
+
+    private async handleTriggerPostDeleteParam(vo: ParamVO) {
+        await ForkedTasksController.broadexec(ModuleParamsServer.TASK_NAME_delete_params_cache, vo);
+    }
+
+    private delete_params_cache(vo: ParamVO) {
+        delete this.throttled_param_cache_value[vo.name];
+        delete this.throttled_param_cache_lastupdate_ms[vo.name];
+        delete this.semaphore_param[vo.name];
     }
 
     private async getParamValue(

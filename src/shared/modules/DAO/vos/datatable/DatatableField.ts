@@ -54,6 +54,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public return_min_value: boolean;
     public format_localized_time: boolean;
     public return_max_value: boolean;
+    public max_range_offset: number;
 
     public tooltip: string = null;
 
@@ -91,6 +92,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * Used in the CREATE or UPDATE views
      */
     public translatable_place_holder: string = null;
+    public translatable_title_custom: string = null;
 
     public select_options_enabled: number[] = null;
 
@@ -103,8 +105,11 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     abstract get translatable_title(): string;
 
     public validate: (data: any) => string;
-    public onChange: (vo: IDistantVOBase) => void;
-    public onEndOfChange: (vo: IDistantVOBase) => void;
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
+    public onChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
+    public onEndOfChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
     public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
@@ -218,13 +223,13 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => void): this {
+    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onChange = onChange;
 
         return this;
     }
 
-    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => void): this {
+    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onEndOfChange = onEndOfChange;
 
         return this;
@@ -331,6 +336,14 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      */
     public setPlaceholder(code_text: string): this {
         this.translatable_place_holder = code_text;
+        return this;
+    }
+
+    /**
+     * @param code_text Code du translatable text associé
+     */
+    public setTranslatableTitle(code_text: string): this {
+        this.translatable_title_custom = code_text;
         return this;
     }
 
@@ -444,6 +457,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
             this.return_min_value = (this.return_min_value != null) ? this.return_min_value : this.moduleTableField.return_min_value;
             this.format_localized_time = (this.format_localized_time != null) ? this.format_localized_time : this.moduleTableField.format_localized_time;
             this.return_max_value = (this.return_max_value != null) ? this.return_max_value : this.moduleTableField.return_max_value;
+            this.max_range_offset = (this.max_range_offset != null) ? this.max_range_offset : this.moduleTableField.max_range_offset;
         }
     }
 }

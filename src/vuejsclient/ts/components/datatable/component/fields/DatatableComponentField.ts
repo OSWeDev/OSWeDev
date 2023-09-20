@@ -6,6 +6,7 @@ import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/D
 import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -70,6 +71,9 @@ export default class DatatableComponentField extends VueComponentBase {
     private page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
+    private dashboard_page: DashboardPageVO;
+
+    @Prop({ default: null })
     private filter: () => any;
 
     @Prop({ default: false })
@@ -85,7 +89,7 @@ export default class DatatableComponentField extends VueComponentBase {
     private is_load: boolean = false;
 
     get field_type(): string {
-        return this.field?.moduleTableField?.field_type || ModuleTableField.FIELD_TYPE_int; // Pour le cas de l'id
+        return this.field?.field_type || ModuleTableField.FIELD_TYPE_int; // Pour le cas de l'id
     }
 
     public async mounted() {
@@ -142,16 +146,27 @@ export default class DatatableComponentField extends VueComponentBase {
         // switch (this.field.type) {
         //     case DatatableField.SIMPLE_FIELD_TYPE:
 
-        //         switch (this.simple_field.moduleTableField.field_type) {
+        //         switch (this.simple_field.field_type) {
         //             case ModuleTableField.FIELD_TYPE_enum:
 
         //                 let enum_val = this.vo[this.field.datatable_field_uid];
-        //                 return this.t(this.simple_field.moduleTableField.enum_values[enum_val]);
+        //                 return this.t(this.simple_field.enum_values[enum_val]);
 
         //             default:
         //                 return this.vo[this.field.datatable_field_uid];
         //         }
         //     default:
+
+        // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
+        if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+            if (
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html) ||
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html_array)
+            ) {
+                return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
+            }
+        }
+
         return this.vo[this.field.datatable_field_uid];
         // }
     }
@@ -165,8 +180,8 @@ export default class DatatableComponentField extends VueComponentBase {
     }
 
     get custom_field_types(): TableFieldTypeControllerBase {
-        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers && this.simple_field.moduleTableField) {
-            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.moduleTableField.field_type];
+        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.field_type];
         }
 
         return null;

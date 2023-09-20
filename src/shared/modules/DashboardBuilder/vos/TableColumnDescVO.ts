@@ -137,6 +137,13 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public disabled_many_to_one_link: boolean;
 
     /**
+     * Permet d'appliquer une SUM sur une colonne numérique lors de la requète
+     */
+    public sum_numeral_datas: boolean;
+
+    public explicit_html: boolean;
+
+    /**
      * Kanban conf : permet de définir la colonne kanban
      */
     public kanban_column: boolean;

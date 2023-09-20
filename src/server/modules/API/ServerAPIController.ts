@@ -21,6 +21,7 @@ export default class ServerAPIController implements IAPIController {
         precondition_default_value: any = null,
         registered_apis: { [api_name: string]: APIDefinition<any, any> } = {},
         sanitize_result: (res: any, ...params) => any = null,
+        use_notif_for_result: boolean = false
     ): (...params) => Promise<U> {
 
         return async (...params) => {

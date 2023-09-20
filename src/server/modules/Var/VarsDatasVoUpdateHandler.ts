@@ -1101,7 +1101,14 @@ export default class VarsDatasVoUpdateHandler {
             }
         }
 
-        return JSON.stringify(res);
+        let res_: string = null;
+        try {
+            res_ = JSON.stringify(res);
+        } catch (error) {
+            console.error('getJSONFrom_ordered_vos_cud ERROR ' + error);
+        }
+
+        return res_;
     }
 
     private static set_ordered_vos_cud_from_JSON(jsoned: string): void {

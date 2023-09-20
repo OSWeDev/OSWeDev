@@ -15,6 +15,8 @@ import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleServerBase from '../ModuleServerBase';
+import PushDataServerController from '../PushData/PushDataServerController';
+import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
 const zlib = require('zlib');
 
 export default class ModuleAPIServer extends ModuleServerBase {
@@ -28,6 +30,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
     }
 
     private static instance: ModuleAPIServer = null;
+    private static API_CALL_ID: number = 0;
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
@@ -133,6 +136,15 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             let params = (param && api.param_translator) ? api.param_translator.getAPIParams(param) : [param];
             let returnvalue = null;
+
+            let notif_result_uid: number = req.session.uid;
+            let notif_result_tab_id: string = req.headers.client_tab_id as string;
+            let do_notif_result: boolean = (
+                (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) &&
+                (!!notif_result_uid) &&
+                (!!notif_result_tab_id));
+            let api_call_id = null;
+
             try {
                 if (has_params && params && params.length) {
                     params.push(res);
@@ -141,6 +153,18 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
                 StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name);
                 let date_in_ms = Dates.now_ms();
+
+                // Si on répond en notif, on commence par dire OK au client, avant de gérer vraiment la demande
+                if (do_notif_result) {
+                    api_call_id = ++ModuleAPIServer.API_CALL_ID;
+                    let notif_result = APINotifTypeResultVO.createNew(
+                        api_call_id,
+                        null
+                    );
+
+                    res.json(APIControllerWrapper.try_translate_vo_to_api(notif_result));
+                }
+
                 returnvalue = await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => await api.SERVER_HANDLER(...params, req));
@@ -152,26 +176,45 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 return;
             }
 
-            if (res.headersSent) {
+            if (res.headersSent && (!do_notif_result)) {
                 // Si les headers sont déjà envoyés, on a plus rien à faire ici
                 return;
             }
 
-            switch (api.api_return_type) {
-                case APIDefinition.API_RETURN_TYPE_JSON:
-                    if (typeof returnvalue == 'undefined') {
-                        returnvalue = {} as any;
-                    }
-                case APIDefinition.API_RETURN_TYPE_FILE:
-                    returnvalue = APIControllerWrapper.try_translate_vo_to_api(returnvalue);
-                    res.json(returnvalue);
-                    return;
-
-                case APIDefinition.API_RETURN_TYPE_RES:
-                default:
-                    res.end(returnvalue);
-                    return;
+            if (
+                (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
+                (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF)) {
+                if (typeof returnvalue == 'undefined') {
+                    returnvalue = {} as any;
+                }
             }
+
+            if (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) {
+                if (do_notif_result) {
+                    await PushDataServerController.getInstance().notifyAPIResult(
+                        notif_result_uid,
+                        notif_result_tab_id,
+                        api_call_id,
+                        APIControllerWrapper.try_translate_vo_to_api(returnvalue)
+                    );
+                    return;
+                }
+
+                returnvalue = APINotifTypeResultVO.createNew(
+                    null,
+                    APIControllerWrapper.try_translate_vo_to_api(returnvalue)
+                );
+                return;
+            }
+
+            if (
+                (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
+                (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
+                returnvalue = APIControllerWrapper.try_translate_vo_to_api(returnvalue);
+                res.json(returnvalue);
+            }
+
+            res.end(returnvalue);
         };
     }
 

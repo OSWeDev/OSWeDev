@@ -15,13 +15,14 @@ export default class SendRequestParamVO implements IAPIParamTranslator<SendReque
         result_headers: {} = null,
         nojsonparse: boolean = false,
         add_content_length_to_headers: boolean = false,
+        json_stringify_posts: boolean = true,
     ): SendRequestParamVO {
 
-        return new SendRequestParamVO(method, host, path, posts, headers, sendHttps, result_headers, nojsonparse, add_content_length_to_headers);
+        return new SendRequestParamVO(method, host, path, posts, headers, sendHttps, result_headers, nojsonparse, add_content_length_to_headers, json_stringify_posts);
     }
 
     public static getAPIParams(param: SendRequestParamVO): any[] {
-        return [param.method, param.host, param.path, param.posts, param.headers, param.sendHttps, param.result_headers, param.nojsonparse, param.add_content_length_to_headers];
+        return [param.method, param.host, param.path, param.posts, param.headers, param.sendHttps, param.result_headers, param.nojsonparse, param.add_content_length_to_headers, param.json_stringify_posts];
     }
 
     public constructor(
@@ -34,6 +35,7 @@ export default class SendRequestParamVO implements IAPIParamTranslator<SendReque
         public result_headers: {} = null,
         public nojsonparse: boolean = false,
         public add_content_length_to_headers: boolean = false,
+        public json_stringify_posts: boolean = true,
     ) { }
 }
 

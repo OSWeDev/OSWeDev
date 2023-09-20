@@ -194,7 +194,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let none: boolean = true;
 
-                    let min_period: number = RangeHandler.getSegmentedMin(field_value, TimeSegment.TYPE_DAY, 0, this.return_min_value);
+
+                    let min_period: number = RangeHandler.getSegmentedMin(field_value, this.segmentation_type, 0, this.return_min_value);
+
                     if (min_period) {
                         res_tsrange.push(Dates.format_segment(min_period, this.segmentation_type, this.format_localized_time));
                         none = false;
@@ -202,7 +204,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         res_tsrange.push('');
                     }
 
-                    let max_period: number = RangeHandler.getSegmentedMax(field_value, TimeSegment.TYPE_DAY, 0, this.return_max_value);
+                    let max_period: number = RangeHandler.getSegmentedMax(field_value, this.segmentation_type, this.max_range_offset, this.return_max_value);
 
                     if (max_period) {
                         // Si mon max est différent du min, j'ajoute, sinon ça ne sert à rien car ça affiche en double
@@ -243,7 +245,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         res_numrange.push('');
                     }
 
-                    let max_number: number = RangeHandler.getSegmentedMax(field_value, null, 0, this.return_max_value);
+                    let max_number: number = RangeHandler.getSegmentedMax(field_value, null, this.max_range_offset, this.return_max_value);
 
                     if (max_number) {
                         if (max_number.toFixed(0) != min_number.toFixed(0)) {
@@ -550,6 +552,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
         if (!this.moduleTableField) {
             return 'id'; // Cas de l'id
+        }
+
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
         }
 
         let e = this.moduleTableField.field_label.code_text;

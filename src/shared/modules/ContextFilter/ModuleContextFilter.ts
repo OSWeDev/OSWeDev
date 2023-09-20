@@ -1,5 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import DatatableField from '../DAO/vos/datatable/DatatableField';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
@@ -216,17 +217,21 @@ export default class ModuleContextFilter extends Module {
             SelectVosParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
             null,
             ModuleContextFilter.APINAME_delete_vos,
-            null,
+            (params: DeleteVosParamVO) => {
+                return params.context_query ? [params.context_query.base_api_type_id] : null;
+            },
             DeleteVosParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
             null,
             ModuleContextFilter.APINAME_update_vos,
-            null,
+            (params: UpdateVosParamVO<any>) => {
+                return params.context_query ? [params.context_query.base_api_type_id] : null;
+            },
             UpdateVosParamVOStatic
         ));
     }

@@ -87,7 +87,7 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_pagination_form.visible'), unchecked: label('table_widget_options_component.show_pagination_form.hidden')}")
-    
+
     .show_pagination_list
         .input_label {{ label('table_widget_options_component.show_pagination_list') }}
         toggle-button(
@@ -96,7 +96,7 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_pagination_list.visible'), unchecked: label('table_widget_options_component.show_pagination_list.hidden')}")
-    
+
     template(v-if='show_pagination_list')
         .nbpage_pagination_list
             .input_label {{ label('table_widget_options_component.nbpage_pagination_list') }}
@@ -114,7 +114,7 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.hide_pagination_bottom.visible'), unchecked: label('table_widget_options_component.hide_pagination_bottom.hidden')}")
-    
+
 
     .has_table_total_footer
         .input_label {{ label('table_widget_options_component.has_table_total_footer') }}
@@ -133,7 +133,7 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_limit_selectable.visible'), unchecked: label('table_widget_options_component.show_limit_selectable.hidden')}")
-    
+
     template(v-if="show_limit_selectable")
         .limit_selectable
             .input_label {{ label('table_widget_options_component.limit_selectable') }}
@@ -145,7 +145,7 @@
 
     .create_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.create_button') }}
-        
+
         toggle-button(
             @change="switch_create_button" 
             :value="create_button" 
@@ -155,7 +155,7 @@
 
     .update_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.update_button') }}
-        
+
         toggle-button(
             @change="switch_update_button" 
             :value="update_button" 
@@ -165,7 +165,7 @@
 
     .delete_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.delete_button') }}
-        
+
         toggle-button(
             @change="switch_delete_button" 
             :value="delete_button" 
@@ -175,7 +175,7 @@
 
     .delete_all_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.delete_all_button') }}
-        
+
         toggle-button(
             @change="switch_delete_all_button" 
             :value="delete_all_button" 
@@ -185,7 +185,7 @@
 
     .archive_button(v-if='widget_options && widget_options.crud_api_type_id && is_archived_api_type_id')
         .input_label {{ label('table_widget_options_component.archive_button') }}
-        
+
         toggle-button(
             @change="switch_archive_button" 
             :value="archive_button" 
@@ -195,7 +195,7 @@
 
     .refresh_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.refresh_button') }}
-        
+
         toggle-button(
             @change="switch_refresh_button" 
             :value="refresh_button" 
@@ -213,6 +213,24 @@
             :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
     template(v-if="export_button")
+        .has_export_maintenance_alert
+            .input_label {{ label('table_widget_options_component.has_export_maintenance_alert') }}
+            toggle-button(
+                @change="switch_tmp_has_export_maintenance_alert" 
+                :value="tmp_has_export_maintenance_alert" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
+
+        .has_export_maintenance_alert
+            .input_label {{ label('table_widget_options_component.has_export_maintenance_alert') }}
+            toggle-button(
+                @change="switch_tmp_has_export_maintenance_alert" 
+                :value="tmp_has_export_maintenance_alert" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
+
         .has_default_export_option
             .input_label {{ label('table_widget_options_component.has_default_export_option') }}
             toggle-button(
@@ -222,7 +240,6 @@
                 :width="100"
                 :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
-    template(v-if="export_button")
         .can_export_active_field_filters
             .input_label {{ label('table_widget_options_component.can_export_active_field_filters') }}
             toggle-button(
@@ -232,7 +249,6 @@
                 :width="100"
                 :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
-    template(v-if="export_button")
         .can_export_vars_indicator
             .input_label {{ label('table_widget_options_component.can_export_vars_indicator') }}
             toggle-button(
@@ -258,9 +274,9 @@
                         :searchable="true"
                         :internal-search="false"
                         :hide-selected="true"
-                    
+
                         :key="'default_export_table_widget_options_component_' + tmp_default_export_option"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -293,8 +309,52 @@
             :value="use_for_count" 
             :sync="true"
             :width="100"
-            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
         )
+
+    .show_bulk_edit
+        .input_label {{ label('table_widget_options_component.show_bulk_edit') }}
+        toggle-button(
+            @change="switch_show_bulk_edit" 
+            :value="show_bulk_edit" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+        )
+
+    template(v-if="show_bulk_edit")
+        .show_bulk_select_all
+            .input_label {{ label('table_widget_options_component.show_bulk_select_all') }}
+            toggle-button(
+                @change="switch_show_bulk_select_all" 
+                :value="show_bulk_select_all" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+            )
+
+        .cb_bulk_actions 
+            multiselect(
+                :preselect-first="false"
+                :multiple="true"
+                v-model="cb_bulk_actions"
+                :placeholder="label('table_widget_options_component.cb_bulk_actions')"
+                :options="cb_bulk_actions_options"
+                :custom-label="cb_bulk_actions_label"
+                :allow-empty="true",
+                autocomplete="off"
+
+                :searchable="true"
+                :internal-search="true"
+
+                id="cb_bulk_actions"
+
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+            )
 
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}
@@ -312,7 +372,7 @@
 
                     Vuenestablehandle(:item="item" :class="{header_color:item.type == 5}")
                         i.fa-solid.fa-bars.fa-fw(aria-hidden="true")
-                    
+
                     .item_content
                         Tablewidgetcolumnoptionscomponent(
                             :column="item" @add_column="add_column" @remove_column="remove_column" @update_column="update_column"

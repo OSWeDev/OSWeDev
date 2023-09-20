@@ -478,7 +478,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'client.main-title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Admin'
-        }, 'client.menu-gauche.admin'));
+        }, 'client.menu-gauche.admin.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Menu principal'
         }, 'client.menu-gauche.navigationPrincipale'));
@@ -597,6 +597,15 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Liste des alertes'
         }, 'alert.list.title.default.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Annuler'
+        }, 'on_page_translation.rollback_button.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sauvegarder'
+        }, 'on_page_translation.save_button.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'OK'
+        }, 'on_page_translation.save_translation.ok.___LABEL___'));
     }
 
     /**
