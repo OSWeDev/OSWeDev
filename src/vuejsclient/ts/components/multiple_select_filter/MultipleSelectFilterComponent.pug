@@ -1,5 +1,5 @@
 .multiple_select_filter(v-show='(!!filter_options) && ((filter_options.length > 1) || (!hide_unique_option) || (filter_options && filter_options[0] && filter_options[0].options && filter_options[0].options.length > 1))')
-    //- v-select.v-select-multiple(:placeholder="placeholder" v-model="tmp_filter_active_options" multiple :options="filter_options" label="label")
+    //- v-select.v-select-multiple(:placeholder="placeholder" v-model="tmp_active_filter_options" multiple :options="filter_options" label="label")
     //-     span(slot="no-options") Vide
     //-     template(slot="option", slot-scope="option")
     //-         .selected_filter_option(v-if="option.select_state == filter_state_selected")
@@ -19,7 +19,7 @@
             :multiple="true"
             :max="max?max:null"
             :close-on-select="!multiselect",
-            v-model="tmp_filter_active_options",
+            v-model="tmp_active_filter_options",
             :placeholder="placeholder",
             :options="filter_options",
             
@@ -61,7 +61,7 @@
             :multiple="true"
             :max="max?max:null"
             :close-on-select="!multiselect"
-            v-model="tmp_filter_active_options"
+            v-model="tmp_active_filter_options"
             :placeholder="placeholder"
             :options="filter_options"
 

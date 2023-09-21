@@ -47,9 +47,6 @@ export default class ContextFilterServerController {
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_filter.param_alias);
         }
 
-
-        // TODO : when using alias
-
         let field_id = context_filter.field_id ?
             tables_aliases_by_type[context_filter.vo_type] + '.' + context_filter.field_id :
             null;
@@ -77,7 +74,12 @@ export default class ContextFilterServerController {
         // On tente de déanonymiser avant de construire la requête
         let uid = await StackContext.get('UID');
         if (context_filter.param_text) {
-            context_filter.param_text = await ServerAnonymizationController.get_unanonymised_row_field_value(context_filter.param_text, context_filter.vo_type, context_filter.field_id, uid);
+            context_filter.param_text = await ServerAnonymizationController.get_unanonymised_row_field_value(
+                context_filter.param_text,
+                context_filter.vo_type,
+                context_filter.field_id,
+                uid
+            );
         }
         if (context_filter.param_textarray) {
             for (let i in context_filter.param_textarray) {

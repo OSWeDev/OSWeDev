@@ -377,12 +377,18 @@ export default class ContextQueryServerController {
                     columns_by_field_id &&
                     fields &&
                     fields[field_id] &&
-                    (fields[field_id] instanceof DatatableField) && (
-                        (!columns_by_field_id[field_id]) ||
-                        columns_by_field_id[field_id].readonly)
+                    (fields[field_id] instanceof DatatableField) &&
+                    (
+                        !(columns_by_field_id[field_id]) ||
+                        columns_by_field_id[field_id].readonly
+                    )
                 ) {
                     await promise_pipeline.push(async () => {
-                        await ContextFilterVOHandler.get_datatable_row_field_data_async(row, row, fields[field_id]);
+                        query_res[i] = await ContextFilterVOHandler.get_datatable_row_field_data_async(
+                            row,
+                            row,
+                            fields[field_id]
+                        );
                     });
                 }
             }
@@ -866,7 +872,11 @@ export default class ContextQueryServerController {
                         let is_ok = false;
                         await deps_promise_pipeline.push(async () => {
                             try {
-                                let count_links: number = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_server(context_query.is_server).select_count();
+                                let count_links: number = await query(dep.linked_type)
+                                    .filter_by_id(dep.linked_id)
+                                    .exec_as_server(context_query.is_server)
+                                    .select_count();
+
                                 if (!count_links) {
                                     is_ok = true;
                                     return;
@@ -996,7 +1006,10 @@ export default class ContextQueryServerController {
                 /**
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
-                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
+                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type)
+                    .field('id')
+                    .set_query_distinct()
+                    .exec_as_server(context_query.is_server);
                 seg_query = ContextQueryServerController.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query);
 
                 // On ajoute des fasttracks pour ne pas avoir besoin de faire en base une requête dont le résultat est évident
@@ -1399,12 +1412,12 @@ export default class ContextQueryServerController {
         for (const i in ids) {
             const id: number = ids[i];
 
-            const context_query_segmented: ContextQueryVO = cloneDeep(context_query)
-                .filter_by_id(
-                    id,
-                    moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
-                );
+            const context_query_segmented: ContextQueryVO = cloneDeep(context_query);
 
+            context_query_segmented.filter_by_id(
+                id,
+                moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
+            );
 
             // Build sub-query for the final db request to union
             const parameterized_query_wrapper = await ContextQueryServerController.build_moduletable_select_query(
@@ -1514,7 +1527,9 @@ export default class ContextQueryServerController {
         }
 
         // Add all existing fields to the set
-        Object.values(fields_by_vo_type).map((fields) => fields.map((field) => all_field_ids_set.add(field.field_id)));
+        Object.values(fields_by_vo_type).map((fields) => fields.map((field) =>
+            all_field_ids_set.add(field.field_id)
+        ));
 
         fields_intersection = Object.values(fields_by_vo_type).reduce(
             // Accumulator shall keep all fields of previous iteration that are also in currentVal
@@ -1592,32 +1607,64 @@ export default class ContextQueryServerController {
 
         query_wrapper.joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
 
+
+        const base_moduletable_fields = base_moduletable.get_fields();
+
+        // Set all base_moduletable_fields by default
         if (!(context_query.fields?.length > 0)) {
 
             context_query.field('id');
 
-            let fields = base_moduletable.get_fields();
-
-            for (const i in fields) {
-                const field = fields[i];
+            // Add all fields by default
+            for (const i in base_moduletable_fields) {
+                const field = base_moduletable_fields[i];
                 context_query.add_field(field.field_id);
             }
+        }
+
+        // Case when we need all_required_fields (the overflows fields shall be sets as null)
+        if (all_required_fields?.length > 0) {
+            // We should stick to the given fields_for_query (if any without overflow fields)
+            const fields_for_query = context_query.fields;
+
+            // When it is all_default_fields, we should add all_required_fields
+            const have_all_default_fields = base_moduletable_fields.every(
+                (moduletable_field) => fields_for_query.find(
+                    (field) => field.field_id === moduletable_field.field_id
+                )
+            );
 
             // Fields which are in the in the all_required_fields
-            // But not in moduletable.get_fields()
+            // But not in moduletable_fields
             const field_ids_to_add: string[] = all_required_fields?.filter(
-                (required_field) => !fields.find(
+                (required_field) => !base_moduletable_fields.find(
                     (f) => f.field_id === required_field.field_id
                 )
             ).map((field) => field.field_id);
 
-            // Set all fields by default
             // Case when base_moduletable does not have field_to_add set select as null
             for (const i in field_ids_to_add) {
-                const field_id = field_ids_to_add[i];
+                const field_id_to_add = field_ids_to_add[i];
+
+                let should_add_field_for_query = false;
+
+                // We should only add fields that are in the fields_for_query
+                // If fields_for_query is empty, we should add all fields
+                if (fields_for_query?.length > 0) {
+
+                    const fields_for_query_in_field_to_add = fields_for_query.find(
+                        (field) => field.field_id === field_id_to_add
+                    ) != null;
+
+                    should_add_field_for_query = have_all_default_fields || fields_for_query_in_field_to_add;
+                }
+
+                if (!should_add_field_for_query) {
+                    continue;
+                }
 
                 const field_to_add = all_required_fields.find(
-                    (field) => field.field_id === field_id
+                    (field) => field.field_id === field_id_to_add
                 );
 
                 let cast_with = 'text';
@@ -1626,18 +1673,33 @@ export default class ContextQueryServerController {
                     cast_with = field_to_add.getPGSqlFieldType();
                 }
 
-                context_query.add_field(
-                    field_id,
-                    null,
-                    null,
-                    VarConfVO.NO_AGGREGATOR,
-                    ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
-                    cast_with
-                );
+                const has_field = context_query.has_field(field_id_to_add);
+
+                if (has_field) {
+                    context_query.replace_field(
+                        field_id_to_add,
+                        null,
+                        null,
+                        VarConfVO.NO_AGGREGATOR,
+                        ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
+                        cast_with
+                    );
+                } else {
+                    context_query.add_field(
+                        field_id_to_add,
+                        null,
+                        null,
+                        VarConfVO.NO_AGGREGATOR,
+                        ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
+                        cast_with
+                    );
+                }
             }
 
-            // We should order all fields in the same way of the given all_required_fields
-            if (all_required_fields?.length > 0) {
+            // We should set the api_type_id explicitly for the given context_query
+            if (have_all_default_fields) {
+
+                // We should order all fields in the same way of the given all_required_fields
                 all_required_fields.push({ field_id: '_explicit_api_type_id' } as ModuleTableField<any>);
 
                 // We should also add|specify _explicit_api_type_id field to retrieve it later
@@ -1648,14 +1710,16 @@ export default class ContextQueryServerController {
                     VarConfVO.NO_AGGREGATOR,
                     ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID,
                 );
-
-                // We should order all fields in the same way of the given all_required_fields
-                context_query.fields = context_query.fields.sort((field_a: ContextQueryFieldVO, field_b: ContextQueryFieldVO) => {
-                    const all_required_field_ids = all_required_fields.map((field) => field.field_id);
-
-                    return all_required_field_ids.indexOf(field_a.field_id) - all_required_field_ids.indexOf(field_b.field_id);
-                });
             }
+
+            // We should order all fields in the same way of the given all_required_fields
+            context_query.fields = context_query.fields.sort((field_a: ContextQueryFieldVO, field_b: ContextQueryFieldVO) => {
+                const all_required_field_ids = all_required_fields.map(
+                    (field) => field.field_id
+                );
+
+                return all_required_field_ids.indexOf(field_a.field_id) - all_required_field_ids.indexOf(field_b.field_id);
+            });
         }
 
         let SELECT = "SELECT ";
@@ -1744,7 +1808,6 @@ export default class ContextQueryServerController {
             ) {
                 field_full_name = context_field.field_id ?? context_field.alias;
             }
-
 
             let aggregator_prefix = '';
             let aggregator_suffix = '';
@@ -1866,6 +1929,7 @@ export default class ContextQueryServerController {
             if (!active_api_type_id) {
                 continue;
             }
+
             if (query_wrapper.tables_aliases_by_type[active_api_type_id]) {
                 continue;
             }
@@ -2021,6 +2085,13 @@ export default class ContextQueryServerController {
                     alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
                 }
 
+                if (
+                    context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||
+                    context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN
+                ) {
+                    alias = context_field.field_id;
+                }
+
                 group_bys.push(alias ?
                     alias :
                     query_wrapper.tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
@@ -2054,7 +2125,7 @@ export default class ContextQueryServerController {
             SORT_BY += ' ORDER BY ';
 
             for (let sort_byi in context_query.sort_by) {
-                let sort_by = context_query.sort_by[sort_byi];
+                const sort_by = context_query.sort_by[sort_byi];
 
                 if (!first_sort_by) {
                     previous_sort_by = SORT_BY;
@@ -2278,7 +2349,8 @@ export default class ContextQueryServerController {
                     context_query.filters,
                     joined_tables_by_vo_type,
                     tables_aliases_by_type,
-                    aliases_n);
+                    aliases_n
+                );
             } else {
                 // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                 return aliases_n;
@@ -2313,7 +2385,8 @@ export default class ContextQueryServerController {
         jointures: string[],
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
-        aliases_n: number): Promise<number> {
+        aliases_n: number
+    ): Promise<number> {
 
         if (!filter) {
             return aliases_n;
@@ -2329,7 +2402,9 @@ export default class ContextQueryServerController {
                 context_query.use_technical_field_versioning,
                 context_query.active_api_type_ids,
                 Object.keys(tables_aliases_by_type),
-                filter.vo_type);
+                filter.vo_type
+            );
+
             if (!path) {
                 // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                 return aliases_n;
@@ -2630,7 +2705,7 @@ export default class ContextQueryServerController {
         for (let i in forbidden_fields) {
             let field = forbidden_fields[i];
 
-            context_query.set_discard_field_path(forbidden_api_type_id, field.field_id);
+            context_query.set_discarded_field_path(forbidden_api_type_id, field.field_id);
         }
 
         /**
@@ -2640,7 +2715,7 @@ export default class ContextQueryServerController {
             let discard_field_path = src_context_query.discarded_field_paths[api_type_id];
 
             for (let field_id in discard_field_path) {
-                context_query.set_discard_field_path(api_type_id, field_id);
+                context_query.set_discarded_field_path(api_type_id, field_id);
             }
         }
 

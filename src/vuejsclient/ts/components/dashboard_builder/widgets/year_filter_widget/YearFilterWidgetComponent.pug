@@ -1,14 +1,13 @@
 .year_filter_widget_component
-    template(v-if='(is_vo_field_ref && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)')
-        template(v-if='is_vo_field_ref')
-            .vo_field_ref_label {{ vo_field_ref_label }}
-        template(v-else-id='!!custom_filter_name')
-            .custom_filter_name {{ custom_filter_name }}
-
-        .years
-            template(v-if='(!years) || !years.length')
-                .no_year {{ label('year_filter_widget_component.no_year') }}
-            template(v-if='can_select_all')
-                .all_years(:class='{"selected": !!is_all_years_selected}' @click='handle_toggle_select_all()')  {{ label('year_filter_widget_component.select_all') }}
-            template(v-for='year in years')
-                .year(:class='{"selected": selected_years && !!selected_years[year]}' @click='handle_toggle_selected_year(year)' :key='"year_filter_widget_component_" + page_widget.id + "_" + year') {{ year }}
+    template
+        Yearfilterinputcomponent(
+            :years='years' 
+            :selected_years='selected_years' 
+            :can_select_all='can_select_all' 
+            :is_all_years_selected='is_all_years_selected' 
+            :is_vo_field_ref='is_vo_field_ref' 
+            :custom_filter_name='custom_filter_name' 
+            :input_label='vo_field_ref_label' 
+            @onchange_selected_year='handle_selected_year_change' 
+            @onchange_all_years_selected='handle_all_years_selected_change'
+        )

@@ -5,7 +5,12 @@
                 .steps_container
                     ul.checklist_steps(role="tablist")
                         template(v-for="ordered_cp in ordered_checkpoints")
-                            li.checklist_step(:step_id="ordered_cp.id" role="presentation" :class="get_class_cp(ordered_cp)" @click="change_checkpoint(ordered_cp)")
+                            li.checklist_step(
+                                :step_id="ordered_cp.id" 
+                                role="presentation" 
+                                :class="get_class_cp(ordered_cp)" 
+                                @click="change_checkpoint(ordered_cp)"
+                            )
                                 p
                                     span {{ label(ordered_cp.name)}}
 

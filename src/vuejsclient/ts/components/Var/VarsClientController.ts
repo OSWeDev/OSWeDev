@@ -67,14 +67,18 @@ export default class VarsClientController {
     /**
      * L'objectif est de stocker les registered_params et d'envoyer une requête pour avoir une valeur :
      *  - soit par ce qu'on a pas de valeur connue pour cet index
-     *  - soit par ce qu'on nous demande explicitement de forcer une nouvelle demande au serveur (ce qui ne devrait pas être utile donc pour le moment on gère pas ce cas)
+     *  - soit par ce qu'on nous demande explicitement de forcer une nouvelle demande au serveur
+     *      (ce qui ne devrait pas être utile donc pour le moment on gère pas ce cas)
+     *
      * @param var_params les params sur lesquels on veut s'abonner
-     * @param callbacks les callbacks pour le suivi des mises à jour si on utilise pas simplement le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
+     * @param callbacks les callbacks pour le suivi des mises à jour si on utilise pas simplement
+     *                  le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
      * @remark rajoute les callbacks dans registered_var_params pour les var_params spécifiés
      */
     public async registerParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
-        callbacks: { [cb_uid: number]: VarUpdateCallback } = null) {
+        callbacks: { [cb_uid: number]: VarUpdateCallback } = null
+    ) {
 
         let needs_registration: { [index: string]: VarDataBaseVO } = {};
 

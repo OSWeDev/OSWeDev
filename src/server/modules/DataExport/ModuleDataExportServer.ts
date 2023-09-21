@@ -13,6 +13,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
+import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import IExportOptions from '../../../shared/modules/DataExport/interfaces/IExportOptions';
@@ -61,7 +62,6 @@ import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerCo
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVarServer from '../Var/ModuleVarServer';
 import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsController';
-import DataExportServerController from './DataExportServerController';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
@@ -69,6 +69,7 @@ import default_export_mail_html_template from './default_export_mail_html_templa
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
+    public static PARAM_NAME_SEND_IN_BLUE_EXPORT_NOTIFICATION_TEMPLATE_ID: string = 'ModuleDataExport.export_notification_mail_template_id';
     public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'ModuleDataExport.export_mail_template_id';
     public static MAILCATEGORY_export_file_ready = 'MAILCATEGORY.ModuleDataExport_export_file_ready';
 
@@ -238,7 +239,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns: TableColumnDescVO[],
         fields: { [datatable_field_uid: string]: DatatableField<any, any> },
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -301,7 +302,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns: TableColumnDescVO[] = null,
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -380,7 +381,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns: TableColumnDescVO[] = null,
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null, // TODO FIXME : Quand est-ce qu'on applique le format ???
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -464,12 +465,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
                 // - Update to columns format (percent, toFixed etc...)
-                const this_xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
+                const this_xlsx_datas = await this.update_data_rows_to_xlsx_columns_format(translated_datas, columns);
                 xlsx_datas.push(...this_xlsx_datas);
             });
         }
 
-        let sheets: IExportableSheet[] = [];
+        const sheets: IExportableSheet[] = [];
 
         // Sheet for the actual datatable
         const datas_sheet: IExportableSheet = {
@@ -498,7 +499,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     active_api_type_ids,
                     discarded_field_paths,
                 );
+
                 sheets.push(vars_indicator_sheet);
+
             } catch (error) {
                 ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
                 await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
@@ -523,11 +526,32 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
 
         if (target_user_id) {
-            let fullpath = ConfigurationService.node_configuration.BASE_URL + filepath;
-            await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.file_ready.___LABEL___', false, null, fullpath);
-            let SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+            const fullpath = ConfigurationService.node_configuration.BASE_URL + filepath;
 
-            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).select_vo<UserVO>();
+            let SEND_IN_BLUE_TEMPLATE_ID: number = null;
+
+            if (export_options?.send_email_with_export_notification) {
+                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                    ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_EXPORT_NOTIFICATION_TEMPLATE_ID
+                );
+            } else {
+                SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
+                    ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID
+                );
+            }
+
+            await PushDataServerController.getInstance().notifySimpleINFO(
+                target_user_id,
+                null,
+                'exportContextQueryToXLSX.file_ready.___LABEL___',
+                false,
+                null,
+                fullpath
+            );
+
+            const user: UserVO = await query(UserVO.API_TYPE_ID)
+                .filter_by_id(target_user_id)
+                .select_vo<UserVO>();
 
             // Send mail
             if (!!SEND_IN_BLUE_TEMPLATE_ID) {
@@ -559,7 +583,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
     }
 
-    public async translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO, use_raw_field: boolean = false): Promise<any[]> {
+    public async translate_context_query_fields_from_bdd(
+        datas: any[],
+        context_query: ContextQueryVO,
+        use_raw_field: boolean = false
+    ): Promise<any[]> {
         if (!(datas?.length > 0)) {
             return null;
         }
@@ -571,17 +599,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let res = cloneDeep(datas);
 
         if (!(context_query?.fields?.length > 0)) {
+            const table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-            let table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
-            for (let j in res) {
-                let data = res[j];
+            for (const j in res) {
+                const data = res[j];
                 data._type = context_query.base_api_type_id;
             }
+
             res = table.forceNumerics(res);
-            for (let i in res) {
-                let e = res[i];
+
+            for (const i in res) {
+                const e = res[i];
                 res[i] = this.get_xlsx_version(table, e);
             }
+
             return res;
         }
 
@@ -591,7 +622,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             let data = datas[i];
 
             for (let j in context_query.fields) {
-                let field = context_query.fields[j];
+                const field = context_query.fields[j];
 
                 await promise_pipeline.push(async () => {
                     let table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
@@ -610,7 +641,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
 
                     table.force_numeric_field(table_field, data, res[i], field.alias);
-                    await this.field_to_xlsx(table_field, res[i], res[i], field.alias, use_raw_field);
+
+                    res[i] = await this.field_to_xlsx(
+                        table_field,
+                        res[i],
+                        res[i],
+                        field.alias,
+                        use_raw_field,
+                    );
                 });
             }
         }
@@ -778,11 +816,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * create_active_filters_xlsx_sheet
      *  - Make the Xlsx sheet of Active field filters
      *
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @returns {IExportableSheet}
      */
     private async create_active_filters_xlsx_sheet(
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
     ): Promise<IExportableSheet> {
 
         if ((!active_field_filters)) {
@@ -807,7 +845,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
-                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_id }
+                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_id },
+                    // TODO: get page id from to get the right translation
                 );
 
                 const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
@@ -827,14 +866,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      *  - Make the Xlsx sheet of the given Vars Indicator
      *
      * @param vars_indicator {ExportVarIndicator}
-     * @param active_field_filters {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @param active_field_filters {FieldFiltersVO}
      * @param active_api_type_ids {string[]}
      * @param discarded_field_paths {{ [vo_type: string]: { [field_id: string]: boolean } }}
      * @returns {IExportableSheet}
      */
     private async create_vars_indicator_xlsx_sheet(
         vars_indicator: ExportVarIndicator,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        active_field_filters: FieldFiltersVO = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
     ): Promise<IExportableSheet> {
@@ -850,7 +889,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             column_labels: { name: 'Nom', value: 'Valeur' },
         };
 
-        const current_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
+        const current_active_field_filters: FieldFiltersVO = cloneDeep(active_field_filters);
         const limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         const promise_pipeline = new PromisePipeline(limit, 'ModuleDataExportServer.create_vars_indicator_xlsx_sheet');
         let debug_uid: number = 0;
@@ -928,28 +967,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     if (value != null) {
                         const params = [value].concat(filter_additional_params);
 
+                        // We update the value to the column format (FilterObj => percent, decimal, toFixed etc...)
                         if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
                             value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
                             format = varcolumn_conf.filter_type as XlsxCellFormatByFilterType;
 
-                            if (varcolumn_conf.filter_type != 'tstz') {
-                                value = (value as any).replace(/\s+/g, '');
-                            }
-                        }
-
-                        if (
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_percent
-                        ) {
-                            value = (value as any).replace(/%/g, '');
-                            value = parseFloat(value as any) / 100;
-                        }
-
-                        if (
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixed ||
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
-                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
-                        ) {
-                            value = parseFloat(value as any);
+                            value = this.update_value_to_xlsx_column_format(varcolumn_conf, value);
                         }
                     }
 
@@ -1203,7 +1226,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
-    private async field_to_xlsx(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null, use_raw_field: boolean = false) {
+    private async field_to_xlsx(
+        field: ModuleTableField<any>,
+        src_vo: any,
+        dest_vo: any,
+        field_alias: string = null,
+        use_raw_field: boolean = false
+    ): Promise<any> {
 
         let src_field_id = (field_alias ? field_alias : field.field_id) + (use_raw_field ? '__raw' : '');
         let dest_field_id = (field_alias ? field_alias : field.field_id);
@@ -1236,9 +1265,30 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
                 }
                 break;
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+                const _src_field_id = (field_alias ? field_alias : field.field_id);
+
+                // Many to Many relation: we need to get the related vo
+                // and get the label field
+                const vo_field = src_vo[_src_field_id];
+                dest_vo[dest_field_id] = '';
+
+                for (let i in vo_field) {
+                    let related_vo = vo_field[i];
+                    if (!related_vo) {
+                        continue;
+                    }
+
+                    if (dest_vo[dest_field_id] != '') {
+                        dest_vo[dest_field_id] += ', ';
+                    }
+
+                    dest_vo[dest_field_id] += related_vo.label;
+                }
+
+                break;
 
             case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
                 let tab = src_vo[src_field_id];
@@ -1251,13 +1301,22 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         if (dest_vo[dest_field_id] != '') {
                             dest_vo[dest_field_id] += ', ';
                         }
-                        dest_vo[dest_field_id] += RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset);
+                        dest_vo[dest_field_id] += RangeHandler.getSegmentedMin(
+                            src_vo[src_field_id],
+                            src_vo[src_field_id].segment_type
+                        ) + ' - ' +
+                            RangeHandler.getSegmentedMax(
+                                src_vo[src_field_id],
+                                src_vo[src_field_id].segment_type,
+                                field.max_range_offset
+                            );
                     }
                 }
                 break;
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                dest_vo[dest_field_id] = Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
+                dest_vo[dest_field_id] = Dates.format_segment(
+                    RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
                     Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset), src_vo[src_field_id].segment_type);
                 break;
 
@@ -1268,14 +1327,30 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                dest_vo[dest_field_id] = DataExportServerController.format_date_utc_excel(src_vo[src_field_id], (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type);
+                if (field instanceof DatatableField) {
+                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                } else {
+                    dest_vo[dest_field_id] = Dates.format_segment(
+                        src_vo[src_field_id],
+                        (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type,
+                        field.format_localized_time
+                    );
+                }
+
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
-                if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
+                if (field instanceof DatatableField) {
+                    dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
+                } else if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
                     dest_vo[dest_field_id] = src_vo[src_field_id];
                 } else {
-                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map((ts: number) => DataExportServerController.format_date_utc_excel(ts, (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type));
+                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map(
+                        (ts: number) => Dates.format_segment(
+                            ts,
+                            (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type
+                        )
+                    );
                 }
                 break;
 
@@ -1331,6 +1406,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (typeof dest_vo[dest_field_id] === 'undefined') {
             delete dest_vo[dest_field_id];
         }
+
+        return dest_vo;
     }
 
     /**
@@ -1384,7 +1461,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * TODO: do export in specific way for each type (date, number, string, etc...)
      * e.g. https://github.com/SheetJS/sheetjs/issues/2192#issuecomment-745865277
      */
-    private async update_to_xlsx_columns_format(
+    private async update_data_rows_to_xlsx_columns_format(
         datas: any[],
         columns: TableColumnDescVO[] = null,
     ) {
@@ -1410,11 +1487,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     continue;
                 }
 
-                row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
+                // We keep the raw value in case we need it later
+                row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid + '__raw'] ?? row[column.datatable_field_uid];
 
                 let value = row[column.datatable_field_uid] ?? null;
                 let format: XlsxCellFormatByFilterType = null;
 
+                // Default value we will update the value
+                // to the column format later
                 row[column.datatable_field_uid] = {
                     format,
                     value,
@@ -1424,30 +1504,16 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     continue;
                 }
 
-                let params = [value].concat(filter_additional_params);
+                // Rather use the raw value (not the formatted one) to apply the filter
+                const raw_value = row[column.datatable_field_uid + '__raw'] ?? null;
+                const params = [raw_value].concat(filter_additional_params);
 
+                // We update the value to the column format (FilterObj => percent, decimal, toFixed etc...)
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {
                     value = filter_by_name[column.filter_type].read.apply(null, params);
                     format = column.filter_type as XlsxCellFormatByFilterType;
 
-                    if (column.filter_type != 'tstz') {
-                        value = (value != null) ? value.replace(/\s+/g, '') : value;
-                    }
-
-                    if (
-                        column.filter_type == FilterObj.FILTER_TYPE_percent
-                    ) {
-                        value = (value != null) ? (value as any).replace(/%/g, '') : value;
-                        value = (value != null) ? parseFloat(value as any) / 100 : value;
-                    }
-
-                    if (
-                        column.filter_type == FilterObj.FILTER_TYPE_toFixed ||
-                        column.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
-                        column.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
-                    ) {
-                        value = (value != null) ? parseFloat(value as any) : value;
-                    }
+                    value = this.update_value_to_xlsx_column_format(column, value);
                 }
 
                 row[column.datatable_field_uid] = {
@@ -1576,6 +1642,39 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
 
     /**
+     * update_value_to_xlsx_column_format
+     *
+     * @param {TableColumnDescVO | ExportVarcolumnConf} column
+     * @param {number | string} value
+     * @returns {number}
+     */
+    private update_value_to_xlsx_column_format(
+        column: TableColumnDescVO | ExportVarcolumnConf,
+        value: any,
+    ): number {
+
+        if (column.filter_type != FilterObj.FILTER_TYPE_tstz) {
+            // Remove all spaces
+            value = (value as any).replace(/\s+/g, '');
+        }
+
+        // Remove all non numeric characters
+        // And force to be a number
+        switch (column.filter_type) {
+            case FilterObj.FILTER_TYPE_percent:
+                value = (value as any).replace(/%/g, '');
+                value = parseFloat(value as any) / 100;
+                break;
+            case FilterObj.FILTER_TYPE_toFixed:
+            case FilterObj.FILTER_TYPE_toFixedCeil:
+            case FilterObj.FILTER_TYPE_toFixedFloor:
+                value = parseFloat(value as any);
+        }
+
+        return value;
+    }
+
+    /**
      * On ajoute aux datas les résolutats de calcul des vars qui remplissent les colonnes de var du tableau
      *  Il faut donc d'abord définir les pramètres de calcul des vars, puis attendre le résultat du calcul
      */
@@ -1630,6 +1729,22 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 const this_custom_filters = custom_filters ?
                     cloneDeep(custom_filters[column.datatable_field_uid]) :
                     null;
+
+                // FIXME : DELETE IF useless - kept from last merge ==>
+                // let current_active_field_filters: FieldFiltersVO = cloneDeep(active_field_filters);
+
+                // for (let vo_type in do_not_user_filter) {
+                //     for (let field_id in do_not_user_filter[vo_type]) {
+                //         if (do_not_user_filter[vo_type][field_id]) {
+                //             if (current_active_field_filters && current_active_field_filters[vo_type]) {
+                //                 delete current_active_field_filters[vo_type][field_id];
+                //             }
+                //         }
+                //     }
+                // }
+
+                // let context = DashboardBuilderController.getInstance().add_table_row_context(current_active_field_filters, columns, row);
+                //<==
 
                 debug_uid++;
                 await promise_pipeline.push(async () => {

@@ -1,0 +1,28 @@
+.month_filter_input_component
+    template
+        template(v-if='is_vo_field_ref')
+            .label {{ input_label }}
+        template(v-else-id='!!custom_filter_name')
+            .custom_filter_name {{ custom_filter_name }}
+
+        .months
+            template(v-if='(!months) || !months.length')
+                .no_month {{ label('month_filter_input_component.no_month') }}
+
+            template(v-if='can_use_month_cumulated')
+                .use_month_cumulable(
+                    :class='{"selected": !!is_month_cumulated_selected}' 
+                    @click='toggle_month_cumulated()'
+                )  {{ label('month_filter_input_component.month_cumulated') }}
+
+            template(v-if='can_select_all')
+                .all_months(
+                    :class='{"selected": !!is_all_months_selected}' 
+                    @click='toggle_select_all()'
+                )  {{ label('month_filter_input_component.select_all') }}
+            
+            template(v-for='month in months')
+                .month(
+                    :class='{"selected": !!selected_months[month], "not_selectionnable": !is_months_selectionnable}'
+                     @click='toggle_selected_month(month)'
+                ) {{ label(getMonthName((month-1)%12)) }}

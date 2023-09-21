@@ -100,7 +100,16 @@ export default class ForkedTasksController {
      */
     public static async exec_self_on_bgthread(bgthread: string, task_uid: string, ...task_params): Promise<boolean> {
         if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
-            await ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params));
+            const bg_thread_process_task_fork_message = new BGThreadProcessTaskForkMessage(
+                bgthread,
+                task_uid,
+                task_params
+            );
+
+            await ForkMessageController.getInstance().broadcast(
+                bg_thread_process_task_fork_message
+            );
+
             return false;
         }
         return true;

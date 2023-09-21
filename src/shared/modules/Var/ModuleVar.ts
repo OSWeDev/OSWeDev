@@ -21,6 +21,7 @@ import FieldValueFilterWidgetOptionsVO from '../DashboardBuilder/vos/FieldValueF
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import NumRange from '../DataRender/vos/NumRange';
 import NumSegment from '../DataRender/vos/NumSegment';
+import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import TSRange from '../DataRender/vos/TSRange';
 import Dates from '../FormatDatesNombres/Dates/Dates';
@@ -112,14 +113,14 @@ export default class ModuleVar extends Module {
 
     public getVarParamFromContextFilters: (
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         accept_max_ranges?: boolean,
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters, null, (
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },

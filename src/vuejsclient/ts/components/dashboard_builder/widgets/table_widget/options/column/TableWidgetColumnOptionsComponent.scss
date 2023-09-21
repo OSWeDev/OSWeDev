@@ -1,5 +1,4 @@
 .table_widget_column {
-
     .new_column_select_type {
         padding: 1em;
         background: white;
@@ -17,7 +16,7 @@
                 padding: 2em;
                 text-align: center;
                 background: darkgray;
-                color: #EEE;
+                color: #eee;
                 text-transform: uppercase;
             }
         }
@@ -28,8 +27,7 @@
     }
 
     .table_widget_column_conf {
-
-        padding: .2em 0em;
+        padding: 0.2em 0em;
 
         .hide_options,
         .show_options,
@@ -38,7 +36,7 @@
             display: inline-block;
             padding: 0.2em 0.4em;
             background: indianred;
-            color: #EEE;
+            color: #eee;
             border-radius: 2px;
             cursor: pointer;
             margin-top: 1px;
@@ -65,7 +63,7 @@
         .can_filter_by_column {
             display: inline-block;
 
-            >label {
+            > label {
                 margin: 3px;
             }
         }
@@ -73,10 +71,10 @@
         .column_width {
             display: inline-block;
 
-            >input[type="number"] {
+            > input[type="number"] {
                 width: 4rem;
                 margin: 3px;
-                border: solid 1px #BBB;
+                border: solid 1px #bbb;
                 border-radius: 2px;
             }
         }
@@ -107,7 +105,9 @@
     }
 
     .bg_color_header,
-    .font_color_header {
+    .font_color_header,
+    .text_color,
+    .bg_color {
         .one-colorpicker {
             border: 2px solid black;
             vertical-align: middle;
@@ -119,44 +119,62 @@
             vertical-align: middle;
         }
     }
+
+    .conditional_cell_color_wrapper {
+        .conditional_cell_color_item {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+            select,
+            input,
+            label {
+                display: inline-block;
+                width: 100%;
+            }
+            .bg_color,
+            .text_color {
+                margin-bottom: 10px;
+            }
+        }
+    }
 }
- .api_type_ids {
-     max-height: 430px;
-     overflow-y: auto;
-     margin-top: 0.3em;
+.api_type_ids {
+    max-height: 430px;
+    overflow-y: auto;
+    margin-top: 0.3em;
 
-     .api_type_id_type {
-         vertical-align: middle;
-         float: left;
-         margin-right: 0.2em;
-     }
+    .api_type_id_type {
+        vertical-align: middle;
+        float: left;
+        margin-right: 0.2em;
+    }
 
-     .api_type_id_selected {
-         vertical-align: middle;
-         float: left;
-         margin-right: 0.1em;
-         color: goldenrod;
-     }
+    .api_type_id_selected {
+        vertical-align: middle;
+        float: left;
+        margin-right: 0.1em;
+        color: goldenrod;
+    }
 
-     .api_type_id {
-         .header {
+    .api_type_id {
+        .header {
+            text-transform: uppercase;
+            margin-top: 0.3em;
 
-             text-transform: uppercase;
-             margin-top: 0.3em;
-
-             .open_close {
-                 float: left;
-                 padding: 0em 0.3em;
-                 font-size: 1em;
-                 font-weight: bold;
-                 background: #0d6efd;
-                 margin-right: 0.2em;
-                 color: white;
-                 cursor: pointer;
-                 border-radius: 2px;
-                 width: 1.5em;
-                 text-align: center;
-             }
-         }
-     }
- }
+            .open_close {
+                float: left;
+                padding: 0em 0.3em;
+                font-size: 1em;
+                font-weight: bold;
+                background: #0d6efd;
+                margin-right: 0.2em;
+                color: white;
+                cursor: pointer;
+                border-radius: 2px;
+                width: 1.5em;
+                text-align: center;
+            }
+        }
+    }
+}

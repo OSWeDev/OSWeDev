@@ -1,4 +1,4 @@
-@import 'skin-variables';
+@import "skin-variables";
 
 .pull-right {
     float: right;
@@ -65,7 +65,6 @@
     background-color: $button_primary_bg_color !important;
 }
 
-
 .text-primary,
 a.text-primary:focus {
     color: $button_primary_bg_color !important;
@@ -87,19 +86,19 @@ a.text-danger:focus {
 }
 
 a.text-primary:hover {
-    color: lighten($color: $button_primary_bg_color, $amount: 20%)
+    color: lighten($color: $button_primary_bg_color, $amount: 20%);
 }
 
 a.text-warning:hover {
-    color: lighten($color: $button_warning_color, $amount: 20%)
+    color: lighten($color: $button_warning_color, $amount: 20%);
 }
 
 a.text-success:hover {
-    color: lighten($color: $success_color, $amount: 20%)
+    color: lighten($color: $success_color, $amount: 20%);
 }
 
 a.text-danger:hover {
-    color: lighten($color: $danger_color, $amount: 20%)
+    color: lighten($color: $danger_color, $amount: 20%);
 }
 
 .display_inline_block {
@@ -133,13 +132,13 @@ i.fa-spin:before {
 .toggle {
     .toggle-group {
         .toggle-handle.btn {
-            border: solid 1px #AAA;
+            border: solid 1px #aaa;
             background: white;
         }
 
         .btn.btn-default.toggle-off,
         .btn.btn-default.toggle-on {
-            box-shadow: -2px 2px 20px 0px inset #AAAA;
+            box-shadow: -2px 2px 20px 0px inset #aaaa;
         }
     }
 }
@@ -232,16 +231,16 @@ i.fa-spin:before {
         }
     }
 
-    &[aria-hidden='true'] {
+    &[aria-hidden="true"] {
         visibility: hidden;
         opacity: 0;
-        transition: opacity .15s, visibility .15s;
+        transition: opacity 0.15s, visibility 0.15s;
     }
 
-    &[aria-hidden='false'] {
+    &[aria-hidden="false"] {
         visibility: visible;
         opacity: 1;
-        transition: opacity .15s;
+        transition: opacity 0.15s;
     }
 
     &.popover {
@@ -253,7 +252,7 @@ i.fa-spin:before {
             color: black;
             padding: 24px;
             border-radius: 5px;
-            box-shadow: 0 5px 30px rgba(black, .1);
+            box-shadow: 0 5px 30px rgba(black, 0.1);
         }
 
         .popover-arrow {
@@ -285,7 +284,7 @@ i.fa-spin:before {
     @extend .primary_theme_light_bg;
 }
 
-.panel-default>.panel-heading {
+.panel-default > .panel-heading {
     font-weight: bolder !important;
     @extend .primary_theme_bg;
 }
@@ -327,8 +326,7 @@ i.fa-spin:before {
             border: 0;
             margin: 0;
             padding: 0;
-            width: 100%;
-
+            width: inherit !important;
         }
 
         & .disabled {
@@ -356,8 +354,7 @@ i.fa-spin:before {
     width: max-content;
 }
 
-@media(max-width: 1030px) {
-
+@media (max-width: 1030px) {
     .main-header .navbar-custom-menu {
         display: none;
     }

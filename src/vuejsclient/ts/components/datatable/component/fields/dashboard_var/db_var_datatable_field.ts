@@ -6,25 +6,28 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
+import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import ThreadHandler from '../../../../../../../shared/tools/ThreadHandler';
+import VarDataRefComponent from '../../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import './db_var_datatable_field.scss';
-import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
-import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
-import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
-import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import ThreadHandler from '../../../../../../../shared/tools/ThreadHandler';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./db_var_datatable_field.pug'),
@@ -71,11 +74,14 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
+    @Prop({ default: null })
+    private var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
+
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     private throttle_init_param = debounce(this.throttled_init_param.bind(this), 10);
     // private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 10);
@@ -222,7 +228,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         // On doit attendre le chargement des filtres de date, sinon impossible de créer des params puisqu'on refuse les max ranges sur les dates
         await this.wait_for_custom_filters_on_tsranges(this.var_id);
 
-        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
+        let active_field_filters: FieldFiltersVO = cloneDeep(this.get_active_field_filters);
 
         /**
          * On crée le custom_filters
@@ -247,6 +253,21 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         }
 
         this.is_loading = false;
+    }
+
+    /**
+     * handle_var_value_callback
+     * - keep track of the var value
+     *
+     * @param {VarDataValueResVO} var_value
+     * @param {VarDataRefComponent} component
+     */
+    private handle_var_value_callback(var_value: VarDataValueResVO, component: VarDataRefComponent): any {
+        if (this.var_value_callback && (typeof this.var_value_callback == 'function')) {
+            this.var_value_callback(var_value, component);
+        }
+
+        return var_value.value;
     }
 
     get var_filter(): string {

@@ -71,6 +71,13 @@ export default class RangeHandler {
         return null;
     }
 
+    /**
+     * get_ids_ranges_from_list
+     *   - Create NumRanges from ids list
+     *
+     * @param {number[]} [ids]
+     * @returns {NumRange[]}
+     */
     public static get_ids_ranges_from_list(ids: number[]): NumRange[] {
 
         if ((!ids) || (!ids.length)) {
@@ -96,7 +103,16 @@ export default class RangeHandler {
             }
 
             if (current_range_max != e) {
-                res.push(RangeHandler.createNew(NumRange.RANGE_TYPE, current_range_min, current_range_max, true, false, NumSegment.TYPE_INT));
+                res.push(
+                    RangeHandler.createNew(
+                        NumRange.RANGE_TYPE,
+                        current_range_min,
+                        current_range_max,
+                        true,
+                        false,
+                        NumSegment.TYPE_INT
+                    )
+                );
 
                 current_range_min = e;
                 current_range_max = e + 1;
@@ -107,7 +123,16 @@ export default class RangeHandler {
         }
 
         if (current_range_min != null) {
-            res.push(RangeHandler.createNew(NumRange.RANGE_TYPE, current_range_min, current_range_max, true, false, NumSegment.TYPE_INT));
+            res.push(
+                RangeHandler.createNew(
+                    NumRange.RANGE_TYPE,
+                    current_range_min,
+                    current_range_max,
+                    true,
+                    false,
+                    NumSegment.TYPE_INT
+                )
+            );
         }
 
         return res;
@@ -1046,7 +1071,8 @@ export default class RangeHandler {
         min_inclusiv: number = null,
         max_inclusiv: number = null,
         batch_size: number = 50,
-        reverse: boolean = false) {
+        reverse: boolean = false
+    ) {
 
         if (reverse && ranges && ranges.length) {
             ranges = ranges.slice().reverse();
@@ -1056,7 +1082,13 @@ export default class RangeHandler {
         for (let i in ranges) {
 
             await promises_pipeline.push(async () => {
-                await RangeHandler.foreach_batch_await(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
+                await RangeHandler.foreach_batch_await(
+                    ranges[i],
+                    callback,
+                    segment_type,
+                    min_inclusiv,
+                    max_inclusiv
+                );
             });
         }
 
@@ -1069,14 +1101,22 @@ export default class RangeHandler {
         segment_type?: number,
         min_inclusiv: number = null,
         max_inclusiv: number = null,
-        reverse: boolean = false) {
+        reverse: boolean = false
+    ) {
 
         if (reverse && ranges && ranges.length) {
             ranges = ranges.slice().reverse();
         }
 
         for (let i in ranges) {
-            const callback_sync_res: void | boolean = RangeHandler.foreach_sync(ranges[i], callback_sync, segment_type, min_inclusiv, max_inclusiv, reverse);
+            const callback_sync_res: void | boolean = RangeHandler.foreach_sync(
+                ranges[i],
+                callback_sync,
+                segment_type,
+                min_inclusiv,
+                max_inclusiv,
+                reverse
+            );
 
             // On ajoute un comportement de break si le callback_sync retourne false
             if ((typeof callback_sync_res === 'boolean') && (callback_sync_res === false)) {
@@ -1899,7 +1939,8 @@ export default class RangeHandler {
         segment_type: number = null,
         min_inclusiv: number = null,
         max_inclusiv: number = null,
-        reverse: boolean = false): void | boolean {
+        reverse: boolean = false
+    ): void | boolean {
 
         if (!range) {
             return false;

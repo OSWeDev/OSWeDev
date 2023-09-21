@@ -175,11 +175,38 @@ export default class ObjectHandler {
         return res;
     }
 
+
+    public static map_by_number_field_from_array<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
+        let res: { [i: number]: T } = {};
+
+        for (let i in a) {
+            let e = a[i];
+            res[e[map_index_field_id]] = e;
+        }
+        return res;
+    }
+
+    public static sort_by_key<T>(target: T, sort_func = null): T {
+        let result: T = {} as T;
+
+        return Object.keys(target)
+            .sort()
+            .reduce((obj, key) => {
+                obj[key] = target[key];
+
+                return obj;
+            },
+                result
+            );
+
+    }
+
     /* istanbul ignore next: nothing to test here */
     public static getInstance(): ObjectHandler {
         if (!ObjectHandler.instance) {
             ObjectHandler.instance = new ObjectHandler();
         }
+
         return ObjectHandler.instance;
     }
 

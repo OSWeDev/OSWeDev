@@ -1,30 +1,28 @@
 
-import { debounce, cloneDeep } from 'lodash';
+import { cloneDeep, debounce } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import FilterObj from '../../../../../../shared/tools/Filters';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
+import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
-import HourHandler from '../../../../../../shared/tools/HourHandler';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -32,10 +30,13 @@ import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
     public getDescSelectedVarParam: VarDataBaseVO;
+
     @ModuleVarAction
     public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
+
     @ModuleVarGetter
     public isDescMode: boolean;
+
     @ModuleVarGetter
     public is_show_public_tooltip: boolean;
 
@@ -43,7 +44,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     public var_param: VarDataBaseVO;
 
     @Prop({ default: null })
-    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
+    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any; // Should return the parent (caller) component value
 
     @Prop({ default: null })
     public filter: () => any;
@@ -114,8 +115,12 @@ export default class VarDataRefComponent extends VueComponentBase {
     private var_data_editing: VarDataValueResVO = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
+            this.var_data_updater.bind(this),
+            VarUpdateCallback.VALUE_TYPE_ALL
+        )
     };
+
     private aggregated_var_param: VarDataBaseVO = null;
 
     private var_data_value_is_imported: boolean = false;
@@ -292,17 +297,24 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (var_param || this.var_param) {
-            await VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(
+                [var_param ? var_param : this.var_param],
+                this.varUpdateCallbacks
+            );
 
             if (this.show_import_aggregated) {
-                await ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                await ModuleVar.getInstance().getAggregatedVarDatas(
+                    (var_param ? var_param : this.var_param)
+                ).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
                     let aggregated_var_param = null;
+
                     for (let var_data_index in datas) {
                         if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
                             aggregated_var_param = cloneDeep(datas[var_data_index]);
                             break;
                         }
                     }
+
                     this.aggregated_var_param = aggregated_var_param;
                 });
             }
@@ -317,7 +329,10 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.var_data = null;
 
         if (var_param || this.var_param) {
-            await VarsClientController.getInstance().unRegisterParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(
+                [var_param ? var_param : this.var_param],
+                this.varUpdateCallbacks
+            );
         }
     }
 

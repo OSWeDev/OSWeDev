@@ -210,7 +210,7 @@
                             :multiple="true"
                             v-model="column.show_if_any_filter_active"
                             :placeholder="label('table_widget_column.show_if_any_filter_active')"
-                            :options="show_if_any_filter_active_options"
+                            :options="show_if_any_active_filter_options"
                             :custom-label="show_if_any_filter_active_label"
                             :allow-empty="true",
                             autocomplete="off"
@@ -290,28 +290,74 @@
                                             .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
 
-                //- template(v-if='column.is_enum')
-                .enum_color_options 
-                    .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
-                        .enum_bg_color
-                            color-picker(v-model="enum_bg_colors[enum_option_index]" @change='throttled_update_enum_colors')
-                        .enum_fg_color
-                            color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
-                        .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
-
-                .bg_color_header.mt-3
+                hr.my-12
+                .color_configuration_section.mt-3
                     .label.mb-0
-                        label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
-                    color-picker.mr-2(v-model="tmp_bg_color_header")
-                    template(v-if="tmp_bg_color_header")
-                        i.fa-solid.fa-times(@click="clear_tmp_bg_color_header")
+                        label {{ label('table_widget_column_conf.color_configuration_section') }}
 
-                .font_color_header.mt-3
-                    .label.mb-0
-                        label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
-                    color-picker.mr-2(v-model="tmp_font_color_header")
-                    template(v-if="tmp_font_color_header")
-                        i.fa-solid.fa-times(@click="clear_tmp_font_color_header")
+                    //- template(v-if='column.is_enum')
+                    .enum_color_options 
+                        .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
+                            .enum_bg_color
+                                color-picker(v-model="enum_bg_colors[enum_option_index]" @change='throttled_update_enum_colors')
+                            .enum_fg_color
+                                color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
+                            .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
+
+                    .bg_color_header.mt-3
+                        .label.mb-0
+                            label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
+                        color-picker.mr-2(v-model="tmp_bg_color_header")
+                        template(v-if="tmp_bg_color_header")
+                            i.fa-solid.fa-times(@click="clear_tmp_bg_color_header")
+
+                    .font_color_header.mt-3
+                        .label.mb-0
+                            label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
+                        color-picker.mr-2(v-model="tmp_font_color_header")
+                        template(v-if="tmp_font_color_header")
+                            i.fa-solid.fa-times(@click="clear_tmp_font_color_header")
+
+                    .conditional_cell_color_wrapper.mt-3(v-if='column.type == 2')
+                        .label.mb-0
+                            label {{ label('table_widget_column_conf.editable_column.conditional_cell_color') }}
+                        .conditional_cell_color_list
+                            .conditional_cell_color_item(v-for='(conditional_cell_color, index) in colors_by_value_and_conditions')
+                                .row.conditional_cell_color_form
+                                    .col-md-12.toolbar
+                                        span.pull-right
+                                            i.fa-solid.fa-trash(@click="handle_remove_conditional_cell_color(index, conditional_cell_color)")
+                                    .col-md-12
+                                        .row
+                                            .col-md-6.condition_select
+                                                label.col-md-6 {{ label('table_widget_column_conf.editable_column.conditional_cell_color.condition') }}
+                                                select.col-md-6(v-model='conditional_cell_color.condition')
+                                                    option(v-for='condition in selectionnable_cell_color_conditions' :value='condition.value') {{ condition.label }}
+                                            .col-md-6.value_input
+                                                label.col-md-6 {{ label('table_widget_column_conf.editable_column.conditional_cell_color.value') }}
+                                                input.col-md-6(type='number' min='0' v-model='conditional_cell_color.value')
+                                    .col-md-12
+                                        .row
+                                            .col-md-12.bg_color
+                                                .row
+                                                    label.col-md-6 {{ label('table_widget_column_conf.editable_column.conditional_cell_color.bg_color') }}
+                                                    .col-md-6
+                                                        color-picker(v-model="conditional_cell_color.color.bg")
+                                            .col-md-12.text_color
+                                                .row
+                                                    label.col-md-6 {{ label('table_widget_column_conf.editable_column.conditional_cell_color.text_color') }}
+                                                    .col-md-6
+                                                        color-picker(v-model="conditional_cell_color.color.text")
+                                .conditional_cell_color_preview(
+                                    :style='{background: conditional_cell_color.color.bg, color: conditional_cell_color.color.text}'
+                                ) {{ label('table_widget_column_conf.editable_column.conditional_cell_color.preview') }}
+                            .add_conditional_cell_color
+                                .btn.btn-success(@click='handle_add_conditional_cell_color')
+                                    i.fa-solid.fa-plus(aria-hidden="true")
+                                    span {{ label('table_widget_column_conf.editable_column.conditional_cell_color.add') }}
+
+                
+                hr.my-12
 
                 .widget_filter_options(v-if='(column.type == 1) || (column.type == 2)')
                     .widget_filter_options_label {{ label('table_widget_column_conf.filter_options') }}

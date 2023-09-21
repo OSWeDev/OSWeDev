@@ -11,11 +11,12 @@ import SupervisionController from "../../Supervision/SupervisionController";
 import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
 import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
 import DashboardVO from "../vos/DashboardVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
-import FieldFilterManager from './FieldFilterManager';
+import FieldFiltersVOManager from './FieldFiltersVOManager';
 
 /**
- * @class SupervisionWidgetManager
+ * SupervisionWidgetManager
  *  - Manager for the supervision widget
  */
 export default class SupervisionWidgetManager {
@@ -24,80 +25,39 @@ export default class SupervisionWidgetManager {
      * Find supervision probs by api type ids
      *  - The aim of this function is to load the supervision probs for the given api_type_ids
      *
+     *  TODO: Add allowed_api_type_ids in Cache in case when pagination changes or when request didn't change
+     *
      * @param {DashboardVO} dashboard
      * @param {SupervisionWidgetOptionsVO} widget_options
-     * @param {{ [api_type_id: string]: { [field_name: string]: ContextFilterVO } }} active_field_filters
-     * @param {string[]} active_api_type_ids API type ids that have been selected by the user
-     * @param {{ offset: number, limit?: number, sort_by_field_id?: string }} pagination Pagination options
+     * @param {FieldFiltersVO} active_field_filters
+     * @param {string[]} active_api_type_ids api_type_ids that have been selected by the user
+     * @param {{ offset: number, limit?: number, sorts?: SortByVO[] }} pagination Pagination options
      * @returns {Promise<ISupervisedItem[]>}
      */
     public static async find_supervision_probs_by_api_type_ids(
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_name: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
         active_api_type_ids: string[],
-        pagination?: { offset: number, limit?: number, sort_by_field_id?: string },
+        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] },
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
         const self = SupervisionWidgetManager.getInstance();
 
-        let context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
-        let active_supervision_api_type_ids: string[] = [];
+        const context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
 
-        if (active_api_type_ids?.length > 0) {
-            // Setted api_type_ids (default or setted from filters)
-            active_supervision_api_type_ids = active_api_type_ids;
-        } else {
-            // Default (from supervision widget) api_type_ids
-            active_supervision_api_type_ids = widget_options?.supervision_api_type_ids;
-        }
+        // We must check the access for each api_type_id
+        // And then get the allowed api_type_ids
+        const allowed_api_type_ids: string[] = await SupervisionWidgetManager.filter_allowed_api_type_ids(
+            widget_options,
+            active_api_type_ids,
+        );
 
-        const active_registered_supervision_api_type_ids: string[] = [];
+        self.allowed_api_type_ids = allowed_api_type_ids;
 
-
-
-        for (const key in active_supervision_api_type_ids) {
-            const api_type_id: string = active_supervision_api_type_ids[key];
-
-            const registered_api_type: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
-
-            if (!registered_api_type?.is_actif()) {
-                continue;
-            }
-
-            active_registered_supervision_api_type_ids.push(api_type_id);
-        }
-
-        const pipeline_limit = active_registered_supervision_api_type_ids.length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.find_supervision_probs_by_api_type_ids');
-
-        const allowed_api_type_ids: string[] = [];
-
-        for (const key in active_registered_supervision_api_type_ids) {
-            // Get the api_type_id
-            const api_type_id: string = active_registered_supervision_api_type_ids[key];
-
-            // Récupération des sondes
-            await promise_pipeline.push(async () => {
-
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
-
-                if (!has_access) {
-                    return;
-                }
-
-                allowed_api_type_ids.push(api_type_id);
-            });
-        }
-
-        await promise_pipeline.end();
-
-        promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.find_supervision_probs_by_api_type_ids');
-
-        // We must update|standardize|normalize the active_field_filters for the given available_api_type_ids
+        // We must update|standardize|normalize the active_field_filters for the given allowed_api_type_ids
         const active_field_filter_by_api_type_id: {
-            [api_type_id: string]: { [api_type_id: string]: { [field_name: string]: ContextFilterVO } }
-        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+            [api_type_id: string]: FieldFiltersVO
+        } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
             allowed_api_type_ids,
@@ -105,7 +65,7 @@ export default class SupervisionWidgetManager {
         );
 
         // We may need to filter on other api_type_ids (or vo_type) than the supervision_api_type_ids
-        const other_field_filter = FieldFilterManager.filter_field_filters_by_api_type_ids_to_exlude(
+        const other_field_filter = FieldFiltersVOManager.filter_field_filters_by_api_type_ids_to_exlude(
             widget_options,
             active_field_filters,
             widget_options.supervision_api_type_ids ?? []
@@ -129,7 +89,7 @@ export default class SupervisionWidgetManager {
             const api_type_id: string = allowed_api_type_ids[key_i];
 
             // Get the field_filters for the given api_type_id
-            const field_filters = FieldFilterManager.filter_field_filters_by_api_type_id(
+            const field_filters = FieldFiltersVOManager.filter_field_filters_by_api_type_id(
                 active_field_filter_by_api_type_id[api_type_id],
                 allowed_api_type_ids,
                 api_type_id
@@ -147,6 +107,7 @@ export default class SupervisionWidgetManager {
             context_filters_by_api_type_id[api_type_id] = context_filters;
         }
 
+        // Select the supervision probs by api_type_id
         return await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
             dashboard,
             widget_options,
@@ -165,15 +126,119 @@ export default class SupervisionWidgetManager {
 
     private static instance: SupervisionWidgetManager;
 
-    private static async select_supervision_probs_by_api_type_id(
+    /**
+     * should_check_api_type_ids_access
+     * - Check if we should check the api_type_ids access
+     * - We should check the api_type_ids access if the pagination changes or if the request didn't change
+     *
+     * @returns {boolean}
+     */
+    private static should_check_api_type_ids_access(
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
         context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
         pagination?: { offset: number, limit?: number, sort_by_field_id?: string }
+    ): boolean {
+        let should_check = true;
+
+        return should_check;
+    }
+
+    /**
+     * filter_allowed_api_type_ids
+     * - This method is responsible for filtering the allowed api type ids
+     * - We must check the user access for each api_type_id
+     * - We must check if the api_type_id is active
+     *
+     * @param {SupervisionWidgetOptionsVO} widget_options
+     * @param {string} active_api_type_ids api_type_ids that have been selected by the user
+     * @returns {Promise<string[]>}
+     */
+    private static async filter_allowed_api_type_ids(
+        widget_options: SupervisionWidgetOptionsVO,
+        active_api_type_ids: string[],
+    ): Promise<string[]> {
+
+        // Default api_type_ids (should be from widget_options)
+        let available_api_type_ids: string[] = widget_options?.supervision_api_type_ids;
+
+        // available_api_type_ids
+        if (active_api_type_ids?.length > 0) {
+            // Setted api_type_ids (default or setted from filters)
+            // Should be the intersection between the active_api_type_ids and the widget_options?.supervision_api_type_ids
+            available_api_type_ids = active_api_type_ids.filter((api_type_id: string) => {
+                return widget_options?.supervision_api_type_ids?.includes(api_type_id);
+            });
+        }
+
+        const registered_api_type_ids: string[] = [];
+
+        for (const key in available_api_type_ids) {
+            const api_type_id: string = available_api_type_ids[key];
+
+            const registered_api_type: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
+
+            if (!registered_api_type?.is_actif()) {
+                continue;
+            }
+
+            registered_api_type_ids.push(api_type_id);
+        }
+
+        const pipeline_limit = registered_api_type_ids.length; // One query|request by api_type_id
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.filter_allowed_api_type_ids');
+
+        const allowed_api_type_ids: string[] = [];
+
+        for (const key in registered_api_type_ids) {
+            // Get the api_type_id
+            const api_type_id: string = registered_api_type_ids[key];
+
+            // Récupération des sondes
+            await promise_pipeline.push(async () => {
+
+                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_READ,
+                    api_type_id
+                );
+
+                const has_access = await ModuleAccessPolicy.getInstance().testAccess(
+                    access_policy_name
+                );
+
+                if (!has_access) {
+                    return;
+                }
+
+                allowed_api_type_ids.push(api_type_id);
+            });
+        }
+
+        await promise_pipeline.end();
+
+        return allowed_api_type_ids;
+    }
+
+    /**
+     * select_supervision_probs_by_api_type_id
+     *
+     * @param {DashboardVO} dashboard
+     * @param {SupervisionWidgetOptionsVO} widget_options
+     * @param {{ [api_type_id: string]: ContextFilterVO[] }} context_filters_by_api_type_id
+     * @param {{ offset: number, limit?: number, sorts?: SortByVO[] }} pagination
+     * @returns {Promise<{ items: ISupervisedItem[], total_count: number }>}
+     */
+    private static async select_supervision_probs_by_api_type_id(
+        dashboard: DashboardVO,
+        widget_options: SupervisionWidgetOptionsVO,
+        context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
+        pagination?: { offset: number, limit?: number, sorts?: SortByVO[] }
     ): Promise<{
         items: ISupervisedItem[],
         total_count: number,
     }> {
+
+        const limit: number = pagination?.limit ?? widget_options?.limit ?? 50;
 
         const pipeline_limit = Object.keys(context_filters_by_api_type_id).length; // One query|request by api_type_id
         let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.select_supervision_probs_by_api_type_id');
@@ -181,7 +246,6 @@ export default class SupervisionWidgetManager {
         // ContextQuery as a query builder
         let context_query: ContextQueryVO = null;
 
-        let limit: number = pagination?.limit ?? widget_options?.limit ?? 50;
         let items: ISupervisedItem[] = [];
         let total_count: number = 0;
 
@@ -190,10 +254,19 @@ export default class SupervisionWidgetManager {
             // We must have a single tree of context_filters using AND operator
             const context_filters: ContextFilterVO[] = context_filters_by_api_type_id[api_type_id];
 
+            // Sorts by field_id
+            const sorts = pagination?.sorts?.map((sort: SortByVO) => {
+                return new SortByVO().from({
+                    ...sort,
+                    vo_type: api_type_id,
+                });
+            }) ?? [];
+
             const api_type_context_query = query(api_type_id)
                 .using(dashboard.api_type_ids)
                 .add_filters(context_filters)
-                .set_sort(new SortByVO(api_type_id, 'name', true));
+                .set_query_distinct()
+                .set_sorts(sorts);
 
             if (!context_query) {
                 // Main first query
@@ -205,11 +278,11 @@ export default class SupervisionWidgetManager {
         }
 
         await promise_pipeline.push(async () => {
-            const vo_context_query = cloneDeep(context_query);
+            const vos_context_query = cloneDeep(context_query);
 
-            vo_context_query.set_limit(limit, pagination?.offset ?? 0);
+            vos_context_query.set_limit(limit, pagination?.offset ?? 0);
 
-            items = await vo_context_query.select_vos();
+            items = await vos_context_query.select_vos();
         });
 
         await promise_pipeline.push(async () => {

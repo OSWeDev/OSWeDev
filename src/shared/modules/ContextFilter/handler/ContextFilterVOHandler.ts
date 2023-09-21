@@ -9,6 +9,7 @@ import ManyToOneReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToOn
 import OneToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
+import FieldFiltersVO from '../../DashboardBuilder/vos/FieldFiltersVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../DataRender/vos/DataFilterOption';
 import TSRange from '../../DataRender/vos/TSRange';
@@ -299,6 +300,7 @@ export default class ContextFilterVOHandler {
     ): Promise<any> {
 
         try {
+            field.auto_update_datatable_field_uid_with_vo_type();
 
             switch (field.type) {
 
@@ -486,13 +488,14 @@ export default class ContextFilterVOHandler {
                     resData[field.datatable_field_uid] = [];
 
                     let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id :
+                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id + '__raw' : // We are waiting for the actual converted NumRange[] value
                         refField.srcField.field_id;
 
                     await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
                         let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
                             .filter_by_id(id)
                             .select_vo();
+
                         resData[field.datatable_field_uid].push({
                             id: id,
                             label: refField.dataToHumanReadable(ref_data)
@@ -507,10 +510,12 @@ export default class ContextFilterVOHandler {
             ConsoleHandler.error(error);
             resData[field.datatable_field_uid] = null;
         }
+
+        return resData;
     }
 
-    public static get_active_field_filters(filters: ContextFilterVO[]): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+    public static get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {
+        let res: FieldFiltersVO = {};
 
         for (let i in filters) {
             let filter = filters[i];
@@ -525,6 +530,8 @@ export default class ContextFilterVOHandler {
     }
 
     /**
+     * find_context_filter_by_type
+     *
      * @param context_filter_tree_root
      * @param type
      * @returns the context_filter that has the asked type from the tree_root
@@ -545,6 +552,7 @@ export default class ContextFilterVOHandler {
      * Remove the context_filter_to_delete from context_filter_tree_root and returns the new root
      * Need to ask the deletion with the real contextfilter object and not a description or clone of it.
      * Tests are done on the objects adresses, not deeply on the contents.
+     *
      * @param context_filter_tree_root
      * @param context_filter_to_delete
      * @returns
@@ -715,10 +723,10 @@ export default class ContextFilterVOHandler {
 
     /**
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
-     * @use ContextFilterVOManager.get_context_filter_from_data_filter_option instead
+     * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
      */
     public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
-        return ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
+        return ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
     }
 
     /**

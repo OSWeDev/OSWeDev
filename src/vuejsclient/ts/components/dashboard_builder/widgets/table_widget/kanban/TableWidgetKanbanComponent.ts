@@ -4,7 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -54,13 +54,14 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
-import TableWidgetOptions from './../options/TableWidgetOptions';
 import TableWidgetController from './../TableWidgetController';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './TableWidgetKanbanComponent.scss';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -83,9 +84,11 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
+
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -163,7 +166,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     private last_calculation_cpt: number = 0;
 
-    private old_widget_options: TableWidgetOptions = null;
+    private old_widget_options: TableWidgetOptionsVO = null;
 
     private table_columns: TableColumnDescVO[] = [];
     private drag: boolean = false;
@@ -795,7 +798,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         await all_promises(promises);
     }
 
-    get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 
@@ -1383,7 +1386,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get columns(): TableColumnDescVO[] {
-        let options: TableWidgetOptions = this.widget_options;
+        let options: TableWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.columns)) {
             return null;
@@ -1424,7 +1427,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 for (let j in column.show_if_any_filter_active) {
                     let page_filter_id = column.show_if_any_filter_active[j];
 
-                    let page_widget = this.all_page_widget_by_id[page_filter_id];
+                    let page_widget = this.all_page_widgets_by_id[page_filter_id];
                     if (!page_widget) {
                         column.show_if_any_filter_active = [];
                         continue;
@@ -1797,7 +1800,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             .set_limit(this.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.
@@ -2182,8 +2185,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
 
-        this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptions.DEFAULT_LIMIT : this.widget_options.limit;
-        this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
+        this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.widget_options.limit;
+        this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
         let promises = [
             this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
@@ -2224,50 +2227,16 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
-    get widget_options(): TableWidgetOptions {
+    get widget_options(): TableWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: TableWidgetOptions = null;
+        let options: TableWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = options ? new TableWidgetOptions(
-                    options.columns,
-                    options.is_focus_api_type_id,
-                    options.limit,
-                    options.crud_api_type_id,
-                    options.vocus_button,
-                    options.delete_button,
-                    options.delete_all_button,
-                    options.create_button,
-                    options.update_button,
-                    options.refresh_button,
-                    options.export_button,
-                    options.can_filter_by,
-                    options.show_pagination_resumee,
-                    options.show_pagination_slider,
-                    options.show_pagination_form,
-                    options.show_limit_selectable,
-                    options.limit_selectable,
-                    options.show_pagination_list,
-                    options.nbpages_pagination_list,
-                    options.has_table_total_footer,
-                    options.hide_pagination_bottom,
-                    options.default_export_option,
-                    options.has_default_export_option,
-                    options.use_kanban_by_default_if_exists,
-                    options.use_kanban_column_weight_if_exists,
-                    options.use_for_count,
-                    options.archive_button,
-                    options.can_export_active_field_filters,
-                    options.can_export_vars_indicator,
-                    options.show_bulk_edit,
-                    options.cb_bulk_actions,
-                    options.show_bulk_select_all,
-                    options.has_export_maintenance_alert,
-                ) : null;
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -2443,12 +2412,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             // On supprime les filtres à ne pas prendre en compte pour créer le bon param
             if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
-                let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+                let all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
 
                 for (let j in column.do_not_user_filter_active_ids) {
                     let page_filter_id = column.do_not_user_filter_active_ids[j];
 
-                    let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                    let page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
                     if (!page_widget) {
                         continue;
                     }
@@ -2807,7 +2776,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             let query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                    FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
+                    FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));

@@ -4,6 +4,7 @@ import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
+import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
@@ -187,20 +188,27 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
-     * @deprecated use set_discard_field_path instead
+     * @deprecated use set_discarded_field_path instead
      */
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
-        return this.set_discard_field_path(vo_type, field_id);
+        return this.set_discarded_field_path(vo_type, field_id);
     }
 
     /**
-     * set_discard_field_path
+     * @deprecated use set_discarded_field_path instead
+     */
+    public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+        return this.set_discarded_field_path(vo_type, field_id);
+    }
+
+    /**
+     * set_discarded_field_path
      *
      * @param {string} vo_type
      * @param {string} field_id
      * @returns {ContextQueryVO}
      */
-    public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+    public set_discarded_field_path(vo_type: string, field_id: string): ContextQueryVO {
 
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
@@ -351,6 +359,58 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         }
 
         this.fields.push(field);
+
+        this.update_active_api_type_ids_from_fields([field]);
+
+        return this;
+    }
+
+    /**
+     * has_field
+     *  - Check if the given field_id is in the fields
+     */
+    public has_field(field_id: string): boolean {
+        if (!this.fields) {
+            return false;
+        }
+
+        return this.fields?.find((f) => f.field_id == field_id) != null;
+    }
+
+    /**
+     * replace_field
+     *  - Replace field from this fields by the given field
+     *
+     * @param field_id l'id du field à ajouter.
+     */
+    public replace_field(
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
+
+        const field = new ContextQueryFieldVO(
+            api_type_id ? api_type_id : this.base_api_type_id,
+            field_id,
+            alias,
+            aggregator,
+            modifier,
+            cast_with,
+        );
+
+        if (!this.fields) {
+            this.fields = [];
+        }
+
+        this.fields = this.fields.map((f) => {
+            if (f.field_id == field_id) {
+                return field;
+            }
+            return f;
+        });
 
         this.update_active_api_type_ids_from_fields([field]);
 
@@ -934,7 +994,9 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         if (!this.filters) {
             this.filters = [];
         }
+
         this.filters = this.filters.concat(filters);
+
         this.update_active_api_type_ids_from_filters(filters);
 
         return this;

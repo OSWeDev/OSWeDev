@@ -269,7 +269,7 @@ export default class VOsTypesManager {
      * @returns {ModuleTableField<any>}
      */
     public static get_field_from_vo_field_ref(vo_field_ref: { api_type_id: string, field_id: string }): ModuleTableField<any> {
-        if (!vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
+        if (!vo_field_ref || !vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
             return null;
         }
 

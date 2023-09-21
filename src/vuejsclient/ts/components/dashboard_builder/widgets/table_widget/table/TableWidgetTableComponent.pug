@@ -96,7 +96,7 @@ include ../../../../../../views/mixins/loading.pug
 
                                         Inlinetranslatabletext( 
                                             :code_text="column.get_translatable_name_code_text(page_widget.id)" 
-                                            :translation_params="get_active_filter_params_by_translatable_name_code_text(column.get_translatable_name_code_text(page_widget.id))" 
+                                            :translation_params="get_active_filter_translation_params_by_translatable_name_code_text(column.get_translatable_name_code_text(page_widget.id))" 
                                         )
 
                                     th(
@@ -123,7 +123,7 @@ include ../../../../../../views/mixins/loading.pug
                                 template(v-if="show_bulk_edit")
                                     td.text-center
                                         input(type="checkbox" v-model="selected_vos[get_identifier(row)]" :checked="selected_vos[get_identifier(row)]")
-                                template(v-for='column in table_columns')
+                                template(v-for='(column, column_key) in table_columns')
                                     template(v-if="!column.hide_from_table")
                                         td.table_col(
                                             v-if="column.type != 5"
@@ -158,7 +158,7 @@ include ../../../../../../views/mixins/loading.pug
                                                             i.fa-regular.fa-box-archive
 
                                             //- If it's a component
-                                            //-  or any other type of fields
+                                            //- or any other type of fields
                                             template(v-else)
                                                 template(v-if='column.readonly')
                                                     template(v-if='column.is_enum')
@@ -166,11 +166,12 @@ include ../../../../../../views/mixins/loading.pug
                                                             :column="column"
                                                             :field="fields[column.id]"
                                                             :vo="row"
+                                                            :column_key="column_key"
                                                             :columns="table_columns"
                                                             :all_page_widget="all_page_widget"
                                                             :dashboard_page="dashboard_page"
                                                             :page_widget="page_widget"
-                                                            :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
+                                                            :with_style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
                                                             :explicit_html="column.explicit_html"
                                                         )
                                                     template(v-else)
@@ -181,8 +182,9 @@ include ../../../../../../views/mixins/loading.pug
                                                                 :do_not_user_filter_active_ids="column.do_not_user_filter_active_ids"
                                                                 :field="fields[column.id]"
                                                                 :vo="row"
+                                                                :column_key="column_key"
                                                                 :columns="table_columns"
-                                                                :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                                :with_style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                                                 :is_dashboard_builder="true"
                                                                 :show_tooltip="column.show_tooltip"
                                                                 :disabled_many_to_one_link="column.disabled_many_to_one_link"
@@ -204,8 +206,9 @@ include ../../../../../../views/mixins/loading.pug
                                                             :do_not_user_filter_active_ids="column.do_not_user_filter_active_ids"
                                                             :field="fields[column.id]"
                                                             :vo="row"
+                                                            :column_key="column_key"
                                                             :columns="table_columns"
-                                                            :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                            :with_style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                                             :is_dashboard_builder="true"
                                                             :show_tooltip="column.show_tooltip"
                                                             :disabled_many_to_one_link="column.disabled_many_to_one_link"

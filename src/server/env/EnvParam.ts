@@ -63,4 +63,6 @@ export default class EnvParam implements IEnvParam {
     public IS_MAIN_PROD_ENV: boolean = false;
 
     public OPEN_API_API_KEY?: string = null;
+
+    public DEBUG_add_var_columns_values_for_xlsx_datas?: boolean = false;
 }

@@ -2,6 +2,7 @@ import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import IDistantVOBase from "../../IDistantVOBase";
 import ModuleTableField from "../../ModuleTableField";
 import AbstractVO from "../../VO/abstract/AbstractVO";
+import VOsTypesHandler from "../../VO/handler/VOsTypesHandler";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import DashboardBuilderController from "../DashboardBuilderController";
 
@@ -158,6 +159,11 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
      */
     public filter_custom_field_filters: { [field_id: string]: string };
 
+    /**
+     * Define the column (or cell) color by value and conditions (ex: { value: 0, condition: '<', color: { bg:'#FF0000' text: '#154585' } }
+     */
+    public colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }>;
+
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {
             return false;
@@ -173,6 +179,28 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
         }
 
         return (field.field_type == ModuleTableField.FIELD_TYPE_enum);
+    }
+
+    get is_number(): boolean {
+        if ((!this) || (!this.api_type_id) || (!this.field_id)) {
+            return false;
+        }
+
+        if (this.type != TableColumnDescVO.TYPE_vo_field_ref) {
+            return false;
+        }
+
+        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+
+        if (!field) {
+            return false;
+        }
+
+        return VOsTypesHandler.is_type_number(field);
+    }
+
+    get is_var(): boolean {
+        return this.type === TableColumnDescVO.TYPE_var_ref;
     }
 
     public get_translatable_name_code_text(page_widget_id: number): string {

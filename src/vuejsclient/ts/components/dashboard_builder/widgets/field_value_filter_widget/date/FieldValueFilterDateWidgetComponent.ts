@@ -3,12 +3,14 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -17,7 +19,6 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterDateWidgetComponent.scss';
 
 @Component({
@@ -29,7 +30,7 @@ import './FieldValueFilterDateWidgetComponent.scss';
 export default class FieldValueFilterDateWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -50,7 +51,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     private ts_range: TSRange = null;
 
     private warn_existing_external_filters: boolean = false;
-    private old_widget_options: FieldValueFilterWidgetOptions = null;
+    private old_widget_options: FieldValueFilterWidgetOptionsVO = null;
 
     private actual_query: string = null;
 
@@ -71,50 +72,11 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             return null;
         }
 
-        let options: FieldValueFilterWidgetOptions = null;
+        let options: FieldValueFilterWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
-                options = options ? new FieldValueFilterWidgetOptions(
-                    options.vo_field_ref,
-                    options.vo_field_ref_lvl2,
-                    options.vo_field_sort,
-                    options.can_select_multiple,
-                    options.is_checkbox,
-                    options.checkbox_columns,
-                    options.max_visible_options,
-                    options.show_search_field,
-                    options.hide_lvl2_if_lvl1_not_selected,
-                    options.segmentation_type,
-                    options.advanced_mode,
-                    options.default_advanced_string_filter_type,
-                    options.hide_btn_switch_advanced,
-                    options.hide_advanced_string_filter_type,
-                    options.vo_field_ref_multiple,
-                    options.default_filter_opt_values,
-                    options.default_ts_range_values,
-                    options.default_boolean_values,
-                    options.hide_filter,
-                    options.no_inter_filter,
-                    options.has_other_ref_api_type_id,
-                    options.other_ref_api_type_id,
-                    options.exclude_filter_opt_values,
-                    options.exclude_ts_range_values,
-                    options.placeholder_advanced_mode,
-                    options.separation_active_filter,
-                    options.vo_field_sort_lvl2,
-                    options.autovalidate_advanced_filter,
-                    options.add_is_null_selectable,
-                    options.is_button,
-                    options.enum_bg_colors,
-                    options.enum_fg_colors,
-                    options.show_count_value,
-                    options.active_field_on_autovalidate_advanced_filter,
-                    options.force_filter_by_all_api_type_ids,
-                    options.bg_color,
-                    options.fg_color_value,
-                    options.fg_color_text,
-                ) : null;
+                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                options = options ? new FieldValueFilterWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -139,7 +101,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if (!options) {
             return null;
@@ -211,7 +173,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         if (!context_filter) {
             let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
             let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-            context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(null, this.ts_range, field, this.vo_field_ref);
+            context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(null, this.ts_range, field, this.vo_field_ref);
 
             this.set_active_field_filter({
                 field_id: this.vo_field_ref.field_id,
@@ -239,7 +201,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -249,13 +211,13 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get segmentation_type(): number {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         return options ? options.segmentation_type : null;
     }
 
     get exclude_values(): TSRange {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if (!options) {
             return null;

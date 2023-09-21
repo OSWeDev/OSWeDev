@@ -1,17 +1,17 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import SupervisionTypeWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import VueComponentBase from '../../../VueComponentBase';
 import './SupervisionTypeWidgetComponent.scss';
-import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -23,10 +23,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private get_flat_locale_translations: { [code_text: string]: string };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
-    private set_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private set_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
     private set_active_api_type_ids: (active_api_type_ids: string[]) => void;
@@ -52,7 +52,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     private onchange_selected_api_type_id() {
 
         if (!this.selected_api_type_id) {
-            this.set_active_api_type_ids(null);
+            this.set_active_api_type_ids([]);
             return;
         }
 
@@ -69,7 +69,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     /**
      * Watch on active_field_filters
      *  - Shall happen first on component init or each time active_field_filters changes
-     *  - Initialize the tmp_filter_active_options with default widget options
+     *  - Initialize the tmp_active_filter_options with default widget options
      *
      * @returns {Promise<void>}
      */
@@ -107,12 +107,15 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private handle_select_api_type_id(api_type_id: string) {
-
         if (this.selected_api_type_id === api_type_id) {
             this.selected_api_type_id = null;
         } else {
             this.selected_api_type_id = api_type_id;
         }
+    }
+
+    private is_all_selected(): boolean {
+        return !this.selected_api_type_id;
     }
 
     get title_name_code_text() {
@@ -144,11 +147,11 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let options: SupervisionTypeWidgetOptions = null;
+        let options: SupervisionTypeWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptions;
-                options = options ? new SupervisionTypeWidgetOptions(
+                options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptionsVO;
+                options = options ? new SupervisionTypeWidgetOptionsVO(
                     options.supervision_api_type_ids
                 ) : null;
             }

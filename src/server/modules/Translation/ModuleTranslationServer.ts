@@ -554,10 +554,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'label.day.samedi.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'tous'
+            'fr-fr': 'Tous'
         }, 'select_all.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'aucun'
+            'fr-fr': 'Aucun'
         }, 'select_none.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

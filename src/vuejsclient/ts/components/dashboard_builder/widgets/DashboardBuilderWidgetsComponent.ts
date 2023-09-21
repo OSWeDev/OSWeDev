@@ -1,13 +1,13 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
-import './DashboardBuilderWidgetsComponent.scss';
 import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
+import './DashboardBuilderWidgetsComponent.scss';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -71,6 +71,10 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         this.$emit('added_widget_to_page', page_widget);
     }
 
+    private close_widget_options() {
+        this.$emit('close_widget_options');
+    }
+
     get widgets_name(): string[] {
         let res: string[] = [];
 
@@ -81,5 +85,13 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    get selected_widget_type_label(): string {
+        if (!this.selected_widget_type) {
+            return null;
+        }
+
+        return this.t(this.selected_widget_type.translatable_name_code_text ?? null);
     }
 }

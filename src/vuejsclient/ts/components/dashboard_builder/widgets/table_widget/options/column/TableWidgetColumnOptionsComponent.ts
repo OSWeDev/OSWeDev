@@ -1,29 +1,30 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
+import TableWidgetOptionsVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../../shared/modules/ModuleTableField';
+import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
+import { ConditionStatement } from '../../../../../../../../shared/tools/ConditionHandler';
+import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
+import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../../VueComponentBase';
-import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
-import './TableWidgetColumnOptionsComponent.scss';
-import TableWidgetOptions from '../TableWidgetOptions';
-import TableWidgetController from '../../TableWidgetController';
-import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
-import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
-import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
-import { cloneDeep } from 'lodash';
-import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
-import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
-import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
 import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
+import TableWidgetController from '../../TableWidgetController';
+import './TableWidgetColumnOptionsComponent.scss';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -64,6 +65,12 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private default_sort_field: number = 0;
     private throttled_update_default_sort_field = ThrottleHelper.declare_throttle_without_args(this.update_default_sort_field.bind(this), 800, { leading: false, trailing: true });
 
+    private throttled_update_colors_by_value_and_conditions = ThrottleHelper.declare_throttle_without_args(
+        this.update_colors_by_value_and_conditions.bind(this),
+        800,
+        { leading: false, trailing: true }
+    );
+
     private throttled_update_enum_colors = ThrottleHelper.declare_throttle_without_args(this.update_enum_colors.bind(this), 800, { leading: false, trailing: true });
     private throttled_update_custom_filter = ThrottleHelper.declare_throttle_without_args(this.update_custom_filter.bind(this), 800, { leading: false, trailing: true });
 
@@ -84,6 +91,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private kanban_use_weight: boolean = false;
     private kanban_column: boolean = false;
+
+    private colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }> = [];
+    private selectionnable_cell_color_conditions: Array<{ value: string, label: string }> = [];
 
     private async switch_kanban_use_weight() {
         this.kanban_use_weight = !this.kanban_use_weight;
@@ -125,7 +135,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return VOsTypesManager.vosArray_to_vosByIds(this.get_page_widgets);
     }
 
-    get show_if_any_filter_active_options(): number[] {
+    get show_if_any_active_filter_options(): number[] {
         let self = this;
         return this.get_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
 
@@ -295,39 +305,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res.join(' > ');
     }
 
-    private async update_enum_colors() {
-        if ((!this.object_column) || (!this.object_column.is_enum)) {
-            return;
-        }
-
-        /**
-         * Si on a pas de différence entre les confs, on update rien
-         */
-        let has_diff = false;
-        for (let i in this.enum_bg_colors) {
-            if (this.object_column.enum_bg_colors && (this.enum_bg_colors[i] == this.object_column.enum_bg_colors[i])) {
-                continue;
-            }
-            has_diff = true;
-            break;
-        }
-        for (let i in this.enum_fg_colors) {
-            if (this.object_column.enum_fg_colors && (this.enum_fg_colors[i] == this.object_column.enum_fg_colors[i])) {
-                continue;
-            }
-            has_diff = true;
-            break;
-        }
-
-        if (!has_diff) {
-            return;
-        }
-
-        this.object_column.enum_fg_colors = this.enum_fg_colors;
-        this.object_column.enum_bg_colors = this.enum_bg_colors;
-        this.$emit('update_column', this.object_column);
-    }
-
     private unhide_options() {
         this.show_options = true;
     }
@@ -423,6 +400,28 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
             }
         }
+
+        if (
+            this.object_column &&
+            (
+                this.object_column.is_number ||
+                this.object_column.is_var
+            )
+        ) {
+            this.colors_by_value_and_conditions = (this.object_column.colors_by_value_and_conditions?.length > 0) ?
+                cloneDeep(this.object_column.colors_by_value_and_conditions) :
+                [];
+
+            for (const i in ConditionStatement) {
+                const condition = ConditionStatement[i];
+
+                this.selectionnable_cell_color_conditions.push({
+                    value: condition,
+                    label: condition,
+                });
+            }
+        }
+
         this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
         this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
         this.kanban_column = this.object_column ? this.object_column.kanban_column : false;
@@ -439,6 +438,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.throttled_update_default_sort_field();
     }
 
+    @Watch('colors_by_value_and_conditions', { deep: true })
+    private onchange_colors_by_value_and_conditions() {
+        this.throttled_update_colors_by_value_and_conditions();
+    }
+
     private async update_column_width() {
 
         if (this.object_column && (this.column_width != this.object_column.column_width)) {
@@ -453,6 +457,121 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             this.object_column.default_sort_field = this.default_sort_field;
             this.$emit('update_column', this.object_column);
         }
+    }
+
+    private async update_enum_colors() {
+        if ((!this.object_column) || (!this.object_column.is_enum)) {
+            return;
+        }
+
+        /**
+         * Si on a pas de différence entre les confs, on update rien
+         */
+        let has_diff = false;
+        for (let i in this.enum_bg_colors) {
+            if (this.object_column.enum_bg_colors && (this.enum_bg_colors[i] == this.object_column.enum_bg_colors[i])) {
+                continue;
+            }
+            has_diff = true;
+            break;
+        }
+        for (let i in this.enum_fg_colors) {
+            if (this.object_column.enum_fg_colors && (this.enum_fg_colors[i] == this.object_column.enum_fg_colors[i])) {
+                continue;
+            }
+            has_diff = true;
+            break;
+        }
+
+        if (!has_diff) {
+            return;
+        }
+
+        this.object_column.enum_fg_colors = this.enum_fg_colors;
+        this.object_column.enum_bg_colors = this.enum_bg_colors;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    /**
+     * update_colors_by_value_and_conditions
+     *  - update the colors by value and conditions of the column
+     *
+     * @returns {void}
+     */
+    private update_colors_by_value_and_conditions(): void {
+        if (
+            !this.object_column ||
+            (
+                !this.object_column.is_number &&
+                !this.object_column.is_var
+            )
+        ) {
+            return;
+        }
+
+        if (isEqual(this.object_column.colors_by_value_and_conditions, this.colors_by_value_and_conditions)) {
+            return;
+        }
+
+        this.object_column.colors_by_value_and_conditions = this.colors_by_value_and_conditions;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    /**
+     * handle_add_header_column
+     * - add a new header column
+     *
+     * @returns {void}
+     */
+    private handle_add_conditional_cell_color(): void {
+        this.colors_by_value_and_conditions.push({ value: null, condition: null, color: { bg: null, text: null } });
+    }
+
+    /**
+     * handle_remove_conditional_cell_color
+     *  - remove the color at the given index
+     *
+     * @param {number} index
+     * @returns {void}
+     */
+    private handle_remove_conditional_cell_color(index: number): void {
+        this.colors_by_value_and_conditions.splice(index, 1);
+
+        this.throttled_update_colors_by_value_and_conditions();
+    }
+
+    /**
+     * handle_conditional_cell_colors_bg_change
+     *
+     * @param {number} index
+     * @param {string} color
+     */
+    private handle_conditional_cell_colors_bg_change(index: number, color: string) {
+        if (!this.colors_by_value_and_conditions[index].color) {
+            this.colors_by_value_and_conditions[index].color = { bg: null, text: null };
+        }
+
+        this.colors_by_value_and_conditions[index].color.bg = color;
+
+        this.throttled_update_colors_by_value_and_conditions();
+    }
+
+    /**
+     * handle_conditional_cell_colors_text_change
+     *
+     * @param {number} index
+     * @param {string} color
+     */
+    private handle_conditional_cell_colors_text_change(index: number, color: string) {
+        if (!this.colors_by_value_and_conditions[index].color) {
+            this.colors_by_value_and_conditions[index].color = { bg: null, text: null };
+        }
+
+        this.colors_by_value_and_conditions[index].color.text = color;
+
+        this.throttled_update_colors_by_value_and_conditions();
     }
 
     private clear_tmp_bg_color_header() {
@@ -485,50 +604,16 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res.map((c) => c.translatable_title);
     }
 
-    get widget_options(): TableWidgetOptions {
+    get widget_options(): TableWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: TableWidgetOptions = null;
+        let options: TableWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = options ? new TableWidgetOptions(
-                    options.columns,
-                    options.is_focus_api_type_id,
-                    options.limit,
-                    options.crud_api_type_id,
-                    options.vocus_button,
-                    options.delete_button,
-                    options.delete_all_button,
-                    options.create_button,
-                    options.update_button,
-                    options.refresh_button,
-                    options.export_button,
-                    options.can_filter_by,
-                    options.show_pagination_resumee,
-                    options.show_pagination_slider,
-                    options.show_pagination_form,
-                    options.show_limit_selectable,
-                    options.limit_selectable,
-                    options.show_pagination_list,
-                    options.nbpages_pagination_list,
-                    options.has_table_total_footer,
-                    options.hide_pagination_bottom,
-                    options.default_export_option,
-                    options.has_default_export_option,
-                    options.use_kanban_by_default_if_exists,
-                    options.use_kanban_column_weight_if_exists,
-                    options.use_for_count,
-                    options.archive_button,
-                    options.can_export_active_field_filters,
-                    options.can_export_vars_indicator,
-                    options.show_bulk_edit,
-                    options.cb_bulk_actions,
-                    options.show_bulk_select_all,
-                    options.has_export_maintenance_alert,
-                ) : null;
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -866,6 +951,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.custom_filter_names = this.column.filter_custom_field_filters ? cloneDeep(this.column.filter_custom_field_filters) : {};
+
         return Object.assign(new TableColumnDescVO(), this.column);
     }
 

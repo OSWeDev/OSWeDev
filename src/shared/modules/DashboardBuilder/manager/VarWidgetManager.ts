@@ -3,6 +3,8 @@ import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 import ExportVarIndicator from "../../DataExport/vos/ExportVarIndicator";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import VarWidgetOptionsVO from "../vos/VarWidgetOptionsVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 
 /**
  * @class VarWidgetManager
@@ -13,12 +15,12 @@ export default class VarWidgetManager {
      * get_var_custom_filters
      *
      * @param var_custom_filters
-     * @param get_active_field_filters
+     * @param field_filters
      * @returns {{ [var_param_field_name: string]: ContextFilterVO }}
      */
     public static get_var_custom_filters(
         var_custom_filters: { [var_param_field_name: string]: string },
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        field_filters: FieldFiltersVO
     ): { [var_param_field_name: string]: ContextFilterVO } {
 
         /**
@@ -33,7 +35,12 @@ export default class VarWidgetManager {
                 continue;
             }
 
-            let custom_filter = get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+            const is_field_filter_empty = FieldFiltersVOHandler.is_field_filters_empty(
+                { api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE, field_id: custom_filter_name },
+                field_filters,
+            );
+
+            let custom_filter = !is_field_filter_empty ? field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
 
             if (!custom_filter) {
                 continue;
@@ -51,13 +58,18 @@ export default class VarWidgetManager {
      *
      * @return {ExportVarIndicator}
      */
-    public static get_exportable_vars_indicator(): ExportVarIndicator {
+    public static async get_exportable_vars_indicator(
+        dashboard_page_id: number,
+    ): Promise<ExportVarIndicator> {
 
         const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConf } = {};
 
         const var_page_widgets: {
-            [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number }
-        } = DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name('var');
+            [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+        } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
+            [dashboard_page_id],
+            'var'
+        );
 
         for (const key in var_page_widgets) {
             const var_page_widget = var_page_widgets[key];

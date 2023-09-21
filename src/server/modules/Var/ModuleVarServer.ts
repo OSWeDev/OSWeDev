@@ -10,7 +10,6 @@ import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import FieldFilterManager from '../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -73,6 +72,8 @@ import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
+import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -1303,7 +1304,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     private async getVarParamFromContextFilters(
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
@@ -1377,7 +1378,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];
 
-        let cleaned_active_field_filters = FieldFilterManager.clean_field_filters_for_request(get_active_field_filters);
+        let cleaned_active_field_filters = FieldFiltersVOManager.clean_field_filters_for_request(get_active_field_filters);
         let refuse_param: boolean = false;
 
         for (let i in matroid_fields) {

@@ -263,6 +263,126 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.menu_conf.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '4 - Filtres Partagés'
+        }, 'dashboard_builder.shared_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pages du Dashboard'
+        }, 'dashboard_builder.shared_filters.dashboard_pages.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres Partageable'
+        }, 'dashboard_builder.shared_filters.page_sharable_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres Partagé'
+        }, 'dashboard_builder.shared_filters.shared_filters_table_head.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres Partagé par ce Dashboard'
+        }, 'dashboard_builder.shared_filters.shared_filters_from_this_dashboard_table_head.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres Partagé avec ce Dashboard'
+        }, 'dashboard_builder.shared_filters.shared_filters_with_this_dashboard_table_head.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajuster les filtres correspondants aux filtres partagés'
+        }, 'dashboard_builder.shared_filters.custom_api_type_ids.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre partagé'
+        }, 'dashboard_builder.shared_filters.modal_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Créer un filtre partagé'
+        }, 'dashboard_builder.shared_filters.create_shared_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreurs de saisie'
+        }, 'dashboard_builder.shared_filters.form_errors.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer les filtres à partager'
+        }, 'dashboard_builder.shared_filters.field_filters_selection_tab.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer les pages avec lesquels partager'
+        }, 'dashboard_builder.shared_filters.share_with_page_tab.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer les dashboards avec lesquels partager'
+        }, 'dashboard_builder.shared_filters.share_with_dashboard_tab.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Entrer le nom du filtre partagé *:'
+        }, 'dashboard_builder.shared_filters.enter_name.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les dashboards à partir desquels partager'
+        }, 'dashboard_builder.shared_filters.share_from_dashboard.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les dashboards avec lesquels partager'
+        }, 'dashboard_builder.shared_filters.share_with_dashboard.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer les dashboards de partage'
+        }, 'dashboard_builder.shared_filters.dashboard_configurations_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages avec lesquels partager'
+        }, 'dashboard_builder.shared_filters.share_with_page.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages'
+        }, 'dashboard_builder.shared_filters.share_with_page_tab_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner le groupe de filtres à partager'
+        }, 'dashboard_builder.shared_filters.select_field_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Saugarde en des filtres partagés cours...'
+        }, 'dashboard_builder.shared_filters.save_start.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres partagés sauvegardés avec succès'
+        }, 'dashboard_builder.shared_filters.save_ok.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de la sauvegarde des filtres partagés'
+        }, 'dashboard_builder.shared_filters.save_failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre caché'
+        }, 'dashboard_builder.shared_filters.filter_hidden.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre inexistant dans le dashboard'
+        }, 'dashboard_builder.shared_filters.field_filters_does_no_exist_in_dashboard.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Aucun filtre partagé trouvé'
+        }, 'dashboard_builder.shared_filters.empty_list.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom des filtres partagé requis'
+        }, 'dashboard_builder.shared_filters.name_required.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Les pages avec lesquels partager sont requises'
+        }, 'dashboard_builder.shared_filters.shared_with_dashboard_ids_required.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les pages'
+        }, 'dashboard_builder.shared_filters.select_pages_placeholder.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Selectionner les Dashboards'
+        }, 'dashboard_builder.shared_filters.select_dashboards_placeholder.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Impossible de créer un nouveau Dashboard...'
         }, 'DashboardBuilderComponent.create_new_dashboard.ko.___LABEL___'));
 
@@ -295,6 +415,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non'
         }, 'year_filter_widget_component.auto_select_year.value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer la pré-sélection relative'
+        }, 'year_filter_widget_component.configure_auto_select_year_relative_mode.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-sélection relative à une date'
         }, 'year_filter_widget_component.auto_select_year_relative_mode.___LABEL___'));
@@ -329,6 +452,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer le filtre des mois'
+        }, 'month_filter_widget_component.button_setter_widget_title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurations du filtre des mois'
+        }, 'month_filter_widget_component.configurations_summary_title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtre de données ou de valeurs'
         }, 'month_filter_widget_component.is_vo_field_ref.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -359,6 +488,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Mois maximum (...,Décembre=12)'
         }, 'month_filter_widget_component.max_month.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélection de tous les mois'
+        }, 'month_filter_widget_component.is_all_months_selected.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cumul à date'
+        }, 'month_filter_widget_component.is_month_cumulated_selected.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-selection automatique'
         }, 'month_filter_widget_component.auto_select_month.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -367,6 +502,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non'
         }, 'month_filter_widget_component.auto_select_month.value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer la pré-sélection relative'
+        }, 'month_filter_widget_component.configure_auto_select_month_relative_mode.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-sélection relative'
         }, 'month_filter_widget_component.auto_select_month_relative_mode.___LABEL___'));
@@ -408,6 +546,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner Tout" },
             'month_filter_widget_component.select_all.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres invalides (max 12 mois)'
+        }, 'month_filter_input_component.no_month.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'month_filter_input_component.select_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Cumuler les mois" },
+            'month_filter_input_component.month_cumulated.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -532,6 +682,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Réaliser des modifications en masse'
         }, 'dashboards.widgets.icons_tooltips.bulkops.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurer le filtre des années'
+        }, 'year_filter_widget_component.button_setter_widget_title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Configurations du filtre des années'
+        }, 'year_filter_widget_component.configurations_summary_title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Paramètres invalides (max 15 années)'
         }, 'year_filter_widget_component.no_year.___LABEL___'));
@@ -556,6 +713,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année maximale'
         }, 'year_filter_widget_component.max_year.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélection de toutes les années'
+        }, 'year_filter_widget_component.is_all_years_selected.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Option Selectionner Tout" },
             'year_filter_widget_component.can_select_all_option.___LABEL___'
@@ -563,6 +723,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner Tout" },
             'year_filter_widget_component.select_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres invalides (max 15 années)'
+        }, 'year_filter_input_component.no_year.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'year_filter_input_component.select_all.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -653,6 +820,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Sélectionnez un composant dans la page pour le configurer'
         }, 'dashboard_builder_widgets.first_select_a_widget.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Composant sélectionné'
+        }, 'dashboard_builder_widgets.widget_options_header_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de l\'ajout du composant'
@@ -1156,6 +1327,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Colonnes'
         }, 'table_widget_options_component.columns.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Chaque colone peut &ecirc;tre configur&eacute;e individuellement et afficher ' +
+                'les valeurs de filtres actifs avec lesquels elle a &eacute;t&eacute; filtr&eacute;e, ' +
+                'pour les afficher if faut entrer le nom de la colonne suivi de ' +
+                '\{\#active_filter\:\&lt;page_widget_id\&gt;\} o&ugrave; \&lt;page_widget_id\&gt; ' +
+                'est l\'id du widget de type filtre actif &agrave; afficher.'
+        }, 'table_widget_options_component.columns.ca_tooltip.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Activer la fonction CRUD'
         }, 'table_widget_options_component.crud_api_type_id.___LABEL___'));
@@ -1447,6 +1627,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Liste des champs pour la recherche multiple" },
             'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtrer" },
+            'CurrentUserFilterWidget.filter_placeholder.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Texte champs de sélection" },
+            'current_user_filter_widget_options_component.placeholder_name_code_text.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ de référence" },
+            'current_user_filter_widget_options_component.vo_field_ref.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Glisser / Déposer les champs pour la recherche multiple" },
             'multiple_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'
@@ -1454,6 +1648,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Liste des valeurs sélectionnables (valeurs séparées par une virgule ',')" },
             'table_widget_options_component.limit_selectable.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Appliquer les filtres par défaut sans valider" },
+            'table_widget_options_component.can_apply_default_field_filters_without_validation.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher sélecteur nombre d'éléments" },
@@ -1532,12 +1730,44 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.show_pagination_slider.visible.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer les couleurs" },
+            'table_widget_column_conf.color_configuration_section.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Couleur de fond de l'entête" },
             'table_widget_column_conf.editable_column.bg_color_header.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Couleur du texte de l'entête" },
             'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer les themes de cellules par valeurs" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Condition" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.condition.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeur" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.value.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur cellule" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.bg_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur texte" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.text_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aperçu" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.preview.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ajouter theme cellule" },
+            'table_widget_column_conf.editable_column.conditional_cell_color.add.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Format" },
@@ -1653,6 +1883,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.default_value_or_exclude.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeurs affichées par défaut du filtre (pour la Supervision)" },
+            'field_value_filter_widget_component.default_showed_filter_opt_values.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            {
+                'fr-fr': "Utile dans le cas où on souhaite forcer une valeur visible en filtre " +
+                    "qui ne sera pas toujours présente dans le résultat de la requête des valeurs " +
+                    "en base de données"
+            },
+            'field_value_filter_widget_component.default_showed_filter_opt_values.ca_tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valeurs par défaut du filtre" },
             'field_value_filter_widget_component.default_filter_opt_values.___LABEL___'
         ));
@@ -1727,23 +1969,27 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.block_widgets_reset.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Sauvegarder les filtres favoris" },
+            { 'fr-fr': "Sauvegarder les requêtes" },
             'dashboard_viewer.favorites_filters.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Configurer la sélection de vos filtres favoris" },
+            { 'fr-fr': "Configurez vos filres à dates des exports" },
+            'dashboard_viewer.favorites_filters.date_custom_configs.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurez vos requêtes" },
             'dashboard_viewer.favorites_filters.modal_title.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Selectionner favoris" },
+            { 'fr-fr': "Configurer les requêtes" },
             'dashboard_viewer.favorites_filters.selection_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Configurer vos exports" },
+            { 'fr-fr': "Configurer les exports" },
             'dashboard_viewer.favorites_filters.export_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Selectionner vos filtres favoris" },
+            { 'fr-fr': "Sélectionnez vos filtres de requête" },
             'dashboard_viewer.favorites_filters.select_favorites.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1751,11 +1997,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.form_errors.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Entrer le nom du favoris *:" },
+            { 'fr-fr': "Entrer le nom de la requête *:" },
             'dashboard_viewer.favorites_filters.enter_name.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Nom pour les filtres favoris requis" },
+            { 'fr-fr': "Nom de la requête requise" },
             'dashboard_viewer.favorites_filters.name_required.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1783,12 +2029,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.exportable_data.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Comportements des filtres favoris" },
+            { 'fr-fr': "Comportements des requêtes" },
             'dashboard_viewer.favorites_filters.behaviors_options.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Remplacer les filtres actifs" },
             'dashboard_viewer.favorites_filters.overwrite_active_field_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Utiliser les dates fixes des filtres actifs" },
+            'dashboard_viewer.favorites_filters.use_field_filters_fixed_dates.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Souhaitez-vous planifier les export ?" },
@@ -1815,11 +2065,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.save_favorites.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Sauvegarde des filtres favoris en cours" },
+            { 'fr-fr': "Sauvegarde des requêtes en cours" },
             'dashboard_viewer.favorites_filters.start.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Filtres favoris sauvegardés avec succès" },
+            { 'fr-fr': "Requêtes sauvegardés avec succès" },
             'dashboard_viewer.favorites_filters.ok.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -2102,7 +2352,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.show_bulk_edit.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            { 'fr-fr': "Afficher Option Sélectionner Tout" },
             'field_value_filter_widget_component.can_select_all_option.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -2128,6 +2378,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Nombre maximum d'éléments à afficher" },
             'show_favorites_filters_widget_component.max_visible_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Peut configurer des exports" },
+            'favorites_filters_widget_component.can_configure_export.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Peut configurer les filtres à dates dynamique" },
+            'favorites_filters_widget_component.can_configure_date_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Envoyer un email avec notification d'exports" },
+            'favorites_filters_widget_component.send_email_with_export_notification.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Alerte de maintenance de l\'export'
@@ -2162,8 +2424,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(
-            ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
-            this.start_export_datatable_using_favorites_filters.bind(this)
+            ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
+            this.start_export_favorites_filters_datatable.bind(this)
         );
     }
 
@@ -2172,8 +2434,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
      *
      * @return {Promise<void>}
      */
-    public async start_export_datatable_using_favorites_filters(): Promise<void> {
-        FavoritesFiltersVOService.getInstance().export_favorites_filters_datatable();
+    public async start_export_favorites_filters_datatable(): Promise<void> {
+        FavoritesFiltersVOService.getInstance().export_all_favorites_filters_datatable();
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies

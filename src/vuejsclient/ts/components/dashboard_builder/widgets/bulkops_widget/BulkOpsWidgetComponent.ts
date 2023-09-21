@@ -32,7 +32,8 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
-import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
@@ -46,7 +47,7 @@ import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -347,7 +348,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         for (let i in this.fields) {

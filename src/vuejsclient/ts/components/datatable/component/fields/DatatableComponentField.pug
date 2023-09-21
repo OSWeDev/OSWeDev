@@ -1,4 +1,4 @@
-.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field_type : ""' :data-label="t(field.translatable_title)")
+.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field_type : ""' :data-label="t(field.translatable_title)" :style="custom_style")
     template(v-if="is_load")
         template(v-if='!field.hidden')
             template(v-if="show_label")
@@ -38,14 +38,17 @@
                         code {{ field_value }}
                 template(v-else-if="field_type == 'enum'")
                     span(:class="transliterate_enum_value_to_class_name") {{ field_value }}
+                
                 template(v-else-if="is_custom_field_type && custom_field_types.read_component")
                     .custom_read_field_component(:is="custom_field_types.read_component" :row='vo' :value='field_value')
                 template(v-else-if="field_type == 'textarea'")
                     pre {{ field_value }}
                 template(v-else-if="field_type == 'translatable_text'")
                     span {{ t(field_value) }}
+                
                 template(v-else)
                     span {{ get_filtered_value(field_value) }}
+                    
             template(v-else-if="field.type == 'ManyToOne'")
                 template(v-if="field_value")
                     template(v-if="has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE && !disabled_many_to_one_link && !!routeExists(get_crud_link(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___']))")
@@ -61,7 +64,7 @@
                         template(v-if="!disabled_many_to_one_link && routeExists(get_crud_link(field.targetModuleTable.vo_type, e.id)) && has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE")
                             router-link.many-router-links.btn.btn-sm.btn-info(:class='["many_to_many", "one_to_many"][field.type == "ManyToMany" ? 0 : 1]' :to="get_crud_link(field.targetModuleTable.vo_type, e.id)" :target="!is_dashboard_builder ? '_blank' : ''")
                                 img(:src='["/public/vuejsclient/img/many_to_many.svg", "/public/vuejsclient/img/one_to_many.svg"][field.type == "ManyToMany" ? 0 : 1]')
-                                | {{ e.label }}
+                                span.label | {{ e.label }}
                         template(v-else)
                             span {{ e.label }}
 
@@ -93,6 +96,7 @@
                     :page_widget="page_widget"
                     :table_is_busy="table_is_busy"
                     :editable="editable"
+                    :var_value_callback="handle_var_value_callback",
                 )
 
             template(v-else)

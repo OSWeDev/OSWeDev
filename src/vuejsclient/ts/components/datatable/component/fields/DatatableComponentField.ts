@@ -1,23 +1,28 @@
-import { cloneDeep } from 'lodash';
-import { Component, Prop } from 'vue-property-decorator';
+import { cloneDeep, isNumber } from 'lodash';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
-import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
-import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
+import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
+import ConditionHandler, { ConditionStatement } from '../../../../../../shared/tools/ConditionHandler';
+import TypesHandler from '../../../../../../shared/tools/TypesHandler';
+import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -32,7 +37,7 @@ export default class DatatableComponentField extends VueComponentBase {
         type: Object,
         default: () => ({})
     })
-    private field: DatatableField<any, any>;
+    private field: DatatableField<any, any> | VarDatatableFieldVO<any, any>;
 
     @Prop()
     private vo: IDistantVOBase;
@@ -83,24 +88,43 @@ export default class DatatableComponentField extends VueComponentBase {
     private editable: boolean;
 
     @Prop({ default: null })
+    private with_style: string;
+
+    @Prop({ default: null })
+    private column_key: string;
+
+    @Prop({ default: null })
     private filter_additional_params: any[];
 
     private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
+
     private is_load: boolean = false;
 
     get field_type(): string {
         return this.field?.field_type || ModuleTableField.FIELD_TYPE_int; // Pour le cas de l'id
     }
+    private var_value: VarDataValueResVO = null;
+
+    private custom_style: string = null;
 
     public async mounted() {
         if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
             this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type)
+                DAOController.getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
+                    (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type
+                )
             );
         }
 
         this.is_load = true;
     }
+
+    @Watch('var_value')
+    private async onchange_var_value() {
+        this.init_custom_style();
+    }
+
 
     private get_crud_link(api_type_id: string, vo_id: number) {
         if (!this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE) {
@@ -131,6 +155,82 @@ export default class DatatableComponentField extends VueComponentBase {
         }
 
         return this.getCRUDUpdateLink(api_type_id, vo_id);
+    }
+
+    private get_filtered_value(val) {
+
+        if (val == null) {
+            return null;
+        }
+
+        if (!this.filter) {
+            return val;
+        }
+
+        let params = [val];
+
+        if (!!this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        return this.filter.apply(null, params);
+    }
+
+    /**
+     * init_custom_style
+     * - init the custom style of the cell depending on the field type and the value
+     *
+     * @returns {void}
+     */
+    private init_custom_style(): void {
+        const column_key = this.column_key;
+        let style = this.with_style ?? '';
+
+        if (!this.columns || !column_key) {
+            return;
+        }
+
+        // The column description
+        const column: TableColumnDescVO = this.columns[column_key];
+
+        // deduct style from field type and column colors_by_value_and_conditions
+        for (const key in column?.colors_by_value_and_conditions) {
+            const color_by_value_and_condition = column.colors_by_value_and_conditions[key];
+
+            if (!color_by_value_and_condition) {
+                continue;
+            }
+
+            // The condition to apply the color
+            const condition = color_by_value_and_condition.condition;
+            // The value to compare
+            const value = TypesHandler.isNumeric(color_by_value_and_condition.value) ?
+                parseFloat(color_by_value_and_condition.value) :
+                color_by_value_and_condition.value;
+
+            if (column.is_number && ConditionHandler.dynamic_statement(this.field_value, condition as ConditionStatement, value)) {
+                style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
+            }
+
+            if (column.is_var && ConditionHandler.dynamic_statement(this.var_value.value, condition as ConditionStatement, value)) {
+                style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
+            }
+        }
+
+        this.custom_style = style;
+    }
+
+    /**
+     * handle_var_value_callback
+     * - keep track of the var value (from the VarDataRefComponent child)
+     *
+     * @param {VarDataValueResVO} var_value
+     * @param {VarDataRefComponent} component
+     */
+    private handle_var_value_callback(var_value: VarDataValueResVO, component: VarDataRefComponent) {
+        this.var_value = var_value;
+
+        return var_value.value;
     }
 
     get simple_field(): SimpleDatatableFieldVO<any, any> {
@@ -185,24 +285,5 @@ export default class DatatableComponentField extends VueComponentBase {
         }
 
         return null;
-    }
-
-    private get_filtered_value(val) {
-
-        if (val == null) {
-            return null;
-        }
-
-        if (!this.filter) {
-            return val;
-        }
-
-        let params = [val];
-
-        if (!!this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params);
-        }
-
-        return this.filter.apply(null, params);
     }
 }

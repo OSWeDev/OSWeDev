@@ -8,6 +8,7 @@ import SupervisionController from '../../../../../../shared/modules/Supervision/
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from '../SupervisionDashboardStore';
 import './SupervisionDashboardItemComponent.scss';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 
 @Component({
     template: require('./SupervisionDashboardItemComponent.pug'),
@@ -144,12 +145,18 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     }
 
     private set_formatted_date() {
-        if (!this.item) {
+        const item = this.item;
+
+        if (!item) {
             this.formatted_date = null;
+
             return;
         }
 
-        this.formatted_date = this.item.last_update ? Dates.format(this.item.last_update, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss) : "-";
+        const moduletable = VOsTypesManager.moduleTables_by_voType[item._type];
+        const field = moduletable.getFieldFromId('last_update');
+
+        this.formatted_date = item.last_update ? Dates.format_segment(item.last_update, field.segmentation_type) : "-";
     }
 
     private set_formatted_last_value() {

@@ -3,12 +3,13 @@
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
 
 export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTranslator<GetVarParamFromContextFiltersParamVO> {
 
     public static fromParams(
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
@@ -30,7 +31,7 @@ export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTr
 
     public constructor(
         public var_name: string,
-        public get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        public get_active_field_filters: FieldFiltersVO,
         public custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         public active_api_type_ids: string[],
         public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },

@@ -18,12 +18,13 @@ import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
-import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
+import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import DashboardPageVO from './vos/DashboardPageVO';
+import SharedFiltersVO from './vos/SharedFiltersVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
 import DashboardVO from './vos/DashboardVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -39,7 +40,7 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
 
-    public static APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS: string = "start_export_datatable_using_favorites_filters";
+    public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
 
     public static getInstance(): ModuleDashboardBuilder {
 
@@ -52,7 +53,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private static instance: ModuleDashboardBuilder = null;
 
-    public start_export_datatable_using_favorites_filters: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS);
+    public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
 
     private constructor() {
 
@@ -64,7 +65,7 @@ export default class ModuleDashboardBuilder extends Module {
         // Load all users favorites filters and start exporting by using their filters
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, void>(
             DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, FavoritesFiltersVO.API_TYPE_ID),
-            ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
+            ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             [FavoritesFiltersVO.API_TYPE_ID]
         ));
     }
@@ -76,6 +77,7 @@ export default class ModuleDashboardBuilder extends Module {
         let db_table = this.init_DashboardVO();
 
         let db_page = this.init_DashboardPageVO(db_table);
+        this.init_shared_filters_vo();
 
         this.init_FavoritesFiltersVO(db_page);
 
@@ -206,7 +208,16 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('background', ModuleTableField.FIELD_TYPE_string, 'background', true),
         ];
 
-        this.datatables.push(new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                DashboardPageWidgetVO.API_TYPE_ID,
+                () => new DashboardPageWidgetVO(),
+                datatable_fields,
+                null,
+                "Pages de Dashboard"
+            )
+        );
 
         widget_id.addManyToOneRelation(db_widget);
         page_id.addManyToOneRelation(db_page);
@@ -244,6 +255,31 @@ export default class ModuleDashboardBuilder extends Module {
         );
 
         page_id.addManyToOneRelation(db_page);
+    }
+
+    /**
+     * Init Dashboard Shared Filters
+     *  - Database table to stock sharable_filters of active dashboard
+     *  - May be useful when switching between dashboard
+     */
+    private init_shared_filters_vo() {
+        let datatable_fields = [
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
+            new ModuleTableField('field_filters_to_share', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters To Share', false),
+            new ModuleTableField('shared_from_dashboard_ids', ModuleTableField.FIELD_TYPE_refrange_array, 'Filtre partagé par les dashboards', false),
+            new ModuleTableField('shared_with_dashboard_ids', ModuleTableField.FIELD_TYPE_refrange_array, 'Filtre partagé avec les dashboards', false),
+        ];
+
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                SharedFiltersVO.API_TYPE_ID,
+                () => new SharedFiltersVO(),
+                datatable_fields,
+                null,
+                "Filtres Favoris"
+            )
+        );
     }
 
     private init_VOFieldRefVO() {
@@ -329,7 +365,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_ComponentDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -354,7 +390,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_ComputedDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -378,7 +414,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_CRUDActionsDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -400,7 +436,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_FileDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -424,7 +460,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_InputDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -448,7 +484,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_ManyToManyReferenceDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -472,12 +508,21 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('interSrcRefFieldId', ModuleTableField.FIELD_TYPE_string, 'interSrcRefFieldId'),
         ];
 
-        this.datatables.push(new ModuleTable(this, ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, () => new ManyToManyReferenceDatatableFieldVO(), datatable_fields, null, "ManyToManyReferenceDatatableFieldVO"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                ManyToManyReferenceDatatableFieldVO.API_TYPE_ID,
+                () => new ManyToManyReferenceDatatableFieldVO(),
+                datatable_fields,
+                null,
+                "ManyToManyReferenceDatatableFieldVO"
+            )
+        );
     }
 
     private initialize_ManyToOneReferenceDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -504,7 +549,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_OneToManyReferenceDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -526,12 +571,21 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('_dest_field_id', ModuleTableField.FIELD_TYPE_string, '_dest_field_id'),
         ];
 
-        this.datatables.push(new ModuleTable(this, OneToManyReferenceDatatableFieldVO.API_TYPE_ID, () => new OneToManyReferenceDatatableFieldVO(), datatable_fields, null, "OneToManyReferenceDatatableFieldVO"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                OneToManyReferenceDatatableFieldVO.API_TYPE_ID,
+                () => new OneToManyReferenceDatatableFieldVO(),
+                datatable_fields,
+                null,
+                "OneToManyReferenceDatatableFieldVO"
+            )
+        );
     }
 
     private initialize_RefRangesReferenceDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -553,12 +607,21 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('_src_field_id', ModuleTableField.FIELD_TYPE_string, '_src_field_id'),
         ];
 
-        this.datatables.push(new ModuleTable(this, RefRangesReferenceDatatableFieldVO.API_TYPE_ID, () => new RefRangesReferenceDatatableFieldVO(), datatable_fields, null, "RefRangesReferenceDatatableFieldVO"));
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                RefRangesReferenceDatatableFieldVO.API_TYPE_ID,
+                () => new RefRangesReferenceDatatableFieldVO(),
+                datatable_fields,
+                null,
+                "RefRangesReferenceDatatableFieldVO"
+            )
+        );
     }
 
     private initialize_SelectBoxDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
@@ -580,7 +643,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private initialize_SimpleDatatableFieldVO() {
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('field_type', ModuleTableField.FIELD_TYPE_string, 'field_type'),
             new ModuleTableField('enum_values', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'enum_values'),
@@ -613,7 +676,7 @@ export default class ModuleDashboardBuilder extends Module {
         let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, "Dashboard");
 
         let datatable_fields = [
-            new ModuleTableField('vo_type_id', ModuleTableField.FIELD_TYPE_string, 'vo_type_id'),
+            new ModuleTableField('_vo_type_id', ModuleTableField.FIELD_TYPE_string, '_vo_type_id'),
             new ModuleTableField('vo_type_full_name', ModuleTableField.FIELD_TYPE_string, 'vo_type_full_name'),
             new ModuleTableField('tooltip', ModuleTableField.FIELD_TYPE_string, 'tooltip'),
             new ModuleTableField('is_required', ModuleTableField.FIELD_TYPE_boolean, 'is_required', true, true, false),
