@@ -92,53 +92,6 @@ export default class Dates {
     }
 
     /**
-     * subtract
-     *  - Subtract a number of days, hours, minutes, months, seconds, weeks, years to a date
-     * @param date timestamp in secs to update
-     * @param nb offset
-     * @param segmentation type of offset, based on TimeSegment.TYPE_*
-     * @returns updated date
-     */
-    public static subtract(date: number, nb: number, segmentation: number = TimeSegment.TYPE_SECOND): number {
-
-        if (isNaN(nb) || (nb == null)) {
-            return date;
-        }
-
-        switch (segmentation) {
-
-            case TimeSegment.TYPE_DAY:
-                return Math.floor(date - 60 * 60 * 24 * nb);
-
-            case TimeSegment.TYPE_HOUR:
-                return Math.floor(date - 60 * 60 * nb);
-
-            case TimeSegment.TYPE_MINUTE:
-                return Math.floor(date - 60 * nb);
-
-            case TimeSegment.TYPE_MONTH:
-                /**
-                 * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
-                 */
-                return moment.unix(date).utc().subtract(nb, 'month').unix();
-
-            case TimeSegment.TYPE_SECOND:
-                return Math.floor(date - nb);
-
-            case TimeSegment.TYPE_WEEK:
-                return Math.floor(date - 60 * 60 * 24 * 7 * nb);
-
-            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-            case TimeSegment.TYPE_YEAR:
-                let date_ys = new Date(date * 1000);
-                return Math.floor(date_ys.setUTCFullYear(date_ys.getUTCFullYear() - nb) / 1000);
-
-            default:
-                return Math.floor(date - nb);
-        }
-    }
-
-    /**
      * StartOf necessite un passage par un calendrier donc on utilise MomentJs pour ce calcul pour le moment
      *  cas particulier des jours où on peut faire un %86400, des heures %3600, des secondes %60, des semaines % 592200
      * En startOf le TYPE_ROLLING_YEAR_MONTH_START est au début du mois, mais on add 1 year si on add
