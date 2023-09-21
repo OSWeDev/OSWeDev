@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isArray } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
@@ -157,6 +157,22 @@ export default class DatatableComponentField extends VueComponentBase {
                 (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html_array)
             ) {
                 return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
+            }
+
+            if (this.field.field_type == ModuleTableField.FIELD_TYPE_translatable_text) {
+                if (!this.vo[this.field.datatable_field_uid + '__raw']) {
+                    return null;
+                }
+
+                if (!isArray(this.vo[this.field.datatable_field_uid + '__raw'])) {
+                    return this.label(this.vo[this.field.datatable_field_uid + '__raw']);
+                }
+
+                if (this.vo[this.field.datatable_field_uid + '__raw'].length == 0) {
+                    return null;
+                }
+
+                return this.vo[this.field.datatable_field_uid + '__raw'].map((e: string) => this.label(e)).join(', ');
             }
         }
 

@@ -43,7 +43,7 @@
                 template(v-else-if="field.field_type == 'textarea'")
                     pre {{ field_value }}
                 template(v-else-if="field.field_type == 'translatable_text'")
-                    span {{ t(field_value) }}
+                    span {{ field_value }}
                 template(v-else)
                     span {{ get_filtered_value(field_value) }}
             template(v-else-if="field.type == 'ManyToOne'")
