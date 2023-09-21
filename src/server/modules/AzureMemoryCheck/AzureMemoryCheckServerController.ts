@@ -1,4 +1,5 @@
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class AzureMemoryCheckServerController {
 
@@ -20,9 +21,9 @@ export default class AzureMemoryCheckServerController {
         let last_usage = AzureMemoryCheckServerController.memory_usage_datas[AzureMemoryCheckServerController.memory_usage_datas.length - 1];
 
         if (last_usage >= 90) {
-            ConsoleHandler.warn('Mémoire RAM AZURE proche saturation : ' + last_usage + ' % - on bloque les requêtes en attendant de retrouver de la mémoire');
-            ConsoleHandler.warn('--     dao_server_coef était = à ' + AzureMemoryCheckServerController.dao_server_coef + ' et on le passe à 0');
-            ConsoleHandler.warn('--     les dernières valeurs de memory_usage_datas sont : ' + AzureMemoryCheckServerController.memory_usage_datas.join(', '));
+            ConsoleHandler.error('Mémoire RAM AZURE proche saturation : ' + last_usage + ' % - on bloque les requêtes en attendant de retrouver de la mémoire');
+            ConsoleHandler.error('--     dao_server_coef était = à ' + AzureMemoryCheckServerController.dao_server_coef + ' et on le passe à 0');
+            ConsoleHandler.error('--     les dernières valeurs de memory_usage_datas sont : ' + AzureMemoryCheckServerController.memory_usage_datas.join(', '));
             AzureMemoryCheckServerController.dao_server_coef = 0;
             return;
         }
@@ -33,11 +34,18 @@ export default class AzureMemoryCheckServerController {
             return;
         }
 
+        let log = false;
         if (augmentation > 0) {
-            ConsoleHandler.warn('Acceleration de la consommation de mémoire détectée: +' + augmentation + '%/min :last_usage: ' + last_usage + '% :AzureMemoryCheckServerController.dao_server_coef AVANT: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
+            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK && (augmentation > 1)) {
+                ConsoleHandler.warn('Acceleration de la consommation de mémoire détectée: +' + augmentation + '%/min :last_usage: ' + last_usage + '% :AzureMemoryCheckServerController.dao_server_coef AVANT: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
+                log = true;
+            }
             AzureMemoryCheckServerController.dao_server_coef = 1 - (1 / ((90 - last_usage) / (augmentation * 10)));
         } else if (augmentation < 0) {
-            ConsoleHandler.log('Ralentissement de la consommation de mémoire détectée: -' + (-augmentation) + '%/min :last_usage: ' + last_usage + '% :AzureMemoryCheckServerController.dao_server_coef AVANT: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
+            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK && (augmentation < -1)) {
+                ConsoleHandler.log('Ralentissement de la consommation de mémoire détectée: -' + (-augmentation) + '%/min :last_usage: ' + last_usage + '% :AzureMemoryCheckServerController.dao_server_coef AVANT: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
+                log = true;
+            }
             AzureMemoryCheckServerController.dao_server_coef = Math.max(AzureMemoryCheckServerController.dao_server_coef, 0.1) * 2;
         }
 
@@ -49,8 +57,10 @@ export default class AzureMemoryCheckServerController {
             AzureMemoryCheckServerController.dao_server_coef = 0;
         }
 
-        ConsoleHandler.warn('--     AzureMemoryCheckServerController.dao_server_coef APRES: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
-        ConsoleHandler.warn('--     les dernières valeurs de memory_usage_datas sont : ' + AzureMemoryCheckServerController.memory_usage_datas.join(', '));
+        if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK && log) {
+            ConsoleHandler.log('--     AzureMemoryCheckServerController.dao_server_coef APRES: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
+            ConsoleHandler.log('--     les dernières valeurs de memory_usage_datas sont : ' + AzureMemoryCheckServerController.memory_usage_datas.join(', '));
+        }
     }
 
     // // Calculez le taux d'augmentation de la consommation de mémoire

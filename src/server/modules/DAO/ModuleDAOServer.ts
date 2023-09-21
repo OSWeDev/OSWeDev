@@ -1278,7 +1278,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
          * On check aussi que l'on a pas des updates à faire et uniquement des inserts, sinon on fait un update des vos concernés avant de faire les inserts (on pourrait le faire en // mais c'est plus compliqué)
          */
         let update_vos: IDistantVOBase[] = [];
-        let check_pixel_update_vos_by_type: { [vo_type: string]: VarDataBaseVO[] } = {};
+        // let check_pixel_update_vos_by_type: { [vo_type: string]: VarDataBaseVO[] } = {};
         let insert_vos: IDistantVOBase[] = [];
 
         for (let i in vos) {
@@ -1286,21 +1286,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (!!vo.id) {
 
-                /**
-                 * Si on est sur du pixel && never_delete, on doit pas avoir un update sauf changement de valeur ou de type de valeur, le reste osef
-                 *  et comme on a un bug visiblement en amont qui essaie d'insérer ce type de valeur, on rajoute un contrôle ici qui sera toujours plus rapide que de faire un update
-                 */
-                if (VOsTypesManager.moduleTables_by_voType[vo._type].isMatroidTable) {
-                    let conf = VarsController.var_conf_by_id[vo['var_id']];
-                    if (conf && conf.pixel_activated && conf.pixel_never_delete) {
+                // /**
+                //  * Si on est sur du pixel && never_delete, on doit pas avoir un update sauf changement de valeur ou de type de valeur, le reste osef
+                //  *  et comme on a un bug visiblement en amont qui essaie d'insérer ce type de valeur, on rajoute un contrôle ici qui sera toujours plus rapide que de faire un update
+                //  */
+                // if (VOsTypesManager.moduleTables_by_voType[vo._type].isMatroidTable) {
+                //     let conf = VarsController.var_conf_by_id[vo['var_id']];
+                //     if (conf && conf.pixel_activated && conf.pixel_never_delete) {
 
-                        if (!check_pixel_update_vos_by_type[vo._type]) {
-                            check_pixel_update_vos_by_type[vo._type] = [];
-                        }
-                        check_pixel_update_vos_by_type[vo._type].push(vo as VarDataBaseVO);
-                        continue;
-                    }
-                }
+                //         if (!check_pixel_update_vos_by_type[vo._type]) {
+                //             check_pixel_update_vos_by_type[vo._type] = [];
+                //         }
+                //         check_pixel_update_vos_by_type[vo._type].push(vo as VarDataBaseVO);
+                //         continue;
+                //     }
+                // }
 
                 update_vos.push(vo);
             } else {
@@ -1309,28 +1309,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
 
-        for (let api_type in check_pixel_update_vos_by_type) {
-            let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
+        // for (let api_type in check_pixel_update_vos_by_type) {
+        //     let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
 
-            if ((!check_pixel_update_vos) || (!check_pixel_update_vos.length)) {
-                continue;
-            }
+        //     if ((!check_pixel_update_vos) || (!check_pixel_update_vos.length)) {
+        //         continue;
+        //     }
 
-            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(check_pixel_update_vos.map((vo) => vo.id)).exec_as_server(exec_as_server).select_vos();
+        //     let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(check_pixel_update_vos.map((vo) => vo.id)).exec_as_server(exec_as_server).select_vos();
 
-            let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.vosArray_to_vosByIds(db_check_pixel_update_vos);
+        //     let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.vosArray_to_vosByIds(db_check_pixel_update_vos);
 
-            for (let j in check_pixel_update_vos) {
-                let vo = check_pixel_update_vos[j];
-                let db_vo = db_check_pixel_update_vos_by_id[vo.id];
+        //     for (let j in check_pixel_update_vos) {
+        //         let vo = check_pixel_update_vos[j];
+        //         let db_vo = db_check_pixel_update_vos_by_id[vo.id];
 
-                if (db_vo && (db_vo.value == vo.value) && (db_vo.value_type == vo.value_type)) {
-                    ConsoleHandler.error('On a un insert/update de pixel alors que le pixel existe déjà en base avec la même valeur et le même type. On ne fait rien mais on ne devrait pas arriver ici.DB:' + JSON.stringify(db_vo) + ':app:' + JSON.stringify(vo));
-                    continue;
-                }
-                update_vos.push(vo);
-            }
-        }
+        //         if (db_vo && (db_vo.value == vo.value) && (db_vo.value_type == vo.value_type)) {
+        //             ConsoleHandler.error('On a un insert/update de pixel alors que le pixel existe déjà en base avec la même valeur et le même type. On ne fait rien mais on ne devrait pas arriver ici.DB:' + JSON.stringify(db_vo) + ':app:' + JSON.stringify(vo));
+        //             continue;
+        //         }
+        //         update_vos.push(vo);
+        //     }
+        // }
 
         if (!!update_vos.length) {
             await this.insertOrUpdateVOs_without_triggers(update_vos, null, exec_as_server);

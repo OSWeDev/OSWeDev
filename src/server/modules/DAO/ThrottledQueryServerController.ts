@@ -179,11 +179,15 @@ export default class ThrottledQueryServerController {
     ) {
         let self = this;
         let throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-            ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
+            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK) {
+                ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
+            }
         }, 10000, { leading: true, trailing: true });
 
         let throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
-            ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 1');
+            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK) {
+                ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
+            }
         }, 10000, { leading: true, trailing: true });
         let old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
 
@@ -199,7 +203,7 @@ export default class ThrottledQueryServerController {
                 await ThreadHandler.sleep(100, "ModuleDAOServer:handle_groups_queries:dao_server_coef == 0");
             }
 
-            if (AzureMemoryCheckServerController.dao_server_coef < 1) {
+            if (AzureMemoryCheckServerController.dao_server_coef < 0.5) {
                 throttled_log_dao_server_coef_not_1();
             }
 

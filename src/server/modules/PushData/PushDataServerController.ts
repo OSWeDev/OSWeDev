@@ -393,7 +393,7 @@ export default class PushDataServerController {
     public async notifyAPIResult(user_id: number, client_tab_id: string, api_call_id: number, res: any) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyAPIResult, user_id, client_tab_id, api_call_id, res)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyAPIResult, user_id, client_tab_id, api_call_id, res)) {
             return;
         }
 

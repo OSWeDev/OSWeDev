@@ -62,7 +62,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
     private on_close_callback: (props?: Partial<SharedFiltersVO>) => Promise<void> = null;
     private on_delete_callback: (props?: Partial<SharedFiltersVO>) => Promise<void> = null;
 
-    private throttled_load_selectionnable_dashboards_options = ThrottleHelper.getInstance().declare_throttle_without_args(
+    private throttled_load_selectionnable_dashboards_options = ThrottleHelper.declare_throttle_without_args(
         this.load_selectionnable_dashboards_options.bind(this),
         50,
         { leading: false, trailing: true }

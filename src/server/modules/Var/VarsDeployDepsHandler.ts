@@ -144,6 +144,9 @@ export default class VarsDeployDepsHandler {
             return false;
         }
 
+        // On ne doit surtout pas DATA_LOAD un param de type pixel qui n'en n'est pas un (puisque le card > 1)
+        node.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
+
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'IN');
 
@@ -228,7 +231,6 @@ export default class VarsDeployDepsHandler {
             }
 
             // On laisse que la notification puisqu'on a déjà tout, et l'insère en base puisqu'on ne l'avait pas
-            node.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
             node.add_tag(VarDAGNode.TAG_4_COMPUTED);
 
             StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_FULL_OK');

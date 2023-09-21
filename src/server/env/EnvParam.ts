@@ -52,6 +52,7 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_EXPORTS?: boolean = false;
     public DEBUG_THROTTLED_SELECT?: boolean = false;
     public DEBUG_PROMISE_PIPELINE?: boolean = false;
+    public DEBUG_AZURE_MEMORY_CHECK?: boolean = false;
 
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;

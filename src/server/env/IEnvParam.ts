@@ -46,6 +46,7 @@ export default interface IEnvParam {
     DEBUG_DB_FULL_QUERY_PERF?: boolean;
     DEBUG_INTERTHREADS_MESSAGES?: boolean;
     DEBUG_PROMISE_PIPELINE?: boolean;
+    DEBUG_AZURE_MEMORY_CHECK?: boolean;
 
     START_MAINTENANCE_ACCEPTATION_CODE: string;
     AUTO_END_MAINTENANCE_ON_START: boolean;
