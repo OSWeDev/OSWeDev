@@ -53,6 +53,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     get POLICY_FO_EDIT(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT'; }
 
+    get POLICY_FO_CAN_ARCHIVE_RDV(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_CAN_ARCHIVE_RDV'; }
+
     get POLICY_FO_EDIT_OWN_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_RDVS'; }
     get POLICY_FO_EDIT_OWN_TEAM_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_TEAM_RDVS'; }
     get POLICY_FO_EDIT_ALL_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_ALL_RDVS'; }
@@ -722,8 +724,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.unshift(
             label_field,
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false).set_segmentation_type(end_time_segmentation_type),
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
-                states)
+            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
+                states),
+            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)
         );
 
         if (!!this.program_type_id) {

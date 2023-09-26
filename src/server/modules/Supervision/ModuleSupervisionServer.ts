@@ -71,6 +71,10 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(SupervisionBGThread.getInstance());
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nb de crons en retard'
+        }, 'sup_cron_graph_data_label.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supervision'
         }, 'menu.menuelements.admin.SupervisionAdminVueModule.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

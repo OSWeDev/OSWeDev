@@ -74,7 +74,7 @@ export default class SupervisionBGThread implements IBGThread {
                 let server_controller: ISupervisedItemServerController<any> = SupervisionServerController.getInstance().registered_controllers[api_type_id];
 
                 // Si pas actif ou pas de time ms saisie, on passe au suivant
-                if (!shared_controller.is_actif() || !server_controller.get_execute_time_ms()) {
+                if ((!shared_controller) || (!shared_controller.is_actif()) || (!server_controller) || (!server_controller.get_execute_time_ms())) {
                     continue;
                 }
 

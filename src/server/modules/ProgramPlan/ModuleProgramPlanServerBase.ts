@@ -22,6 +22,7 @@ import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModulePro
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -128,6 +129,22 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Date'
         }, 'programplan.rdv_modal.rdv_date.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Archiver ce RDV ?'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer l\'archivage'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Archivage en cours...'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de l\'archivage'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.ko.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Archivage terminé'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.ok.___LABEL___'));
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -302,12 +319,14 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         if (!this.programplan_shared_module.program_type_id) {
 
             return await query(this.programplan_shared_module.rdv_type_id)
+                .filter_is_false(field_names<IPlanRDV>().archived)
                 .filter_by_date_before('start_time', end_time)
                 .filter_by_date_same_or_after('end_time', start_time)
                 .select_vos<IPlanRDV>();
         }
 
         return await query(this.programplan_shared_module.rdv_type_id)
+            .filter_is_false(field_names<IPlanRDV>().archived)
             .filter_by_date_before('start_time', end_time)
             .filter_by_date_same_or_after('end_time', start_time)
             .filter_by_num_eq('program_id', program_id)
@@ -349,6 +368,19 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
     private async registerFrontEditionAccessPolicies(group: AccessPolicyGroupVO, fo_edit: AccessPolicyVO) {
 
+        let archive_rdvs: AccessPolicyVO = new AccessPolicyVO();
+        archive_rdvs.group_id = group.id;
+        archive_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        archive_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_CAN_ARCHIVE_RDV;
+        archive_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(archive_rdvs, new DefaultTranslation({
+            'fr-fr': 'Archiver les RDVs - ' + this.programplan_shared_module.name
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        front_access_dependency.src_pol_id = archive_rdvs.id;
+        front_access_dependency.depends_on_pol_id = fo_edit.id;
+        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
+
         let edit_own_rdvs: AccessPolicyVO = new AccessPolicyVO();
         edit_own_rdvs.group_id = group.id;
         edit_own_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
@@ -356,7 +388,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_rdvs, new DefaultTranslation({
             'fr-fr': 'Modifier ses propres RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         front_access_dependency.src_pol_id = edit_own_rdvs.id;
         front_access_dependency.depends_on_pol_id = fo_edit.id;
@@ -769,7 +801,9 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res: ContextQueryVO = query(moduletable.vo_type)
             .field('id', 'filter_' + moduletable.vo_type + '_id')
             .filter_by_num_in('rdv_id',
-                query(this.programplan_shared_module.rdv_type_id).field('id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
+                query(this.programplan_shared_module.rdv_type_id)
+                    .filter_is_false(field_names<IPlanRDV>().archived)
+                    .field('id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
             .exec_as_server();
 
         res.is_access_hook_def = true;
@@ -793,7 +827,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res = [];
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(
-            await query(this.programplan_shared_module.rdv_type_id).select_vos<IPlanRDV>()
+            await query(this.programplan_shared_module.rdv_type_id).filter_is_false(field_names<IPlanRDV>().archived).select_vos<IPlanRDV>()
         );
         for (let i in vos) {
             let vo = vos[i];

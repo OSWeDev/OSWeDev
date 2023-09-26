@@ -42,6 +42,10 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
         return !!this.program_plan_shared_module.rdv_prep_type_id;
     }
 
+    private reload_rdvs() {
+        this.$emit('reload_rdvs');
+    }
+
     get is_facilitator_specific(): boolean {
 
         if (!this.selected_rdv) {

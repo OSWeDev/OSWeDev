@@ -30,6 +30,7 @@
                         :selected_rdv='selected_rdv')
                 #rdv_historic(v-show="active_view == 'rdv_historic'")
                     Programplancomponentmodalhistoric(
+                        @reload_rdvs="reload_rdvs"
                         :program_plan_shared_module='program_plan_shared_module'
                         :program_plan_controller='program_plan_controller'
                     )

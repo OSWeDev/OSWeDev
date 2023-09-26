@@ -1094,6 +1094,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                             let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+                                .filter_is_false(field_names<IPlanRDV>().archived)
                                 .filter_by_num_eq('target_id', rdv.target_id)
                                 .select_vos<IPlanRDV>();
 
@@ -1298,6 +1299,14 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return this.get_tasks_by_ids[this.selected_rdv.task_id].is_facilitator_specific;
     }
 
+    private async reload_rdvs() {
+        this.setRdvsByIds(
+            VOsTypesManager.vosArray_to_vosByIds(
+                await this.program_plan_shared_module.getRDVsOfProgramSegment(this.program_id, this.fcSegment)
+            )
+        );
+    }
+
     @Watch('fcSegment', { deep: true, immediate: true })
     private async onChangeFCSegment() {
 
@@ -1308,13 +1317,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // Sont chargés lors du changement de segment consulté
         if (this.program_plan_controller.load_rdv_on_segment_change) {
 
-            promises.push((async () => {
-                self.setRdvsByIds(
-                    VOsTypesManager.vosArray_to_vosByIds(
-                        await this.program_plan_shared_module.getRDVsOfProgramSegment(self.program_id, self.fcSegment)
-                    )
-                );
-            })());
+            promises.push(this.reload_rdvs());
         }
 
         if (!!this.program_plan_shared_module.rdv_prep_type_id) {
@@ -1419,6 +1422,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                             let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+                                .filter_is_false(field_names<IPlanRDV>().archived)
                                 .filter_by_num_eq('target_id', rdv.target_id)
                                 .select_vos<IPlanRDV>();
 
@@ -1660,6 +1664,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                 let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+                    .filter_is_false(field_names<IPlanRDV>().archived)
                     .filter_by_num_eq('target_id', this.selected_rdv.target_id)
                     .select_vos<IPlanRDV>();
 
@@ -1840,6 +1845,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let self = this;
 
         let rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+            .filter_is_false(field_names<IPlanRDV>().archived)
             .filter_by_num_eq('target_id', this.selected_rdv.target_id)
             .select_vos<IPlanRDV>();
 

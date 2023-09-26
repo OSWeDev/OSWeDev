@@ -14,6 +14,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../VueAppBase';
 import ContextQueryVO from '../../../../../dist/shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -158,6 +159,7 @@ export default abstract class ProgramPlanControllerBase {
                 // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                 let all_rdvs: IPlanRDV[] = await query(this.programplan_shared_module.rdv_type_id)
+                    .filter_is_false(field_names<IPlanRDV>().archived)
                     .filter_by_num_eq('target_id', rdv.target_id)
                     .select_vos<IPlanRDV>();
 

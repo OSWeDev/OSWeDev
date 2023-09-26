@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
@@ -6,7 +7,10 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import SupervisedCRONController from './SupervisedCRONController';
+import SupervisionController from './SupervisionController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
+import SupervisedCRONVO from './vos/SupervisedCRONVO';
 
 export default class ModuleSupervision extends Module {
 
@@ -55,6 +59,7 @@ export default class ModuleSupervision extends Module {
         this.datatables = [];
 
         this.initializeSupervisedCategoryVO();
+        this.initializeSupervisedCRONVO();
     }
 
     private initializeSupervisedCategoryVO() {
@@ -67,6 +72,18 @@ export default class ModuleSupervision extends Module {
 
         let datatable = new ModuleTable(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
 
+        this.datatables.push(datatable);
+    }
+
+    private initializeSupervisedCRONVO() {
+
+        let fields = [
+            new ModuleTableField(field_names<SupervisedCRONVO>().planification_uid, ModuleTableField.FIELD_TYPE_string, "Planification UID", true),
+            new ModuleTableField(field_names<SupervisedCRONVO>().worker_uid, ModuleTableField.FIELD_TYPE_string, "Worker UID", true),
+        ];
+
+        let datatable = new ModuleTable(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
+        SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
         this.datatables.push(datatable);
     }
 }
