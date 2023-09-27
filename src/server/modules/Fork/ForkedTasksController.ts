@@ -35,18 +35,18 @@ export default class ForkedTasksController {
      * @param task_params
      */
     public static async broadexec(task_uid: string, ...task_params): Promise<boolean> {
-        if (!ForkServerController.getInstance().is_main_process) {
-            // ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
+        if (!ForkServerController.is_main_process()) {
+            // ForkMessageController.send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
 
             // Si on est pas sur le thread parent, on doit d'abord le lancer en local, puis envoyer aux autres threads
             await ForkedTasksController.registered_tasks[task_uid](...task_params);
-            await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
+            await ForkMessageController.send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
 
             return true;
         } else {
 
             // Si on est sur le thread parent, le broadcast s'occupe de lancer la tache en local aussi
-            return await ForkMessageController.getInstance().broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
+            return await ForkMessageController.broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
         }
     }
 
@@ -58,7 +58,7 @@ export default class ForkedTasksController {
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
     public static async exec_self_on_main_process_and_return_value(thrower, task_uid: string, resolver, ...task_params): Promise<boolean> {
-        if (!ForkServerController.getInstance().is_main_process) {
+        if (!ForkServerController.is_main_process()) {
 
             let result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
@@ -69,7 +69,7 @@ export default class ForkedTasksController {
             );
 
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
-            if (!await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid))) {
+            if (!await ForkMessageController.send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid))) {
                 delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                 ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé:' + task_uid + ':');
                 thrower("Failed to send message to exec_self_on_main_process_and_return_value :" + task_uid + ':' + JSON.stringify(task_params));
@@ -85,8 +85,8 @@ export default class ForkedTasksController {
      * @param task_params
      */
     public static async exec_self_on_main_process(task_uid: string, ...task_params): Promise<boolean> {
-        if (!ForkServerController.getInstance().is_main_process) {
-            await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
+        if (!ForkServerController.is_main_process()) {
+            await ForkMessageController.send(new MainProcessTaskForkMessage(task_uid, task_params));
             return false;
         }
         return true;
@@ -106,7 +106,7 @@ export default class ForkedTasksController {
                 task_params
             );
 
-            await ForkMessageController.getInstance().broadcast(
+            await ForkMessageController.broadcast(
                 bg_thread_process_task_fork_message
             );
 
@@ -135,26 +135,26 @@ export default class ForkedTasksController {
 
             // Si on est sur le thread principal, on doit checker qu'on peut envoyer le message au bgthread (donc qu'il a démarré) et le faire,
             //  sinon on throw directement
-            if (ForkServerController.getInstance().is_main_process) {
+            if (ForkServerController.is_main_process()) {
 
-                if ((!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
-                    (!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread])) {
+                if ((!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
+                    (!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread])) {
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                     ConsoleHandler.error("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     thrower("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     return false;
                 }
 
-                let fork = ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+                let fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
 
-                if (!ForkServerController.getInstance().forks_alive[fork.uid]) {
+                if (!ForkServerController.forks_alive[fork.uid]) {
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                     ConsoleHandler.warn("Target not ALIVE for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     thrower("Target not ALIVE for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     return false;
                 }
 
-                if (!await ForkMessageController.getInstance().send(
+                if (!await ForkMessageController.send(
                     new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid),
                     fork.child_process,
                     fork)) {
@@ -168,7 +168,7 @@ export default class ForkedTasksController {
 
             // Si on est sur un bgthread (et donc pas le bon à ce stade) on envoie une demande au thread principal d'envoie de message au bgthread
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
-            if (!await ForkMessageController.getInstance().send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid))) {
+            if (!await ForkMessageController.send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid))) {
                 delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
                 ConsoleHandler.error('exec_self_on_bgthread_and_return_value:2:Un message n\'a pas pu être envoyé :' + task_uid + ':');
                 thrower("Failed to send message to main thread :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
@@ -179,7 +179,7 @@ export default class ForkedTasksController {
     }
 
     public static assert_is_main_process() {
-        if (!ForkServerController.getInstance().is_main_process) {
+        if (!ForkServerController.is_main_process()) {
             throw new Error('Should not be called on child process. See exec_async_task_on_main_process.');
         }
     }
@@ -206,12 +206,12 @@ export default class ForkedTasksController {
     //  * @param task_params Les paramères à appliquer
     //  */
     // public static exec_async_task_on_main_process(task_uid: string, ...task_params) {
-    //     if (ForkServerController.getInstance().is_main_process) {
+    //     if (ForkServerController.is_main_process()) {
     //         ForkedTasksController.registered_tasks[task_uid](...task_params);
     //         return;
     //     }
 
-    //     ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
+    //     ForkMessageController.send(new MainProcessTaskForkMessage(task_uid, task_params));
     // }
 
     /**

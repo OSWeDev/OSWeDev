@@ -24,6 +24,7 @@ import PingForkACKMessage from './messages/PingForkACKMessage';
 import PingForkMessage from './messages/PingForkMessage';
 import ReloadAsapForkMessage from './messages/ReloadAsapForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
+import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
@@ -45,16 +46,16 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     public async configure(): Promise<void> {
-        ForkMessageController.getInstance().register_message_handler(ReloadAsapForkMessage.FORK_MESSAGE_TYPE, this.prepare_reload_asap.bind(this));
-        ForkMessageController.getInstance().register_message_handler(KillForkMessage.FORK_MESSAGE_TYPE, this.handle_kill_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(PingForkMessage.FORK_MESSAGE_TYPE, this.handle_ping_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(PingForkACKMessage.FORK_MESSAGE_TYPE, this.handle_pingack_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(AliveForkMessage.FORK_MESSAGE_TYPE, this.handle_alive_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE, this.handle_broadcast_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(MainProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocesstask_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(MainProcessForwardToBGThreadForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocessforwardtobgtask_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_bgthreadprocesstask_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(TaskResultForkMessage.FORK_MESSAGE_TYPE, this.handle_taskresult_message.bind(this));
+        ForkMessageController.register_message_handler(ReloadAsapForkMessage.FORK_MESSAGE_TYPE, this.prepare_reload_asap.bind(this));
+        ForkMessageController.register_message_handler(KillForkMessage.FORK_MESSAGE_TYPE, this.handle_kill_message.bind(this));
+        ForkMessageController.register_message_handler(PingForkMessage.FORK_MESSAGE_TYPE, this.handle_ping_message.bind(this));
+        ForkMessageController.register_message_handler(PingForkACKMessage.FORK_MESSAGE_TYPE, this.handle_pingack_message.bind(this));
+        ForkMessageController.register_message_handler(AliveForkMessage.FORK_MESSAGE_TYPE, this.handle_alive_message.bind(this));
+        ForkMessageController.register_message_handler(BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE, this.handle_broadcast_message.bind(this));
+        ForkMessageController.register_message_handler(MainProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocesstask_message.bind(this));
+        ForkMessageController.register_message_handler(MainProcessForwardToBGThreadForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocessforwardtobgtask_message.bind(this));
+        ForkMessageController.register_message_handler(BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_bgthreadprocesstask_message.bind(this));
+        ForkMessageController.register_message_handler(TaskResultForkMessage.FORK_MESSAGE_TYPE, this.handle_taskresult_message.bind(this));
     }
 
     public async kill_process(throttle: number = 10) {
@@ -66,6 +67,10 @@ export default class ModuleForkServer extends ModuleServerBase {
             await ThreadHandler.sleep(1000, 'ModuleForkServer.kill_process');
             throttle--;
         }
+        ConsoleHandler.error("Received KILL SIGN from parent - Before KILL inform parent thread to reload thread asap");
+        await ForkMessageController.send(
+            new ReloadAsapForkMessage().set_message_content(ForkedProcessWrapperBase.getInstance().process_UID)
+        );
         ConsoleHandler.error("Received KILL SIGN from parent - KILL");
         process.exit();
     }
@@ -79,7 +84,7 @@ export default class ModuleForkServer extends ModuleServerBase {
             return false;
         }
 
-        ForkServerController.getInstance().forks_reload_asap[msg.message_content] = true;
+        ForkServerController.forks_reload_asap[msg.message_content] = true;
         return true;
     }
 
@@ -130,7 +135,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.callback_id) {
-            await ForkMessageController.getInstance().send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
+            await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
         }
 
         return true;
@@ -148,7 +153,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (this.is_killing) {
             ConsoleHandler.error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
-                await ForkMessageController.getInstance().send(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'), sendHandle as ChildProcess);
+                await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'), sendHandle as ChildProcess);
             } else {
                 throw new Error('KILLING TASK HANDLER');
             }
@@ -159,7 +164,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
             let thrower = async (error) => {
                 if (msg.callback_id) {
-                    await ForkMessageController.getInstance().send(new TaskResultForkMessage(null, msg.callback_id, error), sendHandle as ChildProcess);
+                    await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_id, error), sendHandle as ChildProcess);
                 } else {
                     ConsoleHandler.error('Failed message:' + error + ':' + JSON.stringify(msg));
                 }
@@ -168,7 +173,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
             let resolver = async (res) => {
                 if (msg.callback_id) {
-                    await ForkMessageController.getInstance().send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
+                    await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
                 }
                 resolve(res);
             };
@@ -192,7 +197,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (this.is_killing) {
             ConsoleHandler.error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
-                await ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'));
+                await ForkMessageController.broadcast(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'));
             } else {
                 throw new Error('KILLING TASK HANDLER');
             }
@@ -207,14 +212,14 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.callback_id) {
-            await ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(res, msg.callback_id));
+            await ForkMessageController.broadcast(new TaskResultForkMessage(res, msg.callback_id));
         }
 
         return true;
     }
 
     private async handle_pingack_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        ForkServerController.getInstance().forks_availability[msg.message_content] = Dates.now();
+        ForkServerController.forks_availability[msg.message_content] = Dates.now();
         return true;
     }
 
@@ -227,18 +232,19 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     private async handle_ping_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        await ForkMessageController.getInstance().send(new PingForkACKMessage(msg.message_content));
+        await ForkMessageController.send(new PingForkACKMessage(msg.message_content));
         return true;
     }
 
     private async handle_alive_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        ForkServerController.getInstance().forks_alive[msg.message_content] = true;
+        ForkServerController.forks_alive[msg.message_content] = true;
 
-        ForkServerController.getInstance().forks_waiting_to_be_alive--;
-        if (ForkServerController.getInstance().forks_waiting_to_be_alive <= 0) {
-            ForkServerController.getInstance().forks_are_initialized = true;
+        ForkServerController.forks_waiting_to_be_alive--;
+        if (ForkServerController.forks_waiting_to_be_alive <= 0) {
+            ForkServerController.forks_are_initialized = true;
         }
-        ConsoleHandler.log('Process [' + msg.message_content + ']: ALIVE');
+        ConsoleHandler.log('Process [' + msg.message_content + ']: ALIVE'); // - Sending back UID');
+        // ForkServerController.forks_uid_sent[msg.message_content] = true;
         return true;
     }
 
@@ -248,7 +254,7 @@ export default class ModuleForkServer extends ModuleServerBase {
      */
     private async handle_broadcast_message(msg: BroadcastWrapperForkMessage): Promise<boolean> {
 
-        await ForkMessageController.getInstance().broadcast(msg.message_content, (msg.ignore_sender ? msg.sender_uid : null));
+        await ForkMessageController.broadcast(msg.message_content, (msg.ignore_sender ? msg.sender_uid : null));
 
         return true;
     }

@@ -1120,12 +1120,12 @@ export default abstract class ServerBase {
              *  attendre la fin du démarrage du serveur et des childs threads pour lancer le broadcast
              */
             let timeout_sec: number = 30;
-            while ((!ForkServerController.getInstance().forks_are_initialized) && (timeout_sec > 0)) {
+            while ((!ForkServerController.forks_are_initialized) && (timeout_sec > 0)) {
                 await ThreadHandler.sleep(1000, '/cron.!forks_are_initialized');
                 timeout_sec--;
             }
 
-            if (!ForkServerController.getInstance().forks_are_initialized) {
+            if (!ForkServerController.forks_are_initialized) {
                 ConsoleHandler.error('CRON non lancé car le thread enfant n\'est pas disponible en 30 secondes.');
                 res.send();
             } else {
@@ -1220,7 +1220,7 @@ export default abstract class ServerBase {
                 if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:START');
                 }
-                await ForkServerController.getInstance().fork_threads();
+                await ForkServerController.fork_threads();
                 if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:END');
                 }

@@ -166,11 +166,11 @@ export default abstract class ForkedProcessWrapperBase {
 
         process.on('message', async (msg: IForkMessage) => {
             msg = APIControllerWrapper.try_translate_vo_from_api(msg);
-            await ForkMessageController.getInstance().message_handler(msg, process);
+            await ForkMessageController.message_handler(msg, process);
         });
 
         // On prévient le process parent qu'on est ready
-        await ForkMessageController.getInstance().send(new AliveForkMessage());
+        await ForkMessageController.send(new AliveForkMessage());
 
         setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
     }

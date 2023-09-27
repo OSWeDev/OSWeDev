@@ -63,6 +63,8 @@ import Patch20230517DeleteAllStats from './patchs/premodules/Patch20230517Delete
 import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
 import VersionUpdater from './version_updater/VersionUpdater';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
+import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
 
 export default abstract class GeneratorBase {
 
@@ -114,7 +116,7 @@ export default abstract class GeneratorBase {
             InitFrontVarsPolicies.getInstance(),
             InitFrontVarsPolicies2.getInstance(),
             AddMaintenanceCreationPolicy.getInstance(),
-            InitLoggedOnce.getInstance(),
+            InitLoggedOnce.getInstance()
         ];
 
         this.pre_modules_workers = [
@@ -147,6 +149,8 @@ export default abstract class GeneratorBase {
             Patch20230428FavoriteWidgetsAreNotFilters.getInstance(),
             Patch20230517InitParamsStats.getInstance(),
             Patch20230519AddRightsFeedbackStateVO.getInstance(),
+            Patch20230927AddSupervisionToCrons.getInstance(),
+            Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
         ];
     }
 

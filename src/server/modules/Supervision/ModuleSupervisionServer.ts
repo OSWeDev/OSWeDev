@@ -33,6 +33,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SupervisionBGThread from './bgthreads/SupervisionBGThread';
+import SupervisedCRONServerController from './cron_supervision/SupervisedCRONServerController';
 import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
 import SupervisionServerController from './SupervisionServerController';
 
@@ -164,6 +165,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             preUpdateTrigger.registerHandler(vo_type, this, this.onPreU_SUP_ITEM_HISTORIZE);
             preCreateTrigger.registerHandler(vo_type, this, this.onpreC_SUP_ITEM);
         }
+
+        SupervisedCRONServerController.getInstance();
     }
 
     /**

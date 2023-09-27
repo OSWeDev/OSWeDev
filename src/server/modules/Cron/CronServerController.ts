@@ -48,8 +48,8 @@ export default class CronServerController {
      */
 
     private constructor() {
-        ForkMessageController.getInstance().register_message_handler(RunCronForkMessage.FORK_MESSAGE_TYPE, this.handle_runcron_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(RunCronsForkMessage.FORK_MESSAGE_TYPE, this.handle_runcrons_message.bind(this));
+        ForkMessageController.register_message_handler(RunCronForkMessage.FORK_MESSAGE_TYPE, this.handle_runcron_message.bind(this));
+        ForkMessageController.register_message_handler(RunCronsForkMessage.FORK_MESSAGE_TYPE, this.handle_runcrons_message.bind(this));
     }
 
     /**
@@ -64,16 +64,16 @@ export default class CronServerController {
             if (CronServerController.getInstance().valid_crons_names[worker_uid]) {
                 await this.handle_runcron_message(new RunCronForkMessage(worker_uid));
             } else {
-                await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
+                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
             }
         } else {
 
-            if ((!ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType]) ||
-                (!ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid])) {
+            if ((!ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType]) ||
+                (!ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid])) {
                 return false;
             }
-            let forked = ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
-            await ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
+            let forked = ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
+            await ForkMessageController.send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
         }
     }
 
@@ -83,7 +83,7 @@ export default class CronServerController {
      */
     public async executeWorkers() {
 
-        await ForkMessageController.getInstance().broadcast(new RunCronsForkMessage());
+        await ForkMessageController.broadcast(new RunCronsForkMessage());
     }
 
     private async handle_runcrons_message(msg: RunCronForkMessage): Promise<boolean> {

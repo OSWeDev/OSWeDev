@@ -1,6 +1,7 @@
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import CronWorkerPlanification from "../../../../shared/modules/Cron/vos/CronWorkerPlanification";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
+import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import SupervisionController from "../../../../shared/modules/Supervision/SupervisionController";
 import SupervisedCRONVO from "../../../../shared/modules/Supervision/vos/SupervisedCRONVO";
 import { field_names } from "../../../../shared/tools/ObjectHandler";
@@ -40,10 +41,10 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
     }
 
     /**
-     * 15 minutes minimum entre chaque mise à jour
+     * 1 minute minimum entre chaque mise à jour
      */
     public get_execute_time_ms(): number {
-        return 15 * 60 * 1000;
+        return 60 * 1000;
     }
 
     public async work_one(supervised_pdv: SupervisedCRONVO, ...args: any[]): Promise<boolean> {
@@ -54,142 +55,45 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         supervised_pdv.invalid = false;
 
-        // let pdv: PDVVO = await query(PDVVO.API_TYPE_ID).filter_by_id(supervised_pdv.pdv_id).select_vo<PDVVO>();
+        let planification: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
+            .filter_by_text_eq(field_names<CronWorkerPlanification>().planification_uid, supervised_pdv.planification_uid)
+            .filter_by_text_eq(field_names<CronWorkerPlanification>().worker_uid, supervised_pdv.worker_uid)
+            .select_vo<CronWorkerPlanification>();
 
-        // // Si le crescendo est pas actif et initialisé, la sonde devrait être en pause (ou ne devrait pas exister en fait)
-        // // Idem si le pdv est mutualisé
-        // if ((!pdv.activated) || (!pdv.crescendo_active) || (!pdv.crescendo_initialise) || (!pdv.last_lignefacturation_importation) || (pdv.mutualiser_sur_site_principal_id)) {
-        //     supervised_pdv.state = SupervisionController.STATE_PAUSED;
-        //     await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
-        //     return true;
-        // }
+        if (!planification) {
+            supervised_pdv.state = SupervisionController.STATE_ERROR;
+            await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+            return true;
+        }
 
-        // /**
-        //  * On cherche à identifier tous les jours d'ouverture de la boutique et on soustrait tous les jours pour lesquels on a des factures
-        //  *  On se limite aux 60 derniers jours, inutile de remonter à l'infini, et on commence à la date de factu la plus récente en base
-        //  */
+        /**
+         * Si on a un lancement en attente, qui n'a pas été réalisé
+         *  (donc dont le temps d'attente dépasse le temps  d'attente max - par défaut 2 intervales de cron donc au max 2H),
+         *  on est en erreur. Sinon on est en ok
+         */
 
-        // let feries: JourFerieVO[] = await query(JourFerieVO.API_TYPE_ID).select_vos<JourFerieVO>();
-        // let fermetures: FermetureVO[] = await query(FermetureVO.API_TYPE_ID).filter_by_num_eq('pdv_id', pdv.id).select_vos<FermetureVO>();
-        // let ts_range: TSRange = RangeHandler.createNew(
-        //     TSRange.RANGE_TYPE,
-        //     Dates.add(pdv.last_lignefacturation_importation, -59, TimeSegment.TYPE_DAY),
-        //     pdv.last_lignefacturation_importation,
-        //     true,
-        //     true,
-        //     TimeSegment.TYPE_DAY);
+        let now: number = Dates.now();
+        let next_planned_launch: number = planification.date_heure_planifiee;
 
-        // let nb_jours_ouverts_sans_factures: number = 0;
-        // await RangeHandler.foreach(ts_range, async (date: number) => {
+        if (!next_planned_launch) {
+            supervised_pdv.state = SupervisionController.STATE_WARN;
+            await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+            return true;
+        }
 
-        //     /**
-        //      * On check les fermetures hebdos
-        //      */
-        //     switch (Dates.isoWeekday(date)) {
-        //         case 1:
-        //             if (!pdv.ouvert_lun) {
-        //                 return;
-        //             }
-        //             break;
-        //         case 2:
-        //             if (!pdv.ouvert_mar) {
-        //                 return;
-        //             }
-        //             break;
-        //         case 3:
-        //             if (!pdv.ouvert_mer) {
-        //                 return;
-        //             }
-        //             break;
-        //         case 4:
-        //             if (!pdv.ouvert_jeu) {
-        //                 return;
-        //             }
-        //             break;
-        //         case 5:
-        //             if (!pdv.ouvert_ven) {
-        //                 return;
-        //             }
-        //             break;
-        //         case 6:
-        //             if (!pdv.ouvert_sam) {
-        //                 return;
-        //             }
-        //             break;
-        //         case 7:
-        //             if (!pdv.ouvert_dim) {
-        //                 return;
-        //             }
-        //             break;
-        //     }
+        let time_waited: number = next_planned_launch - now;
+        let max_time_to_wait_sec: number = 60 * 60 * 2; // 2H
+        supervised_pdv.last_value = time_waited / (60 * 60 * 24);
 
-        //     /**
-        //      * On check les fermetures exceptionnelles
-        //      */
-        //     for (let i in fermetures) {
-        //         let fermeture = fermetures[i];
+        if (time_waited < -max_time_to_wait_sec) {
+            supervised_pdv.state = SupervisionController.STATE_ERROR;
+            await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+            return true;
+        }
 
-        //         if (Dates.startOf(fermeture.date, TimeSegment.TYPE_DAY) == date) {
-        //             return;
-        //         }
-        //     }
-
-        //     /**
-        //      * On check les fériés
-        //      */
-        //     for (let i in feries) {
-        //         let ferie = feries[i];
-
-        //         if (Dates.startOf(ferie.date, TimeSegment.TYPE_DAY) == date) {
-        //             return;
-        //         }
-        //     }
-
-        //     let has_factu_for_date: boolean = await ModuleSupervisionImportsServer.getInstance().has_factu_for_date(pdv.id, date);
-        //     if (has_factu_for_date) {
-        //         return;
-        //     }
-
-        //     nb_jours_ouverts_sans_factures++;
-        // });
-
-        // if (nb_jours_ouverts_sans_factures >= pdv.error_factus_nb_jours) {
-        //     switch (supervised_pdv.state) {
-        //         case SupervisionController.STATE_ERROR:
-        //         case SupervisionController.STATE_ERROR_READ:
-        //             break;
-        //         case SupervisionController.STATE_WARN:
-        //         case SupervisionController.STATE_WARN_READ:
-        //         case SupervisionController.STATE_OK:
-        //         case SupervisionController.STATE_PAUSED:
-        //         case SupervisionController.STATE_UNKOWN:
-        //         default:
-        //             supervised_pdv.state = SupervisionController.STATE_ERROR;
-        //             break;
-        //     }
-        // } else if (nb_jours_ouverts_sans_factures >= pdv.warn_factus_nb_jours) {
-        //     switch (supervised_pdv.state) {
-        //         case SupervisionController.STATE_WARN:
-        //         case SupervisionController.STATE_WARN_READ:
-        //             break;
-        //         case SupervisionController.STATE_ERROR:
-        //         case SupervisionController.STATE_ERROR_READ:
-        //         case SupervisionController.STATE_OK:
-        //         case SupervisionController.STATE_PAUSED:
-        //         case SupervisionController.STATE_UNKOWN:
-        //         default:
-        //             supervised_pdv.state = SupervisionController.STATE_WARN;
-        //             break;
-        //     }
-        // } else {
-        //     supervised_pdv.state = SupervisionController.STATE_OK;
-        // }
-        // supervised_pdv.last_value = nb_jours_ouverts_sans_factures;
-
-        // // On en profite pour reconstruire le nom au cas où il y a eu renommage du PDV
-        // supervised_pdv.name = SupervisedCRONVO.SUPERVISED_ITEM_BASENAME + VOsTypesManager.moduleTables_by_voType[PDVVO.API_TYPE_ID].table_label_function(pdv);
-
-        // await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+        supervised_pdv.state = SupervisionController.STATE_OK;
+        await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+        return true;
     }
 
     private async postCCreateSupervisedItem(e: CronWorkerPlanification) {

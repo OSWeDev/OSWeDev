@@ -1,20 +1,17 @@
 import { throttle } from 'lodash';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
+import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
-import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
-import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import ISupervisedItemServerController from '../interfaces/ISupervisedItemServerController';
+import IBGThread from '../../BGThread/interfaces/IBGThread';
 import SupervisionServerController from '../SupervisionServerController';
+import ISupervisedItemServerController from '../interfaces/ISupervisedItemServerController';
 
 export default class SupervisionBGThread implements IBGThread {
 

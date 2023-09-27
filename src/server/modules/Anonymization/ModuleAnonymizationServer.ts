@@ -124,7 +124,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
         postDeleteTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
 
-        if (ForkServerController.getInstance().is_main_process) {
+        if (ForkServerController.is_main_process()) {
             await ServerAnonymizationController.reload_conf();
         }
     }

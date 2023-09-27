@@ -12,4 +12,9 @@ export default class ReloadAsapForkMessage implements IForkMessage {
      * Reload asap le forked_target.uid si coupé qui est dans le message
      */
     public constructor() { }
+
+    public set_message_content(message_content: any): ReloadAsapForkMessage {
+        this.message_content = message_content;
+        return this;
+    }
 }

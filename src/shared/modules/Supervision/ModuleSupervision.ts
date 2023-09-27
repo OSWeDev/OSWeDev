@@ -83,7 +83,7 @@ export default class ModuleSupervision extends Module {
         ];
 
         let datatable = new ModuleTable(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
-        SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
         this.datatables.push(datatable);
+        SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
     }
 }

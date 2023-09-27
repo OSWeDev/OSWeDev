@@ -100,11 +100,11 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] =
             async () => {
-                if (ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
-                    ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
-                    await ForkMessageController.getInstance().send(
-                        new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10)),
-                        ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
+                if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
+                    ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
+                    await ForkMessageController.send(
+                        new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
+                        ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
                 }
             };
 

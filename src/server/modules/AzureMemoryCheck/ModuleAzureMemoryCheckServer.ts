@@ -125,7 +125,20 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
             }
         };
 
-        const tokenResponse = await axios.post(tokenEndpoint, tokenData, tokenHeaders);
+        let tokenResponse = null;
+        let axiosError = null;
+        try {
+
+            tokenResponse = await axios.post(tokenEndpoint, tokenData, tokenHeaders);
+        } catch (error) {
+            tokenResponse = null;
+            axiosError = error;
+        }
+
+        if (!tokenResponse) {
+            ConsoleHandler.error('Erreur lors de la récupération du token AzureMemoryCheck: ' + axiosError);
+            return;
+        }
 
         // const tokenResponse = await axios.post(tokenEndpoint, {
         //     grant_type: "client_credentials",
@@ -137,11 +150,22 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
         const token = tokenResponse.data.access_token;
 
         // Get metrics
-        const metricResponse = await axios.get(metricEndpoint, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        let metricResponse = null;
+        try {
+
+            metricResponse = await axios.get(metricEndpoint, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        } catch (error) {
+            axiosError = error;
+        }
+
+        if (!metricResponse) {
+            ConsoleHandler.error('Erreur lors de la récupération des métriques AzureMemoryCheck: ' + axiosError);
+            return;
+        }
 
         // Extract available memory from the response
         const memoryData = metricResponse.data.value[0]?.timeseries[0]?.data || [];

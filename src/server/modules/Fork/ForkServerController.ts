@@ -21,49 +21,36 @@ import PingForkMessage from './messages/PingForkMessage';
 
 export default class ForkServerController {
 
-    // public static PARAM_NAME_NODE_MEM_SIZE: string = 'ForkServerController.NODE_MEM_SIZE';
+    // public static static PARAM_NAME_NODE_MEM_SIZE: string = 'ForkServerController.NODE_MEM_SIZE';
 
     // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ForkServerController.instance) {
-            ForkServerController.instance = new ForkServerController();
-        }
-        return ForkServerController.instance;
-    }
-
-    private static instance: ForkServerController = null;
 
     /**
      * Local thread cache -----
      */
-    public forks_are_initialized: boolean = false;
-    public forks_waiting_to_be_alive: number = 0;
-    public forks_availability: { [uid: number]: number } = {};
-    public forks_reload_asap: { [uid: number]: boolean } = {};
-    public forks_alive: { [uid: number]: boolean } = {};
-    public throttled_reload_unavailable_threads = ThrottleHelper.declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 500, { leading: false, trailing: true });
-    public fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
-    private forks: { [uid: number]: IFork } = {};
-    private UID: number = 0;
+    public static forks_are_initialized: boolean = false;
+    public static forks_waiting_to_be_alive: number = 0;
+    public static forks_availability: { [uid: number]: number } = {};
+    public static forks_reload_asap: { [uid: number]: boolean } = {};
+    public static forks_alive: { [uid: number]: boolean } = {};
+
+    // On informe chaque thread de son identité auprès du parent pour permettre de faire des communications identifiées et plus tard inter-threads
+    public static forks_uid_sent: { [uid: number]: boolean } = {};
+
+    public static throttled_reload_unavailable_threads = ThrottleHelper.declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 500, { leading: false, trailing: true });
+    public static fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
+
+    public static forks: { [uid: number]: IFork } = {};
+    public static UID: number = 0;
     /**
      * ----- Local thread cache
      */
 
-    private constructor() { }
-
-    get process_forks(): { [uid: number]: IFork } {
-        return this.forks;
-    }
-
-    get process_fork_by_type_and_name(): { [exec_type: string]: { [name: string]: IFork } } {
-        return this.fork_by_type_and_name;
-    }
-
-    get is_main_process(): boolean {
+    public static is_main_process(): boolean {
         return !ForkedProcessWrapperBase.getInstance();
     }
 
-    public async fork_threads() {
+    public static async fork_threads() {
         // On fork a minima une fois pour mettre tous les bgthreads et crons dans un child process
         //  et éviter de bloquer le server pour un calcul de vars par exemple
         // Si des bgthreads ou des crons demandent à être isolés, on leur dédie un thread
@@ -92,33 +79,33 @@ export default class ForkServerController {
         this.checkForksAvailability().then().catch((error) => ConsoleHandler.error(error));
     }
 
-    public async reload_unavailable_threads() {
+    public static async reload_unavailable_threads() {
 
         // On crée les process et on stocke les liens pour pouvoir envoyer les messages en temps voulu (typiquement pour le lancement des crons)
-        for (let i in ForkServerController.getInstance().forks) {
-            let forked: IFork = ForkServerController.getInstance().forks[i];
+        for (let i in ForkServerController.forks) {
+            let forked: IFork = ForkServerController.forks[i];
 
-            if (ForkServerController.getInstance().forks_availability[i]) {
+            if (ForkServerController.forks_availability[i]) {
                 continue;
             }
 
-            ForkServerController.getInstance().forks_availability[i] = Dates.now();
+            ForkServerController.forks_availability[i] = Dates.now();
 
             if (ConfigurationService.node_configuration.DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
+                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.get_argv(forked), {
                     execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096'],
                     serialization: "advanced"
                 });
             } else {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
+                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.get_argv(forked), {
                     execArgv: ['--max-old-space-size=4096'],
                     serialization: "advanced"
                 });
             }
 
-            if (ForkMessageController.getInstance().stacked_msg_waiting && ForkMessageController.getInstance().stacked_msg_waiting.length) {
-                for (let j in ForkMessageController.getInstance().stacked_msg_waiting) {
-                    let stacked_msg_waiting = ForkMessageController.getInstance().stacked_msg_waiting[j];
+            if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
+                for (let j in ForkMessageController.stacked_msg_waiting) {
+                    let stacked_msg_waiting = ForkMessageController.stacked_msg_waiting[j];
 
                     if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
                         stacked_msg_waiting.sendHandle = forked.child_process;
@@ -128,14 +115,14 @@ export default class ForkServerController {
 
             forked.child_process.on('message', async (msg: IForkMessage) => {
                 msg = APIControllerWrapper.try_translate_vo_from_api(msg);
-                await ForkMessageController.getInstance().message_handler(msg, forked.child_process);
+                await ForkMessageController.message_handler(msg, forked.child_process);
             });
 
             // /**
             //  * On attend le alive du fork avant de continuer
             //  */
             // let max_timeout = 300;
-            // while (!ForkServerController.getInstance().forks_alive[i]) {
+            // while (!ForkServerController.forks_alive[i]) {
             //     await ThreadHandler.sleep(1000, 'reload_unavailable_threads.!forks_alive.' + forked.uid);
             //     max_timeout--;
             //     if (!(max_timeout % 10)) {
@@ -157,16 +144,16 @@ export default class ForkServerController {
          * On attend le alive des forks avant de continuer
          */
         let promises_pipeline = new PromisePipeline(100, 'ForkServerController.reload_unavailable_threads');
-        for (let i in ForkServerController.getInstance().forks) {
-            let forked: IFork = ForkServerController.getInstance().forks[i];
+        for (let i in ForkServerController.forks) {
+            let forked: IFork = ForkServerController.forks[i];
 
-            if (ForkServerController.getInstance().forks_availability[i]) {
+            if (ForkServerController.forks_availability[i]) {
                 continue;
             }
 
             await promises_pipeline.push(async () => {
                 let max_timeout = 300;
-                while (!ForkServerController.getInstance().forks_alive[i]) {
+                while (!ForkServerController.forks_alive[i]) {
                     await ThreadHandler.sleep(1000, 'reload_unavailable_threads.!forks_alive.' + forked.uid);
                     max_timeout--;
                     if (!(max_timeout % 10)) {
@@ -187,7 +174,7 @@ export default class ForkServerController {
         await promises_pipeline.end();
     }
 
-    private get_argv(forked: IFork): string[] {
+    private static get_argv(forked: IFork): string[] {
         let res: string[] = [forked.uid.toString()];
 
         for (let i in forked.processes) {
@@ -199,7 +186,7 @@ export default class ForkServerController {
         return res;
     }
 
-    private prepare_forked_bgtreads(default_fork: IFork) {
+    private static prepare_forked_bgtreads(default_fork: IFork) {
         for (let i in BGThreadServerController.getInstance().registered_BGThreads) {
             let bgthread: IBGThread = BGThreadServerController.getInstance().registered_BGThreads[i];
 
@@ -229,7 +216,7 @@ export default class ForkServerController {
         }
     }
 
-    private prepare_forked_crons(default_fork: IFork) {
+    private static prepare_forked_crons(default_fork: IFork) {
         for (let i in CronServerController.getInstance().registered_cronWorkers) {
             let cron: ICronWorker = CronServerController.getInstance().registered_cronWorkers[i];
 
@@ -260,7 +247,7 @@ export default class ForkServerController {
         }
     }
 
-    private async checkForksAvailability() {
+    private static async checkForksAvailability() {
 
         setInterval(async () => {
 
@@ -271,7 +258,7 @@ export default class ForkServerController {
                     continue;
                 }
 
-                await ForkMessageController.getInstance().send(new PingForkMessage(forked.uid), forked.child_process, forked);
+                await ForkMessageController.send(new PingForkMessage(forked.uid), forked.child_process, forked);
             }
         }, 10000);
     }

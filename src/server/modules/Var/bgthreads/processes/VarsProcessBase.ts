@@ -5,7 +5,9 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
+import BGThreadServerController from '../../../BGThread/BGThreadServerController';
 import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
+import VarsBGThreadNameHolder from '../../VarsBGThreadNameHolder';
 import VarsClientsSubsCacheHolder from './VarsClientsSubsCacheHolder';
 import VarsComputationHole from './VarsComputationHole';
 
@@ -35,6 +37,9 @@ export default abstract class VarsProcessBase {
         while (true) {
 
             let did_something = false;
+
+            // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
+            BGThreadServerController.getInstance().register_alive_on_main_thread(VarsBGThreadNameHolder.bgthread_name);
 
             // On checke une invalidation en attente
             let updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
