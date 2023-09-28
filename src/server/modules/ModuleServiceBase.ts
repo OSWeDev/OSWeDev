@@ -673,12 +673,30 @@ export default abstract class ModuleServiceBase {
         StatsController.register_stat_DUREE('db_none', 'ok', '-', time_out - time_in);
     }
 
+    private count_union_all_occurrences(query: string): number {
+        const matches = query.match(/ union all /gi);
+        return matches ? matches.length : 0;
+    }
+
     private async db_query(query: string, values?: []) {
 
         let res = null;
         let time_in = Dates.now_ms();
 
         try {
+
+            // On rajoute quelques contrôles de cohérence | des garde-fous simples mais qui protège d'une panne idiote
+            let max_size_per_query = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_SIZE_PER_QUERY, 1000000, 60 * 60 * 1000);
+            let max_union_all_per_query = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_UNION_ALL_PER_QUERY, 1000, 60 * 60 * 1000);
+
+            if (query.length > max_size_per_query) {
+                throw new Error('Query too big (' + query.length + ' > ' + max_size_per_query + ')');
+            }
+
+            if (this.count_union_all_occurrences(query) > max_union_all_per_query) {
+                throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + max_union_all_per_query + ')');
+            }
+
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
