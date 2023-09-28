@@ -32,9 +32,6 @@ export default class ModuleDAO extends Module {
 
     public static POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDAO.MODULE_NAME + ".CAN_EDIT_REMOVED_CRUD_FIELDS_ACCESS";
 
-    public static PARAM_NAME_MAX_UNION_ALL_PER_QUERY: string = "ModuleDAO.MAX_UNION_ALL_PER_QUERY";
-    public static PARAM_NAME_MAX_SIZE_PER_QUERY: string = "ModuleDAO.MAX_SIZE_PER_QUERY";
-
     public static PARAM_NAME_MAX_DELETE_PER_QUERY: string = "ModuleDAO.MAX_DELETE_PER_QUERY";
     public static PARAM_NAME_MAX_UPDATE_PER_QUERY: string = "ModuleDAO.MAX_UPDATE_PER_QUERY";
 
