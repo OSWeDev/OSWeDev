@@ -686,15 +686,13 @@ export default abstract class ModuleServiceBase {
         try {
 
             // On rajoute quelques contrôles de cohérence | des garde-fous simples mais qui protège d'une panne idiote
-            let max_size_per_query = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_SIZE_PER_QUERY, 1000000, 60 * 60 * 1000);
-            let max_union_all_per_query = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAO.PARAM_NAME_MAX_UNION_ALL_PER_QUERY, 1000, 60 * 60 * 1000);
 
-            if (query.length > max_size_per_query) {
-                throw new Error('Query too big (' + query.length + ' > ' + max_size_per_query + ')');
+            if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
+                throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
             }
 
-            if (this.count_union_all_occurrences(query) > max_union_all_per_query) {
-                throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + max_union_all_per_query + ')');
+            if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
+                throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
             }
 
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);

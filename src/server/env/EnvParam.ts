@@ -32,6 +32,9 @@ export default class EnvParam implements IEnvParam {
     public MAX_VarsProcessLoadDatas?: number = 100;
     public MAX_Vars_invalidators?: number = 200;
 
+    public MAX_SIZE_PER_QUERY?: number = 1000000;
+    public MAX_UNION_ALL_PER_QUERY?: number = 1000;
+
     public DEBUG_FORKS?: boolean = false;
     public DEBUG_SLOW_QUERIES?: boolean = false;
     public DEBUG_SLOW_QUERIES_MS_LIMIT?: number = 100;

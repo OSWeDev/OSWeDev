@@ -26,6 +26,9 @@ export default interface IEnvParam {
     MAX_VarsProcessLoadDatas?: number;
     MAX_Vars_invalidators?: number;
 
+    MAX_SIZE_PER_QUERY?: number;
+    MAX_UNION_ALL_PER_QUERY?: number;
+
     DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     DEBUG_SLOW_QUERIES?: boolean;
     DEBUG_PARAM_QUERIES?: boolean;
