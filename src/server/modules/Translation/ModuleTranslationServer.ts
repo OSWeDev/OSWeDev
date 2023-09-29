@@ -15,6 +15,7 @@ import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -898,10 +899,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if ((!vo_update_handler.post_update_vo) || (!vo_update_handler.post_update_vo.code_text)) {
             return false;
         }
-        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text);
+        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text, vo_update_handler.post_update_vo.id);
     }
 
-    private async isCodeOk(code_text: string): Promise<boolean> {
+    private async isCodeOk(code_text: string, self_id: number = null): Promise<boolean> {
 
         // On vérifie qu'il existe pas en base un code conflictuel. Sinon on refuse l'insert
         let something_longer: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
@@ -913,8 +914,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             return false;
         }
 
-        let shorter_code: string = code_text;
-        let segments: string[] = shorter_code.split('.');
+        let segments: string[] = code_text.split('.');
 
         let res = true;
 
@@ -922,11 +922,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         while ((!!segments) && (segments.length > 1)) {
 
             segments.pop();
-            shorter_code = segments.join('.');
 
             await promises_pipeline.push(async () => {
+                let shorter_code: string = segments.join('.');
                 let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_text_eq('code_text', shorter_code)
+                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, shorter_code)
+                    .filter_by_num_not_eq(field_names<TranslatableTextVO>().id, self_id)
                     .select_vos<TranslatableTextVO>();
 
                 if ((!!something_shorter) && (something_shorter.length > 0)) {

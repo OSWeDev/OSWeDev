@@ -369,6 +369,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
         this.label = label;
 
+        this.check_unicity_field_names(tmp_fields);
+
         //remplis fields_ et fields_by_ids avec le champ tmp_fields
         this.set_fields(tmp_fields);
 
@@ -1341,6 +1343,21 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return (e && (typeof e === 'string') && e.startsWith('{') && e.endsWith('}')) ? JSON.parse(e) : e;
         } catch (error) {
             return e;
+        }
+    }
+
+    private check_unicity_field_names(tmp_fields: Array<ModuleTableField<any>>) {
+        let field_names: { [field_name: string]: boolean } = {};
+
+        for (let i in tmp_fields) {
+            let field = tmp_fields[i];
+
+            if (field_names[field.field_id]) {
+                ConsoleHandler.error('Field name ' + field.field_id + ' already exists in table ' + this.name);
+                throw new Error('Field name ' + field.field_id + ' already exists in table ' + this.name);
+            }
+
+            field_names[field.field_id] = true;
         }
     }
 }
