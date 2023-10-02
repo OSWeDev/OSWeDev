@@ -59,6 +59,13 @@ export default class VarsProcessInvalidator {
             // OPTI POSSIBLE : invalider que le cache des datasources qui ont été invalidées (cf vos_cud et datasources_dependencies)
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
 
+            // On doit d'abord déployer les intersecteurs qui ont été demandés via des intersecteurs
+            //  puis on génère ceux liés à des invalidations/modifs de VOS (qui sont déployés avant ajout à la liste des intersecteurs)
+            //  et on les applique
+
+            // On déploie les intersecteurs
+            await VarsDatasVoUpdateHandler.handle_intersectors();
+
             // On génère les intersecteurs et on les applique
             await VarsDatasVoUpdateHandler.handle_buffer();
 

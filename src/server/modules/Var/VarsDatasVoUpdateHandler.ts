@@ -27,6 +27,7 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
+import VarsCacheController from './VarsCacheController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
@@ -238,7 +239,7 @@ export default class VarsDatasVoUpdateHandler {
             let intersector = intersectors_by_index[i];
 
             await promise_pipeline.push(async () => {
-                await VarsDatasVoUpdateHandler.invalidate_datas_and_parents(
+                await VarsCacheController.invalidate_datas_and_parents(
                     new VarDataInvalidatorVO(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false),
                     solved_invalidators_by_index);
             });
@@ -256,6 +257,52 @@ export default class VarsDatasVoUpdateHandler {
 
         // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
         return (!!VarsDatasVoUpdateHandler.ordered_vos_cud) && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
+    }
+
+    /**
+     * Objectif : Déployer les intersecteurs issus de demandes via intersecteurs, et non issus d'une modif/création/suppression de vo
+     */
+    public static async handle_intersectors() {
+
+        let deployed_invalidators = [];
+        let actual_invalidators = VarsDatasVoUpdateHandler.invalidators;
+        VarsDatasVoUpdateHandler.invalidators = [];
+
+        while (actual_invalidators && actual_invalidators.length) {
+
+            let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL, 'VarsDatasVoUpdateHandler.handle_intersectors');
+
+            while (actual_invalidators && actual_invalidators.length) {
+                let actual_invalidator = actual_invalidators.shift();
+
+                deployed_invalidators.push(actual_invalidator);
+                if (!actual_invalidator.propagate_to_parents) {
+                    continue;
+                }
+
+                await promise_pipeline.push(async () => {
+                    let intersectors = await VarsCacheController.get_deps_intersectors(actual_invalidator.var_data);
+
+                    if (!intersectors) {
+                        return;
+                    }
+
+                    let intersectors_array = Object.values(intersectors);
+
+                    if (!intersectors_array || !intersectors_array.length) {
+                        return;
+                    }
+
+                    actual_invalidators.push(...intersectors_array.map((intersector) => {
+                        return new VarDataInvalidatorVO(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
+                    }));
+                });
+            }
+
+            await promise_pipeline.end();
+        }
+
+        VarsDatasVoUpdateHandler.invalidators = deployed_invalidators;
     }
 
     /**
@@ -296,89 +343,6 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         await promise_pipeline.end();
-    }
-
-    /**
-     * Update : Changement de méthode. On arrête de vouloir résoudre par niveau dans l'arbre des deps,
-     *  et on résoud simplement intersecteur par intersecteur. Donc on commence par identifier les intersecteurs (ensemble E)
-     *  déduis des vos, puis pour chacun (e) :
-     *      - On invalide les vars en appliquant e,
-     *      - On ajoute e dans F ensemble des intersecteurs résolus
-     *      - On charge les intersecteurs (E') déduis par dépendance à cet intersecteur. Pour chacun (e') :
-     *          - si e' dans E, on ignore
-     *          - si e' dans F, on ignore
-     *          - sinon on ajoute e' à E
-     *      - On supprime e de E et on continue de dépiler
-     * @param intersectors_by_index Ensemble E des intersecteurs en début de process, à dépiler
-     */
-    public static async invalidate_datas_and_parents(
-        invalidator: VarDataInvalidatorVO,
-        solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO }
-    ) {
-
-        let intersectors_by_index: { [index: string]: VarDataBaseVO } = {
-            [invalidator.var_data.index]: invalidator.var_data
-        };
-
-        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
-
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-
-        while (ObjectHandler.hasAtLeastOneAttribute(intersectors_by_index)) {
-            let promise_pipeline = new PromisePipeline(max, 'VarsDatasVoUpdateHandler.invalidate_datas_and_parents');
-
-            for (let i in intersectors_by_index) {
-                let intersector = intersectors_by_index[i];
-
-                if (DEBUG_VARS) {
-                    ConsoleHandler.log('invalidate_datas_and_parents:START SOLVING:' + intersector.index + ':');
-                }
-                let conf_id = VarsDatasVoUpdateHandler.get_validator_config_id(invalidator, true, intersector.index);
-                if (solved_invalidators_by_index[conf_id]) {
-                    delete intersectors_by_index[i];
-                    continue;
-                }
-                solved_invalidators_by_index[conf_id] = new VarDataInvalidatorVO(
-                    intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false,
-                    invalidator.invalidate_denied, invalidator.invalidate_imports);
-
-                await promise_pipeline.push(async () => {
-
-                    try {
-
-                        let deps_intersectors = await VarsDatasVoUpdateHandler.get_deps_intersectors(intersector);
-
-                        for (let j in deps_intersectors) {
-                            let dep_intersector = deps_intersectors[j];
-
-                            if (intersectors_by_index[dep_intersector.index]) {
-                                continue;
-                            }
-                            let dep_intersector_conf_id = VarsDatasVoUpdateHandler.get_validator_config_id(invalidator, true, dep_intersector.index);
-                            if (solved_invalidators_by_index[dep_intersector_conf_id]) {
-                                continue;
-                            }
-
-                            if (DEBUG_VARS) {
-                                ConsoleHandler.log('invalidate_datas_and_parents:' + intersector.index + '=>' + dep_intersector.index + ':');
-                            }
-
-                            intersectors_by_index[dep_intersector.index] = dep_intersector;
-                        }
-
-                        if (DEBUG_VARS) {
-                            ConsoleHandler.log('invalidate_datas_and_parents:END SOLVING:' + intersector.index + ':');
-                        }
-                    } catch (error) {
-                        ConsoleHandler.error('invalidate_datas_and_parents:FAILED:' + intersector.index + ':' + error);
-                    }
-
-                    delete intersectors_by_index[intersector.index];
-                });
-            }
-
-            await promise_pipeline.end();
-        }
     }
 
     public static async has_vos_cud_or_intersectors(): Promise<boolean> {
@@ -510,7 +474,7 @@ export default class VarsDatasVoUpdateHandler {
 
 
     private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 30000, { leading: false, trailing: true });
-    private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 1000, { leading: false, trailing: true });
+    private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 100, { leading: false, trailing: true });
 
 
     /**
@@ -531,7 +495,7 @@ export default class VarsDatasVoUpdateHandler {
         for (let i in invalidators) {
             let invalidator = invalidators[i];
 
-            let conf_id = VarsDatasVoUpdateHandler.get_validator_config_id(invalidator);
+            let conf_id = VarsCacheController.get_validator_config_id(invalidator);
             if (!invalidators_by_conf[conf_id]) {
                 invalidators_by_conf[conf_id] = [];
             }
@@ -561,17 +525,6 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         return union_invalidators;
-    }
-
-    private static get_validator_config_id(
-        invalidator: VarDataInvalidatorVO,
-        include_index: boolean = false,
-        index: string = null): string {
-
-        return (invalidator && !!invalidator.var_data) ?
-            invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0')
-            + (include_index ? '_' + (index ? index : invalidator.var_data.index) : '') :
-            null;
     }
 
     private static throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
@@ -696,20 +649,26 @@ export default class VarsDatasVoUpdateHandler {
                 continue;
             }
 
-            /**
-             * On doit tout invalider vers le haut aussi
-             */
-            let list_nodes = [];
-            DAGController.visit_bottom_up_from_node(node, async (n: VarDAGNode) => {
-                list_nodes.push(n);
-            });
+            // Sauf que normalement à ce stade la liste des invalideurs est appliquées, et elle est déjà déployées sur l'arbre de deps.
+            // Donc là c'est un doublon
+            // /**
+            //  * On doit tout invalider vers le haut aussi
+            //  */
+            // let list_nodes = [];
+            // DAGController.visit_bottom_up_from_node(node, async (n: VarDAGNode) => {
+            //     list_nodes.push(n);
+            // });
 
-            for (let j in list_nodes) {
+            // for (let j in list_nodes) {
 
-                list_nodes[j].unlinkFromDAG(true);
-                if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
-                    ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + list_nodes[j].var_data.index);
-                }
+            //     list_nodes[j].unlinkFromDAG(true);
+            //     if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            //         ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + list_nodes[j].var_data.index);
+            //     }
+            // }
+            node.unlinkFromDAG(true);
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + node.var_data.index);
             }
         }
     }
@@ -930,38 +889,35 @@ export default class VarsDatasVoUpdateHandler {
     private static async delete_var_by_intersected_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
 
         let moduleTable = VOsTypesManager.moduleTables_by_voType[api_type_id];
-        let request = "DELETE FROM " + moduleTable.full_name + " WHERE " + ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null) + ";";
+        let request = "DELETE FROM " + moduleTable.full_name + " WHERE " + ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(api_type_id, invalidator.var_data, null);
+
+        let list_valid_value_types = [VarDataBaseVO.VALUE_TYPE_COMPUTED];
+        if (invalidator.invalidate_denied) {
+            list_valid_value_types.push(VarDataBaseVO.VALUE_TYPE_DENIED);
+        }
+        if (invalidator.invalidate_imports) {
+            list_valid_value_types.push(VarDataBaseVO.VALUE_TYPE_IMPORT);
+        }
+        request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
+
         await ModuleDAOServer.getInstance().query(request);
     }
 
     private static async delete_var_by_exact_without_triggers(api_type_id: string, invalidator: VarDataInvalidatorVO) {
 
         let moduleTable = VOsTypesManager.moduleTables_by_voType[api_type_id];
-        let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index = '" + invalidator.var_data.index + "';";
-        await ModuleDAOServer.getInstance().query(request);
-    }
+        let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index = '" + invalidator.var_data.index + "'";
 
-    private static async get_deps_intersectors(intersector: VarDataBaseVO): Promise<{ [index: string]: VarDataBaseVO }> {
-        let res: { [index: string]: VarDataBaseVO } = {};
-
-        let node = VarsServerController.varcontrollers_dag.nodes[intersector.var_id];
-
-        for (let j in node.incoming_deps) {
-            let deps = node.incoming_deps[j];
-
-            for (let i in deps) {
-                let dep = deps[i];
-
-                let controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
-
-                let tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
-                if (tmp && tmp.length) {
-                    tmp.forEach((e) => res[e.index] = e);
-                }
-            }
+        let list_valid_value_types = [VarDataBaseVO.VALUE_TYPE_COMPUTED];
+        if (invalidator.invalidate_denied) {
+            list_valid_value_types.push(VarDataBaseVO.VALUE_TYPE_DENIED);
         }
+        if (invalidator.invalidate_imports) {
+            list_valid_value_types.push(VarDataBaseVO.VALUE_TYPE_IMPORT);
+        }
+        request += " AND " + field_names<VarDataBaseVO>().value_type + " IN (" + list_valid_value_types.join(',') + ");";
 
-        return res;
+        await ModuleDAOServer.getInstance().query(request);
     }
 
     /**

@@ -37,6 +37,44 @@ export default class VarsDatasProxy {
         ForkedTasksController.register_task(VarsDatasProxy.TASK_NAME_add_to_tree_and_return_datas_that_need_notification, VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification.bind(this));
     }
 
+    public static async get_exact_params_from_bdd<T extends VarDataBaseVO>(
+        var_datas_indexes_by_type: { [api_type_id: string]: string[] },
+        found: { [index: string]: VarDataBaseVO },
+        not_found_indexes: string[]) {
+
+        let res: T[] = [];
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
+
+        for (let api_type_id in var_datas_indexes_by_type) {
+            let var_data_indexes = var_datas_indexes_by_type[api_type_id];
+
+            await promises_pipeline.push((async () => {
+
+                let this_not_found_indexes: { [index: string]: boolean } = {};
+                for (let i in var_data_indexes) {
+                    this_not_found_indexes[var_data_indexes[i]] = true;
+                }
+
+                let bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).select_vos<T>();
+
+                for (let i in bdd_res) {
+                    let var_data = bdd_res[i];
+
+                    found[var_data.index] = var_data;
+                    delete this_not_found_indexes[var_data.index];
+                }
+
+                for (let i in this_not_found_indexes) {
+                    not_found_indexes.push(i);
+                }
+            }));
+        }
+
+        await promises_pipeline.end();
+
+        return res;
+    }
+
     /**
      * CALLABLE FROM ANY THREAD
      * 1 - On cherche dans la bdd => si ok on renvoie comme notifiables
@@ -168,43 +206,5 @@ export default class VarsDatasProxy {
 
             resolve(vars_to_notify);
         });
-    }
-
-    private static async get_exact_params_from_bdd<T extends VarDataBaseVO>(
-        var_datas_indexes_by_type: { [api_type_id: string]: string[] },
-        found: { [index: string]: VarDataBaseVO },
-        not_found_indexes: string[]) {
-
-        let res: T[] = [];
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
-
-        for (let api_type_id in var_datas_indexes_by_type) {
-            let var_data_indexes = var_datas_indexes_by_type[api_type_id];
-
-            await promises_pipeline.push((async () => {
-
-                let this_not_found_indexes: { [index: string]: boolean } = {};
-                for (let i in var_data_indexes) {
-                    this_not_found_indexes[var_data_indexes[i]] = true;
-                }
-
-                let bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).select_vos<T>();
-
-                for (let i in bdd_res) {
-                    let var_data = bdd_res[i];
-
-                    found[var_data.index] = var_data;
-                    delete this_not_found_indexes[var_data.index];
-                }
-
-                for (let i in this_not_found_indexes) {
-                    not_found_indexes.push(i);
-                }
-            }));
-        }
-
-        await promises_pipeline.end();
-
-        return res;
     }
 }

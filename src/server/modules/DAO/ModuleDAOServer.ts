@@ -41,7 +41,6 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
@@ -61,11 +60,13 @@ import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import ModuleVarServer from '../Var/ModuleVarServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import LogDBPerfServerController from './LogDBPerfServerController';
 import ThrottledQueryServerController from './ThrottledQueryServerController';
+import ThrottledRefuseServerController from './ThrottledRefuseServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from './triggers/DAOPostUpdateTriggerHook';
@@ -73,7 +74,6 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import ThrottledRefuseServerController from './ThrottledRefuseServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -484,7 +484,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 full_name = moduleTable.full_name;
             }
 
-            sql = "INSERT INTO " + full_name + " (" + tableFields.join(', ') + ") VALUES (" + placeHolders.join(', ') + ") RETURNING id";
+            // Grosse évol sur le insert or update, on va gérer les insert into ... on conflict ... do update
+            //  Pour le moment, on gère ça uniquement pour la première clé unique déclarée sur le vo
+            if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
+                let uniq_index = moduleTable.uniq_indexes[0];
+                let uniq_index_field_names = uniq_index.map((field) => field.field_id);
+
+                let uniq_index_fields = uniq_index_field_names.join(', ');
+
+                let updateFields = tableFields.map((field) => `${field} = EXCLUDED.${field}`).join(', ');
+
+                sql = `INSERT INTO ${full_name} (${tableFields.join(', ')}) VALUES (${placeHolders.join(', ')}) ON CONFLICT (${uniq_index_fields}) DO UPDATE SET ${updateFields} RETURNING id`;
+            } else {
+                sql = "INSERT INTO " + full_name + " (" + tableFields.join(', ') + ") VALUES (" + placeHolders.join(', ') + ") RETURNING id";
+            }
         }
 
         return sql;
@@ -1556,17 +1569,34 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         if (duplicates && duplicates.length) {
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
 
-                            let duplicates_id_by_index: { [index: string]: number } = {};
+                            let duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
+                            let filtered_not_imported_vos: VarDataBaseVO[] = [];
                             for (let i in duplicates) {
                                 let duplicate: VarDataBaseVO = duplicates[i];
-                                duplicates_id_by_index[duplicate._bdd_only_index] = duplicate.id;
+                                duplicates_by_index[duplicate._bdd_only_index] = duplicate;
                             }
 
                             for (let i in vos) {
                                 let vo: VarDataBaseVO = vos[i] as VarDataBaseVO;
-                                if (duplicates_id_by_index[vo._bdd_only_index]) {
-                                    vo.id = duplicates_id_by_index[vo._bdd_only_index];
+                                let duplicated = duplicates_by_index[vo._bdd_only_index];
+
+                                if (duplicated) {
+                                    vo.id = duplicated.id;
+
+                                    // Correctif probablement inutile, lié à un bug en amont, à supprimer si inutile après le 2024-02-01
+                                    // // On gère un cas bien spécifique : Si on fait une création d'import pendant un calcul,
+                                    // //  le calcul se termine après l'import et la notif + invalidation associées, et on vient de notifier une
+                                    // //  valeur qui est donc fause à ce stade. On doit refuser l'insertion de cette valeur et on doit invalider.
+                                    // if (duplicated.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+
+                                    //     // On invalide la valeur (en y réflechissant il est probable que l'invalidation passe en fait sans avoir à la refaire ici
+                                    //     //  mais ça coute pas vraiment plus cher, et comme ça on est sûr du résultat)
+                                    //     await ModuleVarServer.getInstance().invalidate_cache_intersection_and_parents([duplicated]);
+
+                                    //     continue;
+                                    // }
                                 }
+                                filtered_not_imported_vos.push(vo);
                             }
 
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on relance la copy avec les correctifs');
@@ -1598,7 +1628,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async truncate_api(api_type_id: string) {
         await this.truncate(api_type_id);
-    }
+    } 4
 
     /**
      * ATTENTION truncate ne fait pas du tout un delete * en base, c'est très différent, par exemple sur les triggers en base

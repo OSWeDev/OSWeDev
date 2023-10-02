@@ -261,7 +261,7 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public static matroid_intersects_matroid(a: IMatroid, b: IMatroid, fields_mapping: { [matroid_a_field_id: string]: string } = null): boolean {
+    public static matroid_intersects_matroid(a: IMatroid, b: IMatroid, fields_mapping: { [matroid_a_field_id: string]: string } = null, ignore_var_id_check: boolean = false): boolean {
         // On part du principe que l'on peut affirmer qu'un matroid intersecte un autre matroid
         //  dès que toutes les bases intersectent. Il faut pour cela avoir les mêmes formats de matroid, le même _type sur le matroid
         //  On utilise les fields du matroid pour identifier également des champs qui seraient non définis mais
@@ -285,6 +285,13 @@ export default class MatroidController {
             // si le mapping est undefined, on va prendre les champs avec le nom identique et si on échoue on renvoit false
             //  et si le mapping est null, alors on peut pas comparer et on considère que ça intersecte jamais.
             if (fields_mapping === null) {
+                return false;
+            }
+        }
+
+        // On vérifie le cas des vars, et de leur var_id. 2 matroids de var_id différents ne peut pas intersecter (sauf à vouloir ignorer ce check de façon explicite)
+        if (!ignore_var_id_check) {
+            if (((!!a['var_id']) && (!!b['var_id'])) && (a['var_id'] != b['var_id'])) {
                 return false;
             }
         }
