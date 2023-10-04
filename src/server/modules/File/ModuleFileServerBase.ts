@@ -13,7 +13,6 @@ import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
 import FileServerController from './FileServerController';
-import path from 'path';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 

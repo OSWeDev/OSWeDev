@@ -304,6 +304,140 @@ export default class FieldValueFilterWidgetManager {
     }
 
     /**
+     * Create Context Filter From Ref Field Filter Options
+     *
+     * @param {VOFieldRefVO} [vo_field_ref]
+     * @param {DataFilterOption[]} [ref_field_filter_options]
+     * @param {VOFieldRefVO[]} [options.vo_field_ref_multiple]
+     * @param {VOFieldRefVO} [options.vo_field_ref]
+     *
+     * @returns {ContextFilterVO}
+     */
+    public static create_context_filter_from_ref_field_filter_options(
+        vo_field_ref: VOFieldRefVO,
+        ref_field_filter_options: DataFilterOption[],
+        options?: {
+            vo_field_ref_multiple?: VOFieldRefVO[],
+            vo_field_ref?: VOFieldRefVO,
+        }
+    ): ContextFilterVO {
+        let context_filter: ContextFilterVO[] = [];
+
+        let locale_ref_field_filter_options: DataFilterOption[] = null;
+
+        if (TypesHandler.getInstance().isArray(ref_field_filter_options)) {
+            locale_ref_field_filter_options = ref_field_filter_options;
+        } else {
+            if (ref_field_filter_options != null) {
+                locale_ref_field_filter_options = ref_field_filter_options;
+            }
+        }
+
+        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
+        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+
+        if (options?.vo_field_ref_multiple?.length > 0) {
+            for (let i in options.vo_field_ref_multiple) {
+                let moduletable_multiple = VOsTypesManager.moduleTables_by_voType[options.vo_field_ref_multiple[i].api_type_id];
+                let field_multiple = moduletable_multiple.get_field_by_id(options.vo_field_ref_multiple[i].field_id);
+                let context_filter_multiple: ContextFilterVO = null;
+
+                let has_null_value_multiple: boolean = false;
+
+                for (let j in locale_ref_field_filter_options) {
+                    let active_option = locale_ref_field_filter_options[j];
+
+                    if (active_option.id == RangeHandler.MIN_INT) {
+                        has_null_value_multiple = true;
+                        continue;
+                    }
+
+                    let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+                        active_option,
+                        null,
+                        field_multiple,
+                        options.vo_field_ref_multiple[i]
+                    );
+
+                    if (!new_context_filter) {
+                        continue;
+                    }
+
+                    if (!context_filter_multiple) {
+                        context_filter_multiple = new_context_filter;
+                    } else {
+                        context_filter_multiple = ContextFilterVOHandler.merge_context_filter_vos(
+                            context_filter_multiple,
+                            new_context_filter
+                        );
+                    }
+                }
+
+                if (has_null_value_multiple) {
+                    let cf_null_value: ContextFilterVO = new ContextFilterVO();
+                    cf_null_value.field_id = options.vo_field_ref_multiple[i].field_id;
+                    cf_null_value.vo_type = options.vo_field_ref_multiple[i].api_type_id;
+                    cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
+
+                    if (!context_filter_multiple) {
+                        context_filter_multiple = cf_null_value;
+                    } else {
+                        context_filter_multiple = ContextFilterVO.or([cf_null_value, context_filter_multiple]);
+                    }
+                }
+
+                if (context_filter_multiple) {
+                    context_filter.push(context_filter_multiple);
+                }
+            }
+        }
+
+        let context_filter_simple: ContextFilterVO = null;
+        let has_null_value: boolean = false;
+
+        for (let i in locale_ref_field_filter_options) {
+            let active_option = locale_ref_field_filter_options[i];
+
+            if (active_option.id == RangeHandler.MIN_INT) {
+                has_null_value = true;
+                continue;
+            }
+
+            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+
+            if (!new_context_filter) {
+                continue;
+            }
+
+            if (!context_filter) {
+                context_filter_simple = new_context_filter;
+            } else {
+                context_filter_simple = ContextFilterVOHandler.merge_context_filter_vos(context_filter_simple, new_context_filter);
+            }
+        }
+
+        if (has_null_value) {
+            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+
+            cf_null_value.field_id = options.vo_field_ref.field_id;
+            cf_null_value.vo_type = options.vo_field_ref.api_type_id;
+            cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
+
+            if (!context_filter_simple) {
+                context_filter_simple = cf_null_value;
+            } else {
+                context_filter_simple = ContextFilterVO.or([cf_null_value, context_filter_simple]);
+            }
+        }
+
+        if (context_filter_simple) {
+            context_filter.push(context_filter_simple);
+        }
+
+        return ContextFilterVO.or(context_filter);
+    }
+
+    /**
      * Create Context Filter From String Filter Options
      *
      * @param {VOFieldRefVO} [vo_field_ref]

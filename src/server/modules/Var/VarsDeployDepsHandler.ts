@@ -166,7 +166,14 @@ export default class VarsDeployDepsHandler {
         /**
          * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
          */
-        pixel_query.filter_by_text_has('_bdd_only_index', MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data));
+        let pixel_query_indexes = MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data);
+
+        if (!pixel_query_indexes) {
+            ConsoleHandler.error('No pixel_query_indexes for node:' + node.var_data.index);
+            throw new Error('No pixel_query_indexes for node:' + node.var_data.index);
+        }
+
+        pixel_query.filter_by_text_has('_bdd_only_index', pixel_query_indexes);
 
         // /**
         //  * On ajoute les filtrages :
@@ -248,7 +255,13 @@ export default class VarsDeployDepsHandler {
         /**
          * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
          */
-        known_pixels_query.filter_by_text_has('_bdd_only_index', MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data));
+        let known_pixels_query_indexes = MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data);
+
+        if (!known_pixels_query_indexes) {
+            ConsoleHandler.error('No iknown_pixels_query_indexes for node:' + node.var_data.index);
+            throw new Error('No known_pixels_query_indexes for node:' + node.var_data.index);
+        }
+        known_pixels_query.filter_by_text_has('_bdd_only_index', known_pixels_query_indexes);
 
         // known_pixels_query.filter_by_num_eq('var_id', varconf.id);
         // known_pixels_query.filter_is_true('_bdd_only_is_pixel');

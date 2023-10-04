@@ -317,7 +317,7 @@ export default class ModuleDAO extends Module {
         return vo_type + '__label_function';
     }
 
-    public async late_configuration() {
+    public async late_configuration(is_generator: boolean) {
 
         for (let i in VOsTypesManager.moduleTables_by_voType) {
             let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[i];
@@ -332,7 +332,7 @@ export default class ModuleDAO extends Module {
     }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
-        await this.late_configuration();
+        await this.late_configuration(false);
     }
 
 

@@ -129,7 +129,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         }
     }
 
-    public async late_configuration(): Promise<void> {
+    public async late_configuration(is_generator: boolean): Promise<void> {
         for (let i in VOsTypesManager.moduleTables_by_voType) {
             let moduletable = VOsTypesManager.moduleTables_by_voType[i];
 

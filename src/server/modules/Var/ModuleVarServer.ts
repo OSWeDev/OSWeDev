@@ -119,38 +119,86 @@ export default class ModuleVarServer extends ModuleServerBase {
     /**
      * Called after all modules have been configured and initialized
      */
-    public async late_configuration(): Promise<void> {
+    public async late_configuration(is_generator: boolean): Promise<void> {
         /**
          * On checke la cohérence des confs qu'on a chargées pour les vars, en particulier s'assurer que les
          *  pixels sont correctement configurés
          */
-        let has_errors = false;
-        for (let var_id_str in VarsServerController.varcacheconf_by_var_ids) {
-            let var_id = parseInt(var_id_str);
-            let varcacheconf = VarsServerController.varcacheconf_by_var_ids[var_id_str];
-            let varconf = VarsServerController.getVarConfById(var_id);
+        if (is_generator) {
+            let has_errors = false;
+            for (let var_id_str in VarsServerController.varcacheconf_by_var_ids) {
+                let var_id = parseInt(var_id_str);
+                let varcacheconf = VarsServerController.varcacheconf_by_var_ids[var_id_str];
+                let varconf = VarsServerController.getVarConfById(var_id);
 
-            if (!varconf) {
-                has_errors = true;
-                ConsoleHandler.error('Varconf not found for var_id ' + var_id);
-                continue;
-            }
-
-            if (varconf.pixel_activated) {
-                if (varcacheconf.cache_startegy != VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL) {
-                    ConsoleHandler.warn('Pixel varconf but varcacheconf strategy is not set to PIXEL for var_id :' + var_id + ': ' + varconf.name + ' - Correction automatique ...');
-
-                    varcacheconf.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL;
-                    await ModuleDAO.getInstance().insertOrUpdateVO(varcacheconf);
-
-                    ConsoleHandler.warn('Correction automatique terminée');
+                if (!varconf) {
+                    has_errors = true;
+                    ConsoleHandler.error('Varconf not found for var_id ' + var_id);
                     continue;
                 }
-            }
-        }
 
-        if (has_errors) {
-            throw new Error('Failed varconf / varcacheconf consistency check. See logs to get more details');
+                if (varconf.pixel_activated) {
+                    if (varcacheconf.cache_startegy != VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL) {
+                        ConsoleHandler.warn('Pixel varconf but varcacheconf strategy is not set to PIXEL for var_id :' + var_id + ': ' + varconf.name + ' - Correction automatique ...');
+
+                        varcacheconf.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL;
+                        await ModuleDAO.getInstance().insertOrUpdateVO(varcacheconf);
+
+                        ConsoleHandler.warn('Correction automatique terminée');
+                        continue;
+                    }
+
+                    if ((!varconf.pixel_fields) || (!varconf.pixel_fields.length)) {
+                        ConsoleHandler.error('Pixel varconf but no pixel fields for var_id :' + var_id + ': ' + varconf.name);
+                        has_errors = true;
+                        continue;
+                    }
+
+                    for (let i in varconf.pixel_fields) {
+                        let pixel_field = varconf.pixel_fields[i];
+
+                        if (!pixel_field.pixel_param_field_id) {
+                            ConsoleHandler.error('Pixel varconf but no pixel_param_field_id for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
+                            has_errors = true;
+                            continue;
+                        }
+
+                        if (pixel_field.pixel_segmentation_type == null) {
+                            ConsoleHandler.error('Pixel varconf but no pixel_segmentation_type for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
+                            has_errors = true;
+                            continue;
+                        }
+
+                        if (!pixel_field.pixel_vo_api_type_id) {
+                            ConsoleHandler.error('Pixel varconf but no pixel_vo_api_type_id for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
+                            has_errors = true;
+                            continue;
+                        }
+
+                        if (!pixel_field.pixel_vo_field_id) {
+                            ConsoleHandler.error('Pixel varconf but no pixel_vo_field_id for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
+                            has_errors = true;
+                            continue;
+                        }
+
+                        if (pixel_field.pixel_range_type == null) {
+                            ConsoleHandler.error('Pixel varconf but no pixel_range_type for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
+                            has_errors = true;
+                            continue;
+                        }
+                    }
+                } else {
+                    if (varcacheconf.cache_startegy == VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL) {
+                        ConsoleHandler.error('Non pixel varconf but varcacheconf strategy is set to PIXEL for var_id :' + var_id + ': ' + varconf.name);
+                        has_errors = true;
+                        continue;
+                    }
+                }
+            }
+
+            if (has_errors) {
+                throw new Error('Failed varconf / varcacheconf consistency check. See logs to get more details');
+            }
         }
     }
 
@@ -236,6 +284,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Index + Entrée'
         }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Supprimer la valeur importée'
+        }, 'VarDataRefComponent.contextmenu.clearimport.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Index + Entrée - Validez à vide pour réinitialiser.'
@@ -409,6 +461,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_u, this.invalidate_imports_for_u.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_c, this.invalidate_imports_for_c.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_d, this.invalidate_imports_for_d.bind(this));
 
         ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
 

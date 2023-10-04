@@ -19,89 +19,6 @@ import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
  */
 export default class VarsCacheController {
 
-    /**
-     * Update : Changement de méthode. On arrête de vouloir résoudre par niveau dans l'arbre des deps,
-     *  et on résoud simplement intersecteur par intersecteur. Donc on commence par identifier les intersecteurs (ensemble E)
-     *  déduis des vos, puis pour chacun (e) :
-     *      - On invalide les vars en appliquant e,
-     *      - On ajoute e dans F ensemble des intersecteurs résolus
-     *      - On charge les intersecteurs (E') déduis par dépendance à cet intersecteur. Pour chacun (e') :
-     *          - si e' dans E, on ignore
-     *          - si e' dans F, on ignore
-     *          - sinon on ajoute e' à E
-     *      - On supprime e de E et on continue de dépiler
-     * @param intersectors_by_index Ensemble E des intersecteurs en début de process, à dépiler
-     */
-    public static async invalidate_datas_and_parents(
-        invalidator: VarDataInvalidatorVO,
-        solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO }
-    ) {
-
-        let intersectors_by_index: { [index: string]: VarDataBaseVO } = {
-            [invalidator.var_data.index]: invalidator.var_data
-        };
-
-        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
-
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-
-        while (ObjectHandler.hasAtLeastOneAttribute(intersectors_by_index)) {
-            let promise_pipeline = new PromisePipeline(max, 'VarsDatasVoUpdateHandler.invalidate_datas_and_parents');
-
-            for (let i in intersectors_by_index) {
-                let intersector = intersectors_by_index[i];
-
-                if (DEBUG_VARS) {
-                    ConsoleHandler.log('invalidate_datas_and_parents:START SOLVING:' + intersector.index + ':');
-                }
-                let conf_id = VarsCacheController.get_validator_config_id(invalidator, true, intersector.index);
-                if (solved_invalidators_by_index[conf_id]) {
-                    delete intersectors_by_index[i];
-                    continue;
-                }
-                solved_invalidators_by_index[conf_id] = new VarDataInvalidatorVO(
-                    intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false,
-                    invalidator.invalidate_denied, invalidator.invalidate_imports);
-
-                await promise_pipeline.push(async () => {
-
-                    try {
-
-                        let deps_intersectors = await VarsCacheController.get_deps_intersectors(intersector);
-
-                        for (let j in deps_intersectors) {
-                            let dep_intersector = deps_intersectors[j];
-
-                            if (intersectors_by_index[dep_intersector.index]) {
-                                continue;
-                            }
-                            let dep_intersector_conf_id = VarsCacheController.get_validator_config_id(invalidator, true, dep_intersector.index);
-                            if (solved_invalidators_by_index[dep_intersector_conf_id]) {
-                                continue;
-                            }
-
-                            if (DEBUG_VARS) {
-                                ConsoleHandler.log('invalidate_datas_and_parents:' + intersector.index + '=>' + dep_intersector.index + ':');
-                            }
-
-                            intersectors_by_index[dep_intersector.index] = dep_intersector;
-                        }
-
-                        if (DEBUG_VARS) {
-                            ConsoleHandler.log('invalidate_datas_and_parents:END SOLVING:' + intersector.index + ':');
-                        }
-                    } catch (error) {
-                        ConsoleHandler.error('invalidate_datas_and_parents:FAILED:' + intersector.index + ':' + error);
-                    }
-
-                    delete intersectors_by_index[intersector.index];
-                });
-            }
-
-            await promise_pipeline.end();
-        }
-    }
-
     public static async get_deps_intersectors(intersector: VarDataBaseVO): Promise<{ [index: string]: VarDataBaseVO }> {
         let res: { [index: string]: VarDataBaseVO } = {};
 
@@ -127,12 +44,11 @@ export default class VarsCacheController {
 
     public static get_validator_config_id(
         invalidator: VarDataInvalidatorVO,
-        include_index: boolean = false,
-        index: string = null): string {
+        include_index: boolean = true): string {
 
         return (invalidator && !!invalidator.var_data) ?
             invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0')
-            + (include_index ? '_' + (index ? index : invalidator.var_data.index) : '') :
+            + (include_index ? '_' + invalidator.var_data.index : '') :
             null;
     }
 

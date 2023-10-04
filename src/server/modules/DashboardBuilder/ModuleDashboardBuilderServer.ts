@@ -1454,6 +1454,43 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'TableWidgetComponent.confirm_delete.ko.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'ET' },
+            'adv_ref_field_fltr.et'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'OU' },
+            'adv_ref_field_fltr.ou'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '<' },
+            'adv_ref_field_fltr.inf'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '<=' },
+            'adv_ref_field_fltr.infeq'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '>' },
+            'adv_ref_field_fltr.sup'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '>=' },
+            'adv_ref_field_fltr.supeq'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Est null' },
+            'adv_ref_field_fltr.est_null'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'N\'est pas null' },
+            'adv_ref_field_fltr.nest_pas_null'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '=' },
+            'adv_ref_field_fltr.eq'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '!=' },
+            'adv_ref_field_fltr.not_eq'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'ET' },
+            'adv_number_fltr.et'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'OU' },
+            'adv_number_fltr.ou'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': '<' },
             'adv_number_fltr.inf'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1612,9 +1649,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.default_advanced_string_filter_type.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Type de recherche avancé par défaut" },
+            'field_value_filter_widget_component.default_advanced_ref_field_filter_type.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer le type de recherche avancé" },
             'field_value_filter_widget_component.hide_advanced_string_filter_type.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le type de recherche avancé" },
+            'field_value_filter_widget_component.hide_advanced_ref_field_filter_type.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer le bouton avancé" },
             'field_value_filter_widget_component.hide_btn_switch_advanced.___LABEL___'

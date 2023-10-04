@@ -1,10 +1,11 @@
-import { cpuUsage } from 'process';
+import VarDataInvalidatorVO from '../../../../../shared/modules/Var/vos/VarDataInvalidatorVO';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../../../env/ConfigurationService';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import VarsDatasVoUpdateHandler from '../../VarsDatasVoUpdateHandler';
 import VarsComputationHole from './VarsComputationHole';
-import ConfigurationService from '../../../../env/ConfigurationService';
-import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 
 export default class VarsProcessInvalidator {
 
@@ -63,18 +64,26 @@ export default class VarsProcessInvalidator {
             //  puis on génère ceux liés à des invalidations/modifs de VOS (qui sont déployés avant ajout à la liste des intersecteurs)
             //  et on les applique
 
-            // On déploie les intersecteurs
-            await VarsDatasVoUpdateHandler.handle_intersectors();
+            // On déploie les intersecteurs pour les demandes liées à des vars invalidées
+            let invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
+            VarsDatasVoUpdateHandler.invalidators = [];
 
-            // On génère les intersecteurs et on les applique
-            await VarsDatasVoUpdateHandler.handle_buffer();
+            // On récupère les invalidateurs qui sont liées à des demandes de suppressions/modif/créa de VO
+            let leafs_invalidators_handle_buffer: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.handle_buffer();
+            if (leafs_invalidators_handle_buffer && ObjectHandler.hasAtLeastOneAttribute(leafs_invalidators_handle_buffer)) {
+                invalidators.push(...Object.values(leafs_invalidators_handle_buffer));
+            }
+
+            let deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.deploy_invalidators(invalidators);
 
             /**
              * Si on invalide, on veut d'une part supprimer en bdd tout ce qui intersecte les invalidators
              * et faire de même dans l'arbre actuel.
              * Ensuite, on reprend tous les subs (clients et serveurs) et on les rajoute dans l'arbre.
              */
-            await VarsDatasVoUpdateHandler.handle_invalidators();
+            if (!!deployed_invalidators) {
+                await VarsDatasVoUpdateHandler.handle_invalidators(deployed_invalidators);
+            }
 
             if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:OUT');

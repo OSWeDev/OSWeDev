@@ -197,8 +197,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         if (!this.actual_rows_query) {
             return null;
         }
-        let query_string = await this.actual_rows_query.get_select_query_str();
-        await navigator.clipboard.writeText(query_string.query);
+        let query_string: string = await this.actual_rows_query.get_select_query_str();
+        await navigator.clipboard.writeText(query_string);
         await this.$snotify.success(this.label('copied_to_clipboard'));
     }
 
@@ -1447,7 +1447,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         const table_fields = TableWidgetManager.get_table_fields_by_widget_options(
             this.dashboard,
-            this.widget_options
+            this.widget_options,
+            this.get_active_field_filters,
+            this.all_page_widgets_by_id
         );
 
         if (
@@ -2063,7 +2065,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         const widget_options_fields = TableWidgetManager.get_table_fields_by_widget_options(
             this.dashboard,
             this.widget_options,
-            { default: true },
+            this.get_active_field_filters,
+            this.all_page_widgets_by_id,
+            true,
         );
 
         // The actual fields to be exported

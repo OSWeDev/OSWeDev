@@ -180,8 +180,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         if (!this.actual_rows_query) {
             return null;
         }
-        let query_string = await this.actual_rows_query.get_select_query_str();
-        await navigator.clipboard.writeText(query_string.query);
+        let query_string: string = await this.actual_rows_query.get_select_query_str();
+        await navigator.clipboard.writeText(query_string);
         await this.$snotify.success(this.label('copied_to_clipboard'));
     }
 

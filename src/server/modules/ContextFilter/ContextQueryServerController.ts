@@ -2274,9 +2274,9 @@ export default class ContextQueryServerController {
             );
         }
 
-        let joined_query_str = await context_query_join.joined_context_query.get_select_query_str();
+        let joined_query_str: string = await context_query_join.joined_context_query.get_select_query_str();
         jointures.push(
-            '(' + joined_query_str.query + ') ' + context_query_join.joined_table_alias +
+            '(' + joined_query_str + ') ' + context_query_join.joined_table_alias +
             ' ON ' + join_on_fields.join(' AND ')
         );
     }

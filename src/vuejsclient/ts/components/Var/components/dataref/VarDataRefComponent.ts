@@ -1,4 +1,4 @@
-
+import 'jquery-contextmenu';
 import { cloneDeep, debounce } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -23,6 +23,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import VarsClientController from '../../VarsClientController';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
+import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -276,6 +277,16 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.set_editable_field();
 
         await this.intersect_in();
+
+        /**
+         * On ajoute le contextmenu
+         */
+        SemaphoreHandler.semaphore_sync("VarDataRefComponent.contextmenu", () => {
+            $['contextMenu']({
+                selector: ".var-data-wrapper .var_data_ref.can_inline_edit",
+                items: this.contextmenu_items
+            });
+        });
     }
 
     private async destroyed() {
@@ -599,5 +610,45 @@ export default class VarDataRefComponent extends VueComponentBase {
             return false;
         }
         return this.getDescSelectedVarParam.index == this.var_param.index;
+    }
+
+    get contextmenu_items(): any {
+        let contextmenu_items: any = {};
+
+        contextmenu_items['clearimport'] = {
+            name: this.label('VarDataRefComponent.contextmenu.clearimport'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return (elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true');
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                if ((elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true')) {
+                    return;
+                }
+
+                let var_param_index = elt.getAttribute('var_param_index');
+
+                if (!var_param_index) {
+                    return;
+                }
+
+                let param = VarDataBaseVO.from_index(var_param_index);
+
+                await query(param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, var_param_index).delete_vos();
+            }
+        };
+
+        return contextmenu_items;
     }
 }

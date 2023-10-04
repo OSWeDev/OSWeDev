@@ -129,6 +129,8 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public fg_color_text?: string,
         public can_select_all?: boolean,
         public can_select_none?: boolean,
+        public default_advanced_ref_field_filter_type?: number,
+        public hide_advanced_ref_field_filter_type?: boolean,
     ) {
         super();
     }

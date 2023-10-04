@@ -122,7 +122,7 @@ export default abstract class ServerBase {
         BGThreadServerController.getInstance().register_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
 
-        ModulesManager.getInstance().isServerSide = true;
+        ModulesManager.isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });
     }
 
@@ -875,7 +875,7 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:START');
         }
-        await this.modulesService.late_server_modules_configurations();
+        await this.modulesService.late_server_modules_configurations(false);
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
@@ -1311,13 +1311,6 @@ export default abstract class ServerBase {
     protected check_session_validity(session: IServerUserSession): boolean {
         return true;
     }
-
-    // protected terminus() {
-    //     ConsoleHandler.log('Server is starting cleanup');
-    //     return all_promises([
-    //         VarsDatasVoUpdateHandler.handle_buffer(null)
-    //     ]);
-    // }
 
     protected async exitHandler(options, exitCode, from) {
         ConsoleHandler.log('Server is starting cleanup: ' + from);

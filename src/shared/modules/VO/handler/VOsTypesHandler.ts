@@ -125,4 +125,17 @@ export default class VOsTypesHandler {
                 return false;
         }
     }
+
+    public static is_type_ref_field<T>(field: ModuleTableField<T>): boolean {
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_image_ref:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+                return true;
+
+            default:
+                return false;
+        }
+    }
 }

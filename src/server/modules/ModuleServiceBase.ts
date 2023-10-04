@@ -397,12 +397,12 @@ export default abstract class ModuleServiceBase {
         }
     }
 
-    public async late_server_modules_configurations() {
+    public async late_server_modules_configurations(is_generator: boolean) {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
-                await server_module.late_configuration();
+                await server_module.late_configuration(is_generator);
             }
         }
     }

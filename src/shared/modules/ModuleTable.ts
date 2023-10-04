@@ -88,8 +88,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
+     * @param translate_field_id Si on veut traduire les field_id en api_field_id (false pour l'usage du update_vos que la context query)
+     * @param translate_plain_obj_inside_fields_ids Si on veut traduire les plain obj à l'intérieur des fields (a priori true tout le temps, même dans le cas des context query)
      */
-    public static default_get_api_version<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true): any {
+    public static default_get_api_version<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true, translate_plain_obj_inside_fields_ids: boolean = true): any {
         if (!e) {
             return null;
         }
@@ -137,7 +139,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
 
             let new_id = translate_field_id ? fieldIdToAPIMap[field.field_id] : field.field_id;
-            res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_field_id);
+            res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_plain_obj_inside_fields_ids);
         }
 
         return res;

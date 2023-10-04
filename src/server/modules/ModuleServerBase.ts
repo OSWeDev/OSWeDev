@@ -39,5 +39,5 @@ export default abstract class ModuleServerBase implements IModuleBase {
     /**
      * Called after all modules have been configured and initialized
      */
-    public async late_configuration(): Promise<void> { }
+    public async late_configuration(is_generator: boolean): Promise<void> { }
 }

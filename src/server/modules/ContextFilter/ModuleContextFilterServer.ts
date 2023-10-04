@@ -45,6 +45,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos, this.delete_vos.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_update_vos, this.update_vos.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query, this.build_select_query.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query_str, this.build_select_query_str.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_vo_from_unique_field, this.select_vo_from_unique_field.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_count_valid_segmentations, this.count_valid_segmentations.bind(this));
     }
@@ -123,6 +124,13 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
         let res = await this.select_vos<T>(context_query);
         return (res && res.length) ? res[0] : null;
+    }
+
+    public async build_select_query_str(
+        context_query: ContextQueryVO
+    ): Promise<string> {
+        let q: ParameterizedQueryWrapper = await this.build_select_query(context_query);
+        return q ? q.query : null;
     }
 
     /**

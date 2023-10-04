@@ -65,6 +65,7 @@ import VersionUpdater from './version_updater/VersionUpdater';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
 import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
+import Patch20231003ForceUnicityCodeText from './patchs/postmodules/Patch20231003ForceUnicityCodeText';
 
 export default abstract class GeneratorBase {
 
@@ -90,7 +91,8 @@ export default abstract class GeneratorBase {
         GeneratorBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
-        ModulesManager.getInstance().isServerSide = true;
+        ModulesManager.isServerSide = true;
+        ModulesManager.isGenerator = true;
 
         this.init_pre_modules_workers = [
             CheckExtensions.getInstance(),
@@ -151,6 +153,7 @@ export default abstract class GeneratorBase {
             Patch20230519AddRightsFeedbackStateVO.getInstance(),
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
+            Patch20231003ForceUnicityCodeText.getInstance(),
         ];
     }
 
@@ -234,7 +237,7 @@ export default abstract class GeneratorBase {
         console.log("post modules initialization workers done.");
 
         // Derniers chargements
-        await this.modulesService.late_server_modules_configurations();
+        await this.modulesService.late_server_modules_configurations(true);
 
         /**
          * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet

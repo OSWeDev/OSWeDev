@@ -1100,8 +1100,8 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     /**
      * Faire la requête en mode select
      */
-    public async get_select_query_str<T extends IDistantVOBase>(): Promise<ParameterizedQueryWrapper> {
-        return await ModuleContextFilter.getInstance().build_select_query(this);
+    public async get_select_query_str<T extends IDistantVOBase>(): Promise<string> {
+        return await ModuleContextFilter.getInstance().build_select_query_str(this);
     }
 
     /**

@@ -46,6 +46,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_select_vo_from_unique_field: string = "select_vo_from_unique_field";
     public static APINAME_count_valid_segmentations: string = "count_valid_segmentations";
     public static APINAME_build_select_query: string = "build_select_query";
+    public static APINAME_build_select_query_str: string = "build_select_query_str";
 
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
@@ -106,6 +107,12 @@ export default class ModuleContextFilter extends Module {
      * @param context_query
      */
     public build_select_query: (context_query: ContextQueryVO) => Promise<ParameterizedQueryWrapper> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query);
+
+    /**
+     * Créer la requête sur la base des filtres => renvoie que la query en mode texte
+     * @param context_query
+     */
+    public build_select_query_str: (context_query: ContextQueryVO) => Promise<string> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query_str);
 
     /**
      * Filtrer des vos avec les context filters
@@ -206,6 +213,12 @@ export default class ModuleContextFilter extends Module {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
             null,
             ModuleContextFilter.APINAME_build_select_query,
+            null,
+            BuildSelectQueryParamVOStatic
+        ));
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, string>(
+            null,
+            ModuleContextFilter.APINAME_build_select_query_str,
             null,
             BuildSelectQueryParamVOStatic
         ));

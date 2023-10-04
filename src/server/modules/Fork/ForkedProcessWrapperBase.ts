@@ -56,7 +56,7 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.log("Forked Process starting");
         }).catch((error) => ConsoleHandler.error(error));
 
-        ModulesManager.getInstance().isServerSide = true;
+        ModulesManager.isServerSide = true;
 
         // Les bgthreads peuvent être register et run - reste à définir lesquels
         BGThreadServerController.getInstance().register_bgthreads = true;
@@ -139,7 +139,7 @@ export default abstract class ForkedProcessWrapperBase {
         await StatsController.init_params();
 
         // Derniers chargements
-        await this.modulesService.late_server_modules_configurations();
+        await this.modulesService.late_server_modules_configurations(false);
 
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');

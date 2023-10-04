@@ -40,6 +40,7 @@ import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
+import { field_names } from '../../tools/ObjectHandler';
 
 export default class ModuleVar extends Module {
 
@@ -700,11 +701,11 @@ export default class ModuleVar extends Module {
     private initializeVarPixelFieldConfVO() {
 
         let datatable_fields = [
-            new ModuleTableField('pixel_vo_api_type_id', ModuleTableField.FIELD_TYPE_string, 'pixel_vo_api_type_id', false),
-            new ModuleTableField('pixel_vo_field_id', ModuleTableField.FIELD_TYPE_string, 'pixel_vo_field_id', false),
-            new ModuleTableField('pixel_param_field_id', ModuleTableField.FIELD_TYPE_string, 'pixel_param_field_id', false),
-            new ModuleTableField('pixel_range_type', ModuleTableField.FIELD_TYPE_int, 'pixel_range_type', false),
-            new ModuleTableField('pixel_segmentation_type', ModuleTableField.FIELD_TYPE_int, 'pixel_segmentation_type', false)
+            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_vo_api_type_id, ModuleTableField.FIELD_TYPE_string, 'pixel_vo_api_type_id', false),
+            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_vo_field_id, ModuleTableField.FIELD_TYPE_string, 'pixel_vo_field_id', false),
+            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_param_field_id, ModuleTableField.FIELD_TYPE_string, 'pixel_param_field_id', false),
+            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_range_type, ModuleTableField.FIELD_TYPE_int, 'pixel_range_type', false),
+            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_segmentation_type, ModuleTableField.FIELD_TYPE_int, 'pixel_segmentation_type', false)
         ];
 
         let datatable = new ModuleTable(this, VarPixelFieldConfVO.API_TYPE_ID, () => new VarPixelFieldConfVO(), datatable_fields, null);
@@ -734,29 +735,29 @@ export default class ModuleVar extends Module {
         let datatable_fields = [
             labelField,
 
-            new ModuleTableField('is_auto', ModuleTableField.FIELD_TYPE_boolean, 'Variable automatisée', true, true, false),
-            new ModuleTableField('auto_operator', ModuleTableField.FIELD_TYPE_enum, 'Opérateur automatisé', false).setEnumValues(VarConfVO.AUTO_OPERATEUR_LABELS),
+            new ModuleTableField(field_names<VarConfVO>().is_auto, ModuleTableField.FIELD_TYPE_boolean, 'Variable automatisée', true, true, false),
+            new ModuleTableField(field_names<VarConfVO>().auto_operator, ModuleTableField.FIELD_TYPE_enum, 'Opérateur automatisé', false).setEnumValues(VarConfVO.AUTO_OPERATEUR_LABELS),
 
-            new ModuleTableField('auto_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false),
-            new ModuleTableField('auto_vofieldref_api_type_id', ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false),
-            new ModuleTableField('auto_vofieldref_field_id', ModuleTableField.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
+            new ModuleTableField(field_names<VarConfVO>().auto_deps, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false),
+            new ModuleTableField(field_names<VarConfVO>().auto_vofieldref_api_type_id, ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false),
+            new ModuleTableField(field_names<VarConfVO>().auto_vofieldref_field_id, ModuleTableField.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
 
-            new ModuleTableField('auto_param_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false),
-            new ModuleTableField('auto_param_context_api_type_ids', ModuleTableField.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false),
-            new ModuleTableField('auto_param_context_discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Discarded field paths context automatisé', false),
-            new ModuleTableField('auto_param_context_use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'Use technical fields context automatisé', true, true, false),
+            new ModuleTableField(field_names<VarConfVO>().auto_param_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false),
+            new ModuleTableField(field_names<VarConfVO>().auto_param_context_api_type_ids, ModuleTableField.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false),
+            new ModuleTableField(field_names<VarConfVO>().auto_param_context_discarded_field_paths, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Discarded field paths context automatisé', false),
+            new ModuleTableField(field_names<VarConfVO>().auto_param_context_use_technical_field_versioning, ModuleTableField.FIELD_TYPE_boolean, 'Use technical fields context automatisé', true, true, false),
 
 
-            new ModuleTableField('var_data_vo_type', ModuleTableField.FIELD_TYPE_string, 'VoType des données'),
-            new ModuleTableField('segment_types', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false),
-            new ModuleTableField('show_help_tooltip', ModuleTableField.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false),
-            new ModuleTableField('disable_var', ModuleTableField.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false),
+            new ModuleTableField(field_names<VarConfVO>().var_data_vo_type, ModuleTableField.FIELD_TYPE_string, 'VoType des données'),
+            new ModuleTableField(field_names<VarConfVO>().segment_types, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false),
+            new ModuleTableField(field_names<VarConfVO>().show_help_tooltip, ModuleTableField.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false),
+            new ModuleTableField(field_names<VarConfVO>().disable_var, ModuleTableField.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false),
 
-            new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+            new ModuleTableField(field_names<VarConfVO>().aggregator, ModuleTableField.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
 
-            new ModuleTableField('pixel_activated', ModuleTableField.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
-            new ModuleTableField('pixel_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
-            new ModuleTableField('pixel_never_delete', ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, true),
+            new ModuleTableField(field_names<VarConfVO>().pixel_activated, ModuleTableField.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
+            new ModuleTableField(field_names<VarConfVO>().pixel_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
+            new ModuleTableField(field_names<VarConfVO>().pixel_never_delete, ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, true),
         ];
 
         let datatable = new ModuleTable(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined), datatable_fields, labelField);

@@ -64,6 +64,9 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
     private tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
     private old_tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
 
@@ -473,6 +476,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             this.dashboard,
             this.dashboard_page,
             this.get_active_field_filters,
+            this.all_page_widgets_by_id
         );
 
         return exportable_xlsx_params;
@@ -667,5 +671,13 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         }
 
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    /**
+     * Get All Page Widget By Id
+     * @return {{ [id: number]: DashboardPageWidgetVO }}
+     */
+    get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 }

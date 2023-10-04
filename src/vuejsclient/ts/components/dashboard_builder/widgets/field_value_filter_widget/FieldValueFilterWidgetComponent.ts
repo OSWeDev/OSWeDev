@@ -1,28 +1,24 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop } from 'vue-property-decorator';
 import VOFieldRefVOHandler from '../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOHandler';
-import FieldValueFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
-import FieldValueFilterBooleanWidgetComponent from './boolean/FieldValueFilterBooleanWidgetComponent';
-import FieldValueFilterDateWidgetComponent from './date/FieldValueFilterDateWidgetComponent';
-import FieldValueFilterEnumWidgetComponent from './enum/FieldValueFilterEnumWidgetComponent';
 import './FieldValueFilterWidgetComponent.scss';
-import FieldValueFilterNumberWidgetComponent from './number/FieldValueFilterNumberWidgetComponent';
-import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStringWidgetComponent';
 
 @Component({
     template: require('./FieldValueFilterWidgetComponent.pug'),
     components: {
-        Fieldvaluefilterstringwidgetcomponent: FieldValueFilterStringWidgetComponent,
-        Fieldvaluefilterbooleanwidgetcomponent: FieldValueFilterBooleanWidgetComponent,
-        Fieldvaluefilterenumwidgetcomponent: FieldValueFilterEnumWidgetComponent,
-        Fieldvaluefilterdatewidgetcomponent: FieldValueFilterDateWidgetComponent,
-        Fieldvaluefilternumberwidgetcomponent: FieldValueFilterNumberWidgetComponent
+        Fieldvaluefilterstringwidgetcomponent: () => import(/* webpackChunkName: "FieldValueFilterStringWidgetComponent" */ './string/FieldValueFilterStringWidgetComponent'),
+        Fieldvaluefilterbooleanwidgetcomponent: () => import(/* webpackChunkName: "FieldValueFilterBooleanWidgetComponent" */ './boolean/FieldValueFilterBooleanWidgetComponent'),
+        Fieldvaluefilterenumwidgetcomponent: () => import(/* webpackChunkName: "FieldValueFilterEnumWidgetComponent" */ './enum/FieldValueFilterEnumWidgetComponent'),
+        Fieldvaluefilterdatewidgetcomponent: () => import(/* webpackChunkName: "FieldValueFilterDateWidgetComponent" */ './date/FieldValueFilterDateWidgetComponent'),
+        Fieldvaluefilternumberwidgetcomponent: () => import(/* webpackChunkName: "FieldValueFilterNumberWidgetComponent" */ './number/FieldValueFilterNumberWidgetComponent'),
+        Fieldvaluefilterreffieldwidgetcomponent: () => import(/* webpackChunkName: "FieldValueFilterRefFieldWidgetComponent" */ './ref_field/FieldValueFilterRefFieldWidgetComponent'),
     }
 })
 export default class FieldValueFilterWidgetComponent extends VueComponentBase {
@@ -39,6 +35,9 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    get is_type_ref_field(): boolean {
+        return VOFieldRefVOHandler.is_type_ref_field(this.vo_field_ref);
+    }
 
     get is_type_boolean(): boolean {
         return VOFieldRefVOHandler.is_type_boolean(this.vo_field_ref);

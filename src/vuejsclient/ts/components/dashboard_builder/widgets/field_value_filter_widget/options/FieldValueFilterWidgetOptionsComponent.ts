@@ -34,6 +34,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import BooleanFilter from '../boolean/BooleanFilter';
 import AdvancedStringFilter from '../string/AdvancedStringFilter';
 import './FieldValueFilterWidgetOptionsComponent.scss';
+import AdvancedRefFieldFilter from '../ref_field/AdvancedRefFieldFilter';
 
 @Component({
     template: require('./FieldValueFilterWidgetOptionsComponent.pug'),
@@ -79,12 +80,21 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL,
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
     ];
+    private ref_field_filter_type_options: number[] = [
+        AdvancedRefFieldFilter.FILTER_TYPE_EQ,
+        AdvancedRefFieldFilter.FILTER_TYPE_NOTEQ,
+        AdvancedRefFieldFilter.FILTER_TYPE_INF,
+        AdvancedRefFieldFilter.FILTER_TYPE_INFEQ,
+        AdvancedRefFieldFilter.FILTER_TYPE_SUP,
+        AdvancedRefFieldFilter.FILTER_TYPE_SUPEQ,
+        AdvancedRefFieldFilter.FILTER_TYPE_EST_NULL,
+        AdvancedRefFieldFilter.FILTER_TYPE_NEST_PAS_NULL,
+    ];
     private boolean_filter_type_options: number[] = [
         BooleanFilter.FILTER_TYPE_TRUE,
         BooleanFilter.FILTER_TYPE_FALSE,
         BooleanFilter.FILTER_TYPE_VIDE
     ];
-
     private checkbox_columns_options: number[] = [
         FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1,
         FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_2,
@@ -94,6 +104,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_12
     ];
 
+    private tmp_default_advanced_ref_field_filter_type: number = null;
     private tmp_default_advanced_string_filter_type: number = null;
 
     private max_visible_options: number = null;
@@ -159,6 +170,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.tmp_default_ts_range_values = null;
             this.tmp_default_boolean_values = [];
             this.tmp_default_advanced_string_filter_type = null;
+            this.tmp_default_advanced_ref_field_filter_type = null;
             this.crud_api_type_id_selected = null;
             this.tmp_exclude_filter_opt_values = [];
             this.tmp_exclude_ts_range_values = null;
@@ -178,6 +190,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.tmp_segmentation_type = !!this.get_widget_options().segmentation_type ? this.segmentation_type_options.find((e) => e.id == this.get_widget_options().segmentation_type) : null;
         this.checkbox_columns = this.get_widget_options().checkbox_columns ? this.get_widget_options().checkbox_columns : FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1;
         this.tmp_default_advanced_string_filter_type = this.get_widget_options().default_advanced_string_filter_type;
+        this.tmp_default_advanced_ref_field_filter_type = this.get_widget_options().default_advanced_ref_field_filter_type;
         this.crud_api_type_id_selected = this.get_widget_options().other_ref_api_type_id;
         this.tmp_exclude_filter_opt_values = this.get_widget_options().exclude_filter_opt_values ? this.get_widget_options().exclude_filter_opt_values : [];
         this.tmp_exclude_ts_range_values = this.get_widget_options().exclude_ts_range_values;
@@ -249,6 +262,20 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         if (this.get_widget_options().default_advanced_string_filter_type != this.tmp_default_advanced_string_filter_type) {
             this.next_update_options = this.get_widget_options();
             this.next_update_options.default_advanced_string_filter_type = this.tmp_default_advanced_string_filter_type;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('tmp_default_advanced_ref_field_filter_type')
+    private async onchange_tmp_default_advanced_ref_field_filter_type() {
+        if (!this.get_widget_options()) {
+            return;
+        }
+
+        if (this.get_widget_options().default_advanced_ref_field_filter_type != this.tmp_default_advanced_ref_field_filter_type) {
+            this.next_update_options = this.get_widget_options();
+            this.next_update_options.default_advanced_ref_field_filter_type = this.tmp_default_advanced_ref_field_filter_type;
 
             await this.throttled_update_options();
         }
@@ -651,6 +678,18 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         await this.throttled_update_options();
     }
 
+    private async switch_hide_advanced_ref_field_filter_type() {
+        this.next_update_options = this.get_widget_options();
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.default_widget_props;
+        }
+
+        this.next_update_options.hide_advanced_ref_field_filter_type = !this.next_update_options.hide_advanced_ref_field_filter_type;
+
+        await this.throttled_update_options();
+    }
+
     private async switch_hide_advanced_string_filter_type() {
         this.next_update_options = this.get_widget_options();
 
@@ -883,6 +922,13 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options.vo_field_ref_multiple = vo_field_ref_multiple;
 
         await this.throttled_update_options();
+    }
+
+    private ref_field_filter_type_label(filter_type: number): string {
+        if (filter_type != null) {
+            return this.t(AdvancedRefFieldFilter.FILTER_TYPE_LABELS[filter_type]);
+        }
+        return null;
     }
 
     private filter_type_label(filter_type: number): string {
@@ -1140,7 +1186,11 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.force_filter_by_all_api_type_ids,
             this.bg_color,
             this.fg_color_value,
-            this.fg_color_text
+            this.fg_color_text,
+            this.can_select_all,
+            this.can_select_none,
+            this.default_advanced_ref_field_filter_type,
+            this.hide_advanced_string_filter_type,
         );
     }
 
@@ -1184,6 +1234,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     get is_type_enum(): boolean {
         return VOFieldRefVOHandler.is_type_enum(this.vo_field_ref);
+    }
+
+    get is_type_ref_field(): boolean {
+        return VOFieldRefVOHandler.is_type_ref_field(this.vo_field_ref);
     }
 
     get field(): ModuleTableField<any> {
@@ -1390,6 +1444,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.get_widget_options().default_advanced_string_filter_type;
     }
 
+    get default_advanced_ref_field_filter_type(): number {
+
+        if (!this.get_widget_options()) {
+            return null;
+        }
+
+        return this.get_widget_options().default_advanced_ref_field_filter_type;
+    }
+
     get hide_btn_switch_advanced(): boolean {
 
         if (!this.get_widget_options()) {
@@ -1397,6 +1460,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         return this.get_widget_options().hide_btn_switch_advanced;
+    }
+
+    get hide_advanced_ref_field_filter_type(): boolean {
+
+        if (!this.get_widget_options()) {
+            return null;
+        }
+
+        return this.get_widget_options().hide_advanced_ref_field_filter_type;
     }
 
     get hide_advanced_string_filter_type(): boolean {

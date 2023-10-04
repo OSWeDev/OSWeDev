@@ -3,6 +3,7 @@
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
@@ -14,6 +15,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import VarCtrlDAG from './controllerdag/VarCtrlDAG';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -280,24 +282,97 @@ export default class VarsServerController {
         }
 
         if (!daoVarConf) {
-            daoVarConf = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name, VarConfVO.API_TYPE_ID, true).select_vo<VarConfVO>();
+            daoVarConf = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name, VarConfVO.API_TYPE_ID, true).exec_as_server(true).select_vo<VarConfVO>();
         }
 
         if (daoVarConf) {
 
             /**
-             * Juste pour l'init des segment_types, si on voit en base null et dans le controller autre chose, on update la bdd sur ce champ
+             * Checks de cohérence sur le générateur
              */
-            if ((!daoVarConf.segment_types) && (!!varConf.segment_types)) {
-                daoVarConf.segment_types = varConf.segment_types;
-                await ModuleDAO.getInstance().insertOrUpdateVO(daoVarConf);
+            if (ModulesManager.isGenerator) {
+                /**
+                 * Juste pour l'init des segment_types, si on voit en base null et dans le controller autre chose, on update la bdd sur ce champ
+                 */
+                if ((!daoVarConf.segment_types) && (!!varConf.segment_types)) {
+
+                    ConsoleHandler.warn('On écrase les segment_types de la bdd par ceux de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.segment_types:' + JSON.stringify(daoVarConf.segment_types) +
+                        ':varConf.segment_types:' + JSON.stringify(varConf.segment_types));
+
+                    daoVarConf.segment_types = varConf.segment_types;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                /**
+                 * Idem pour les champs de segmentation, si en base on dit qu'on est pixel, mais qu'on a pas de fields et que les fields existent
+                 *  côté appli, on modifie en base
+                 */
+                if ((!!daoVarConf.pixel_activated) && (!daoVarConf.pixel_fields) && (!!varConf.pixel_fields)) {
+
+                    ConsoleHandler.warn('On écrase les pixel_fields de la bdd par ceux de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.pixel_fields:' + JSON.stringify(daoVarConf.pixel_fields) +
+                        ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
+
+                    daoVarConf.pixel_fields = varConf.pixel_fields;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                /**
+                 * Si on est pas pixel, on devrait pas avoir de pixel_fields en base
+                 */
+                if ((!daoVarConf.pixel_activated) && (!!daoVarConf.pixel_fields)) {
+
+                    ConsoleHandler.warn('On écrase les pixel_fields de la bdd par null pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.pixel_fields:' + JSON.stringify(daoVarConf.pixel_fields) +
+                        ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
+
+                    daoVarConf.pixel_fields = null;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                // On checke aussi le contenu des pixel_fields, par ce que des fois c'est invalide, et si la conf est corrigée niveau appli il faut corriger automatiquement la base
+                if ((!!daoVarConf.pixel_activated) && (!!daoVarConf.pixel_fields) && (!!varConf.pixel_fields)) {
+
+                    // On ne peut faire ce check que si on a les deux pixel_fields de la même taille
+                    if (daoVarConf.pixel_fields.length == varConf.pixel_fields.length) {
+
+                        let overwrite_dao = false;
+                        for (let i in daoVarConf.pixel_fields) {
+                            let pixel_field = daoVarConf.pixel_fields[i];
+
+                            if ((pixel_field.pixel_param_field_id == null) ||
+                                (pixel_field.pixel_vo_api_type_id == null) ||
+                                (pixel_field.pixel_vo_field_id == null) ||
+                                (pixel_field.pixel_range_type == null) ||
+                                (pixel_field.pixel_segmentation_type == null)) {
+                                overwrite_dao = true;
+                                break;
+                            }
+                        }
+
+                        if (overwrite_dao) {
+
+                            ConsoleHandler.warn('On écrase les pixel_fields de la bdd par ceux de l\'appli pour la varconf:' +
+                                daoVarConf.id + ':' + daoVarConf.name +
+                                ':daoVarConf.pixel_fields:' + JSON.stringify(daoVarConf.pixel_fields) +
+                                ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
+
+                            daoVarConf.pixel_fields = varConf.pixel_fields;
+                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                        }
+                    }
+                }
             }
 
             VarsServerController.setVar(daoVarConf, controller);
             return daoVarConf;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(varConf);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(varConf);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return null;
         }

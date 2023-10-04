@@ -7,6 +7,14 @@
             :dashboard_page="dashboard_page"
         )
 
+    template(v-else-if='is_type_ref_field')
+        Fieldvaluefilterreffieldwidgetcomponent(
+            :page_widget="page_widget"
+            :all_page_widget="all_page_widget"
+            :dashboard="dashboard"
+            :dashboard_page="dashboard_page"
+        )
+
     template(v-else-if='is_type_number')
         Fieldvaluefilternumberwidgetcomponent(
             :page_widget="page_widget"

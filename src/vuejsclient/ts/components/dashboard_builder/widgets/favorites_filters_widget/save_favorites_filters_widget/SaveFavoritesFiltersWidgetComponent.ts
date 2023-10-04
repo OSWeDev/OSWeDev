@@ -179,6 +179,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             this.dashboard,
             this.dashboard_page,
             this.get_active_field_filters,
+            this.all_page_widgets_by_id
         );
 
         return exportable_xlsx_params;

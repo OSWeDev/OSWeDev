@@ -344,8 +344,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
-    public async late_configuration() {
-        await ModuleDAO.getInstance().late_configuration();
+    public async late_configuration(is_generator: boolean) {
+        await ModuleDAO.getInstance().late_configuration(is_generator);
     }
 
 
@@ -1603,10 +1603,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             result = await self.insert_without_triggers_using_COPY(vos, segmented_value, exec_as_server);
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: résultat copy avec correctifs:' + result);
                         } else {
-                            let get_select_query_str = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server(exec_as_server).get_select_query_str();
+                            let get_select_query_str: string = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server(exec_as_server).get_select_query_str();
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: \n' + lines.join('\n'));
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str.query);
+                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str);
                         }
                     } else if (error && error.message) {
                         ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur, on tente une insertion classique mais sans triggers');
@@ -1628,7 +1628,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async truncate_api(api_type_id: string) {
         await this.truncate(api_type_id);
-    } 4
+    }
 
     /**
      * ATTENTION truncate ne fait pas du tout un delete * en base, c'est très différent, par exemple sur les triggers en base

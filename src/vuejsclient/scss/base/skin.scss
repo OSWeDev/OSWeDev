@@ -284,7 +284,7 @@ i.fa-spin:before {
     @extend .primary_theme_light_bg;
 }
 
-.panel-default > .panel-heading {
+.panel-default>.panel-heading {
     font-weight: bolder !important;
     @extend .primary_theme_bg;
 }
@@ -470,4 +470,8 @@ i.fa-spin:before {
 #VueMain .snotify-rightCenter,
 #VueMain .snotify-rightBottom {
     right: 4px;
+}
+
+.context-menu-item.context-menu-disabled {
+    color: #DDD;
 }
