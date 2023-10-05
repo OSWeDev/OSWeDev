@@ -1480,6 +1480,7 @@ export default class VarsDatasVoUpdateHandler {
         //         vos_update_buffer[vo_type].map((e) => e.pre_update_vo),
         //         vos_update_buffer[vo_type].map((e) => e.post_update_vo));
         // }
+
         let promise_pipeline = new PromisePipeline(Math.max(ConfigurationService.node_configuration.MAX_POOL / 3, 5));
 
         for (let i in vo_types) {
@@ -1520,7 +1521,6 @@ export default class VarsDatasVoUpdateHandler {
                             tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                         }
                     });
-
                 }
             }
         }
