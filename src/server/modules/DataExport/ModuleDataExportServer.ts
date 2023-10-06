@@ -1658,6 +1658,19 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             value = (value as any).replace(/\s+/g, '');
         }
 
+        /**
+         * Si on est sur du numérique, on remplace la , par un . au cas où
+         */
+        if ((
+            (column.filter_type == FilterObj.FILTER_TYPE_percent) ||
+            (column.filter_type == FilterObj.FILTER_TYPE_toFixed) ||
+            (column.filter_type == FilterObj.FILTER_TYPE_toFixedCeil) ||
+            (column.filter_type == FilterObj.FILTER_TYPE_toFixedFloor)
+        ) &&
+            (typeof value === 'string')) {
+            value = (value as string).replace(/,/g, '.');
+        }
+
         // Remove all non numeric characters
         // And force to be a number
         switch (column.filter_type) {

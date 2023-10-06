@@ -11,6 +11,8 @@ mixin var_data_content()
                     :can_inline_edit='can_inline_edit'
                     :var_data_value_is_imported='var_data_value_is_imported'
                     :var_param_index='var_param.index'
+                    :var_data_formatted_copyable_value='var_data_formatted_copyable_value'
+                    :var_data_raw_copyable_value='var_data_raw_copyable_value'
                     v-tooltip.top='var_data_value_tooltip'
                 )
                     slot(v-bind:var_data="var_data")
@@ -36,15 +38,19 @@ mixin var_data_content()
                                 )
                             template(v-else)
                                 template(v-if='(!!var_data) && ((var_data_value != 0) || (!consider_zero_value_as_null)) && ((var_data_value != null) || null_value_replacement)')
+                                    
                                     template(v-if='!!prefix')
                                         span(class='var-data-prefix') {{ prefix }}
+
                                     template(v-if='(var_data_value === 0) && zero_value_replacement')
                                         template {{ zero_value_replacement }}
                                     template(v-else-if='(var_data_value === null) && null_value_replacement')
                                         template {{ null_value_replacement }}
+
                                     template(v-if='(var_data_value !== 0) || ((var_data_value === 0) && (!zero_value_replacement))')
                                         template(v-if="filter") {{ filtered_value }}
-                                        template(v-if="(!filter)") {{ var_data_value }}
+                                        template(v-else) {{ var_data_value }}
+                                        
                                     template(v-if='!!suffix')
                                         span(class='var-data-suffix') {{ suffix }}
                                 template(v-else)

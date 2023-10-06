@@ -23,7 +23,7 @@ export default class StatsController {
     /**
      * Le générateur ne crée pas de stats
      */
-    public static ACTIVATED: boolean = false;
+    public static ACTIVATED: boolean = true;
 
     /**
      * Le server doit initialiser le THREAD_NAME en fonction du thread. Côté client on garde la valeur par défaut.

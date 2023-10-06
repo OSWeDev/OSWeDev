@@ -169,7 +169,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
     // }
 
     @Watch('var_param', { immediate: true })
-    private async load_param_infos() {
+    private async load_param_infos(new_param: VarDataBaseVO, old_param: VarDataBaseVO) {
 
         this.limit_10_var_deps = true;
 
@@ -189,6 +189,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
         promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
 
         await all_promises(promises);
+
+        this.onChangeVarParam(new_param, old_param);
 
         this.deps_loading = false;
     }
@@ -369,7 +371,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
     }
 
     @Watch('deps_params')
-    private async onChangeVarParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
+    private async onChangeDepsParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;
@@ -386,6 +388,26 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         if (new_var_params && ObjectHandler.hasAtLeastOneAttribute(new_var_params)) {
             await this.register(new_var_params);
+        }
+    }
+
+    private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
+
+        if ((!new_var_param) && (!old_var_param)) {
+            return;
+        }
+
+        // On doit vérifier qu'ils sont bien différents
+        if (old_var_param && new_var_param && (old_var_param.index == new_var_param.index)) {
+            return;
+        }
+
+        if (old_var_param) {
+            await VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
+        }
+
+        if (new_var_param) {
+            await VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
         }
     }
 }

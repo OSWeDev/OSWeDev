@@ -944,6 +944,8 @@ export default class VarsDatasVoUpdateHandler {
         //         vos_update_buffer[vo_type].map((e) => e.post_update_vo));
         // }
 
+        let promise_pipeline = new PromisePipeline(Math.max(ConfigurationService.node_configuration.MAX_POOL / 3, 5), 'VarsDatasVoUpdateHandler.init_leaf_intersectors');
+
         for (let i in vo_types) {
             let vo_type = vo_types[i];
 
@@ -958,10 +960,13 @@ export default class VarsDatasVoUpdateHandler {
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
                     }
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group_stats_wrapper(vos_create_or_delete_buffer[vo_type]);
-                    if (tmp && !!tmp.length) {
-                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
-                    }
+                    await promise_pipeline.push(async () => {
+
+                        let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group_stats_wrapper(vos_create_or_delete_buffer[vo_type]);
+                        if (tmp && !!tmp.length) {
+                            tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                        }
+                    });
                 }
 
                 if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
@@ -972,13 +977,18 @@ export default class VarsDatasVoUpdateHandler {
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);
                     }
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group_stats_wrapper(vos_update_buffer[vo_type]);
-                    if (tmp && !!tmp.length) {
-                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
-                    }
+                    await promise_pipeline.push(async () => {
+
+                        let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group_stats_wrapper(vos_update_buffer[vo_type]);
+                        if (tmp && !!tmp.length) {
+                            tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                        }
+                    });
                 }
             }
         }
+
+        await promise_pipeline.end();
 
         return intersectors_by_index;
     }

@@ -435,6 +435,18 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copier la valeur brute'
+        }, 'VarDataRefComponent.contextmenu.copy_raw_value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copier la valeur formatée'
+        }, 'VarDataRefComponent.contextmenu.copy_formatted_value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copier l\'index de la variable'
+        }, 'VarDataRefComponent.contextmenu.copy_var_param_index.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeur importée supprimée'
+        }, 'VarDataRefComponent.contextmenu.importcleared.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher'
         }, 'var_desc_explain.show_help_tooltip.visible.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

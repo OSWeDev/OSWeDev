@@ -1,79 +1,79 @@
+import 'jquery-contextmenu';
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import slug from 'slug';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../../shared/modules/DAO/vos/CRUD';
+import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import CRUDActionsDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import Datatable from '../../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SelectBoxDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
-import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import BulkActionVO from '../../../../../../../shared/modules/DashboardBuilder/vos/BulkActionVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import IExportOptions from '../../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
-import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
-import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
+import IExportOptions from '../../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
 import ExportVarIndicator from '../../../../../../../shared/modules/DataExport/vos/ExportVarIndicator';
+import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
-import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
+import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import SemaphoreHandler from '../../../../../../../shared/tools/SemaphoreHandler';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../../../../VueAppBase';
 import AjaxCacheClientController from '../../../../../modules/AjaxCache/AjaxCacheClientController';
-import CRUDComponentField from '../../../../crud/component/field/CRUDComponentField';
-import CRUDComponentManager from '../../../../crud/CRUDComponentManager';
-import DatatableRowController from '../../../../datatable/component/DatatableRowController';
-import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
+import CRUDComponentManager from '../../../../crud/CRUDComponentManager';
+import CRUDComponentField from '../../../../crud/component/field/CRUDComponentField';
+import DatatableRowController from '../../../../datatable/component/DatatableRowController';
+import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
-import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
+import TableWidgetController from './../TableWidgetController';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
-import TableWidgetController from './../TableWidgetController';
 import './TableWidgetTableComponent.scss';
-import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
-import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
-import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
-import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
-import DashboardPageWidgetVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
-import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -154,7 +154,13 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private loaded_once: boolean = false;
     private is_busy: boolean = false;
 
-    private actual_rows_query: ContextQueryVO = null;
+    private actual_page_rows_datas_query: ContextQueryVO = null;
+    private actual_all_rows_datas_query: ContextQueryVO = null;
+    private actual_rows_count_query: ContextQueryVO = null;
+
+    private rows_count_query_string: string = null;
+    private page_rows_datas_query_string: string = null;
+    private all_rows_datas_query_string: string = null;
 
     private filter_by_access_cache: { [translatable_policy_name: string]: boolean } = {};
 
@@ -185,21 +191,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private show_export_alert: boolean = false;
 
+    private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(this.update_query_strings.bind(this), 100);
+
     get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 
     get can_getquerystr() {
         return this.is_edit_mode;
-    }
-
-    public async getquerystr() {
-        if (!this.actual_rows_query) {
-            return null;
-        }
-        let query_string: string = await this.actual_rows_query.get_select_query_str();
-        await navigator.clipboard.writeText(query_string);
-        await this.$snotify.success(this.label('copied_to_clipboard'));
     }
 
     @Watch('columns')
@@ -666,6 +665,19 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         );
 
         this.stopLoading();
+
+        if (this.can_getquerystr) {
+
+            /**
+             * On ajoute le contextmenu
+             */
+            SemaphoreHandler.semaphore_sync("TableWidgetTableComponent.contextmenu", () => {
+                $['contextMenu']({
+                    selector: ".table_widget_component .table_wrapper table",
+                    items: this.contextmenu_items
+                });
+            });
+        }
     }
 
     @Watch('dashboard_vo_action')
@@ -1713,7 +1725,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return;
         }
 
-        this.actual_rows_query = cloneDeep(context_query);
+        this.actual_page_rows_datas_query = cloneDeep(context_query);
+        this.actual_all_rows_datas_query = cloneDeep(context_query);
+        this.actual_all_rows_datas_query.set_limit(0, 0);
+        this.actual_all_rows_datas_query.set_sort(null);
+
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -1727,6 +1743,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         query_count.set_sort(null);
         query_count.query_distinct = true;
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
+
+        this.actual_rows_count_query = cloneDeep(query_count);
+        this.actual_rows_count_query.do_count_results = true;
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -2039,11 +2058,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      */
     private get_export_params_for_context_query_xlsx(limit_to_page: boolean = true): ExportContextQueryToXLSXParamVO {
 
-        if (!this.actual_rows_query) {
+        if (!this.actual_page_rows_datas_query) {
             return null;
         }
 
-        let xlsx_context_query = cloneDeep(this.actual_rows_query);
+        let xlsx_context_query = cloneDeep(this.actual_page_rows_datas_query);
         if (!limit_to_page) {
             xlsx_context_query.set_limit(0, 0);
         }
@@ -2803,4 +2822,137 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     //         );
     //     }
     // }
+
+    get contextmenu_items(): any {
+        let contextmenu_items: any = {};
+
+        contextmenu_items['get_page_rows_datas_query_string'] = {
+            name: this.label('TableWidgetTableComponent.contextmenu.get_page_rows_datas_query_string'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('page_rows_datas_query_string') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let q_str = elt.getAttribute('page_rows_datas_query_string');
+                if (!q_str) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(q_str.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['get_all_rows_datas_query_string'] = {
+            name: this.label('TableWidgetTableComponent.contextmenu.get_all_rows_datas_query_string'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('all_rows_datas_query_string') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let q_str = elt.getAttribute('all_rows_datas_query_string');
+                if (!q_str) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(q_str.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['sep1'] = "---------";
+
+        contextmenu_items['get_rows_count_query_string'] = {
+            name: this.label('TableWidgetTableComponent.contextmenu.get_rows_count_query_string'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('rows_count_query_string') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let q_str = elt.getAttribute('rows_count_query_string');
+                if (!q_str) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(q_str.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        return contextmenu_items;
+    }
+
+    @Watch('actual_page_rows_datas_query', { immediate: true })
+    @Watch('actual_all_rows_datas_query')
+    @Watch('actual_rows_count_query')
+    private onchange_queries() {
+
+        if (!this.can_getquerystr) {
+            return;
+        }
+
+        this.throttle_update_query_strings();
+    }
+
+    private async update_query_strings() {
+
+        if (!this.can_getquerystr) {
+            return;
+        }
+
+        if (!this.actual_rows_count_query) {
+            return;
+        }
+        if (!this.actual_page_rows_datas_query) {
+            return;
+        }
+        if (!this.actual_all_rows_datas_query) {
+            return;
+        }
+
+        await all_promises([
+            (async () => {
+                this.rows_count_query_string = await this.actual_rows_count_query.get_select_query_str();
+            })(),
+            (async () => {
+                this.page_rows_datas_query_string = await this.actual_page_rows_datas_query.get_select_query_str();
+            })(),
+            (async () => {
+                this.all_rows_datas_query_string = await this.actual_all_rows_datas_query.get_select_query_str();
+            })()
+        ]);
+    }
 }

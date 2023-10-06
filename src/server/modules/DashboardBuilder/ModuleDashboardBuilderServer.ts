@@ -1641,6 +1641,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'column.sort.desc.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Copier la requête pour les données de la page" },
+            'TableWidgetTableComponent.contextmenu.get_page_rows_datas_query_string.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Copier la requête pour compter les résultats" },
+            'TableWidgetTableComponent.contextmenu.get_rows_count_query_string.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Copier la requête pour toutes les données" },
+            'TableWidgetTableComponent.contextmenu.get_all_rows_datas_query_string.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Mode avancé par défaut" },
             'field_value_filter_widget_component.advanced_mode.___LABEL___'
         ));

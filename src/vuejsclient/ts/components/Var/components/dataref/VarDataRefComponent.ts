@@ -283,7 +283,7 @@ export default class VarDataRefComponent extends VueComponentBase {
          */
         SemaphoreHandler.semaphore_sync("VarDataRefComponent.contextmenu", () => {
             $['contextMenu']({
-                selector: ".var-data-wrapper .var_data_ref.can_inline_edit",
+                selector: ".var-data-wrapper .var_data_ref",
                 items: this.contextmenu_items
             });
         });
@@ -615,6 +615,92 @@ export default class VarDataRefComponent extends VueComponentBase {
     get contextmenu_items(): any {
         let contextmenu_items: any = {};
 
+        contextmenu_items['copy_raw_value'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_raw_value'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_data_raw_copyable_value') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let raw_value = elt.getAttribute('var_data_raw_copyable_value');
+                if (!raw_value) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(raw_value.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['copy_formatted_value'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_formatted_value'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_data_formatted_copyable_value') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let formatted_value = elt.getAttribute('var_data_formatted_copyable_value');
+                if (!formatted_value) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(formatted_value.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['copy_var_param_index'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_var_param_index'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_param_index') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let var_param_index = elt.getAttribute('var_param_index');
+                if (!var_param_index) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(var_param_index.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['sep1'] = "---------";
+
         contextmenu_items['clearimport'] = {
             name: this.label('VarDataRefComponent.contextmenu.clearimport'),
             disabled: function (key, opt) {
@@ -646,9 +732,48 @@ export default class VarDataRefComponent extends VueComponentBase {
                 let param = VarDataBaseVO.from_index(var_param_index);
 
                 await query(param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, var_param_index).delete_vos();
+                await this.$snotify.success(this.label('VarDataRefComponent.contextmenu.importcleared'));
             }
         };
 
+
         return contextmenu_items;
+    }
+
+    get var_data_formatted_copyable_value() {
+        let res = '';
+
+        if ((!!this.var_data) && ((this.var_data_value != 0) || (!this.consider_zero_value_as_null)) && ((this.var_data_value != null) || this.null_value_replacement)) {
+            if (!!this.prefix) {
+                res += this.prefix;
+            }
+
+            if ((this.var_data_value === 0) && this.zero_value_replacement) {
+                res += this.zero_value_replacement;
+            } else if ((this.var_data_value === null) && this.null_value_replacement) {
+                res += this.null_value_replacement;
+            }
+
+            if ((this.var_data_value !== 0) || ((this.var_data_value === 0) && (!this.zero_value_replacement))) {
+                if (this.filter) {
+                    res += this.filtered_value;
+                } else {
+                    res += this.var_data_value;
+                }
+            }
+
+            if (!!this.suffix) {
+                res += this.suffix;
+            }
+        } else {
+            if (!this.is_being_updated) {
+                res += this.null_value_replacement;
+            }
+        }
+        return res;
+    }
+
+    get var_data_raw_copyable_value() {
+        return this.var_data_value;
     }
 }

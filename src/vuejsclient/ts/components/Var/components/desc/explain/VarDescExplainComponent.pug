@@ -18,7 +18,7 @@
                         pre.var_desc_explaination {{ public_explaination }}
                 .row
                     .col-sm-12        
-                        .var_desc_explaination 
+                        .var_desc_explaination(v-if='public_explaination_code_text')
                             Inlinetranslatabletext(
                                 :code_text="public_explaination_code_text" :is_editable="true" :textarea="true")
                             
@@ -30,7 +30,7 @@
                     pre.var_desc_explaination {{ explaination }}
             .row
                 .col-sm-12        
-                    .var_desc_explaination 
+                    .var_desc_explaination(v-if='explaination_code_text')
                         Inlinetranslatabletext(
                             :code_text="explaination_code_text" :is_editable="true" 
                             :translation_params="explaination_sample_param" :textarea="true")

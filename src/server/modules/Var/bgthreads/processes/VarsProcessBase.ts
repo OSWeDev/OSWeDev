@@ -31,7 +31,7 @@ export default abstract class VarsProcessBase {
         // // On initialise le fait qu'on est pas en train d'attendre une invalidation
         VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
 
-        let promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps, VarsProcessBase + '.' + this.name, true);
+        let promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps, 'VarsProcessBase.' + this.name, true);
         let waiting_for_invalidation_time_in = null;
 
         while (true) {
