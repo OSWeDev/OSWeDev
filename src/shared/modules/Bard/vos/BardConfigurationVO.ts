@@ -11,7 +11,7 @@ export default class BardConfigurationVO extends AbstractVO implements IDistantV
 
 
     public user_id: number;
-    public access_token: string;
+    public cookies: string;
 
     public date: number;
 }

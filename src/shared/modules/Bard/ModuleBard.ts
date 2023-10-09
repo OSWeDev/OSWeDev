@@ -9,7 +9,6 @@ import BardConversationVO from './vos/BardConversationVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import BardMessageVO from './vos/BardMessageVO';
 
-
 export default class ModuleBard extends Module {
 
     public static MODULE_NAME: string = 'BARD';
@@ -17,6 +16,8 @@ export default class ModuleBard extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleBard.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleBard.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleBard.MODULE_NAME + ".FO_ACCESS";
+
+    public static APINAME_ask: string = "bard_ask";
 
     public static getInstance(): ModuleBard {
         if (!ModuleBard.instance) {
@@ -57,11 +58,12 @@ export default class ModuleBard extends Module {
 
         let fields = [
             user_id,
-            new ModuleTableField(field_names<BardMessageVO>().content, ModuleTableField.FIELD_TYPE_string, 'Access token', false),
-            new ModuleTableField(field_names<BardMessageVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
+            new ModuleTableField(field_names<BardConfigurationVO>().cookies, ModuleTableField.FIELD_TYPE_string, 'Cookies', false),
+            new ModuleTableField(field_names<BardConfigurationVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
         ];
 
-        let table = new ModuleTable(this, BardMessageVO.API_TYPE_ID, () => new BardMessageVO(), fields, null, 'Message BARD');
+        let table = new ModuleTable(this, BardConfigurationVO.API_TYPE_ID, () => new BardConfigurationVO(), fields, null, 'BARD configurations');
+
         this.datatables.push(table);
 
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);

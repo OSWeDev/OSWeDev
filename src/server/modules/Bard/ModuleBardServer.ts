@@ -8,6 +8,7 @@ import BardConversationVO from '../../../shared/modules/Bard/vos/BardConversatio
 import BardMessageVO from '../../../shared/modules/Bard/vos/BardMessageVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -28,18 +29,22 @@ export default class ModuleBardServer extends ModuleServerBase {
 
     private static instance: ModuleBardServer = null;
 
-    private bardApiService = null;
+    private bardApiService: BardApiService = null;
 
     private constructor() {
         super(ModuleBard.getInstance().name);
     }
 
     public async configure() {
-        // const configuration = new Bar({
-        //     apiKey: ConfigurationService.node_configuration.OPEN_API_API_KEY
-        // });
-
         this.bardApiService = BardApiService.getInstance();
+    }
+
+    /**
+     * registerServerApiHandlers
+     *  - Define the API handlers of the module
+     */
+    public registerServerApiHandlers() {
+        APIControllerWrapper.registerServerApiHandler(ModuleBard.APINAME_ask, this.ask.bind(this));
     }
 
     /**
@@ -59,6 +64,7 @@ export default class ModuleBardServer extends ModuleServerBase {
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
             'fr-fr': 'Administration du module Bard'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
@@ -74,11 +80,12 @@ export default class ModuleBardServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    public async ask() {
+
+    }
+
     public async generate_response(conversation: BardConversationVO, newPrompt: BardMessageVO): Promise<BardMessageVO> {
         try {
-            // const modelId = "gpt-4";
-            const modelId = "gpt-3.5-turbo";
-
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");
             }
@@ -91,12 +98,14 @@ export default class ModuleBardServer extends ModuleServerBase {
 
             // Extract the currentMessages from the conversation
             const currentMessages = BardAPIMessage.fromConversation(conversation);
-            const result = await this.bardApiService.createChatCompletion({
-                model: modelId,
-                messages: currentMessages,
-            });
+            // const result = await this.bardApiService.createChatCompletion({
+            //     model: modelId,
+            //     messages: currentMessages,
+            // });
 
-            const responseText = result.data.choices.shift().message.content;
+            // TODO: Call the API to get the assistant's response
+
+            const responseText = '';
             const responseMessage: BardMessageVO = new BardMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;

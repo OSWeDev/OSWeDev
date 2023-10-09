@@ -50,6 +50,7 @@ export default class BardApiService {
 
     /**
      * ask
+     *
      * @param cookies
      * @param prompt
      * @param conversation
