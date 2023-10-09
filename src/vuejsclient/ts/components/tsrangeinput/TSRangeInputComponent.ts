@@ -63,8 +63,6 @@ import RangeHandler from '../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../VueAppController';
 import VueComponentBase from '../VueComponentBase';
 
-
-
 @Component({
     template: require('./TSRangeInputComponent.pug'),
     components: {}
@@ -222,7 +220,13 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
-        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_, this.field.max_range_offset);
+        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_);
+
+        if (this.is_segmentation_day || this.is_segmentation_mois || this.is_segmentation_year) {
+            if (!!min && !!max && min != max) {
+                max = Dates.add(max, this.field.max_range_offset, this.segmentation_type_);
+            }
+        }
 
         if (min) {
             this.tsrange_start = new Date(min * 1000);

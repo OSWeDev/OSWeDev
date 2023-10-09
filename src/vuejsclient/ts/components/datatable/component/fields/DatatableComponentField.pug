@@ -9,7 +9,7 @@
                         i.boolean_value.is_true.fa-duotone(:class="{[field.moduleTableField.boolean_icon_true]: true, 'text-success': !field.moduleTableField.boolean_invert_colors, 'text-danger': field.moduleTableField.boolean_invert_colors}")
                     template(v-if="field_value == 'false' || field_value === false")
                         i.boolean_value.is_false.fa-duotone(:class="{[field.moduleTableField.boolean_icon_false]: true, 'text-success': field.moduleTableField.boolean_invert_colors, 'text-danger': !field.moduleTableField.boolean_invert_colors}")
-                
+
                 template(v-else-if="field.field_type == 'password'")
                     i.fa-duotone.fa-lock
 
@@ -41,21 +41,20 @@
                         span(v-html="field_value")
                     template(v-else)
                         code {{ field_value }}
-                        
+
                 template(v-else-if="field.field_type == 'enum'")
                     span(:class="transliterate_enum_value_to_class_name") {{ field_value }}
-                
+
                 template(v-else-if="is_custom_field_type && custom_field_types.read_component")
                     .custom_read_field_component(:is="custom_field_types.read_component" :row='vo' :value='field_value')
                 template(v-else-if="field.field_type == 'textarea'")
 
                     pre {{ field_value }}
                 template(v-else-if="field.field_type == 'translatable_text'")
-                    span {{ t(field_value) }}
-                
+                    span {{ field_value }}
                 template(v-else)
                     span {{ get_filtered_value(field_value) }}
-                    
+
             template(v-else-if="field.type == 'ManyToOne'")
                 template(v-if="field_value")
                     template(v-if="has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE && !disabled_many_to_one_link && !!routeExists(get_crud_link(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___']))")
@@ -77,10 +76,10 @@
 
             template(v-else-if="field.type == 'COMPONENT'")
                 div(
-                    :is="field.component_name" 
-                    :vo="vo" 
-                    :columns="columns" 
-                    :param="vo[field.parameter_datatable_field_uid]" 
+                    :is="field.component_name"
+                    :vo="vo"
+                    :columns="columns"
+                    :param="vo[field.parameter_datatable_field_uid]"
                     :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']"
                     :dashboard_page="dashboard_page"
                 )

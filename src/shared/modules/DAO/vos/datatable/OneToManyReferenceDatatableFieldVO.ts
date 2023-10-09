@@ -64,6 +64,10 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
             return null;
         }
 
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
+        }
+
         let e = this.destField.field_id ? this.targetModuleTable.label.code_text + '_' + this.destField.field_id : this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;

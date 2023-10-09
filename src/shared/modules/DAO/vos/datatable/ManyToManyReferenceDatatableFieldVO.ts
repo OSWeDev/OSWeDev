@@ -47,6 +47,10 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
             return null;
         }
 
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
+        }
+
         let e = this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substring(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;

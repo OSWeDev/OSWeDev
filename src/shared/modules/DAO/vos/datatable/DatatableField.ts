@@ -92,6 +92,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * Used in the CREATE or UPDATE views
      */
     public translatable_place_holder: string = null;
+    public translatable_title_custom: string = null;
 
     public select_options_enabled: number[] = null;
 
@@ -108,6 +109,9 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
      */
     public onChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
     public onEndOfChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
@@ -229,12 +233,18 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
     public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onChange = onChange;
 
         return this;
     }
 
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
     public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onEndOfChange = onEndOfChange;
 
@@ -342,6 +352,14 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      */
     public setPlaceholder(code_text: string): this {
         this.translatable_place_holder = code_text;
+        return this;
+    }
+
+    /**
+     * @param code_text Code du translatable text associé
+     */
+    public setTranslatableTitle(code_text: string): this {
+        this.translatable_title_custom = code_text;
         return this;
     }
 

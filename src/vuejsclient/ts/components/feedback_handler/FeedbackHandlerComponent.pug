@@ -138,9 +138,13 @@
                 .spacer
 
                 template(v-if="!is_already_sending_feedback")
-                    .btn.btn-secondary.btn-block.btn-flat(@click='switch_hidden') {{ label('feedback_handler.hide') }}
-                    .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('feedback_handler.clear') }}
-                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('feedback_handler.submit') }}
+                    button.btn.btn-primary.btn-block.btn-flat.mb-3(type="submit") {{ label('feedback_handler.submit') }}
+                    .row
+                        .col-sm-6
+                            .btn.btn-secondary.btn-block.btn-flat(@click='switch_hidden') {{ label('feedback_handler.hide') }}
+                        .col-sm-6
+                            .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('feedback_handler.clear') }}
+
                 template(v-else)
                     i.fa.fa-spinner.fa-spin
 
