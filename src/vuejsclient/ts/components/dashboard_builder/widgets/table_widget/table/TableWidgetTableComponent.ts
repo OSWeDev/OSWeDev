@@ -158,6 +158,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private last_calculation_cpt: number = 0;
 
     private old_widget_options: TableWidgetOptions = null;
+    private old_columns: TableColumnDescVO[] = null;
 
     private table_columns: TableColumnDescVO[] = [];
 
@@ -183,8 +184,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         await this.$snotify.success(this.label('copied_to_clipboard'));
     }
 
-    @Watch('columns')
+    @Watch('columns', { immediate: true })
     private async onchange_columns() {
+        if (isEqual(this.columns, this.old_columns)) {
+            return;
+        }
+
+        this.old_columns = cloneDeep(this.columns);
+
         await this.throttle_update_visible_options();
     }
 
@@ -1623,7 +1630,21 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         query_.query_distinct = true;
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
+
+        let rows = null;
+        await all_promises([
+            (async () => {
+                ConsoleHandler.log('select_datatable_rows');
+                rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
+            })(),
+            (async () => {
+                let context_query: ContextQueryVO = cloneDeep(query_);
+                context_query.set_limit(0, 0);
+                context_query.set_sort(null);
+                context_query.query_distinct = true;
+                this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+            })()
+        ]);
 
         let vos_by_id: { [id: number]: any } = {};
         for (let i in rows) {
@@ -1648,12 +1669,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         this.data_rows = rows;
-
-        let context_query: ContextQueryVO = cloneDeep(query_);
-        context_query.set_limit(0, 0);
-        context_query.set_sort(null);
-        context_query.query_distinct = true;
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
