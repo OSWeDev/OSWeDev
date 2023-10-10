@@ -218,7 +218,7 @@ export default class CRUDComponent extends VueComponentBase {
                 this.$router.push(this.callback_route);
             });
         } else {
-            vo = this.getSelectedVOs[0];
+            vo = (this.getSelectedVOs?.length > 0) ? this.getSelectedVOs[0] : VOsTypesManager.moduleTables_by_voType[this.api_type_id].voConstructor();
             $('#createData' + embed_append).on("hidden.bs.modal", () => {
                 this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'create');
             });
@@ -247,6 +247,9 @@ export default class CRUDComponent extends VueComponentBase {
         if (this.modal_show_create) {
             $('#createData' + embed_append).modal('show');
             modal_type = 'create';
+            if (vo) {
+                this.newVO = vo;
+            }
             return;
         }
         if (this.modal_show_update) {

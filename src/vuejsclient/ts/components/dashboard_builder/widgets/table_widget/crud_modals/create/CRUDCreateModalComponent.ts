@@ -28,7 +28,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
         }
 
         if (crud && crud.callback_handle_modal_show_hide) {
-            await crud.callback_handle_modal_show_hide(null, 'create');
+            await crud.callback_handle_modal_show_hide(vo_init, 'create');
         }
 
         this.api_type_id = api_type_id;
