@@ -44,7 +44,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         this.menuBranch = await MenuController.getInstance().declare_menu_element(
             MenuElementVO.create_new(
                 ModuleSupervision.POLICY_BO_ACCESS,
-                VueAppController.getInstance().app_name,
+                VueAppController.APP_NAME_ADMIN,
                 "SupervisionAdminVueModule",
                 "fa-tachometer",
                 20,
@@ -65,7 +65,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
                 null,
                 MenuElementVO.create_new(
                     ModuleSupervision.POLICY_BO_ACCESS,
-                    VueAppController.getInstance().app_name,
+                    VueAppController.APP_NAME_ADMIN,
                     api_type,
                     "fa-table",
                     20,
@@ -89,7 +89,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
 
         let menuPointer = MenuElementVO.create_new(
             ModuleSupervision.POLICY_BO_ACCESS,
-            VueAppController.getInstance().app_name,
+            VueAppController.APP_NAME_ADMIN,
             SupervisionController.ROUTE_NAME_DASHBOARD,
             "fa-tachometer",
             10,
@@ -114,7 +114,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             null,
             MenuElementVO.create_new(
                 ModuleSupervision.POLICY_BO_ACCESS,
-                VueAppController.getInstance().app_name,
+                VueAppController.APP_NAME_ADMIN,
                 "SupervisedCategoryVO",
                 "fa-table",
                 20,
