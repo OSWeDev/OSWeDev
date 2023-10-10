@@ -12,6 +12,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
+import ThrottlePipelineHelper from '../../../../shared/tools/ThrottlePipelineHelper';
 const zlib = require('zlib');
 
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
@@ -52,6 +53,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private actions_waiting_for_release_of_processRequestsSemaphore: Array<() => Promise<void>> = [];
 
     private debounced_requests_wrapper = debounce(this.processRequestsWrapper, this.ajaxcache_debouncer);
+
+    private process_get_and_post_for_get_requests: (index: string, request: RequestResponseCacheVO) => Promise<any> =
+        ThrottlePipelineHelper.declare_throttled_pipeline(
+            'AjaxCacheClientController.process_get_and_post_for_get_requests',
+            this._process_get_and_post_for_get_requests.bind(this), 200, 6, 20
+        );
 
     public async getCSRFToken() {
         let res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
@@ -130,6 +137,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     reject,
                     post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
                 self.addToWaitingRequestsStack(cache);
+                // resolve(await this.process_get_and_post_for_get_requests(cache.index, cache));
             }
         });
     }
@@ -437,6 +445,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
 
         this.debounced_requests_wrapper();
+    }
+
+    private async _process_get_and_post_for_get_requests(requests_by_index: { [index: string]: RequestResponseCacheVO }): Promise<any> {
+
+        await this.wrap_request(Object.values(requests_by_index));
+        return requests_by_index;
     }
 
     private async processRequestsWrapper() {
