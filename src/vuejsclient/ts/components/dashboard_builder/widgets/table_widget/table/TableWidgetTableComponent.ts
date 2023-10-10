@@ -182,7 +182,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private old_widget_options: TableWidgetOptionsVO = null;
     private widget_options: TableWidgetOptionsVO = null;
-    private widgets_options_metadata: TableWidgetOptionsVO = null;
+    private old_columns: TableColumnDescVO[] = null;
 
     private table_columns: TableColumnDescVO[] = [];
 
@@ -201,8 +201,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return this.is_edit_mode;
     }
 
-    @Watch('columns')
+    @Watch('columns', { immediate: true })
     private async onchange_columns() {
+        if (isEqual(this.columns, this.old_columns)) {
+            return;
+        }
+
+        this.old_columns = cloneDeep(this.columns);
+
         await this.throttle_update_visible_options();
     }
 
@@ -1711,9 +1717,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         await all_promises([
             (async () => {
+                ConsoleHandler.log('select_datatable_rows');
                 await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, this.columns);
                 rows = await ModuleContextFilter.getInstance().select_datatable_rows(context_query, this.columns_by_field_id, fields);
             })(),
+
             (async () => {
                 query_count.set_limit(0, 0);
                 query_count.set_sort(null);

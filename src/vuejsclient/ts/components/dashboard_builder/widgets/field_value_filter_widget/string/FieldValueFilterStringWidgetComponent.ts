@@ -2,22 +2,31 @@ import { cloneDeep, debounce, isEqual } from 'lodash';
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
+import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -32,13 +41,6 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
-import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
-import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -847,284 +849,293 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         //     }
         // }
 
-        let field_sort: VOFieldRefVO = this.vo_field_sort ? this.vo_field_sort : this.vo_field_ref;
+        if (!this.is_advanced_filters) {
+            let field_sort: VOFieldRefVO = this.vo_field_sort ? this.vo_field_sort : this.vo_field_ref;
 
-        let active_field_filters: FieldFiltersVO = null;
-
-        if (!this.no_inter_filter) {
-            active_field_filters = FieldFiltersVOManager.clean_field_filters_for_request(
-                this.get_active_field_filters,
-                { should_restrict_to_api_type_id: true }
-            );
-
-            if (this.vo_field_ref_lvl2) {
-                const is_active_field_filters_query_empty = FieldFiltersVOHandler.is_field_filters_empty(
-                    this.vo_field_ref_lvl2,
-                    active_field_filters
+            let active_field_filters: FieldFiltersVO = null;
+            if (!this.no_inter_filter) {
+                active_field_filters = FieldFiltersVOManager.clean_field_filters_for_request(
+                    this.get_active_field_filters,
+                    { should_restrict_to_api_type_id: true }
                 );
+                if (this.vo_field_ref_lvl2) {
+                    const is_active_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
+                        this.vo_field_ref_lvl2,
+                        active_field_filters
+                    );
 
-                if (!is_active_field_filters_query_empty) {
-                    delete active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
-                }
-            }
-        }
-
-        let tmp: DataFilterOption[] = [];
-
-        let api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ?
-            this.other_ref_api_type_id :
-            this.vo_field_ref.api_type_id;
-
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
-
-        if (!has_access) {
-            return;
-        }
-
-        let context_query = query(api_type_id)
-            .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
-            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
-            .set_limit(this.widget_options.max_visible_options)
-            .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-            .using(this.dashboard.api_type_ids);
-
-        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
-            context_query,
-            this.get_discarded_field_paths
-        );
-
-        context_query.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
-            this.exclude_values,
-            this.vo_field_ref,
-            context_query.filters,
-            false,
-        );
-
-        // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
-        // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
-
-        if (
-            base_table &&
-            base_table.is_segmented
-        ) {
-            if (
-                !base_table.table_segmented_field ||
-                !base_table.table_segmented_field.manyToOne_target_moduletable ||
-                !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
-                !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
-            ) {
-                return;
-            }
-
-            let has_filter: boolean = false;
-
-            for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
-                if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
-                    has_filter = true;
-                    break;
+                    if (!is_active_field_filters_empty) {
+                        delete active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
+                    }
                 }
             }
 
-            if (!has_filter) {
+            let tmp: DataFilterOption[] = [];
+
+            let api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ?
+                this.other_ref_api_type_id :
+                this.vo_field_ref.api_type_id;
+
+            const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+            const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+            if (!has_access) {
                 return;
             }
-        } else {
-            context_query = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
-                this.dashboard,
+
+            let context_query = query(api_type_id)
+                .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
+                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
+                .set_limit(this.widget_options.max_visible_options)
+                .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
+                .using(this.dashboard.api_type_ids);
+
+            FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
                 context_query,
-                this.get_discarded_field_paths,
-                true
+                this.get_discarded_field_paths
             );
-        }
 
-        tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
-            context_query,
-            this.actual_query,
-        );
+            context_query.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
+                this.exclude_values,
+                this.vo_field_ref,
+                context_query.filters,
+                false,
+            );
 
-        // We must keep and apply the last request response
-        // - This widget may already have perform a request
-        if (this.last_calculation_cpt != launch_cpt) {
-            return;
-        }
+            // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
+            // Si ce n'est pas le cas, je n'envoie pas la requête
+            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-        // Si on cherche à faire du multi-filtrage, on charge toutes les données
-        if (this.vo_field_ref_multiple?.length > 0) {
-            for (let i in this.vo_field_ref_multiple) {
-                let field_ref: VOFieldRefVO = this.vo_field_ref_multiple[i];
-
-                const field_ref_api_type_id = field_ref.api_type_id;
-
-                const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
-                    ModuleDAO.DAO_ACCESS_TYPE_READ,
-                    field_ref_api_type_id
-                );
-
-                const has_access_field_ref_api_type_id = await ModuleAccessPolicy.getInstance().testAccess(
-                    field_ref_access_policy_name
-                );
-
-                if (!has_access_field_ref_api_type_id) {
+            if (
+                base_table &&
+                base_table.is_segmented
+            ) {
+                if (
+                    !base_table.table_segmented_field ||
+                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                    !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
+                    !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+                ) {
                     return;
                 }
 
-                let query_field_ref = query(field_ref_api_type_id)
-                    .field(field_ref.field_id, 'label')
-                    .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
-                    .set_limit(this.widget_options.max_visible_options)
-                    .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-                    .using(this.dashboard.api_type_ids);
+                let has_filter: boolean = false;
 
-                FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
-
-                let tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
-                    query_field_ref,
-                    this.actual_query,
-                );
-
-                if (tmp_field_ref && (tmp_field_ref.length > 0)) {
-                    if (!tmp) {
-                        tmp = [];
+                for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                    if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                        has_filter = true;
+                        break;
                     }
-
-                    tmp = tmp.concat(tmp_field_ref);
                 }
+
+                if (!has_filter) {
+                    return;
+                }
+            } else {
+                context_query = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
+                    this.dashboard,
+                    context_query,
+                    this.get_discarded_field_paths,
+                    true);
             }
-        }
 
-        if (this.is_translatable_type) {
-            tmp.sort((a: DataFilterOption, b: DataFilterOption) => {
-                let la = this.label(a.label);
-                let lb = this.label(b.label);
+            ConsoleHandler.log('select_filter_visible_options:1:' + context_query.base_api_type_id);
+            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                context_query,
+                this.actual_query,
+            );
 
-                if (la < lb) {
-                    return -1;
-                }
+            // We must keep and apply the last request response
+            // - This widget may already have perform a request
+            if (this.last_calculation_cpt != launch_cpt) {
+                return;
+            }
 
-                if (lb < la) {
-                    return 1;
-                }
+            // Si on cherche à faire du multi-filtrage, on charge toutes les données
+            if (this.vo_field_ref_multiple?.length > 0) {
 
-                return 0;
-            });
-        }
+                let limit = EnvHandler.MAX_POOL / 2;
+                let promise_pipeline = new PromisePipeline(limit, 'FieldValueFilterWidgetController.update_visible_options');
 
-        // On va supprimer ce qu'y dépasse s'il y a
-        if (tmp && (tmp.length > this.widget_options.max_visible_options)) {
-            tmp.splice((this.widget_options.max_visible_options - 1), (tmp.length - this.widget_options.max_visible_options));
-        }
+                for (let i in this.vo_field_ref_multiple) {
+                    let field_ref: VOFieldRefVO = this.vo_field_ref_multiple[i];
 
-        // Si je ne suis pas sur la dernière demande, je me casse
-        if (this.last_calculation_cpt != launch_cpt) {
-            return;
-        }
+                    await promise_pipeline.push(async () => {
+                        const field_ref_api_type_id = field_ref.api_type_id;
 
-        let tmp_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
-
-        if (this.vo_field_ref_lvl2) {
-            let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
-            let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-
-            let promises = [];
-
-            for (let i in tmp) {
-                let opt: DataFilterOption = tmp[i];
-
-                promises.push((async () => {
-                    let active_field_filters_lvl2: FieldFiltersVO = {};
-
-                    if (!active_field_filters_lvl2[this.vo_field_ref.api_type_id]) {
-                        active_field_filters_lvl2[this.vo_field_ref.api_type_id] = {};
-                    }
-
-                    if (!active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]) {
-                        active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = ContextFilterVOManager.create_context_filter_from_data_filter_option(
-                            opt,
-                            null,
-                            field,
-                            this.vo_field_ref
+                        const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                            ModuleDAO.DAO_ACCESS_TYPE_READ,
+                            field_ref_api_type_id
                         );
-                    }
 
-                    let field_sort_lvl2: VOFieldRefVO = this.vo_field_sort_lvl2 ? this.vo_field_sort_lvl2 : this.vo_field_ref_lvl2;
+                        const has_access_field_ref_api_type_id = await ModuleAccessPolicy.getInstance().testAccess(
+                            field_ref_access_policy_name
+                        );
 
-                    const field_ref_api_type_id = this.vo_field_ref_lvl2.api_type_id;
+                        if (!has_access_field_ref_api_type_id) {
+                            return;
+                        }
 
-                    const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
-                        ModuleDAO.DAO_ACCESS_TYPE_READ,
-                        field_ref_api_type_id
-                    );
+                        let query_field_ref = query(field_ref_api_type_id)
+                            .field(field_ref.field_id, 'label')
+                            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
+                            .set_limit(this.widget_options.max_visible_options)
+                            .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
+                            .using(this.dashboard.api_type_ids);
 
-                    const has_access_field_ref_api_type_id = await ModuleAccessPolicy.getInstance().testAccess(
-                        field_ref_access_policy_name
-                    );
+                        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
-                    if (!has_access_field_ref_api_type_id) {
-                        return;
-                    }
+                        ConsoleHandler.log('select_filter_visible_options:2:' + query_field_ref.base_api_type_id);
+                        let tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                            query_field_ref,
+                            this.actual_query,
+                        );
 
-                    let context_query_lvl2 = query(field_ref_api_type_id)
-                        .field(this.vo_field_ref_lvl2.field_id, 'label')
-                        .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_lvl2))
-                        .set_limit(this.widget_options.max_visible_options)
-                        .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
-                        .using(this.dashboard.api_type_ids);
+                        if (tmp_field_ref && (tmp_field_ref.length > 0)) {
+                            if (!tmp) {
+                                tmp = [];
+                            }
 
-                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
-                        context_query_lvl2,
-                        this.get_discarded_field_paths
-                    );
+                            tmp = tmp.concat(tmp_field_ref);
+                        }
+                    });
+                }
 
-                    let tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
-                        context_query_lvl2,
-                        this.actual_query
-                    );
-
-                    if (tmp_lvl2_opts && (tmp_lvl2_opts.length > 0)) {
-                        tmp_lvl2[opt.label] = tmp_lvl2_opts;
-                    }
-                })());
+                await promise_pipeline.end();
             }
 
-            if (promises.length > 0) {
-                await all_promises(promises);
+            if (this.is_translatable_type) {
+                tmp.sort((a: DataFilterOption, b: DataFilterOption) => {
+                    let la = this.label(a.label);
+                    let lb = this.label(b.label);
+
+                    if (la < lb) {
+                        return -1;
+                    }
+
+                    if (lb < la) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
             }
-        }
 
-        // Si je ne suis pas sur la dernière demande, je me casse
-        if (this.last_calculation_cpt != launch_cpt) {
-            return;
-        }
+            // On va supprimer ce qu'y dépasse s'il y a
+            if (tmp && (tmp.length > this.widget_options.max_visible_options)) {
+                tmp.splice((this.widget_options.max_visible_options - 1), (tmp.length - this.widget_options.max_visible_options));
+            }
 
-        if (!tmp) {
-            tmp = [];
-            tmp_lvl2 = {};
-        }
+            // Si je ne suis pas sur la dernière demande, je me casse
+            if (this.last_calculation_cpt != launch_cpt) {
+                return;
+            }
 
-        if (this.separation_active_filter && (tmp.length > 0)) {
-            for (const key in this.tmp_active_filter_options) {
-                let tfao = this.tmp_active_filter_options[key];
-                let index_opt = tmp?.findIndex((e) => e.label == tfao.label);
-                if (index_opt > -1) {
-                    tmp.splice(index_opt, 1);
+            let tmp_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
+
+            if (this.vo_field_ref_lvl2) {
+                let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+                let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+
+                let promises = [];
+
+                for (let i in tmp) {
+                    let opt: DataFilterOption = tmp[i];
+
+                    promises.push((async () => {
+                        let active_field_filters_lvl2: FieldFiltersVO = {};
+
+                        if (!active_field_filters_lvl2[this.vo_field_ref.api_type_id]) {
+                            active_field_filters_lvl2[this.vo_field_ref.api_type_id] = {};
+                        }
+
+                        if (!active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]) {
+                            active_field_filters_lvl2[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+                                opt,
+                                null,
+                                field,
+                                this.vo_field_ref
+                            );
+                        }
+
+                        let field_sort_lvl2: VOFieldRefVO = this.vo_field_sort_lvl2 ? this.vo_field_sort_lvl2 : this.vo_field_ref_lvl2;
+
+                        const field_ref_api_type_id = this.vo_field_ref_lvl2.api_type_id;
+
+                        const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                            ModuleDAO.DAO_ACCESS_TYPE_READ,
+                            field_ref_api_type_id
+                        );
+
+                        const has_access_field_ref_api_type_id = await ModuleAccessPolicy.getInstance().testAccess(
+                            field_ref_access_policy_name
+                        );
+
+                        if (!has_access_field_ref_api_type_id) {
+                            return;
+                        }
+
+                        let context_query_lvl2 = query(field_ref_api_type_id)
+                            .field(this.vo_field_ref_lvl2.field_id, 'label')
+                            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_lvl2))
+                            .set_limit(this.widget_options.max_visible_options)
+                            .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
+                            .using(this.dashboard.api_type_ids);
+
+                        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
+                            context_query_lvl2,
+                            this.get_discarded_field_paths
+                        );
+
+                        ConsoleHandler.log('select_filter_visible_options:3:' + context_query_lvl2.base_api_type_id);
+                        let tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                            context_query_lvl2,
+                            this.actual_query
+                        );
+
+                        if (tmp_lvl2_opts && (tmp_lvl2_opts.length > 0)) {
+                            tmp_lvl2[opt.label] = tmp_lvl2_opts;
+                        }
+                    })());
+                }
+
+                if (promises.length > 0) {
+                    await all_promises(promises);
                 }
             }
-        }
 
-        if (this.add_is_null_selectable) {
-            tmp.unshift(new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
-                this.label('datafilteroption.is_null'),
-                RangeHandler.MIN_INT,
-            ));
-        }
+            // Si je ne suis pas sur la dernière demande, je me casse
+            if (this.last_calculation_cpt != launch_cpt) {
+                return;
+            }
 
-        this.filter_visible_options = tmp;
-        this.filter_visible_options_lvl2 = tmp_lvl2;
+            if (!tmp) {
+                tmp = [];
+                tmp_lvl2 = {};
+            }
+
+            if (this.separation_active_filter && (tmp.length > 0)) {
+                for (const key in this.tmp_active_filter_options) {
+                    let tfao = this.tmp_active_filter_options[key];
+                    let index_opt = tmp?.findIndex((e) => e.label == tfao.label);
+                    if (index_opt > -1) {
+                        tmp.splice(index_opt, 1);
+                    }
+                }
+            }
+
+            if (this.add_is_null_selectable) {
+                tmp.unshift(new DataFilterOption(
+                    DataFilterOption.STATE_SELECTABLE,
+                    this.label('datafilteroption.is_null'),
+                    RangeHandler.MIN_INT,
+                ));
+            }
+
+            this.filter_visible_options = tmp;
+            this.filter_visible_options_lvl2 = tmp_lvl2;
+        }
     }
-
 
     // create single data filter to apply
     private createDataFilter(text: string, index: string | number): DataFilterOption {
