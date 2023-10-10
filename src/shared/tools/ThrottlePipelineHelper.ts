@@ -25,7 +25,7 @@ export default class ThrottlePipelineHelper {
      */
     public static declare_throttled_pipeline<ParamType, ResultType>(
         pipeline_name: string,
-        func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
+        func: (params: { [index: string]: ParamType }) => { [index: string]: ResultType } | Promise<{ [index: string]: ResultType }>,
         wait_ms: number,
         pipeline_size: number,
         max_stack_size: number
@@ -37,7 +37,7 @@ export default class ThrottlePipelineHelper {
             ThrottlePipelineHelper.unstack_throttled_pipeline_process(UID, func, wait_ms, pipeline_size, max_stack_size);
         }, 1);
 
-        return async (index: number | string, param: ParamType): Promise<ResultType> => {
+        return async (index: string, param: ParamType): Promise<ResultType> => {
 
             return new Promise(async (resolve, reject) => {
 
@@ -75,7 +75,7 @@ export default class ThrottlePipelineHelper {
     protected static throttled_pipeline_call_ids: { [throttle_id: number]: number } = {};
 
     // L'index n'est pas unique c'est pourquoi on utilise le call_id pour retrouver le resolver
-    protected static throttled_pipeline_index_by_call_id: { [throttle_id: number]: { [call_id: number]: number | string } } = {};
+    protected static throttled_pipeline_index_by_call_id: { [throttle_id: number]: { [call_id: number]: string } } = {};
     protected static throttled_pipeline_call_resolvers_by_call_id: { [throttle_id: number]: { [call_id: number]: (a: any) => void } } = {};
 
     /**
@@ -99,7 +99,7 @@ export default class ThrottlePipelineHelper {
      */
     private static async unstack_throttled_pipeline_process<ParamType, ResultType>(
         UID: number,
-        func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
+        func: (params: { [index: string]: ParamType }) => { [index: string]: ResultType } | Promise<{ [index: string]: ResultType }>,
         wait_ms: number,
         pipeline_size: number,
         max_stack_size: number
@@ -119,7 +119,7 @@ export default class ThrottlePipelineHelper {
 
             // On fait des paquets de params en fonction du max_stack_size
             let current_stack_size = 0;
-            let params_by_index: { [index: string | number]: ParamType } = {};
+            let params_by_index: { [index: string]: ParamType } = {};
             let current_stack_param_by_call_id: { [call_id: number]: ParamType } = {};
 
             for (let call_id in params_by_call_id) {
@@ -144,13 +144,13 @@ export default class ThrottlePipelineHelper {
 
     private static async handle_throttled_pipeline_call<ParamType, ResultType>(
         UID: number,
-        func: (params: { [index: number | string]: ParamType }) => { [index: number | string]: ResultType } | Promise<{ [index: number | string]: ResultType }>,
+        func: (params: { [index: string]: ParamType }) => { [index: string]: ResultType } | Promise<{ [index: string]: ResultType }>,
         params_by_call_id: { [call_id: number]: ParamType },
         promise_pipeline: PromisePipeline,
-        params_by_index: { [index: string | number]: ParamType }
+        params_by_index: { [index: string]: ParamType }
     ) {
         await promise_pipeline.push(async () => {
-            let func_result: { [index: string | number]: ResultType } = await func(params_by_index);
+            let func_result: { [index: string]: ResultType } = await func(params_by_index);
 
             // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
             let promises = [];
