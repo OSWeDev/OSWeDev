@@ -225,11 +225,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
         if (!this.option_label_func) {
             // On utilise la fonction de label de la table
-            if (!!this.moduletable.default_label_field) {
+            if (!!this.moduletable?.default_label_field) {
                 return vo[this.moduletable.default_label_field.field_id];
             }
 
-            if (!!this.moduletable.table_label_function) {
+            if (!!this.moduletable?.table_label_function) {
                 return this.moduletable.table_label_function(vo);
             }
         } else {
