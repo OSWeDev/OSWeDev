@@ -86,19 +86,20 @@ export default class ClientAPIController implements IAPIController {
         let api_res = null;
 
         switch (apiDefinition.api_type) {
+
+            // case APIDefinition.API_TYPE_GET:
+            //     let url_param: string =
+            //         (translated_param && translated_param.translateToURL) ? translated_param.translateToURL() :
+            //             (translated_param ? translated_param.toString() : "");
+
+            //     api_res = await AjaxCacheClientController.getInstance().get(
+            //         apiDefinition,
+            //         (APIControllerWrapper.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
+            //         API_TYPES_IDS_involved,
+            //         'application/json; charset=utf-8') as U;
+            //     break;
+
             case APIDefinition.API_TYPE_GET:
-
-                let url_param: string =
-                    (translated_param && translated_param.translateToURL) ? translated_param.translateToURL() :
-                        (translated_param ? translated_param.toString() : "");
-
-                api_res = await AjaxCacheClientController.getInstance().get(
-                    apiDefinition,
-                    (APIControllerWrapper.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
-                    API_TYPES_IDS_involved,
-                    'application/json; charset=utf-8') as U;
-                break;
-
             case APIDefinition.API_TYPE_POST_FOR_GET:
 
                 api_res = await AjaxCacheClientController.getInstance().get(

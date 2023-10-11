@@ -17,6 +17,6 @@ export default class GetAPIDefinition<T, U> extends APIDefinition<T, U> {
         public API_TYPES_IDS_involved: (string[]) | ((value: IAPIParamTranslator<T> | T) => string[]),
         public param_translator: IAPIParamTranslatorStatic<T> = null,
         public api_return_type: number = 0) {
-        super(access_policy_name, APIDefinition.API_TYPE_GET, api_name, API_TYPES_IDS_involved, param_translator, api_return_type);
+        super(access_policy_name, APIDefinition.API_TYPE_POST_FOR_GET, api_name, API_TYPES_IDS_involved, param_translator, api_return_type);
     }
 }

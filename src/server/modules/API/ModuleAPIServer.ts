@@ -48,10 +48,10 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'API');
             switch (api.api_type) {
-                case APIDefinition.API_TYPE_GET:
-                    // ConsoleHandler.log("AJOUT API GET  :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
-                    app.get(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
-                    break;
+                // case APIDefinition.API_TYPE_GET:
+                //     // ConsoleHandler.log("AJOUT API GET  :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
+                //     app.get(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                //     break;
                 case APIDefinition.API_TYPE_POST:
                     // ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
@@ -60,8 +60,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                     }
                     break;
+                case APIDefinition.API_TYPE_GET:
                 case APIDefinition.API_TYPE_POST_FOR_GET:
-                    // ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     } else {
@@ -94,6 +94,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             if (
                 ((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
+                ((api.api_type == APIDefinition.API_TYPE_GET) && (req.body)) ||
                 ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))
             ) {
                 let req_body: any = req.body;
@@ -122,17 +123,18 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
                 param = APIControllerWrapper.try_translate_vo_from_api(req_body);
                 has_params = ObjectHandler.hasAtLeastOneAttribute(req_body);
-            } else if (api.param_translator && api.param_translator.fromREQ) {
-                try {
-                    has_params = ObjectHandler.hasAtLeastOneAttribute(req.params);
-                    param = api.param_translator.fromREQ(req);
-                } catch (error) {
-                    StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'createApiRequestHandler', 'param_translator.fromREQ');
-                    ConsoleHandler.error(error);
-                    this.respond_on_error(api, res);
-                    return;
-                }
             }
+            // else if (api.param_translator && api.param_translator.fromREQ) {
+            //     try {
+            //         has_params = ObjectHandler.hasAtLeastOneAttribute(req.params);
+            //         param = api.param_translator.fromREQ(req);
+            //     } catch (error) {
+            //         StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'createApiRequestHandler', 'param_translator.fromREQ');
+            //         ConsoleHandler.error(error);
+            //         this.respond_on_error(api, res);
+            //         return;
+            //     }
+            // }
 
             let params = (param && api.param_translator) ? api.param_translator.getAPIParams(param) : [param];
             let returnvalue = null;

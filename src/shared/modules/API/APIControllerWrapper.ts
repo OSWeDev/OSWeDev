@@ -89,14 +89,14 @@ export default class APIControllerWrapper {
     }
 
     public static getAPI_URL<T, U>(apiDefinition: APIDefinition<T, U>): string {
-        if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
+        // if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
 
-            return APIControllerWrapper.BASE_API_URL + apiDefinition.api_name + "/" +
-                (apiDefinition.param_translator && apiDefinition.param_translator.URL ? apiDefinition.param_translator.URL : "");
-        } else {
+        //     return APIControllerWrapper.BASE_API_URL + apiDefinition.api_name + "/" +
+        //         (apiDefinition.param_translator && apiDefinition.param_translator.URL ? apiDefinition.param_translator.URL : "");
+        // } else {
 
-            return APIControllerWrapper.BASE_API_URL + apiDefinition.api_name;
-        }
+        return APIControllerWrapper.BASE_API_URL + apiDefinition.api_name;
+        // }
     }
 
     public static requestUrlMatchesApiUrl(requestUrl: string, apiUrl: string): boolean {
