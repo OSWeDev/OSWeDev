@@ -9,6 +9,7 @@ export default class RequestResponseCacheVO {
     public static STATE_REQUESTED: number = 1;
     public static STATE_RESOLVED: number = 2;
     public static STATE_REJECTED: number = 3;
+    public static STATE_INVALIDATED: number = 4;
 
     public static API_TYPE_GET: number = 0;
     public static API_TYPE_POST: number = 1;
@@ -40,6 +41,7 @@ export default class RequestResponseCacheVO {
     public api_types_involved: string[] = [];
 
     public constructor(
+        public uid_index: string,
         public apiDefinition: APIDefinition<any, any>,
         url: string,
         api_types_involved: string[],
