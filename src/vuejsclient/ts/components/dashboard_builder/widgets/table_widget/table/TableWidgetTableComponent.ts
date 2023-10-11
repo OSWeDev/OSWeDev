@@ -1707,9 +1707,20 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         // On fait le count sans les vars
         let query_count: ContextQueryVO = cloneDeep(context_query);
+        let rows = null;
 
-        await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, this.columns);
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(context_query, this.columns_by_field_id, fields);
+        await all_promises([
+            (async () => {
+                await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query, this.columns);
+                rows = await ModuleContextFilter.getInstance().select_datatable_rows(context_query, this.columns_by_field_id, fields);
+            })(),
+            (async () => {
+                query_count.set_limit(0, 0);
+                query_count.set_sort(null);
+                query_count.query_distinct = true;
+                this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
+            })()
+        ]);
 
         let vos_by_id: { [id: number]: any } = {};
         for (let i in rows) {
@@ -1738,11 +1749,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         this.data_rows = rows;
-
-        query_count.set_limit(0, 0);
-        query_count.set_sort(null);
-        query_count.query_distinct = true;
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
 
         this.actual_rows_count_query = cloneDeep(query_count);
         this.actual_rows_count_query.do_count_results = true;

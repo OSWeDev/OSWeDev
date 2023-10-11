@@ -14,7 +14,23 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
+import ThrottlePipelineHelper from '../../../../shared/tools/ThrottlePipelineHelper';
 
+/**
+ * Refonte du AjaxCacheClientController :
+ *  - L'objectif de base de cette classe c'est de gérer un cache de requêtes ajax
+ *      et de wrapper les queries pour les envoyer par batch de 6 requêtes max
+ *      tout en pouvant regrouper les requetes dans un request_wrapper pour avoir
+ *      potentiellement 100 requetes envoyées avec seulement 6 canaux du navigateur utilisés.
+ *  - Et on fait les POST en direct.
+ *  - Donc maintenant on sépare les 2 logiques :
+ *      - D'une part les GET et POST_FOR_GET qu'on peut wrapper dans un request_wrapper
+ *          et //iser. On passe par un ThrottledPromisePipeline pour gérer les requêtes
+ *          6 ou pas 6 au fond c'est le navigateur qui gère mais on limite à 8 le pipeline
+ *          pour pousser à empiler les requetes si les canaux sont pris.
+ *      - D'autre part les POST qu'on fait en live à la demande.
+ *  - De manière générale les callbacks sont dépilés indépendamment des requêtes comme avant
+ */
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
     public static getInstance(): AjaxCacheClientController {
@@ -30,8 +46,6 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      * This is used to identify the tab the app is running in to send appropriate notifications to the corresponding tab
      */
     public client_tab_id: string = Dates.now() + '_' + Math.floor(Math.random() * 100000);
-
-    // public ajaxcache_debouncer: number = 25;
 
     public api_logs: LightWeightSendableRequestVO[] = [];
 
@@ -57,11 +71,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      */
     private is_processing_requests: boolean = false;
 
-    // private processRequestsWrapperSemaphore: boolean = false;
-    // private processRequestsSemaphore: boolean = false;
-    // private processRequestsSemaphore_needs_reload: boolean = false;
-
-    // private debounced_requests_wrapper = ThrottleHelper.declare_throttle_without_args(this.processRequestsWrapper.bind(this), this.ajaxcache_debouncer, { leading: true, trailing: true });
+    private process_get_and_post_for_get_requests: (index: string, request: RequestResponseCacheVO) => Promise<any> =
+        ThrottlePipelineHelper.declare_throttled_pipeline(
+            'AjaxCacheClientController.process_get_and_post_for_get_requests',
+            this._process_get_and_post_for_get_requests.bind(this), 200, 6, 20
+        );
 
     public async getCSRFToken() {
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
@@ -326,6 +340,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 this.invalidateCachedItem(cachedItem);
             }
         }
+    }
+
+    private async _process_get_and_post_for_get_requests(requests_by_index: { [index: string]: RequestResponseCacheVO }): Promise<any> {
+
+        await this.wrap_request(Object.values(requests_by_index));
+        return requests_by_index;
     }
 
     // Fonctionnement du cache :

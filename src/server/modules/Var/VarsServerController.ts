@@ -466,11 +466,13 @@ export default class VarsServerController {
      * @param varDAGNode Noeud dont on somme les deps
      * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? and : ignore)
      * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
+     * @param do_not_consider_null_as_false Par défaut, si on rencontre null, on renvoie false. Si on active ce param, en rencontrant null on ignore la valeur, donc ne force pas un résultat true, mais ne renvoie pas false.
      */
-    public static get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1) {
+    public static get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1, do_not_consider_null_as_false: boolean = false) {
         let res: number = start_value;
 
-        if (!res) {
+        // On peut vouloir commencer à null, et du coup renvoyer null si tous les deps sont null
+        if (res === 0) {
             return 0;
         }
 
@@ -483,6 +485,11 @@ export default class VarsServerController {
 
             let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
             let value = var_data ? var_data.value : null;
+
+            if (do_not_consider_null_as_false && (value == null)) {
+                continue;
+            }
+
             if ((!var_data) || (isNaN(value))) {
                 return 0;
             }
@@ -490,9 +497,14 @@ export default class VarsServerController {
             if (!value) {
                 return 0;
             }
+
+            // Si on avait pas encore vu de true, on force le résultat à true
+            if (res == null) {
+                res = 1;
+            }
         }
 
-        return 1;
+        return res;
     }
 
     private static setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {

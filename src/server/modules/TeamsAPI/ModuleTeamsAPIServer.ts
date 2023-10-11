@@ -41,7 +41,7 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
             null,
             true,
             null,
-            false,
+            true,
             true
         );
     }

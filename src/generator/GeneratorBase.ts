@@ -65,7 +65,10 @@ import VersionUpdater from './version_updater/VersionUpdater';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
 import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
-import Patch20231003ForceUnicityCodeText from './patchs/postmodules/Patch20231003ForceUnicityCodeText';
+import Patch20231003ForceUnicityCodeText from './patchs/premodules/Patch20231003ForceUnicityCodeText';
+import Patch20231010ForceUnicityVarConfName from './patchs/premodules/Patch20231010ForceUnicityVarConfName';
+import Patch20231010ForceUnicityVarCacheConfVarID from './patchs/premodules/Patch20231010ForceUnicityVarCacheConfVarID';
+import Patch20231010ForceUnicityParamName from './patchs/premodules/Patch20231010ForceUnicityParamName';
 
 export default abstract class GeneratorBase {
 
@@ -122,6 +125,10 @@ export default abstract class GeneratorBase {
         ];
 
         this.pre_modules_workers = [
+            Patch20231003ForceUnicityCodeText.getInstance(),
+            Patch20231010ForceUnicityVarConfName.getInstance(),
+            Patch20231010ForceUnicityVarCacheConfVarID.getInstance(),
+            Patch20231010ForceUnicityParamName.getInstance(),
             Patch20210803ChangeDIHDateType.getInstance(),
             Patch20210914ClearDashboardWidgets.getInstance(),
             Patch20211004ChangeLang.getInstance(),
@@ -153,7 +160,6 @@ export default abstract class GeneratorBase {
             Patch20230519AddRightsFeedbackStateVO.getInstance(),
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
-            Patch20231003ForceUnicityCodeText.getInstance(),
         ];
     }
 
