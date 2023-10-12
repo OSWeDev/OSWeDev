@@ -2,16 +2,16 @@
     template(v-if="((!!is_vo_field_ref) && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)")
         .vo_field_ref_label(v-if='(!!is_vo_field_ref) && !!vo_field_ref') {{ vo_field_ref_label }}
         .vo_field_ref_label(v-if='(!is_vo_field_ref) && !!custom_filter_name') {{ custom_filter_name }}
-        
+
         template(v-if="opts && (opts.length > 0)")
             .row
                 .opts(:class="{['col-sm-7']: is_type_custom, ['col-sm-12']: !is_type_custom}")
                     template(v-if="is_checkbox")
                         template(v-for="opt in opts")
                             .filter_opt
-                                input(type="checkbox" :id="base_filter + opt.id" name="filter_opt" @change="onchange_filter_opt_input($event.target, opt)")
+                                input(type="checkbox" :checked="tmp_filter_active_opt && (tmp_filter_active_opt.id == opt.id)" :id="base_filter + opt.id" name="filter_opt" @change="onchange_filter_opt_input($event.target, opt)")
                                 label.option__name.ml-2(:for="base_filter + opt.id") {{ opt.name }}
-                    
+
                     template(v-else)
                         multiselect(
                             :preselect-first="false"
@@ -26,7 +26,7 @@
                             :internal-search="false"
 
                             track-by="id"
-                                                    
+
                             :select-label='label("multiselect.selectLabel")'
                             :select-group-label='label("multiselect.selectGroupLabel")'
                             :selected-label='label("multiselect.selectedLabel")'

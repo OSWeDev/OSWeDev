@@ -1629,6 +1629,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'advanced_date_filter_widget_component.is_checkbox.visible.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeur par défaut" },
+            'advanced_date_filter_widget_component.default_value.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Liste des options" },
             'advanced_date_filter_widget_component.opts.___LABEL___'
         ));
