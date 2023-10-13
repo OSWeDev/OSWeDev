@@ -1,7 +1,7 @@
 .year_filter_input_component
     template
         template(v-if='is_vo_field_ref')
-            .label {{ input_label }}
+            .vo_field_ref_label {{ input_label }}
         template(v-else-id='!!custom_filter_name')
             .custom_filter_name {{ custom_filter_name }}
 

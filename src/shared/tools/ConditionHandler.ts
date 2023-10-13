@@ -51,6 +51,26 @@ export default class ConditionHandler {
         let result: boolean = null;
         let type: string = null;
 
+        if ((a == null) && (b == null)) {
+            return (condition == ConditionStatement.STRICT_EQUALS) ||
+                (condition == ConditionStatement.EQUALS) ||
+                (condition == ConditionStatement.IS_NULL) ||
+                (condition == ConditionStatement.IS_EMPTY);
+        }
+
+        if ((a == null) && (condition == ConditionStatement.IS_NOT_NULL)) {
+            return false;
+        }
+        if ((a == null) && (condition == ConditionStatement.IS_NULL)) {
+            return true;
+        }
+        if ((a == null) && (condition == ConditionStatement.IS_NOT_EMPTY)) {
+            return false;
+        }
+        if ((a == null) && (condition == ConditionStatement.IS_EMPTY)) {
+            return true;
+        }
+
         if (
             typeof a === 'number' &&
             (

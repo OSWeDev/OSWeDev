@@ -68,10 +68,30 @@ export default class VarsProcessInvalidator {
             let invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
             VarsDatasVoUpdateHandler.invalidators = [];
 
+            let has_first_invalidator = false;
+            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length);
+                if (invalidators && invalidators.length) {
+                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
+                    invalidators[0].console_log();
+                    has_first_invalidator = true;
+                }
+            }
+
             // On récupère les invalidateurs qui sont liées à des demandes de suppressions/modif/créa de VO
             let leafs_invalidators_handle_buffer: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.handle_buffer();
             if (leafs_invalidators_handle_buffer && ObjectHandler.hasAtLeastOneAttribute(leafs_invalidators_handle_buffer)) {
                 invalidators.push(...Object.values(leafs_invalidators_handle_buffer));
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators post VarsDatasVoUpdateHandler.handle_buffer:' + invalidators.length);
+                    if (invalidators && invalidators.length) {
+                        if (!has_first_invalidator) {
+                            ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
+                            invalidators[0].console_log();
+                        }
+                    }
+                }
             }
 
             let deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.deploy_invalidators(invalidators);

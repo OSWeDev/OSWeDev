@@ -1587,14 +1587,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                     // // On gère un cas bien spécifique : Si on fait une création d'import pendant un calcul,
                                     // //  le calcul se termine après l'import et la notif + invalidation associées, et on vient de notifier une
                                     // //  valeur qui est donc fause à ce stade. On doit refuser l'insertion de cette valeur et on doit invalider.
-                                    // if (duplicated.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+                                    if (duplicated.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
 
-                                    //     // On invalide la valeur (en y réflechissant il est probable que l'invalidation passe en fait sans avoir à la refaire ici
-                                    //     //  mais ça coute pas vraiment plus cher, et comme ça on est sûr du résultat)
-                                    //     await ModuleVarServer.getInstance().invalidate_cache_intersection_and_parents([duplicated]);
+                                        //     // On invalide la valeur (en y réflechissant il est probable que l'invalidation passe en fait sans avoir à la refaire ici
+                                        //     //  mais ça coute pas vraiment plus cher, et comme ça on est sûr du résultat)
+                                        //     await ModuleVarServer.getInstance().invalidate_cache_intersection_and_parents([duplicated]);
 
-                                    //     continue;
-                                    // }
+                                        continue;
+                                    }
                                 }
                                 filtered_not_imported_vos.push(vo);
                             }

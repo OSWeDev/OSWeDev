@@ -17,6 +17,7 @@ import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
+import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -38,6 +39,12 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private pop_page_history: (fk) => void;
+
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
+
+    // @ModuleDashboardPageAction
+    // private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
 
     @Prop({ default: null })
     private dashboard_id: number;
@@ -127,6 +134,15 @@ export default class DashboardViewerComponent extends VueComponentBase {
             this.loading = false;
             return;
         }
+
+        // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
+        // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...
+        this.clear_active_field_filters();
+        // const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
+        //     this.dashboard.id,
+        // );
+
+        // this.add_shared_filters_to_map(shared_filters);
 
         this.pages = await this.load_dashboard_pages_by_dashboard_id(
             this.dashboard.id

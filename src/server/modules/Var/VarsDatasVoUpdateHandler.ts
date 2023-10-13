@@ -212,8 +212,8 @@ export default class VarsDatasVoUpdateHandler {
         for (let i in intersectors_by_index) {
             let intersector = intersectors_by_index[i];
 
-            let invalidator = new VarDataInvalidatorVO(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
-            let conf_id = VarsCacheController.get_validator_config_id(invalidator);
+            let invalidator = VarDataInvalidatorVO.create_new(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
+            let conf_id = VarsController.get_validator_config_id(invalidator);
             leaf_invalidators_by_index[conf_id] = invalidator;
         }
 
@@ -236,7 +236,7 @@ export default class VarsDatasVoUpdateHandler {
         for (let i in invalidators) {
             let invalidator = invalidators[i];
 
-            actual_invalidators[VarsCacheController.get_validator_config_id(invalidator)] = invalidator;
+            actual_invalidators[VarsController.get_validator_config_id(invalidator)] = invalidator;
         }
 
         while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
@@ -267,8 +267,8 @@ export default class VarsDatasVoUpdateHandler {
                     }
 
                     intersectors_array.map((intersector) => {
-                        let new_invalidator = new VarDataInvalidatorVO(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
-                        let new_invalidator_id = VarsCacheController.get_validator_config_id(new_invalidator);
+                        let new_invalidator = VarDataInvalidatorVO.create_new(intersector, actual_invalidator.invalidator_type, actual_invalidator.propagate_to_parents, actual_invalidator.invalidate_denied, actual_invalidator.invalidate_imports);
+                        let new_invalidator_id = VarsController.get_validator_config_id(new_invalidator);
 
                         if (!!deployed_invalidators[new_invalidator_id]) {
                             return;
@@ -358,12 +358,12 @@ export default class VarsDatasVoUpdateHandler {
      */
     public static async handle_invalidators(deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO }) {
 
-        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + VarsDatasVoUpdateHandler.invalidators.length);
         let invalidators = Object.values(deployed_invalidators);
 
         if (!invalidators || !invalidators.length) {
             return;
         }
+        ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:IN:' + invalidators.length);
 
         // On fait l'union
         invalidators = this.union_invalidators(invalidators);
@@ -462,7 +462,8 @@ export default class VarsDatasVoUpdateHandler {
             if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:REINSERT:' + index);
             }
-            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), true));
+            // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
+            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false));
         }
 
         await all_promises(all_vardagnode_promises);
@@ -499,7 +500,7 @@ export default class VarsDatasVoUpdateHandler {
         for (let i in invalidators) {
             let invalidator = invalidators[i];
 
-            let conf_id = VarsCacheController.get_validator_config_id(invalidator, false);
+            let conf_id = VarsController.get_validator_config_id(invalidator, false);
             if (!invalidators_by_conf[conf_id]) {
                 invalidators_by_conf[conf_id] = [];
             }
@@ -523,7 +524,7 @@ export default class VarsDatasVoUpdateHandler {
 
             for (let i in union_var_datas) {
                 let union_var_data = union_var_datas[i];
-                let union_invalidator = new VarDataInvalidatorVO(union_var_data, kept_invalidator.invalidator_type, kept_invalidator.propagate_to_parents, kept_invalidator.invalidate_denied, kept_invalidator.invalidate_imports);
+                let union_invalidator = VarDataInvalidatorVO.create_new(union_var_data, kept_invalidator.invalidator_type, kept_invalidator.propagate_to_parents, kept_invalidator.invalidate_denied, kept_invalidator.invalidate_imports);
                 union_invalidators.push(union_invalidator);
             }
         }

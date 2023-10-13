@@ -615,6 +615,33 @@ export default class VarDataRefComponent extends VueComponentBase {
     get contextmenu_items(): any {
         let contextmenu_items: any = {};
 
+        // contextmenu_items['explain_var'] = {
+        //     name: this.label('VarDataRefComponent.contextmenu.explain_var'),
+        //     disabled: function (key, opt) {
+        //         let elt = opt.$trigger[0];
+
+        //         if (!elt) {
+        //             return true;
+        //         }
+
+        //         return elt.getAttribute('var_param_index') == null;
+        //     },
+        //     callback: async (key, opt) => {
+        //         let elt = opt.$trigger[0];
+
+        //         if (!elt) {
+        //             return;
+        //         }
+
+        //         let raw_value = elt.getAttribute('var_param_index');
+        //         if (!raw_value) {
+        //             return;
+        //         }
+
+        //         await VarExplainerController.explain_var(raw_value);
+        //     }
+        // };
+
         contextmenu_items['copy_raw_value'] = {
             name: this.label('VarDataRefComponent.contextmenu.copy_raw_value'),
             disabled: function (key, opt) {

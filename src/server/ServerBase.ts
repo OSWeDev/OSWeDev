@@ -542,13 +542,13 @@ export default abstract class ServerBase {
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
-                // if (uid && client_tab_id) {
-                //     StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
-                //     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
-                //     await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
-                // } else {
-                ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or no tab_id - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
-                // }
+                if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
+                    StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
+                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
+                    await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                } else {
+                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
+                }
 
                 res.status(404).send("Not found");
                 return;

@@ -1,6 +1,7 @@
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
+import VarDataInvalidatorVO from './vos/VarDataInvalidatorVO';
 
 export default class VarsController {
 
@@ -26,6 +27,16 @@ export default class VarsController {
             let conf = VarsController.var_conf_by_id[i];
             VarsController.var_conf_by_name[conf.name] = conf;
         }
+    }
+
+    public static get_validator_config_id(
+        invalidator: VarDataInvalidatorVO,
+        include_index: boolean = true): string {
+
+        return (invalidator && !!invalidator.var_data) ?
+            invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0')
+            + (include_index ? '_' + invalidator.var_data.index : '') :
+            null;
     }
 
     public static get_card_field_code(field_id: string): string {

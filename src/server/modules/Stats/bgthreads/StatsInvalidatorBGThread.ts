@@ -96,7 +96,7 @@ export default class StatsInvalidatorBGThread implements IBGThread {
             [RangeHandler.getMaxNumRange()],
             [ts_range]
         );
-        let invalidator = new VarDataInvalidatorVO(
+        let invalidator = VarDataInvalidatorVO.create_new(
             intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
         await VarsDatasVoUpdateHandler.push_invalidators([invalidator]);
     }

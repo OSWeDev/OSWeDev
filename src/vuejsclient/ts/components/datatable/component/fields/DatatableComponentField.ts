@@ -23,6 +23,7 @@ import ConditionHandler, { ConditionStatement } from '../../../../../../shared/t
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -107,6 +108,8 @@ export default class DatatableComponentField extends VueComponentBase {
 
     private custom_style: string = null;
 
+    private throttle_init_custom_style = ThrottleHelper.declare_throttle_without_args(this.init_custom_style.bind(this), 50, { leading: false });
+
     public async mounted() {
         if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
             this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
@@ -120,9 +123,10 @@ export default class DatatableComponentField extends VueComponentBase {
         this.is_load = true;
     }
 
+    @Watch('with_style', { immediate: true })
     @Watch('var_value')
     private async onchange_var_value() {
-        this.init_custom_style();
+        this.throttle_init_custom_style();
     }
 
 
@@ -193,6 +197,8 @@ export default class DatatableComponentField extends VueComponentBase {
         // The column description
         const column: TableColumnDescVO = this.columns[column_key];
 
+        let added_dynamic_style = false;
+
         // deduct style from field type and column colors_by_value_and_conditions
         for (const key in column?.colors_by_value_and_conditions) {
             const color_by_value_and_condition = column.colors_by_value_and_conditions[key];
@@ -210,12 +216,19 @@ export default class DatatableComponentField extends VueComponentBase {
 
             if (column.is_number && ConditionHandler.dynamic_statement(this.field_value, condition as ConditionStatement, value)) {
                 style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
+                added_dynamic_style = true;
             }
 
-            if (column.is_var && ConditionHandler.dynamic_statement(this.var_value.value, condition as ConditionStatement, value)) {
+            if (column.is_var && ConditionHandler.dynamic_statement(this.var_value ? this.var_value.value : null, condition as ConditionStatement, value)) {
                 style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
+                added_dynamic_style = true;
             }
         }
+
+        if (added_dynamic_style) {
+            style += ";text-align: center;border-radius: 4px;";
+        }
+
 
         this.custom_style = style;
     }

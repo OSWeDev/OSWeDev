@@ -838,7 +838,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let trans_array = [];
                     for (let i in e) {
                         let e_ = e[i];
-                        trans_array.push(this.default_get_field_api_version(e_, field, translate_field_id));
+
+                        if ((typeof e_ === 'string') && ((!e_) || (e_.indexOf('{') < 0))) {
+                            trans_array.push(e_);
+                        } else {
+                            trans_array.push(this.default_get_field_api_version(e_, field, translate_field_id));
+                        }
                     }
                     return JSON.stringify(trans_array);
 

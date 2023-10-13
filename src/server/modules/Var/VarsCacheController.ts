@@ -1,11 +1,6 @@
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import RangeHandler from '../../../shared/tools/RangeHandler';
-import ConfigurationService from '../../env/ConfigurationService';
 import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
@@ -40,16 +35,6 @@ export default class VarsCacheController {
         }
 
         return res;
-    }
-
-    public static get_validator_config_id(
-        invalidator: VarDataInvalidatorVO,
-        include_index: boolean = true): string {
-
-        return (invalidator && !!invalidator.var_data) ?
-            invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0')
-            + (include_index ? '_' + invalidator.var_data.index : '') :
-            null;
     }
 
     /**

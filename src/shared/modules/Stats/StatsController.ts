@@ -73,7 +73,11 @@ export default class StatsController {
             return;
         }
 
-        StatsController.getInstance().UNSTACK_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000);
+        let default_value = 60000;
+        StatsController.getInstance().UNSTACK_THROTTLE = default_value;
+        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000).then((res: number) => {
+            StatsController.getInstance().UNSTACK_THROTTLE = res;
+        });
     }
 
     /**

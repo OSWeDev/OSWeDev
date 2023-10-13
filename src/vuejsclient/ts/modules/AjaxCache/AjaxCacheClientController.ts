@@ -14,7 +14,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
-import ThrottlePipelineHelper from '../../../../shared/tools/ThrottlePipelineHelper';
+import ThreadHandler from '../../../../shared/tools/ThreadHandler';
 
 /**
  * Refonte du AjaxCacheClientController :
@@ -36,6 +36,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     public static getInstance(): AjaxCacheClientController {
         if (!AjaxCacheClientController.instance) {
             AjaxCacheClientController.instance = new AjaxCacheClientController();
+            AjaxCacheClientController.instance.processRequests();
         }
         return AjaxCacheClientController.instance;
     }
@@ -66,16 +67,22 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private api_logs_limit: number = 101;
 
     /**
+     * On se fait un PromisePipeline de 6 requêtes max, qui correspond à la limite de requêtes simultanées du navigateur
+     * (https://stackoverflow.com/questions/985431/max-parallel-http-connections-in-a-browser)
+     */
+    private requests_promise_pipeline: PromisePipeline = new PromisePipeline(6, 'AjaxCacheClientController.requests_promise_pipeline');
+
+    /**
      * Semaphore pour savoir si actuellement le système d'envoi des requêtes est en train de tourner
      *  Si oui, inutile de le relancer
      */
     private is_processing_requests: boolean = false;
 
-    private process_get_and_post_for_get_requests: (index: string, request: RequestResponseCacheVO) => Promise<any> =
-        ThrottlePipelineHelper.declare_throttled_pipeline(
-            'AjaxCacheClientController.process_get_and_post_for_get_requests',
-            this._process_get_and_post_for_get_requests.bind(this), 200, 6, 20
-        );
+    // private process_get_and_post_for_get_requests: (index: string, request: RequestResponseCacheVO) => Promise<any> =
+    //     ThrottlePipelineHelper.declare_throttled_pipeline(
+    //         'AjaxCacheClientController.process_get_and_post_for_get_requests',
+    //         this._process_get_and_post_for_get_requests.bind(this), 200, 6, 20
+    //     );
 
     public async getCSRFToken() {
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
@@ -342,11 +349,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
     }
 
-    private async _process_get_and_post_for_get_requests(requests_by_index: { [index: string]: RequestResponseCacheVO }): Promise<any> {
+    // private async _process_get_and_post_for_get_requests(requests_by_index: { [index: string]: RequestResponseCacheVO }): Promise<any> {
 
-        await this.wrap_request(Object.values(requests_by_index));
-        return requests_by_index;
-    }
+    //     await this.wrap_request(Object.values(requests_by_index));
+    //     return requests_by_index;
+    // }
 
     // Fonctionnement du cache :
     // 	2 process :
@@ -456,28 +463,28 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         cache.state = RequestResponseCacheVO.STATE_REQUESTED;
         this.waitingForRequest.push(cache);
 
-        if (this.is_processing_requests) {
-            return;
-        }
+        // if (this.is_processing_requests) {
+        //     return;
+        // }
 
-        this.is_processing_requests = true;
-        try {
-            this.processRequests()
-                .catch((err) => {
-                    ConsoleHandler.error('addToWaitingRequestsStack:processRequests:FAILED:' + err);
-                })
-                .finally(() => {
-                    this.is_processing_requests = false;
+        // this.is_processing_requests = true;
+        // try {
+        //     this.processRequests()
+        //         .catch((err) => {
+        //             ConsoleHandler.error('addToWaitingRequestsStack:processRequests:FAILED:' + err);
+        //         })
+        //         .finally(() => {
+        //             this.is_processing_requests = false;
 
-                    // Petite sécu au cas où le sémaphore ne se libère pas au bon moment
-                    if (this.waitingForRequest.length) {
-                        this.addToWaitingRequestsStack(this.waitingForRequest.shift());
-                    }
-                });
-        } catch (error) {
-            ConsoleHandler.error("addToWaitingRequestsStack:processRequests:FAILED:" + error);
-            this.is_processing_requests = false;
-        }
+        //             // Petite sécu au cas où le sémaphore ne se libère pas au bon moment
+        //             if (this.waitingForRequest.length) {
+        //                 this.addToWaitingRequestsStack(this.waitingForRequest.shift());
+        //             }
+        //         });
+        // } catch (error) {
+        //     ConsoleHandler.error("addToWaitingRequestsStack:processRequests:FAILED:" + error);
+        //     this.is_processing_requests = false;
+        // }
     }
 
     private async traitementFailRequest(err, request: RequestResponseCacheVO) {
@@ -650,52 +657,84 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      */
     private async processRequests() {
 
-        while (this.waitingForRequest.length > 0) {
+        while (true) {
+
+            if (this.waitingForRequest.length <= 0) {
+                await ThreadHandler.sleep(50, 'AjaxCacheClientController.processRequests');
+            }
 
             let this_batch_requests = this.waitingForRequest;
             this.waitingForRequest = [];
 
-            // On commence par séparer les requêtes wrappable des autres
-            let wrappable_requests: RequestResponseCacheVO[] = [];
-            let non_wrappable_requests: RequestResponseCacheVO[] = [];
+            // // On commence par séparer les requêtes wrappable des autres
+            // let wrappable_requests: RequestResponseCacheVO[] = [];
+            // // let non_wrappable_requests: RequestResponseCacheVO[] = [];
 
-            for (let i in this_batch_requests) {
-                let request = this_batch_requests[i];
+            // for (let i in this_batch_requests) {
+            //     let request = this_batch_requests[i];
 
-                if (request.wrappable_request) {
-                    wrappable_requests.push(request);
-                } else {
-                    non_wrappable_requests.push(request);
-                }
+            //     if (request.wrappable_request) {
+            //         wrappable_requests.push(request);
+            //     }
+            //     // else {
+            //     //     non_wrappable_requests.push(request);
+            //     // }
+            // }
+
+
+            await this.resolve_all_non_wrappable_request(this_batch_requests);
+            await this.resolve_all_wrappable_request(this_batch_requests);
+
+            // // on traite d'une part les requêtes wrappable
+            // if (wrappable_requests.length > 0) {
+            //     await promise_pipeline.push(async () => {
+            //         await this.wrap_request(wrappable_requests, Math.max(1, max_query - non_wrappable_requests.length));
+            //     });
+            // }
+
+            // // on traite d'autre part les requêtes non wrappable
+            // if (non_wrappable_requests.length > 0) {
+            //     for (let i in non_wrappable_requests) {
+            //         let request = non_wrappable_requests[i];
+
+            //         await promise_pipeline.push(async () => {
+            //             await this.resolve_non_wrappable_request(request);
+            //         });
+            //     }
+            // }
+        }
+    }
+
+    private async resolve_all_wrappable_request(this_batch_requests: RequestResponseCacheVO[]) {
+        let wrappable_requests: RequestResponseCacheVO[] = [];
+
+        for (let i in this_batch_requests) {
+            let request = this_batch_requests[i];
+
+            if (!request.wrappable_request) {
+                continue;
+            }
+            wrappable_requests.push(request);
+        }
+
+        if (wrappable_requests.length > 0) {
+            await this.requests_promise_pipeline.push(async () => {
+                await this.wrap_request(wrappable_requests, 6);
+            });
+        }
+    }
+
+    private async resolve_all_non_wrappable_request(this_batch_requests: RequestResponseCacheVO[]) {
+        for (let i in this_batch_requests) {
+            let request = this_batch_requests[i];
+
+            if (request.wrappable_request) {
+                continue;
             }
 
-            /**
-             * On se fait un PromisePipeline de 6 requêtes max, qui correspond à la limite de requêtes simultanées du navigateur
-             * (https://stackoverflow.com/questions/985431/max-parallel-http-connections-in-a-browser)
-             */
-            let max_query = 6;
-            let promise_pipeline: PromisePipeline = new PromisePipeline(max_query, 'AjaxCacheClientController.processRequests');
-
-            // on traite d'une part les requêtes wrappable
-            if (wrappable_requests.length > 0) {
-                await promise_pipeline.push(async () => {
-                    await this.wrap_request(wrappable_requests, Math.max(1, max_query - non_wrappable_requests.length));
-                });
-            }
-
-            // on traite d'autre part les requêtes non wrappable
-            if (non_wrappable_requests.length > 0) {
-                for (let i in non_wrappable_requests) {
-                    let request = non_wrappable_requests[i];
-
-                    await promise_pipeline.push(async () => {
-                        await this.resolve_non_wrappable_request(request);
-                    });
-                }
-            }
-
-            // On attend la fin de toutes les requêtes
-            await promise_pipeline.end();
+            await this.requests_promise_pipeline.push(async () => {
+                await this.resolve_non_wrappable_request(request);
+            });
         }
     }
 

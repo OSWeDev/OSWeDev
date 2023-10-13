@@ -634,33 +634,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     /**
-     * load_shared_filters_with_dashboard_id
-     * - Load the shared filters with dashboard id and sort them by weight
-     *
-     * @param {number} [dashboard_id]
-     * @param {boolean} [options.refresh]
-     * @returns {Promise<DashboardVO[]>}
-     */
-    private async load_shared_filters_with_dashboard_id(
-        dashboard_id: number,
-        options?: { refresh?: boolean }
-    ): Promise<SharedFiltersVO[]> {
-
-        const shared_filters = await SharedFiltersVOManager.find_shared_filters_with_dashboard_ids(
-            [dashboard_id],
-            {
-                sorts: [
-                    // new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
-                ]
-            },
-            options
-        );
-
-        return shared_filters;
-    }
-
-    /**
      * update_dashboard_navigation_history
      *  - Update the dashboard navigation history
      */
@@ -708,7 +681,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         this.set_page_widgets(page_widgets);
 
-        const shared_filters: SharedFiltersVO[] = await this.load_shared_filters_with_dashboard_id(
+        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
             this.dashboard.id,
         );
 

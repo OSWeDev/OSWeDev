@@ -9,5 +9,5 @@
                 i.fa-times.fa.fa-lg.btn_icon.text-danger(aria-hidden="true" v-else)
                 | {{ label('file.download') }}
             .btn.btn-sm.btn-danger.ml-2(v-if="(!!filevo) && filevo.id && !hide_btn_delete_file", @click="removeFile")
-                i.fa-trash.fa.fa-lg.btn_icon.text-danger(aria-hidden="true")
+                i.fa-trash.fa.fa-lg.btn_icon(aria-hidden="true")
                 | {{ label('file.trash') }}

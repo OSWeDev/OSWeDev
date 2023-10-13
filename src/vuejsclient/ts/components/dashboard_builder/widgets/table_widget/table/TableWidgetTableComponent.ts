@@ -257,7 +257,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return;
         }
 
-        let filtered_value = vo ? vo[datatable_field_uid] : null;
+        let raw_value = vo[datatable_field_uid + '__raw'];
+        // let field_value = vo ? vo[datatable_field_uid] : null;
 
         this.is_filtering_by = true;
 
@@ -268,10 +269,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         // case when field_id is "id" or datatable_field_uid is crud action
         if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
 
-            if (!filtered_value) {
+            if (!raw_value) {
                 context_filter.has_null();
             } else {
-                context_filter.by_id(filtered_value);
+                context_filter.by_id(raw_value);
             }
         } else {
             let moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -283,14 +284,21 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
-                    if (filtered_value == null) {
+                    if (raw_value == null) {
                         context_filter.has_null();
                     } else {
-                        context_filter.by_text_has(filtered_value);
+                        context_filter.by_text_has(raw_value);
                     }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_enum:
+                    if (raw_value == null) {
+                        context_filter.has_null();
+                    } else {
+                        context_filter.by_num_eq(raw_value);
+                    }
+                    break;
+
                 case ModuleTableField.FIELD_TYPE_int:
                 case ModuleTableField.FIELD_TYPE_float:
                 case ModuleTableField.FIELD_TYPE_foreign_key:
@@ -298,10 +306,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_prct:
-                    if (filtered_value == null) {
+                    if (raw_value == null) {
                         context_filter.has_null();
                     } else {
-                        context_filter.by_num_eq(filtered_value);
+                        context_filter.by_num_eq(raw_value);
                     }
                     break;
 

@@ -676,7 +676,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             // cas particulier de l'invalidation exacte où on accepte de supprimer un import ou un denied puisqu'on demande expressément de supprimer cette var
 
-            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED, vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT);
+            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED, vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT);
             invalidators.push(invalidator);
         }
 
@@ -698,7 +698,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, true, false, false);
+            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, true, false, false);
             invalidators.push(invalidator);
         }
 
@@ -720,7 +720,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
+            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
             invalidators.push(invalidator);
         }
 
@@ -756,7 +756,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, false);
+            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, false);
             invalidators.push(invalidator);
         }
 
@@ -778,7 +778,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, true);
+            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, true);
             invalidators.push(invalidator);
         }
 

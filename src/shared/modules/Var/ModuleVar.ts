@@ -41,6 +41,7 @@ import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
 import { field_names } from '../../tools/ObjectHandler';
+import VarDataInvalidatorVO from './vos/VarDataInvalidatorVO';
 
 export default class ModuleVar extends Module {
 
@@ -177,6 +178,7 @@ export default class ModuleVar extends Module {
         this.initializeVarConfVO();
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
+        this.initializeVarDataInvalidatorVO();
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
     }
@@ -806,6 +808,20 @@ export default class ModuleVar extends Module {
         this.datatables.push(datatable);
     }
 
+    private initializeVarDataInvalidatorVO() {
+
+        let datatable_fields = [
+
+            new ModuleTableField('var_data', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Invalidateur', true),
+
+            new ModuleTableField('invalidator_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'invalidateur', true, true, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT).setEnumValues(VarDataInvalidatorVO.INVALIDATOR_TYPE_LABELS),
+            new ModuleTableField('propagate_to_parents', ModuleTableField.FIELD_TYPE_boolean, 'Propager aux parents', true, true, true),
+            new ModuleTableField('invalidate_denied', ModuleTableField.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false),
+            new ModuleTableField('invalidate_imports', ModuleTableField.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false),
+        ];
+        let datatable = new ModuleTable(this, VarDataInvalidatorVO.API_TYPE_ID, () => new VarDataInvalidatorVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
 
     /**
      * Important de ne pas juste faire une sous requete par colonne de var qui aurait des filtres, mais bien essayer de limiter les sous-requetes
