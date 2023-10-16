@@ -21,6 +21,8 @@ import './OnPageTranslation.scss';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
+import GPTConversationVO from '../../../../../shared/modules/GPT/vos/GPTConversationVO';
+import GPTMessageVO from '../../../../../shared/modules/GPT/vos/GPTMessageVO';
 
 @Component({
     template: require('./OnPageTranslation.pug')
@@ -442,7 +444,8 @@ export default class OnPageTranslation extends VueComponentBase {
 
         prompt += "Ta réponse doit se limiter à la traduction du code, sans rappeler le code, sans guillemets et sans retour à la ligne. Uniquement la traduction brute.\n";
 
-        // let gpt_translation: string = await ModuleGPT.getInstance()..prompt(prompt);
         ConsoleHandler.log(prompt);
+        let gpt_response: GPTMessageVO = await ModuleGPT.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
+        editable_translation.editable_translation = gpt_response.content;
     }
 }

@@ -1,10 +1,13 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
 import GPTConversationVO from './vos/GPTConversationVO';
 import GPTMessageVO from './vos/GPTMessageVO';
 
@@ -14,6 +17,8 @@ export default class ModuleGPT extends Module {
     public static MODULE_NAME: string = 'GPT';
 
     public static PARAM_NAME_MODEL_ID: string = 'PARAM_NAME_MODEL_ID';
+
+    public static APINAME_generate_response: string = "modulegpt_generate_response";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleGPT.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";
@@ -28,6 +33,11 @@ export default class ModuleGPT extends Module {
 
     private static instance: ModuleGPT = null;
 
+    public generate_response: (
+        conversation: GPTConversationVO, newPrompt: GPTMessageVO
+    ) => Promise<GPTMessageVO> = APIControllerWrapper.sah<APIGPTGenerateResponseParam, GPTMessageVO>(
+        ModuleGPT.APINAME_generate_response);
+
     private constructor() {
 
         super("gpt", ModuleGPT.MODULE_NAME);
@@ -35,6 +45,13 @@ export default class ModuleGPT extends Module {
     }
 
     public registerApis() {
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIGPTGenerateResponseParam, GPTMessageVO>(
+            null,
+            ModuleGPT.APINAME_generate_response,
+            null,
+            APIGPTGenerateResponseParamStatic
+        ));
     }
 
     public initialize() {

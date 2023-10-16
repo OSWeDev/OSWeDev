@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from "openai";
+import OpenAI from 'openai';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -17,6 +17,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -37,6 +38,11 @@ export default class ModuleGPTServer extends ModuleServerBase {
         super(ModuleGPT.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
+    public registerServerApiHandlers() {
+        APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
+    }
+
     // istanbul ignore next: cannot test configure
     public async configure() {
         if (!ConfigurationService.node_configuration.OPEN_API_API_KEY) {
@@ -44,11 +50,9 @@ export default class ModuleGPTServer extends ModuleServerBase {
             return;
         }
 
-        const configuration = new Configuration({
+        this.openai = new OpenAI({
             apiKey: ConfigurationService.node_configuration.OPEN_API_API_KEY
         });
-
-        this.openai = new OpenAIApi(configuration);
     }
 
     /**
@@ -87,8 +91,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test extern apis
     public async generate_response(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTMessageVO> {
         try {
-            // const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4", 60000);
-            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-3.5-turbo", 60000);
+            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4", 60000);
+            // const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-3.5-turbo", 60000);
             // const modelId = "gpt-3.5-turbo";
 
             if (!conversation || !newPrompt) {
@@ -138,7 +142,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test extern apis
     private async call_api(modelId: string, currentMessages: GPTAPIMessage[]): Promise<any> {
         try {
-            return await this.openai.createChatCompletion({
+            return await this.openai.chat.completions.create({
                 model: modelId,
                 messages: currentMessages,
             });
@@ -149,7 +153,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async api_response_handler(conversation: GPTConversationVO, result: any): Promise<GPTMessageVO> {
         try {
-            const responseText = result.data.choices.shift().message.content;
+            const responseText = result.choices.shift().message.content;
             const responseMessage: GPTMessageVO = new GPTMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
