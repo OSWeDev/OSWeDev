@@ -1,6 +1,7 @@
 .var_desc_explain
 
     template(v-if='var_conf != null')
+        .var_desc_get_chatgpt_prompt(@click='get_chatgpt_prompt') {{ label('var_desc.get_chatgpt_prompt') }}
         .var_desc_explain_title(@click='opened_public=!opened_public') {{ label('var_desc.public') }}
         .var_desc_explain_content(v-show='opened_public')
             .row 

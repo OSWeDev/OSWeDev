@@ -17,6 +17,12 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import VarsClientController from '../../../VarsClientController';
 import './VarDescExplainComponent.scss';
+import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import NumRangeComponentController from '../../../../ranges/numrange/NumRangeComponentController';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./VarDescExplainComponent.pug'),
@@ -31,6 +37,12 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
     @Prop()
     private var_param: VarDataBaseVO;
+
+    @Prop()
+    private var_data_value: number;
+
+    @Prop()
+    private filtered_value: string;
 
     private deps_loading: boolean = true;
     private deps_params: { [dep_id: string]: VarDataBaseVO } = {};
@@ -410,4 +422,129 @@ export default class VarDescExplainComponent extends VueComponentBase {
             await VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
         }
     }
+
+    private async get_chatgpt_prompt(): Promise<string> {
+
+        if (!this.self_param_loaded) {
+            return null;
+        }
+
+        if (!this.var_data) {
+            return null;
+        }
+
+        if (!this.deps_params_loaded) {
+            return null;
+        }
+
+        /**
+         * Objectif : fournir un prompt pour GPT qui contienne un maximum d'informations sur la variable, ses deps, le param, les datasources.
+         *  avec pour objectif de lui demander d'expliquer le calcul et la valeur actuelle avec ces éléments.
+         */
+        let prompt = "L'objectif est de fournir une explication d'un calcul réalisé sur un outil nommé Crescendo+, à son utilisateur actuel. Un calcul et la fonction associée sont aussi appelés 'variable'.\n";
+        prompt += "Crescendo+ est un outil d'analyse de données de facturation dans des concessions et points de vente de la marque Stellantis.\n";
+        prompt += "La valeur brute actuelle de la variable est : " + this.var_data_value + ".\n";
+        prompt += "La valeur formattée actuelle de la variable est : " + this.filtered_value + ".\n";
+        prompt += "Le nom de la variable est " + this.var_name.substring(this.var_name.indexOf('|') + 1, this.var_name.length) + ".\n";
+        if (this.show_help_tooltip && this.has_public_explaination) {
+            prompt += "Cette variable a une description faite pour un affichage à l\'utilisateur dans l'outil.\n";
+            prompt += "Son contenu peut être librement utilisé: " + this.public_explaination + ".\n";
+        }
+        // if (this.has_explaination) {
+        //     prompt += "Cette variable a une description technique.\nSon contenu est dédié à la compréhension interne des devs et MOAs, elle n'a pas forcément vocation à être affichée telle que à l'utilisateur : " + this.explaination + ".\n";
+        // }
+
+        prompt += 'Le calcul est paramétré par les éléments/champs de segmentation suivants : \n';
+
+        let var_data_fields = MatroidController.getMatroidFields(this.var_param._type);
+        for (let i in var_data_fields) {
+            let field = var_data_fields[i];
+
+            prompt += " - Le champs '" + this.label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[this.var_param._type].name + '.' + field.field_id) + "' qui filtre sur un ou plusieurs intervales de " +
+                ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
+            let ranges = this.var_param[field.field_id] as IRange[];
+            for (let j in ranges) {
+                let range = ranges[j];
+                let segmented_min = RangeHandler.getSegmentedMin(range);
+                let segmented_max = RangeHandler.getSegmentedMax(range);
+
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        prompt += "[" + Dates.format_segment(segmented_min, range.segment_type) + ", " + Dates.format_segment(segmented_max, range.segment_type) + "] - segmenté par " +
+                            TimeSegment.TYPE_NAMES[range.segment_type] + " -,\n";
+                        break;
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+
+                        let segmented_min_str = null;
+                        let segmented_max_str = null;
+
+                        if (!((segmented_min == RangeHandler.MIN_INT) && (segmented_max == RangeHandler.MAX_INT)) &&
+                            NumRangeComponentController.getInstance().num_ranges_enum_handler &&
+                            NumRangeComponentController.getInstance().num_ranges_enum_handler[this.var_param._type] &&
+                            NumRangeComponentController.getInstance().num_ranges_enum_handler[this.var_param._type][field.field_id]) {
+                            segmented_min_str = segmented_min + ' | ' + await NumRangeComponentController.getInstance().num_ranges_enum_handler[this.var_param._type][field.field_id].label_handler(
+                                segmented_min
+                            );
+                            if (segmented_min != segmented_max) {
+                                segmented_max_str = segmented_max + ' | ' +
+                                    await NumRangeComponentController.getInstance().num_ranges_enum_handler[this.var_param._type][field.field_id].label_handler(
+                                        RangeHandler.getSegmentedMax(range)
+                                    );
+                            } else {
+                                segmented_max_str = segmented_min;
+                            }
+                        } else {
+                            segmented_min_str = segmented_min.toString();
+                            segmented_max_str = segmented_max.toString();
+                        }
+
+                        prompt += "[" + segmented_min_str + ", " + segmented_max_str + "] - tu ne peux pas faire référence à cette information en disant de ... à ..., tu dois obligatoirement faire la liste exhaustive ou si tu n'as pas les éléments pour, indiquer le nombre d'éléments concernés -,\n";
+                        break;
+                }
+            }
+            prompt += "]\n";
+        }
+
+        if (this.has_deps_params) {
+            if (this.is_aggregator) {
+                prompt += "Cette variable est un agrégat de plusieurs autres variables, dont voici le détail : ";
+                throw new Error('Not implemented');
+                // for (let i in this.aggregated_var_datas) {
+                //     let aggregated_var_data = this.aggregated_var_datas[i];
+
+                //     prompt += "La variable " + aggregated_var_data. + " est un agrégat de plusieurs autres variables, dont voici le détail : ";
+                // }
+            }
+
+            for (let i in this.deps_params) {
+                let dep_param = this.deps_params[i];
+
+                // TODO
+            }
+        }
+
+        prompt += "Génère une explication simple destinée à l'utilisateur de l'application - donc avec un language adapté aux garagistes et gestionnaires de concessions.\n";
+        prompt += "L'explication doit avoir au maximum 100 mots, et expliquer clairement la valeur actuelle de la variable, en utilisant les éléments ci-dessus.\n";
+        ConsoleHandler.log('prompt', prompt);
+        return prompt;
+    }
+
+    get var_id(): number {
+
+        if (!this.var_param) {
+            return null;
+        }
+
+        return this.var_param.var_id;
+    }
+
+    get var_name(): string {
+
+        if (!this.var_id) {
+            return null;
+        }
+
+        return this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
+    }
+
 }

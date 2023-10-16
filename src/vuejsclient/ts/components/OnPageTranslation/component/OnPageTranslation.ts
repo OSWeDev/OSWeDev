@@ -19,6 +19,8 @@ import EditablePageTranslationItem from '../vos/EditablePageTranslationItem';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
 import './OnPageTranslation.scss';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
 
 @Component({
     template: require('./OnPageTranslation.pug')
@@ -392,5 +394,55 @@ export default class OnPageTranslation extends VueComponentBase {
         }
         this.editable_translations = new_editable_translations;
         this.set_missingTranslationsNumber();
+    }
+
+    private async get_gpt_translation(editable_translation: EditablePageTranslationItem) {
+        if (!editable_translation) {
+            return;
+        }
+
+        if (!this.lang_id) {
+            return;
+        }
+
+        /**
+         * Pour le prompt, on demande de traduire le code_text, on fournit la trad actuelle si il y en a une (trad validée, pas en cours de saisie)
+         *  et la trad de ce code dans les autres langues, si on a l'info, et enfin on fourni aussi les autres codes de la page actuelle
+         */
+
+        let langs_by_id: { [id: number]: LangVO } = this.getStoredDatas[LangVO.API_TYPE_ID] as { [id: number]: LangVO };
+
+        let prompt: string = "Tu es traducteur, et tu es sur une page web dont le contenu peut être traduit dans différentes langues.\n" +
+            "Ton objectif est de remplir un input de type text avec la traduction la plus appropriée pour la langue dont le code est " + langs_by_id[this.lang_id].code_lang + ".\n" +
+            "Tu dois répondre uniquement la traduction, tu ne peux pas demander de complément d'information. Si tu ne sais pas traduire le code texte, tu ne dois rien répondre du tout.\n" +
+            "Pour cela, tu peux t'aider de la traduction actuelle, si il y en a une, et des traductions dans les autres langues, si il y en a.\n" +
+            "Tu peux aussi t'aider du contexte de la page, et des autres traductions de la page.\n" +
+            "Les traductions sont gérés par des codes qui servent à identifier le positionnement dans la page. Le code du texte que tu dois traduire maintenant est \"" + editable_translation.translation_code + "\".\n";
+
+        if (editable_translation.translation && !this.updated_translation(editable_translation)) {
+            prompt += "La traduction actuelle est \"" + editable_translation.translation.translated + "\".\n";
+        }
+
+        for (let i in this.other_langs) {
+            let other_lang: LangVO = this.other_langs[i];
+            if (this.translations[other_lang.code_lang] && this.translations[other_lang.code_lang][editable_translation.translation_code]) {
+                prompt += "La traduction en \"" + other_lang.code_lang + "\" est \"" + this.translations[other_lang.code_lang][editable_translation.translation_code].translated + "\".\n";
+            }
+        }
+
+        prompt += "Les autres codes de la page et leurs traductions en \"" + langs_by_id[this.lang_id].code_lang + "\" sont :\n";
+        for (let i in this.editable_translations) {
+            let e: EditablePageTranslationItem = this.editable_translations[i];
+
+            if (e.translation_code == editable_translation.translation_code) {
+                continue;
+            }
+            prompt += " - \"" + e.translation_code + "\" : \"" + (e.translation ? e.translation.translated : '') + "\"\n";
+        }
+
+        prompt += "Ta réponse doit se limiter à la traduction du code, sans rappeler le code, sans guillemets et sans retour à la ligne. Uniquement la traduction brute.\n";
+
+        // let gpt_translation: string = await ModuleGPT.getInstance()..prompt(prompt);
+        ConsoleHandler.log(prompt);
     }
 }

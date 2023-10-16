@@ -390,26 +390,31 @@ export default class VarDataRefComponent extends VueComponentBase {
     private set_var_data_value() {
         if (!this.var_data) {
             this.var_data_value = null;
+            this.$emit('set_var_data_value', null);
             return;
         }
 
         if (!this.var_value_callback) {
             this.var_data_value = this.var_data.value;
+            this.$emit('set_var_data_value', this.var_data_value);
             return;
         }
 
         this.var_data_value = this.var_value_callback(this.var_data, this);
+        this.$emit('set_var_data_value', this.var_data_value);
     }
 
     private set_filtered_value() {
 
         if (!this.var_data) {
             this.filtered_value = null;
+            this.$emit('set_filtered_value', null);
             return;
         }
 
         if (!this.filter) {
             this.filtered_value = this.var_data_value;
+            this.$emit('set_filtered_value', this.filtered_value);
             return;
         }
 
@@ -420,6 +425,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         this.filtered_value = this.filter.apply(null, params);
+        this.$emit('set_filtered_value', this.filtered_value);
     }
 
     private set_var_conf() {

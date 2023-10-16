@@ -457,6 +457,10 @@ export default class ModuleVarServer extends ModuleServerBase {
             'fr-fr': 'Explication synthétique publique'
         }, 'var_desc.public.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '[BETA] Get ChatGPT prompt to explain value in console.log'
+        }, 'var_desc.get_chatgpt_prompt.___LABEL___'));
+
         // ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_delete_varconf_from_cache, this.delete_varconf_from_cache.bind(this));

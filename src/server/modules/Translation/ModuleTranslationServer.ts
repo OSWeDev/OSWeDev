@@ -607,6 +607,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'OK'
         }, 'on_page_translation.save_translation.ok.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Proposer une traduction automatique'
+        }, 'on_page_translation.get_gpt_translation.___LABEL___'));
     }
 
     /**
@@ -910,6 +914,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             .select_vos<TranslatableTextVO>();
 
         if ((!!something_longer) && (something_longer.length > 0)) {
+
+            if ((something_longer.length == 1) && (something_longer[0].id == self_id)) {
+                return true;
+            }
+
             ConsoleHandler.error('isCodeOk:' + code_text + ':Something longer already exists:' + something_longer[0].code_text + ': (total of ' + something_longer.length + ' existing conflicting codes)');
             return false;
         }
