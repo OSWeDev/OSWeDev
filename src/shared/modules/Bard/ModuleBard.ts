@@ -8,6 +8,9 @@ import BardConfigurationVO from './vos/BardConfigurationVO';
 import BardConversationVO from './vos/BardConversationVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import BardMessageVO from './vos/BardMessageVO';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 
 export default class ModuleBard extends Module {
 
@@ -17,7 +20,7 @@ export default class ModuleBard extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleBard.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleBard.MODULE_NAME + ".FO_ACCESS";
 
-    public static APINAME_ask: string = "bard_ask";
+    public static APINAME_bard_ask: string = "bard_ask";
 
     public static getInstance(): ModuleBard {
         if (!ModuleBard.instance) {
@@ -29,13 +32,20 @@ export default class ModuleBard extends Module {
 
     private static instance: ModuleBard = null;
 
-    private constructor() {
+    public bard_ask: (message: BardMessageVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleBard.APINAME_bard_ask);
 
+    private constructor() {
         super("bard", ModuleBard.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 
     public registerApis() {
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
+            ModuleBard.POLICY_FO_ACCESS,
+            ModuleBard.APINAME_bard_ask,
+            [BardMessageVO.API_TYPE_ID],
+            APISimpleVOParamVOStatic
+        ));
     }
 
     public initialize() {

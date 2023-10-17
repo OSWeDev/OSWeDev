@@ -1,4 +1,4 @@
-.bard_chatroom_handler.hide_from_screenshot(v-if="isActive")
+.bard_chatroom_handler
     .bard_chatroom_handler_switcher(@click='switch_hidden')
         template(v-if='get_hidden')
             i.fa-solid.fa-comment.fa-fw(aria-hidden="true")
@@ -9,93 +9,24 @@
     .bard_chatroom_handler_modal(:class='{"hidden": !!get_hidden}')
         .bard_chatroom_handler_modal_header {{ label('bard_chatroom_handler.header') }}
         .bard_chatroom_handler_modal_content
-            form(v-on:submit.prevent="send_bard_chatroom")
-
+        
+            form(v-on:submit.prevent="save_bard_user_cookies")
                 .row
                     .col-sm-12
-                        label(for='bard_chatroom_user') {{ label('bard_chatroom_handler.user.label') }}
+                        label(for='bard_chatroom_user_cookies') {{ label('bard_chatroom_handler.user_cookies') }}
                             i.fa-solid.fa-asterisk.mandatory
                 .row
-                    .col-sm-12
-                        input.form-control(type='text' name='bard_chatroom_user' v-model="tmp_user")
+                    .col-sm-12.bard_chatroom_user_cookies
+                        input.form-control(type='text' name='bard_chatroom_user_cookies' v-model="user_cookies")
+
+                        .spacer(v-if="has_cookies_changes")
+                            button.btn.btn-primary.btn-block.btn-flat.mb-3(type="submit") 
+                                span {{ label('bard_chatroom_handler.submit_cookies') }}
 
                 .spacer
 
-                .row
-                    .col-sm-12
-                        label(for='bard_chatroom_email') {{ label('bard_chatroom_handler.email.label') }}
-                            i.fa-solid.fa-asterisk.mandatory
-                .row
-                    .col-sm-12
-                        input.form-control(type='text' name='bard_chatroom_email' v-model="tmp_email")
-
-                .spacer
-
-                template(v-if="show_wish_be_called")
-                    .row
-                        .col-sm-12
-                            label(for='bard_chatroom_wish_be_called') {{ label('bard_chatroom_handler.wish_be_called.label') }}
-                    .row.mt-1
-                        .col-sm-12
-                            input.mt-0(type="radio" id="bard_chatroom_wish_be_called_oui" :value='true' v-model="tmp_wish_be_called")
-                            label.valign-middle.mt-1.mb-0.bard_chatroom_wish_be_called.ml-1(for="bard_chatroom_wish_be_called_oui") {{ t('YES') }}
-                    .row.mt-1
-                        .col-sm-12
-                            input.mt-0(type="radio" id="bard_chatroom_wish_be_called_non" :value='false' v-model="tmp_wish_be_called")
-                            label.valign-middle.mt-1.mb-0.bard_chatroom_wish_be_called.ml-1(for="bard_chatroom_wish_be_called_non") {{ t('NO') }}
-
-                .spacer
-
-                .row
-                    .col-sm-12
-                        label(for='bard_chatroom_phone') {{ label('bard_chatroom_handler.phone.label') }}
-                .row
-                    .col-sm-12
-                        input.form-control(type='text' name='bard_chatroom_phone' v-model="tmp_phone")
-
-                template(v-if="tmp_wish_be_called")
-                    .row
-                        .col-sm-12
-                            label(for='bard_chatroom_preferred_times_called') {{ label('bard_chatroom_handler.preferred_times_called.label') }}
-                    .row
-                        .col-sm-12
-                            textarea.form-control(name="bard_chatroom_preferred_times_called" cols="80" rows="10" v-model="tmp_preferred_times_called")
-
-                .spacer
-
-                .row
-                    .col-sm-12
-                        label {{ label('bard_chatroom_handler.type.label') }}
-                            i.fa-solid.fa-asterisk.mandatory
-                .row
-                    .col-sm-12
-                        input(type="radio" id="bard_chatroom_type_2" value='2' v-model="tmp_type")
-                        label.bard_chatroom_type(for="bard_chatroom_type_2" v-tooltip.top="label('bard_chatroom_handler.type.incident.tooltip')") {{ label('bard_chatroom_handler.type.incident') }}
-                .row
-                    .col-sm-12
-                        input(type="radio" id="bard_chatroom_type_1" value='1' v-model="tmp_type")
-                        label.bard_chatroom_type(for="bard_chatroom_type_1" v-tooltip.top="label('bard_chatroom_handler.type.bug.tooltip')") {{ label('bard_chatroom_handler.type.bug') }}
-                .row
-                    .col-sm-12
-                        input(type="radio" id="bard_chatroom_type_0" value='0' v-model="tmp_type")
-                        label.bard_chatroom_type(for="bard_chatroom_type_0" v-tooltip.top="label('bard_chatroom_handler.type.request.tooltip')") {{ label('bard_chatroom_handler.type.request') }}
-                .row
-                    .col-sm-12
-                        input(type="radio" id="bard_chatroom_type_3" value='3' v-model="tmp_type")
-                        label.bard_chatroom_type(for="bard_chatroom_type_3" v-tooltip.top="label('bard_chatroom_handler.type.not_set.tooltip')") {{ label('bard_chatroom_handler.type.not_set') }}
-
-                .spacer
-
-                .row
-                    .col-sm-12
-                        label(for='bard_chatroom_title') {{ label('bard_chatroom_handler.title.label') }}
-                            i.fa-solid.fa-asterisk.mandatory
-                .row
-                    .col-sm-12
-                        input.form-control(type='text' name='bard_chatroom_title' v-model="tmp_title")
-
-                .spacer
-
+            form(v-on:submit.prevent="send_bard_chatroom_message")
+                //- should be in the footer
                 .row
                     .col-sm-12
                         label(for='bard_chatroom_message') {{ label('bard_chatroom_handler.message.label') }}
@@ -106,38 +37,7 @@
 
                 .spacer
 
-                .row
-                    .col-sm-12
-                        label {{ label('bard_chatroom_handler.captures.label') }}
-                            i.fa-solid.fa-asterisk.mandatory
-                .row
-                    .col-sm-4
-                        Screenshotcomponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1')
-                    .col-sm-4
-                        template(v-if='!!tmp_capture_1_vo')
-                            Screenshotcomponent(id='tmp_capture_2_vo' :filevo="tmp_capture_2_vo" @uploaded="uploadedCapture2(...arguments)")
-                    .col-sm-4
-                        template(v-if='!!tmp_capture_2_vo')
-                            Screenshotcomponent(id='tmp_capture_3_vo' :filevo="tmp_capture_3_vo" @uploaded="uploadedCapture3(...arguments)")
-
-                .spacer
-
-                .row
-                    .col-sm-12
-                        label {{ label('bard_chatroom_handler.attachments.label') }}
-                .row
-                    .col-sm-4
-                        Filecomponent(id='tmp_attachment_1_vo' :filevo="tmp_attachment_1_vo" @uploaded="uploadedFile1(...arguments)")
-                    .col-sm-4
-                        template(v-if='!!tmp_attachment_1_vo')
-                            Filecomponent(id='tmp_attachment_2_vo' :filevo="tmp_attachment_2_vo" @uploaded="uploadedFile2(...arguments)")
-                    .col-sm-4
-                        template(v-if='!!tmp_attachment_2_vo')
-                            Filecomponent(id='tmp_attachment_3_vo' :filevo="tmp_attachment_3_vo" @uploaded="uploadedFile3(...arguments)")
-
-                .spacer
-
-                template(v-if="!is_already_sending_bard_chatroom")
+                template(v-if="!is_already_sending_bard_chatroom_message")
                     button.btn.btn-primary.btn-block.btn-flat.mb-3(type="submit") {{ label('bard_chatroom_handler.submit') }}
                     .row
                         .col-sm-6

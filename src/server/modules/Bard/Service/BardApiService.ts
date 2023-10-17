@@ -70,7 +70,10 @@ export default class BardApiService {
             Cookie: cookies,
         };
 
-        const conversation_req = JSON.stringify([conversation.conversation_id, conversation.request_id, conversation.response_id]);
+        const conversation_req = conversation?.conversation_id ?
+            JSON.stringify([conversation?.conversation_id, conversation?.request_id, conversation?.response_id]) :
+            "null";
+
         const f_req = JSON.stringify([null, `[[${JSON.stringify(prompt)}],null,${conversation_req}]`]);
 
         try {
@@ -94,7 +97,7 @@ export default class BardApiService {
 
             const response = await res.text();
 
-            const parsedResponse = this.parse_response(response);
+            const parsedResponse = this.parse_response_bis(response);
             conversation.conversation_id = parsedResponse.conversation_id;
             conversation.request_id = parsedResponse.request_id;
             conversation.response_id = parsedResponse.response_id;
@@ -155,6 +158,69 @@ export default class BardApiService {
         }
 
         return { at, bl };
+    }
+
+    private parse_response_bis(text: string) {
+        let resData = {
+            request_id: "",
+            conversation_id: "",
+            response_id: "",
+            responses: [],
+        };
+
+        try {
+            let parseData = (data: string) => {
+                if (typeof data === "string") {
+                    if (data?.startsWith("c_")) {
+                        resData.conversation_id = data;
+                        return;
+                    }
+                    if (data?.startsWith("r_")) {
+                        resData.request_id = data;
+                        return;
+                    }
+                    if (data?.startsWith("rc_")) {
+                        resData.response_id = data;
+                        return;
+                    }
+                    resData.responses.push(data);
+                }
+                if (Array.isArray(data)) {
+                    data.forEach((item) => {
+                        parseData(item);
+                    });
+                }
+            };
+            try {
+                const lines = text.split("\n");
+                for (let i in lines) {
+                    const line = lines[i];
+                    if (line.includes("wrb.fr")) {
+                        let data = JSON.parse(line);
+                        let responsesData = JSON.parse(data[0][2]);
+                        responsesData.forEach((response) => {
+                            parseData(response);
+                        });
+                    }
+                }
+            } catch (e: any) {
+                throw new Error(
+                    `Error parsing response: make sure you are using the correct cookie, ` +
+                    `copy the value of "__Secure-1PSID" cookie and set it like this: \n\n ` +
+                    `new Bard("__Secure-1PSID=<COOKIE_VALUE>")\n\n ` +
+                    `Also using a US proxy is recommended.\n\n `
+                );
+            }
+        } catch (err) {
+            throw new Error(
+                `Error parsing response: make sure you are using the correct cookie, ` +
+                `copy the value of "__Secure-1PSID" cookie and set it like this: \n\n ` +
+                `new Bard("__Secure-1PSID=<COOKIE_VALUE>")\n\n ` +
+                `Also using a US proxy is recommended.\n\n `
+            );
+        }
+
+        return resData;
     }
 
     /**

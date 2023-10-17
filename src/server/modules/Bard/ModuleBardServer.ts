@@ -17,6 +17,9 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import BardAPIMessage from '../../../shared/modules/Bard/api/BardAPIMessage';
 import BardApiService from './Service/BardApiService';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import BardConfigurationVO from '../../../shared/modules/Bard/vos/BardConfigurationVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleBardServer extends ModuleServerBase {
 
@@ -29,14 +32,14 @@ export default class ModuleBardServer extends ModuleServerBase {
 
     private static instance: ModuleBardServer = null;
 
-    private bardApiService: BardApiService = null;
+    private bard_api_service: BardApiService = null;
 
     private constructor() {
         super(ModuleBard.getInstance().name);
     }
 
     public async configure() {
-        this.bardApiService = BardApiService.getInstance();
+        this.bard_api_service = BardApiService.getInstance();
     }
 
     /**
@@ -44,7 +47,7 @@ export default class ModuleBardServer extends ModuleServerBase {
      *  - Define the API handlers of the module
      */
     public registerServerApiHandlers() {
-        APIControllerWrapper.registerServerApiHandler(ModuleBard.APINAME_ask, this.ask.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleBard.APINAME_bard_ask, this.bard_ask.bind(this));
     }
 
     /**
@@ -80,8 +83,41 @@ export default class ModuleBardServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    public async ask() {
+    /**
+     * bard_ask
+     *  - Called by the client to ask the assistant a question
+     *
+     * @param {BardMessageVO} message
+     * @returns {Promise<BardMessageVO>} should return the assistant's response
+     */
+    public async bard_ask(message: BardMessageVO): Promise<BardMessageVO> {
+        if (!message) {
+            return null;
+        }
 
+        try {
+            // Get the user configuration
+            const user_id = message.user_id;
+
+            // Get the user's cookies
+            const bard_configuration = await query(BardConfigurationVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<BardConfigurationVO>().user_id, user_id)
+                .select_vo<BardConfigurationVO>();
+
+            if (!bard_configuration) {
+                throw new Error("No bard configuration for user " + user_id);
+            }
+
+            // Get the conversation
+            const response = await this.bard_api_service.ask(
+                bard_configuration.cookies,
+                message.content,
+                { conversation_id: "", request_id: "", response_id: "" }
+            );
+
+        } catch (err) {
+
+        }
     }
 
     public async generate_response(conversation: BardConversationVO, newPrompt: BardMessageVO): Promise<BardMessageVO> {
@@ -98,7 +134,7 @@ export default class ModuleBardServer extends ModuleServerBase {
 
             // Extract the currentMessages from the conversation
             const currentMessages = BardAPIMessage.fromConversation(conversation);
-            // const result = await this.bardApiService.createChatCompletion({
+            // const result = await this.bard_api_service.createChatCompletion({
             //     model: modelId,
             //     messages: currentMessages,
             // });
