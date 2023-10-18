@@ -119,7 +119,8 @@ export default abstract class ServerBase {
         });
 
         // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
-        BGThreadServerController.getInstance().register_bgthreads = true;
+        BGThreadServerController.init();
+        BGThreadServerController.register_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
 
         ModulesManager.isServerSide = true;

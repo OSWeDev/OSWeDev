@@ -32,6 +32,10 @@ export default class StatsInvalidatorBGThread implements IBGThread {
     public MAX_timeout: number = 20000;
     public MIN_timeout: number = 20000;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
     private last_update_date_sec: number = null;
 
     private constructor() { }

@@ -38,6 +38,10 @@ export default class StatsUnstackerBGThread implements IBGThread {
     public MAX_timeout: number = 10000;
     public MIN_timeout: number = 10000;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
     public exec_in_dedicated_thread: boolean = true;
 
     private group_cache: { [group_name: string]: StatsGroupVO } = {};

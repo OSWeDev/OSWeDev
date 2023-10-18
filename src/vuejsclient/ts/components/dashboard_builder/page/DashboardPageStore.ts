@@ -201,6 +201,11 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             }
 
             if (store_i === null) {
+                if (!state.page_widgets) {
+                    Vue.set(state, 'page_widgets', [page_widget]);
+                    return;
+                }
+
                 state.page_widgets.push(page_widget);
                 return;
             }

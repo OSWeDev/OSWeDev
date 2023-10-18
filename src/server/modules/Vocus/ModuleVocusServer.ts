@@ -104,7 +104,8 @@ export default class ModuleVocusServer extends ModuleServerBase {
         API_TYPE_ID: string,
         id: number,
         segmentation_ranges: IRange[] = null,
-        limit: number = 1000
+        limit: number = 1000,
+        limit_to_cascading_refs: boolean = false
     ): Promise<VocusInfoVO[]> {
 
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
@@ -148,6 +149,10 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 }
 
                 if ((!field.manyToOne_target_moduletable) || (field.manyToOne_target_moduletable.vo_type != moduleTable.vo_type)) {
+                    continue;
+                }
+
+                if (limit_to_cascading_refs && !field.cascade_on_delete) {
                     continue;
                 }
 

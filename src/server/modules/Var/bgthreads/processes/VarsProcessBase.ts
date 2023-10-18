@@ -39,7 +39,7 @@ export default abstract class VarsProcessBase {
             let did_something = false;
 
             // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
-            BGThreadServerController.getInstance().register_alive_on_main_thread(VarsBGThreadNameHolder.bgthread_name);
+            BGThreadServerController.register_alive_on_main_thread(VarsBGThreadNameHolder.bgthread_name);
 
             // On checke une invalidation en attente
             let updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);

@@ -31,6 +31,7 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -153,6 +154,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUpdateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatUpdate);
+
+        // On force l'exec asap du bgthread des imports à la créa et/ou update des DIH
+        let force_run_asap = BGThreadServerController.force_run_asap_by_bgthread_name[DataImportBGThread.getInstance().name];
+        // Dans le cas du générateur on a pas cette fonctionnalité
+        if (force_run_asap) {
+            postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, force_run_asap);
+            postUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, force_run_asap);
+        }
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Annuler les imports en cours'

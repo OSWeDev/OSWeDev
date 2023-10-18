@@ -414,6 +414,8 @@ export default class OnPageTranslation extends VueComponentBase {
 
         let langs_by_id: { [id: number]: LangVO } = this.getStoredDatas[LangVO.API_TYPE_ID] as { [id: number]: LangVO };
 
+        let max_tokens = 8192;
+
         let prompt: string = "Tu es traducteur, et tu es sur une page web dont le contenu peut être traduit dans différentes langues.\n" +
             "Ton objectif est de remplir un input de type text avec la traduction la plus appropriée pour la langue dont le code est " + langs_by_id[this.lang_id].code_lang + ".\n" +
             "Tu dois répondre uniquement la traduction, tu ne peux pas demander de complément d'information. Si tu ne sais pas traduire le code texte, tu ne dois rien répondre du tout.\n" +
@@ -433,19 +435,90 @@ export default class OnPageTranslation extends VueComponentBase {
         }
 
         prompt += "Les autres codes de la page et leurs traductions en \"" + langs_by_id[this.lang_id].code_lang + "\" sont :\n";
+        let last_sentence = "Ta réponse doit se limiter à la traduction du code, sans rappeler le code, sans guillemets et sans retour à la ligne. Uniquement la traduction brute.\n";
+        max_tokens -= (prompt.split(' ').length * 2) + (last_sentence.split(' ').length * 2);
+
         for (let i in this.editable_translations) {
             let e: EditablePageTranslationItem = this.editable_translations[i];
 
             if (e.translation_code == editable_translation.translation_code) {
                 continue;
             }
-            prompt += " - \"" + e.translation_code + "\" : \"" + (e.translation ? e.translation.translated : '') + "\"\n";
+            let this_prompt = " - \"" + e.translation_code + "\" : \"" + (e.translation ? e.translation.translated : '') + "\"\n";
+            max_tokens -= (prompt.split(' ').length * 2);
+            if (max_tokens < 0) {
+                break;
+            }
+
+            prompt += this_prompt;
         }
 
-        prompt += "Ta réponse doit se limiter à la traduction du code, sans rappeler le code, sans guillemets et sans retour à la ligne. Uniquement la traduction brute.\n";
+        prompt += last_sentence;
 
         ConsoleHandler.log(prompt);
-        let gpt_response: GPTMessageVO = await ModuleGPT.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
-        editable_translation.editable_translation = gpt_response.content;
+
+        let self = this;
+        self.snotify.async(self.label('get_gpt_translation.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+
+                    let gpt_response: GPTMessageVO = await ModuleGPT.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
+
+                    if (!gpt_response) {
+                        reject({
+                            body: self.label('get_gpt_translation.failed'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
+
+                    if (!gpt_response.content) {
+                        reject({
+                            body: self.label('get_gpt_translation.failed'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
+
+                    if (gpt_response.content.startsWith('"') && gpt_response.content.endsWith('"')) {
+                        gpt_response.content = gpt_response.content.substring(1, gpt_response.content.length - 1);
+                    }
+
+                    editable_translation.editable_translation = gpt_response.content;
+
+                    resolve({
+                        body: self.label('get_gpt_translation.ok', { gpt_response: gpt_response.content }),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+
+                } catch (error) {
+                    reject({
+                        body: self.label('get_gpt_translation.error', { error: (error && (typeof error == 'string')) ? error : error.message }),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 }

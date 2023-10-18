@@ -53,6 +53,8 @@ export default class MonthFilterWidgetOptionsVO extends AbstractVO {
         public is_month_cumulable?: boolean,
         public is_month_cumulated_selected?: boolean,
         public is_all_months_selected?: boolean,
+        public can_ytd?: boolean,
+        public ytd_option_m_minus_x?: number,
     ) {
         super();
     }

@@ -688,10 +688,24 @@ export default abstract class ModuleServiceBase {
             // On rajoute quelques contrôles de cohérence | des garde-fous simples mais qui protège d'une panne idiote
 
             if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
+
+                // export query to txt file for debug
+                let fs = require('fs');
+                let path = require('path');
+                let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                fs.writeFileSync(filename, query);
+
                 throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
             }
 
             if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
+
+                // export query to txt file for debug
+                let fs = require('fs');
+                let path = require('path');
+                let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                fs.writeFileSync(filename, query);
+
                 throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
             }
 

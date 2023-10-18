@@ -32,6 +32,10 @@ export default class SupervisionBGThread implements IBGThread {
     public MAX_timeout: number = 5000;
     public MIN_timeout: number = 100;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
     private loaded_param: boolean = false;
 
     private throttle_by_api_type_id: { [api_type_id: string]: () => Promise<boolean> } = {};

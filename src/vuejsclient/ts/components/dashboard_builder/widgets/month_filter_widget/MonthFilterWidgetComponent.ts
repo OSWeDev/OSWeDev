@@ -88,6 +88,22 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         });
     }
 
+    get can_ytd() {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_ytd;
+    }
+
+    get ytd_option_m_minus_x() {
+        if (!this.widget_options) {
+            return 1;
+        }
+
+        return (this.widget_options.ytd_option_m_minus_x == null) ? 1 : this.widget_options.ytd_option_m_minus_x;
+    }
+
     /**
      * onchange_page_widget
      *  - Called when page_widget is changed

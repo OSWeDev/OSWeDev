@@ -39,6 +39,10 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
     private constructor() {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));

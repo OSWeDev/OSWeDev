@@ -99,7 +99,7 @@ export default class ForkedTasksController {
      * @param task_params
      */
     public static async exec_self_on_bgthread(bgthread: string, task_uid: string, ...task_params): Promise<boolean> {
-        if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
+        if (!BGThreadServerController.valid_bgthreads_names[bgthread]) {
             const bg_thread_process_task_fork_message = new BGThreadProcessTaskForkMessage(
                 bgthread,
                 task_uid,
@@ -123,7 +123,7 @@ export default class ForkedTasksController {
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
     public static async exec_self_on_bgthread_and_return_value(thrower, bgthread: string, task_uid: string, resolver, ...task_params): Promise<boolean> {
-        if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
+        if (!BGThreadServerController.valid_bgthreads_names[bgthread]) {
 
             let result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(

@@ -18,6 +18,8 @@ import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import BGThreadServerController from './BGThreadServerController';
+import ForkedTasksController from '../Fork/ForkedTasksController';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -92,11 +94,46 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public registerBGThread(bgthread: IBGThread): void {
 
         // On vérifie qu'on peut register les bgthreads
-        if (!BGThreadServerController.getInstance().register_bgthreads) {
+        if (!BGThreadServerController.register_bgthreads) {
             return;
         }
 
-        BGThreadServerController.getInstance().registered_BGThreads[bgthread.name] = bgthread;
+        BGThreadServerController.registered_BGThreads[bgthread.name] = bgthread;
+
+        let bgthread_force_run_asap_throttled_task_name = 'BGThreadServerController.force_run_asap_throttled.' + bgthread.name;
+        let force_run_asap_throttled = (): Promise<boolean> => {
+
+            return new Promise(async (resolve, reject) => {
+
+                let thrower = (error) => {
+                    ConsoleHandler.error('failed force_run_asap_throttled on bgthread : ' + bgthread.name + ' : ' + error);
+                    resolve(true);
+                };
+
+                if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                    thrower,
+                    bgthread.name,
+                    bgthread_force_run_asap_throttled_task_name,
+                    resolve)) {
+                    return;
+                }
+
+                ConsoleHandler.log("ModuleBGThreadServer.run_ASAP : " + bgthread.name + " :");
+                bgthread.run_asap = true;
+
+                resolve(true);
+            });
+        };
+
+        /**
+         * On register ici un throttle pour forcer l'execution du bgthread à partir de son nom (à appeler dans un trigger de vo par exemple sur un DIHVO on lance les imports)
+         *  Le throttle est appelé depuis n'importe quel thread, et s'exécutera au final le thread du bgthread
+         */
+        BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name] =
+            ThrottleHelper.declare_throttle_without_args(force_run_asap_throttled.bind(bgthread), 10, { leading: true, trailing: true });
+        // On register ici la tache qui sera exécutée sur le BGthread - qui est par ailleurs throttled
+        ForkedTasksController.register_task(bgthread_force_run_asap_throttled_task_name, BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name].bind(bgthread));
+
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] =
             async () => {
@@ -109,12 +146,12 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             };
 
         // On vérifie qu'on peut lancer des bgthreads
-        if (!BGThreadServerController.getInstance().run_bgthreads) {
+        if (!BGThreadServerController.run_bgthreads) {
             return;
         }
 
         // On vérifie qu'on peut lancer ce bgthread
-        if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread.name]) {
+        if (!BGThreadServerController.valid_bgthreads_names[bgthread.name]) {
             return;
         }
 
@@ -133,7 +170,33 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         while (true) {
 
-            await ThreadHandler.sleep(bgthread.current_timeout, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
+            /**
+             * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
+             */
+
+            // Si déjà lancé, on attend que ça se termine normalement
+            if (bgthread.semaphore) {
+                bgthread.last_run_unix = Dates.now_ms();
+                await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
+                continue;
+            }
+
+            // Si run_asap, on lance immédiatement
+            let do_run: boolean = bgthread.run_asap;
+
+            // Sinon on check le current_timeout
+            if (!do_run) {
+                if (Dates.now_ms() > (bgthread.last_run_unix + bgthread.current_timeout)) {
+                    do_run = true;
+                }
+            }
+
+            if (!do_run) {
+                await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
+                continue;
+            }
+
+            bgthread.last_run_unix = Dates.now_ms();
 
             /**
              * On check le bloquage par param toutes les minutes
@@ -169,7 +232,20 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
                 let timeout_coef: number = 1;
 
-                timeout_coef = await bgthread.work();
+                if (bgthread.semaphore) {
+                    continue;
+                }
+                bgthread.semaphore = true;
+                bgthread.run_asap = false;
+
+                try {
+                    timeout_coef = await bgthread.work();
+                } catch (error) {
+                    ConsoleHandler.error('ModuleBGThreadServer.work error : ' + error);
+                }
+
+                bgthread.semaphore = false;
+                bgthread.last_run_unix = Dates.now_ms();
 
                 if (!timeout_coef) {
                     timeout_coef = 1;

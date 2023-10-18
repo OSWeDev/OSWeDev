@@ -544,8 +544,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'month_filter_widget_component.can_select_all_option.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Cumul à date" },
+            'month_filter_widget_component.can_ytd_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Cumul à date - de Janvier à M - ..." },
+            'month_filter_widget_component.ytd_option_m_minus_x.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner Tout" },
             'month_filter_widget_component.select_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Cumul à date" },
+            'month_filter_widget_component.ytd.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -554,6 +566,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner Tout" },
             'month_filter_input_component.select_all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Cumul à date" },
+            'month_filter_input_component.ytd.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Cumuler les mois" },

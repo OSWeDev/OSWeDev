@@ -40,7 +40,12 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public MIN_timeout: number = 1;
 
     public exec_in_dedicated_thread: boolean = true;
+
     public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
+    public internal_semaphore: boolean = false;
 
     private constructor() {
     }
@@ -63,11 +68,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              * On change de méthode, le bgthread ne fait rien d'autre que lancer les différents process de calculs/updates de l'arbre
              * le bgthread est utilisé juste pour créer un nouveau thread et ne pas bloquer le thread principal
              */
-            if (this.semaphore) {
+            if (this.internal_semaphore) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            this.semaphore = true;
+            this.internal_semaphore = true;
 
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
             CurrentVarDAGHolder.current_vardag = new VarDAG();

@@ -187,7 +187,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
         if ((!msg.message_content) || (!ForkedTasksController.registered_tasks) ||
             (!ForkedTasksController.registered_tasks[msg.message_content]) ||
-            (!BGThreadServerController.getInstance().valid_bgthreads_names[msg.bgthread])) {
+            (!BGThreadServerController.valid_bgthreads_names[msg.bgthread])) {
             return false;
         }
 

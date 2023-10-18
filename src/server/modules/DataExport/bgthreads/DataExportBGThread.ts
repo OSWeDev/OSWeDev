@@ -33,6 +33,10 @@ export default class DataExportBGThread implements IBGThread {
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 100;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
     private constructor() {
     }
 

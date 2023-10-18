@@ -22,24 +22,16 @@ export default class BGThreadServerController {
     public static TASK_NAME_register_alive_on_main_thread: string = "BGThreadServerController.register_alive_on_main_thread";
     public static PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s: string = "BGThreadServerController.BGTHREAD_LAST_ALIVE_TIMEOUT_s";
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!BGThreadServerController.instance) {
-            BGThreadServerController.instance = new BGThreadServerController();
-        }
-        return BGThreadServerController.instance;
-    }
-
-    private static instance: BGThreadServerController = null;
-
     /**
      * Local thread cache -----
      */
-    public registered_BGThreads: { [name: string]: IBGThread } = {};
+    public static registered_BGThreads: { [name: string]: IBGThread } = {};
 
-    public register_bgthreads: boolean = false;
-    public run_bgthreads: boolean = false;
-    public valid_bgthreads_names: { [name: string]: boolean } = {};
+    public static register_bgthreads: boolean = false;
+    public static run_bgthreads: boolean = false;
+    public static valid_bgthreads_names: { [name: string]: boolean } = {};
+
+    public static force_run_asap_by_bgthread_name: { [bgthread_name: string]: () => void } = {};
 
     /**
      * On met en place un système généralisé à tous les bghtreads, qui impose aux bgthreads de se déclarer
@@ -48,17 +40,17 @@ export default class BGThreadServerController {
      *  !! ça signifie qu'il faut être sûr que le process est bien en erreur systématiquement quand on atteint le timeout !!
      *  Par défaut pas de timeout, mais on peut le définir dans le bgthread
      */
-    public MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name: { [bgthread_name: string]: number } = {};
+    public static MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name: { [bgthread_name: string]: number } = {};
     /**
      * ----- Local thread cache
      */
 
-    public register_alive_on_main_thread = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_register_alive_on_main_thread.bind(this), 10000);
+    public static register_alive_on_main_thread = ThrottleHelper.declare_throttle_with_stackable_args(this.throttled_register_alive_on_main_thread.bind(this), 10000);
 
-    private constructor() {
+    public static init() {
         ForkMessageController.register_message_handler(RunBGThreadForkMessage.FORK_MESSAGE_TYPE, async (msg: RunBGThreadForkMessage) => {
-            if (BGThreadServerController.getInstance().valid_bgthreads_names[msg.message_content]) {
-                await BGThreadServerController.getInstance().registered_BGThreads[msg.message_content].work();
+            if (BGThreadServerController.valid_bgthreads_names[msg.message_content]) {
+                await BGThreadServerController.registered_BGThreads[msg.message_content].work();
             }
             return true;
         });
@@ -67,7 +59,7 @@ export default class BGThreadServerController {
         setInterval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000);
     }
 
-    public async throttled_register_alive_on_main_thread(bgthread_names: string[]) {
+    public static async throttled_register_alive_on_main_thread(bgthread_names: string[]) {
 
 
         if (!await ForkedTasksController.exec_self_on_main_process(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, bgthread_names)) {
@@ -86,15 +78,15 @@ export default class BGThreadServerController {
      *      si on est sur le server principal on envoie au bon process
      *      sinon on envoie le message au process principal
      */
-    public async executeBGThread(bgthread_name: string) {
+    public static async executeBGThread(bgthread_name: string) {
         if (!!ForkedProcessWrapperBase.getInstance()) {
 
-            if (BGThreadServerController.getInstance().valid_bgthreads_names[bgthread_name]) {
+            if (BGThreadServerController.valid_bgthreads_names[bgthread_name]) {
 
                 // On ajoute avant chaque exécution le fait de signaler qu'on est en vie au thread parent, mais au plus vite une fois toutes les 10 secondes
                 await this.register_alive_on_main_thread(bgthread_name);
 
-                await BGThreadServerController.getInstance().registered_BGThreads[bgthread_name].work();
+                await BGThreadServerController.registered_BGThreads[bgthread_name].work();
             } else {
                 await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)));
             }
@@ -109,7 +101,7 @@ export default class BGThreadServerController {
         }
     }
 
-    private async check_bgthreads_last_alive_ticks() {
+    private static async check_bgthreads_last_alive_ticks() {
         if (!ForkServerController.is_main_process()) {
             return;
         }

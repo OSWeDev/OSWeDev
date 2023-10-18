@@ -59,8 +59,9 @@ export default abstract class ForkedProcessWrapperBase {
         ModulesManager.isServerSide = true;
 
         // Les bgthreads peuvent être register et run - reste à définir lesquels
-        BGThreadServerController.getInstance().register_bgthreads = true;
-        BGThreadServerController.getInstance().run_bgthreads = true;
+        BGThreadServerController.init();
+        BGThreadServerController.register_bgthreads = true;
+        BGThreadServerController.run_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
         CronServerController.getInstance().run_crons = true;
 
@@ -77,7 +78,7 @@ export default abstract class ForkedProcessWrapperBase {
 
                 switch (type) {
                     case BGThreadServerController.ForkedProcessType:
-                        BGThreadServerController.getInstance().valid_bgthreads_names[name] = true;
+                        BGThreadServerController.valid_bgthreads_names[name] = true;
                         break;
                     case CronServerController.ForkedProcessType:
                         CronServerController.getInstance().valid_crons_names[name] = true;
@@ -90,7 +91,7 @@ export default abstract class ForkedProcessWrapperBase {
         }
 
         let thread_name = 'fork_';
-        thread_name += Object.keys(BGThreadServerController.getInstance().valid_bgthreads_names).join('_').replace(/ \./g, '_');
+        thread_name += Object.keys(BGThreadServerController.valid_bgthreads_names).join('_').replace(/ \./g, '_');
         StatsController.THREAD_NAME = thread_name;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.getInstance().UNSTACK_THROTTLE = 60000;

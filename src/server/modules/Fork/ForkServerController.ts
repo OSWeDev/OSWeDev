@@ -187,8 +187,8 @@ export default class ForkServerController {
     }
 
     private static prepare_forked_bgtreads(default_fork: IFork) {
-        for (let i in BGThreadServerController.getInstance().registered_BGThreads) {
-            let bgthread: IBGThread = BGThreadServerController.getInstance().registered_BGThreads[i];
+        for (let i in BGThreadServerController.registered_BGThreads) {
+            let bgthread: IBGThread = BGThreadServerController.registered_BGThreads[i];
 
             let forked_bgthread: IForkProcess = {
                 name: bgthread.name,

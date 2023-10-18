@@ -611,6 +611,19 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Proposer une traduction automatique'
         }, 'on_page_translation.get_gpt_translation.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique en cours...'
+        }, 'get_gpt_translation.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la traduction automatique'
+        }, 'get_gpt_translation.failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique OK : {gpt_response}'
+        }, 'get_gpt_translation.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique KO : {error}'
+        }, 'get_gpt_translation.error.___LABEL___'));
     }
 
     /**

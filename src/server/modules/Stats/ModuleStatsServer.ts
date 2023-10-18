@@ -41,8 +41,11 @@ export default class ModuleStatsServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
         await this.configure_vars();
-        ModuleBGThreadServer.getInstance().registerBGThread(StatsInvalidatorBGThread.getInstance());
-        ModuleBGThreadServer.getInstance().registerBGThread(StatsUnstackerBGThread.getInstance());
+
+        if (StatsController.ACTIVATED) {
+            ModuleBGThreadServer.getInstance().registerBGThread(StatsInvalidatorBGThread.getInstance());
+            ModuleBGThreadServer.getInstance().registerBGThread(StatsUnstackerBGThread.getInstance());
+        }
     }
 
     private async configure_vars() {

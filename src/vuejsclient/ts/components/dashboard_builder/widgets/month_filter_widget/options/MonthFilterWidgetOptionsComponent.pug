@@ -94,18 +94,37 @@
             select(v-model="relative_to_other_filter_id")
                 option(v-for="(filter, name) in other_filters_by_name" :value="filter.id") {{ name }}
     
-    template
-        .can_select_all_option
-            .input_label {{ label('month_filter_widget_component.can_select_all_option') }}
+    .can_select_all_option
+        .input_label {{ label('month_filter_widget_component.can_select_all_option') }}
+        .input_wrapper
+            toggle-button(
+                @change="toggle_can_select_all" 
+                v-model="can_select_all" 
+                :sync="true"
+                :width="150"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            ) 
+
+    .can_ytd_option
+        .input_label {{ label('month_filter_widget_component.can_ytd_option') }}
+        .input_wrapper
+            toggle-button(
+                @change="toggle_can_ytd" 
+                v-model="can_ytd" 
+                :sync="true"
+                :width="150"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            ) 
+
+    template(v-if='can_ytd')
+        .ytd_option_m_minus_x
+            .input_label {{ label('month_filter_widget_component.ytd_option_m_minus_x') }}
             .input_wrapper
-                toggle-button(
-                    @change="toggle_can_select_all" 
-                    v-model="can_select_all" 
-                    :sync="true"
-                    :width="150"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                ) 
-           
+                input(
+                    type="number"
+                    v-model="ytd_option_m_minus_x"
+                )
+
     .auto_select_month_min(v-tooltip='(auto_select_month_relative_mode && is_relative_to_other_filter) ? label("month_filter_widget_component.auto_select_month.is_relative_to_other_filter.tooltip") : null')
         .input_label {{ label('month_filter_widget_component.auto_select_month_min') }}
         .input_wrapper

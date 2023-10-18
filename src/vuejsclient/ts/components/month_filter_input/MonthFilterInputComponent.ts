@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { cloneDeep } from 'lodash';
 import VueComponentBase from '../VueComponentBase';
 import './MonthFilterInputComponent.scss';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./MonthFilterInputComponent.pug'),
@@ -45,6 +46,29 @@ export default class MonthFilterInputComponent extends VueComponentBase {
 
     @Prop({ default: false })
     private is_month_cumulated_selected: boolean;
+
+    @Prop({ default: false })
+    private can_ytd: boolean;
+
+    @Prop({ default: 1 })
+    private ytd_option_m_minus_x: number;
+
+    private select_ytd() {
+        let selected_months: { [month: number]: boolean } = [];
+
+        for (let i = 1; i <= 12; i++) {
+            selected_months[i] = (i <= ((Dates.month() + 1) - this.ytd_option_m_minus_x));
+        }
+
+        if (!(Object.keys(selected_months)?.length > 0)) {
+            // if there is no selected_months
+            this.set_is_all_months_selected(true);
+        } else {
+            this.set_is_all_months_selected(false);
+        }
+
+        this.set_selected_months(selected_months);
+    }
 
     /**
      * Handle toggle selected month

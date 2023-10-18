@@ -59,6 +59,9 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     private is_relative_to_other_filter: boolean = false;
     private hide_filter: boolean = false;
 
+    private can_ytd: boolean = false;
+    private ytd_option_m_minus_x: string = "1";
+
     // Current filter may show select_all of selectable months
     private can_select_all: boolean = false;
     // Current filter may cumulate months
@@ -173,6 +176,8 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             this.hide_filter = false;
             this.can_select_all = false;
             this.is_month_cumulated_selected = false;
+            this.can_ytd = false;
+            this.ytd_option_m_minus_x = "1";
             return;
         }
 
@@ -185,6 +190,8 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.max_month = (this.widget_options.max_month == null) ? null : this.widget_options.max_month.toString();
         this.auto_select_month_min = (this.widget_options.auto_select_month_min == null) ? null : this.widget_options.auto_select_month_min.toString();
         this.auto_select_month_max = (this.widget_options.auto_select_month_max == null) ? null : this.widget_options.auto_select_month_max.toString();
+        this.can_ytd = this.widget_options.can_ytd;
+        this.ytd_option_m_minus_x = (this.widget_options.ytd_option_m_minus_x == null) ? "1" : this.widget_options.ytd_option_m_minus_x.toString();
         this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
         this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
         this.hide_filter = this.widget_options.hide_filter;
@@ -294,6 +301,21 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
+    @Watch('ytd_option_m_minus_x')
+    private async onchange_ytd_option_m_minus_x() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        let month = (this.ytd_option_m_minus_x == null) ? 1 : parseInt(this.ytd_option_m_minus_x);
+        if (this.widget_options.ytd_option_m_minus_x != month) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.ytd_option_m_minus_x = month;
+
+            this.throttled_update_options();
+        }
+    }
+
     @Watch('max_month')
     private async onchange_max_month() {
         if (!this.widget_options) {
@@ -382,6 +404,21 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
 
         this.throttled_update_options();
     }
+
+    private toggle_can_ytd() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.create_widget_options().from({
+                can_ytd: this.can_ytd
+            });
+        }
+
+        this.next_update_options.can_ytd = !this.next_update_options.can_ytd;
+
+        this.throttled_update_options();
+    }
+
 
     /**
      * toggle_is_month_cumulated

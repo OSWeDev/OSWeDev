@@ -623,7 +623,7 @@ export default class ContextQueryServerController {
             }
 
             if (field.is_readonly) {
-                StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'readonly_field');
+                // intéret de la stat sur tous les fields readonly tout le temps ? StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'readonly_field');
                 continue;
             }
 
@@ -854,7 +854,7 @@ export default class ContextQueryServerController {
                      *  ça directement applicativement => attention à l'impact sur les perfs. L'objectif est surtout de s'assurer qu'on
                      *  appelle bien tous les triggers et entre autre les droits de suppression des dépendances
                      */
-                    let deps: VocusInfoVO[] = await ModuleVocusServer.getInstance().getVosRefsById(vo_to_delete._type, vo_to_delete.id, null, null);
+                    let deps: VocusInfoVO[] = await ModuleVocusServer.getInstance().getVosRefsById(vo_to_delete._type, vo_to_delete.id, null, null, true);
 
                     // Si on a une interdiction de supprimer un item à mi-chemin, il faudrait restaurer tout ceux qui ont été supprimés
                     //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
