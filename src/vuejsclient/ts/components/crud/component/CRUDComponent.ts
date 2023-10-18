@@ -220,7 +220,8 @@ export default class CRUDComponent extends VueComponentBase {
             });
         } else {
             if (this.modal_show_create) {
-                vo = VOsTypesManager.moduleTables_by_voType[this.api_type_id].voConstructor();
+                await this.prepareNewVO();
+                vo = this.newVO;
             } else {
                 vo = (this.getSelectedVOs?.length > 0) ? this.getSelectedVOs[0] : VOsTypesManager.moduleTables_by_voType[this.api_type_id].voConstructor();
             }
@@ -253,9 +254,6 @@ export default class CRUDComponent extends VueComponentBase {
         if (this.modal_show_create) {
             $('#createData' + embed_append).modal('show');
             modal_type = 'create';
-            if (vo) {
-                this.newVO = vo;
-            }
             return;
         }
         if (this.modal_show_update) {
