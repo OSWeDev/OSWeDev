@@ -1,0 +1,8 @@
+.current_user_filter_widget_component
+    template(v-if='vo_field_ref')
+        .vo_field_ref_label {{ vo_field_ref_label }}
+        .vo_field_ref_value
+            template(v-if='is_type_string')
+                input(v-model='current_data_filter.string_value' type='text' disabled='disabled')
+            template(v-else-if='is_type_number')
+                input(v-model='current_data_filter.numeric_value' type='text' disabled='disabled')
