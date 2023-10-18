@@ -68,7 +68,7 @@ export default class VarsServerCallBackSubsController {
     }
 
     /**
-     * Sera exécutée dans tous les cas sur le main thread (express). Objectif : notifier tous les cbs qui s'intéressent à ces vardatas
+     * Sera exécutée dans tous les cas sur le VarsBGThread. Objectif : notifier tous les cbs qui s'intéressent à ces vardatas
      *  A la différence d'un abonnement permanent, on supprime le callback suite à l'appel
      * @param var_datas Tableau ou map (sur index) des vars datas
      */
@@ -84,13 +84,13 @@ export default class VarsServerCallBackSubsController {
 
         if (!await ForkedTasksController.exec_self_on_bgthread(VarsBGThreadNameHolder.bgthread_name, VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.log("notify_vardatas_throttled:OUT not main process:" + var_datas.length);
+                ConsoleHandler.log("notify_vardatas_throttled:OUT not VarsBGThread process:" + var_datas.length);
             }
             return false;
         }
 
         if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-            ConsoleHandler.log("notify_vardatas_throttled:main process:" + var_datas.length);
+            ConsoleHandler.log("notify_vardatas_throttled:VarsBGThread process:" + var_datas.length);
         }
 
         let promises = [];
