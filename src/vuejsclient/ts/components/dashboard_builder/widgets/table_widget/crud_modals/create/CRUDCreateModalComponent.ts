@@ -20,6 +20,8 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
     private onclose_callback: () => Promise<void> = null;
 
     public async open_modal(api_type_id: string, onclose_callback: () => Promise<void>, vo_init: IDistantVOBase = null) {
+        this.api_type_id = api_type_id;
+
         let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
 
         if (crud) {
@@ -31,7 +33,6 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
             await crud.callback_handle_modal_show_hide(vo_init, 'create');
         }
 
-        this.api_type_id = api_type_id;
         this.onclose_callback = onclose_callback;
 
         this.vo_init = vo_init;
