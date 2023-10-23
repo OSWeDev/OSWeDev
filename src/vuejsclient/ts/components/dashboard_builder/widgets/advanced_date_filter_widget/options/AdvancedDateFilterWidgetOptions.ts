@@ -36,6 +36,7 @@ export default class AdvancedDateFilterWidgetOptions implements IExportableWidge
         public vo_field_ref: VOFieldRefVO,
         public opts: AdvancedDateFilterOptDescVO[],
         public is_checkbox: boolean,
+        public default_value: AdvancedDateFilterOptDescVO,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

@@ -75,7 +75,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
-        this.tmp_filter_active_opt = null;
+        this.tmp_filter_active_opt = this.widget_options.default_value;
         this.tmp_ts_range = null;
     }
 
@@ -266,6 +266,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                     options.vo_field_ref,
                     options.opts,
                     options.is_checkbox,
+                    options.default_value,
                 ) : null;
             }
         } catch (error) {
@@ -315,6 +316,12 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         let options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         return options.is_checkbox;
+    }
+
+    get default_value(): AdvancedDateFilterOptDescVO {
+        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+
+        return options.default_value;
     }
 
     get is_type_custom(): boolean {

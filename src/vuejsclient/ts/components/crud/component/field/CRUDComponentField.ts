@@ -548,13 +548,23 @@ export default class CRUDComponentField extends VueComponentBase
         // if (!this.inline_input_mode) {
         //     return;
         // }
-
+        let is_input_html_null = false;
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
-            input = input.root.innerHTML;
+
+            // Si le champ est vide, on le met à null
+            if (input.root.innerText == "\n" || input.root.innerText.trim().length == 0) {
+                is_input_html_null = true;
+            } else {
+                input = input.root.innerHTML;
+            }
         }
 
         let tmp = input ? this.getInputValue(input) : this.field_value;
+        if (is_input_html_null) {
+            tmp = null;
+        }
+
         if (this.field_value != tmp) {
             this.field_value = tmp;
         }

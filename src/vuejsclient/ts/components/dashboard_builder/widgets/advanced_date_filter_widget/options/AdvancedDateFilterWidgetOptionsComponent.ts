@@ -46,6 +46,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
     private editable_opts: AdvancedDateFilterOptDescVO[] = null;
     private is_checkbox: boolean = false;
+    private tmp_default_value: AdvancedDateFilterOptDescVO = null;
 
     private next_update_options: AdvancedDateFilterWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -54,6 +55,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private onchange_widget_options() {
         if (!this.widget_options) {
             this.is_checkbox = false;
+            this.tmp_default_value = null;
             this.editable_opts = null;
             return;
         }
@@ -62,6 +64,25 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         if (this.is_checkbox != this.widget_options.is_checkbox) {
             this.is_checkbox = this.widget_options.is_checkbox;
+        }
+
+        if (this.tmp_default_value != this.widget_options.default_value) {
+            this.tmp_default_value = this.widget_options.default_value;
+        }
+    }
+
+    @Watch('tmp_default_value')
+    private async onchange_tmp_default_value() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.tmp_default_value != this.next_update_options.default_value) {
+            this.next_update_options.default_value = this.tmp_default_value;
+
+            await this.throttled_update_options();
         }
     }
 
@@ -105,7 +126,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         }
 
         if (!this.next_update_options) {
-            this.next_update_options = new AdvancedDateFilterWidgetOptions(null, null, false);
+            this.next_update_options = new AdvancedDateFilterWidgetOptions(null, null, false, null);
         }
 
         let vo_field_ref = new VOFieldRefVO();
@@ -276,7 +297,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     }
 
     private get_default_options(): AdvancedDateFilterWidgetOptions {
-        return new AdvancedDateFilterWidgetOptions(null, null, false);
+        return new AdvancedDateFilterWidgetOptions(null, null, false, null);
     }
 
     private async switch_is_checkbox() {
@@ -307,6 +328,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
                     options.vo_field_ref,
                     options.opts,
                     options.is_checkbox,
+                    options.default_value,
                 ) : null;
             }
         } catch (error) {
