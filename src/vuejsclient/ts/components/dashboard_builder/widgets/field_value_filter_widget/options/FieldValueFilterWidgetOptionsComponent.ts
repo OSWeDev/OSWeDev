@@ -122,7 +122,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private auto_select_date_relative_mode: boolean = true;
 
     private relative_to_other_filter_id: number = null;
-    private is_relative_to_other_filter: boolean = false;
 
     // Current filter may show select_all on select_none of its options
     private can_select_all: boolean = false;
@@ -224,7 +223,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.auto_select_date_relative_mode = true;
 
             this.relative_to_other_filter_id = null;
-            this.is_relative_to_other_filter = false;
 
             return;
         }
@@ -252,7 +250,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.auto_select_date_relative_mode = this.widget_options.auto_select_date_relative_mode;
 
         this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
-        this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
 
         this.can_select_all = this.widget_options.can_select_all;
         this.can_select_none = this.widget_options.can_select_none;
@@ -668,18 +665,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         this.next_update_options.auto_select_date_relative_mode = !this.next_update_options.auto_select_date_relative_mode;
-
-        await this.throttled_update_options();
-    }
-
-    private async switch_is_relative_to_other_filter() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.default_widget_props;
-        }
-
-        this.next_update_options.is_relative_to_other_filter = !this.next_update_options.is_relative_to_other_filter;
 
         await this.throttled_update_options();
     }
@@ -1194,7 +1179,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.auto_select_date,
             this.auto_select_date_relative_mode,
             this.relative_to_other_filter_id,
-            this.is_relative_to_other_filter,
             this.auto_select_date_min,
             this.auto_select_date_max,
         );

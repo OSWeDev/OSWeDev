@@ -351,16 +351,6 @@
                         :width="150"
                         :labels="{checked: label('field_value_filter_widget_component.auto_select_date_relative_mode.data'), unchecked: label('field_value_filter_widget_component.auto_select_date_relative_mode.value')}")
 
-            .is_relative_to_other_filter(v-if='auto_select_date_relative_mode') 
-                .input_label {{ label('field_value_filter_widget_component.is_relative_to_other_filter') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_is_relative_to_other_filter" 
-                        :value="is_relative_to_other_filter" 
-                        :sync="false"
-                        :width="150"
-                        :labels="{checked: label('field_value_filter_widget_component.is_relative_to_other_filter.filter'), unchecked: label('field_value_filter_widget_component.is_relative_to_other_filter.now')}")
-            
             .segmentation_type 
                 .input_label {{ label('field_value_filter_widget_component.segmentation_type') }}
                 .input_wrapper
