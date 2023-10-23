@@ -113,6 +113,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     private format_datepicker_year: string = 'yyyy';
     private format_datepicker_month: string = 'MM/yyyy';
+    private format_datepicker_week: string = 'dd/MM/yyyy';
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
 
@@ -285,6 +286,10 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     get is_segmentation_mois(): boolean {
         return this.segmentation_type_ == TimeSegment.TYPE_MONTH;
+    }
+
+    get is_segmentation_week(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_WEEK;
     }
 
     get is_segmentation_day(): boolean {
