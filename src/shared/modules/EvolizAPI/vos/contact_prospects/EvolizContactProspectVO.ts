@@ -1,10 +1,10 @@
-export default class EvolizContactClientVO {
+export default class EvolizContactProspectVO {
     // ID unique Evoliz (required & non null)
     public contactid: number;
     // ID du créateur du contact
     public userid: number;
-    // Client
-    public client: { clientid: number, code: string, civility: string, name: string };
+    // Propect
+    public prospect: { prospectid: number, name: string };
     // Civilité
     public civility: string;
     // Nom de famille (required & non null)
@@ -27,8 +27,6 @@ export default class EvolizContactClientVO {
     public label_tel_tertiary: string;
     // Tertiary phone number, required when label_tel_tertiary is present
     public tel_tertiary: string;
-    // Determines if the client is active
-    public enabled: boolean;
     // Contact consent informations ; Default: "without" ; Enum: "without" "authorized" "unauthorized"
     public consent: string;
     // Custom field

@@ -7,8 +7,9 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
 import EvolizContactClientVO from '../../../shared/modules/EvolizAPI/vos/contact_clients/EvolizContactClientVO';
+import EvolizContactProspectVO from '../../../shared/modules/EvolizAPI/vos/contact_prospects/EvolizContactProspectVO';
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import EvolizProspectVO from '../../../shared/modules/EvolizAPI/vos/prospects/EvolizProspectVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -74,6 +75,10 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_client, this.create_client.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_client, this.create_contact_client.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_clients, this.list_contact_clients.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_prospects, this.list_clients.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_prospect, this.create_client.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_prospects, this.list_contact_clients.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_prospect, this.create_contact_client.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -141,10 +146,11 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 true,
             );
         } catch (error) {
-            console.error("Erreur: invoice: " + invoice.document_number);
+            console.error("Erreur Evoliz: invoice: " + invoice.document_number);
         }
     }
 
+    ///// CLIENTS /////
     public async list_clients(): Promise<EvolizClientVO[]> {
         try {
             let clients: EvolizClientVO[] = await this.get_all_pages('/api/v1/clients') as EvolizClientVO[];
@@ -178,10 +184,11 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             return create_client.clientid;
 
         } catch (error) {
-            console.error("Erreur: client: " + client.name);
+            console.error("Erreur Evoliz: client: " + client.name);
         }
     }
 
+    ///// CONTACTS CLIENTS /////
     public async list_contact_clients(): Promise<EvolizContactClientVO[]> {
         try {
             let contacts: EvolizContactClientVO[] = await this.get_all_pages('/api/v1/contacts-clients') as EvolizContactClientVO[];
@@ -211,8 +218,87 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 false,
                 true,
             );
+
+            return create_contact.contactid;
+
         } catch (error) {
-            console.error("Erreur: contact: " + contact.lastname + " " + contact.firstname);
+            console.error("Erreur Evoliz: contact client: " + contact.lastname + " " + contact.firstname);
+        }
+    }
+
+    ///// PROSPECTS /////
+    public async list_prospects(): Promise<EvolizProspectVO[]> {
+        try {
+            let prospects: EvolizProspectVO[] = await this.get_all_pages('/api/v1/prospects') as EvolizProspectVO[];
+
+            return prospects;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    public async create_prospects(prospect: EvolizProspectVO) {
+
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let create_prospect = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/prospects',
+                prospect,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Content-Type': 'application/json',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+
+            return create_prospect.prospectid;
+
+        } catch (error) {
+            console.error("Erreur Evoliz: prospect: " + prospect.name);
+        }
+    }
+
+    ///// CONTACTS PROSPECTS /////
+    public async list_contact_prospects(): Promise<EvolizContactProspectVO[]> {
+        try {
+            let prospects: EvolizContactProspectVO[] = await this.get_all_pages('/api/v1/contacts-prospects') as EvolizContactProspectVO[];
+
+            return prospects;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    public async create_contact_prospects(contact: EvolizContactProspectVO) {
+
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let create_prospect = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/contacts-prospects',
+                contact,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Content-Type': 'application/json',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+
+            return create_prospect.contactid;
+
+        } catch (error) {
+            console.error("Erreur Evoliz: contact prospect: " + contact.lastname + " " + contact.firstname);
         }
     }
 

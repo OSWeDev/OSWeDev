@@ -4,16 +4,16 @@ import EvolizContactClientVO from "../contact_clients/EvolizContactClientVO";
 
 export default class EvolizContactClientParam implements IAPIParamTranslator<EvolizContactClientParam> {
 
-    public static fromParams(client: EvolizContactClientVO): EvolizContactClientParam {
-        return new EvolizContactClientParam(client);
+    public static fromParams(contact: EvolizContactClientVO): EvolizContactClientParam {
+        return new EvolizContactClientParam(contact);
     }
 
     public static getAPIParams(param: EvolizContactClientParam): any[] {
-        return [param.client];
+        return [param.contact];
     }
 
     public constructor(
-        public client: EvolizContactClientVO
+        public contact: EvolizContactClientVO
     ) { }
 }
 
