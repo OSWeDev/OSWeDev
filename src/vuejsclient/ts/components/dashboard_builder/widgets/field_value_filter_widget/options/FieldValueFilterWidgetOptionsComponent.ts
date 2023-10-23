@@ -9,6 +9,7 @@ import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/Sort
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import VOFieldRefVOTypeHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOTypeHandler';
 import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
@@ -31,7 +32,6 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BooleanFilter from '../boolean/BooleanFilter';
 import AdvancedStringFilter from '../string/AdvancedStringFilter';
-import FieldValueFilterWidgetOptions from './FieldValueFilterWidgetOptions';
 import './FieldValueFilterWidgetOptionsComponent.scss';
 
 @Component({
@@ -85,12 +85,12 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     ];
 
     private checkbox_columns_options: number[] = [
-        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1,
-        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_2,
-        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_3,
-        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_4,
-        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_6,
-        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_12
+        FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1,
+        FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_2,
+        FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_3,
+        FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_4,
+        FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_6,
+        FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_12
     ];
 
     private tmp_default_advanced_string_filter_type: number = null;
@@ -115,6 +115,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private fg_color_text: string = null;
     private bg_color: string = null;
 
+    private date_relative_mode: boolean = true;
+    private auto_select_date: boolean = true;
+    private auto_select_date_min: number = null;
+    private auto_select_date_max: number = null;
+    private auto_select_date_relative_mode: boolean = true;
+
+    private relative_to_other_filter_id: number = null;
+    private is_relative_to_other_filter: boolean = false;
+
     // Current filter may show select_all on select_none of its options
     private can_select_all: boolean = false;
     private can_select_none: boolean = false;
@@ -122,7 +131,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private filter_visible_options: DataFilterOption[] = [];
     private actual_query: string = null;
 
-    private next_update_options: FieldValueFilterWidgetOptions = null;
+    private next_update_options: FieldValueFilterWidgetOptionsVO = null;
 
     // Perform the action of update colors
     private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
@@ -203,10 +212,20 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.tmp_exclude_ts_range_values = null;
             this.enum_bg_colors = {};
             this.enum_fg_colors = {};
-            this.checkbox_columns = FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1;
+            this.checkbox_columns = FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1;
             this.fg_color_text = null;
             this.fg_color_value = null;
             this.bg_color = null;
+
+            this.date_relative_mode = true;
+            this.auto_select_date = true;
+            this.auto_select_date_min = null;
+            this.auto_select_date_max = null;
+            this.auto_select_date_relative_mode = true;
+
+            this.relative_to_other_filter_id = null;
+            this.is_relative_to_other_filter = false;
+
             return;
         }
         this.max_visible_options = this.widget_options.max_visible_options;
@@ -214,7 +233,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.tmp_default_ts_range_values = this.widget_options.default_ts_range_values;
         this.tmp_default_boolean_values = this.widget_options.default_boolean_values ? this.widget_options.default_boolean_values : [];
         this.tmp_segmentation_type = !!this.widget_options.segmentation_type ? this.segmentation_type_options.find((e) => e.id == this.widget_options.segmentation_type) : null;
-        this.checkbox_columns = this.widget_options.checkbox_columns ? this.widget_options.checkbox_columns : FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1;
+        this.checkbox_columns = this.widget_options.checkbox_columns ? this.widget_options.checkbox_columns : FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1;
         this.tmp_default_advanced_string_filter_type = this.widget_options.default_advanced_string_filter_type;
         this.crud_api_type_id_selected = this.widget_options.other_ref_api_type_id;
         this.tmp_exclude_filter_opt_values = this.widget_options.exclude_filter_opt_values ? this.widget_options.exclude_filter_opt_values : [];
@@ -226,6 +245,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.fg_color_value = this.widget_options.fg_color_value;
         this.bg_color = this.widget_options.bg_color;
 
+        this.date_relative_mode = this.widget_options.date_relative_mode;
+        this.auto_select_date = this.widget_options.auto_select_date;
+        this.auto_select_date_min = this.widget_options.auto_select_date_min;
+        this.auto_select_date_max = this.widget_options.auto_select_date_max;
+        this.auto_select_date_relative_mode = this.widget_options.auto_select_date_relative_mode;
+
+        this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
+        this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
+
         this.can_select_all = this.widget_options.can_select_all;
         this.can_select_none = this.widget_options.can_select_none;
 
@@ -233,7 +261,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             let field = this.field;
 
             if (field && field.segmentation_type) {
-                this.tmp_segmentation_type = this.segmentation_type_options.find((e) => e.id == field.segmentation_type);
+                this.tmp_segmentation_type = this.segmentation_type_options.find(
+                    (e) => e.id == field.segmentation_type
+                );
             }
         }
 
@@ -380,6 +410,50 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options.enum_fg_colors = this.enum_fg_colors;
 
         await this.throttled_update_options();
+    }
+
+    @Watch('relative_to_other_filter_id')
+    private async onchange_relative_to_other_filter_id() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.relative_to_other_filter_id != this.relative_to_other_filter_id) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('auto_select_date_min')
+    private async onchange_auto_select_date_min() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        let date = (this.auto_select_date_min == null) ? null : parseInt(this.auto_select_date_min.toString());
+        if (this.widget_options.auto_select_date_min != date) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_date_min = date;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('auto_select_date_max')
+    private async onchange_auto_select_date_max() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        let date = (this.auto_select_date_max == null) ? null : parseInt(this.auto_select_date_max.toString());
+        if (this.widget_options.auto_select_date_max != date) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.auto_select_date_max = date;
+
+            await this.throttled_update_options();
+        }
     }
 
     private switch_can_select_multiple() {
@@ -558,6 +632,54 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         this.next_update_options.advanced_mode = !this.next_update_options.advanced_mode;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_date_relative_mode() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.default_widget_props;
+        }
+
+        this.next_update_options.date_relative_mode = !this.next_update_options.date_relative_mode;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_auto_select_date() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.default_widget_props;
+        }
+
+        this.next_update_options.auto_select_date = !this.next_update_options.auto_select_date;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_auto_select_date_relative_mode() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.default_widget_props;
+        }
+
+        this.next_update_options.auto_select_date_relative_mode = !this.next_update_options.auto_select_date_relative_mode;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_is_relative_to_other_filter() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.default_widget_props;
+        }
+
+        this.next_update_options.is_relative_to_other_filter = !this.next_update_options.is_relative_to_other_filter;
 
         await this.throttled_update_options();
     }
@@ -956,7 +1078,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     private checkbox_columns_label(e: number): string {
         if (e != null) {
-            return this.t(FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_LABELS[e]);
+            return this.t(FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_LABELS[e]);
         }
         return null;
     }
@@ -1026,8 +1148,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.label('FieldValueFilterWidget.advanced_mode_placeholder');
     }
 
-    get default_widget_props(): FieldValueFilterWidgetOptions {
-        return new FieldValueFilterWidgetOptions(
+    get default_widget_props(): FieldValueFilterWidgetOptionsVO {
+        return new FieldValueFilterWidgetOptionsVO(
             null,
             null,
             null,
@@ -1065,7 +1187,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.force_filter_by_all_api_type_ids,
             this.bg_color,
             this.fg_color_value,
-            this.fg_color_text
+            this.fg_color_text,
+            this.can_select_all,
+            this.can_select_none,
+            this.date_relative_mode,
+            this.auto_select_date,
+            this.auto_select_date_relative_mode,
+            this.relative_to_other_filter_id,
+            this.is_relative_to_other_filter,
+            this.auto_select_date_min,
+            this.auto_select_date_max,
         );
     }
 
@@ -1073,16 +1204,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
      *  Widget Options
      *   - Load default widget option (from backend)
      */
-    get widget_options(): FieldValueFilterWidgetOptions {
+    get widget_options(): FieldValueFilterWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: FieldValueFilterWidgetOptions = null;
+        let options: FieldValueFilterWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
-                options = options ? new FieldValueFilterWidgetOptions().from(options) : null;
+                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                options = options ? new FieldValueFilterWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -1353,7 +1484,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -1363,7 +1494,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     get vo_field_ref_lvl2(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref_lvl2)) {
             return null;
@@ -1373,7 +1504,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     get vo_field_sort(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_sort)) {
             return null;
@@ -1383,7 +1514,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     get vo_field_sort_lvl2(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
+        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_sort_lvl2)) {
             return null;

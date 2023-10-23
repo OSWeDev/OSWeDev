@@ -2109,6 +2109,45 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Afficher Option Selectionner Aucun" },
             'field_value_filter_widget_component.can_select_none_option.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-selection automatique'
+        }, 'field_value_filter_widget_component.auto_select_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'field_value_filter_widget_component.auto_select_date.data.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'field_value_filter_widget_component.auto_select_date.value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative'
+        }, 'field_value_filter_widget_component.auto_select_date_relative_mode.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'field_value_filter_widget_component.auto_select_date_relative_mode.data.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'field_value_filter_widget_component.auto_select_date_relative_mode.value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à'
+        }, 'field_value_filter_widget_component.is_relative_to_other_filter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Un autre filtre'
+        }, 'field_value_filter_widget_component.is_relative_to_other_filter.filter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Aujourd\'hui'
+        }, 'field_value_filter_widget_component.is_relative_to_other_filter.now.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection min'
+        }, 'field_value_filter_widget_component.auto_select_date_min.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection max'
+        }, 'field_value_filter_widget_component.auto_select_date_max.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Deux exemples:<ul><li>Si on veut un filtre A-1 (appelée Date_Am1 par exemple) relatif à un autre filtre A (appelé Date_A), on indique -1 en min et max sur le filtre Année et 0 sur les autres filtres relatifs (par exemple si la segmentation est sur le mois, on aura aussi un filtre Mois A-1 (nommé Date_Am1 aussi) relatif à un filtre Mois A (nommé Date_A) avec un champ relatif min et max à 0.</li>' +
+                '<li>Si on veut un filtre M-1 (appelée Date_Mm1) relatif à un autre filtre (Date_M), sur le filtre Année Date_Mm1 on indique 0 en min/max relatif au filtre Année Date_M. Mais on indique dans le filtre Mois lié (donc nommé Date_Mm1 aussi) en min et max -1, relativement au filtre mois appelé Date_M. Si on est en janvier, le mois relatif sera alors négatif et l\'année du filtrage sera impactée automatiquement - pas graphiquement mais dans les requêtes.</li></ul>'
+        }, 'field_value_filter_widget_component.auto_select_date.is_relative_to_other_filter.tooltip.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Utiliser cette table pour la comptage des valeurs dans les filtres (si activé)" },
             'table_widget_options_component.use_for_count.___LABEL___'

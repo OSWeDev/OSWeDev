@@ -126,7 +126,7 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
-        .is_button
+        .is_button(v-if="!is_type_date")
             .input_label {{ label('field_value_filter_widget_component.is_button') }}
             .input_wrapper
                 toggle-button(
@@ -331,6 +331,36 @@
                             )
         
         template(v-if="is_type_date")
+            .auto_select_date 
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_auto_select_date" 
+                        :value="auto_select_date" 
+                        :sync="false"
+                        :width="150"
+                        :labels="{checked: label('field_value_filter_widget_component.auto_select_date.data'), unchecked: label('field_value_filter_widget_component.auto_select_date.value')}")
+
+            .auto_select_date_relative_mode 
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date_relative_mode') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_auto_select_date_relative_mode" 
+                        :value="auto_select_date_relative_mode" 
+                        :sync="false"
+                        :width="150"
+                        :labels="{checked: label('field_value_filter_widget_component.auto_select_date_relative_mode.data'), unchecked: label('field_value_filter_widget_component.auto_select_date_relative_mode.value')}")
+
+            .is_relative_to_other_filter(v-if='auto_select_date_relative_mode') 
+                .input_label {{ label('field_value_filter_widget_component.is_relative_to_other_filter') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_is_relative_to_other_filter" 
+                        :value="is_relative_to_other_filter" 
+                        :sync="false"
+                        :width="150"
+                        :labels="{checked: label('field_value_filter_widget_component.is_relative_to_other_filter.filter'), unchecked: label('field_value_filter_widget_component.is_relative_to_other_filter.now')}")
+            
             .segmentation_type 
                 .input_label {{ label('field_value_filter_widget_component.segmentation_type') }}
                 .input_wrapper
@@ -354,8 +384,23 @@
                         :deselect-label='label("multiselect.deselectLabel")'
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
+           
+            .auto_select_date_min(v-tooltip='(auto_select_date_relative_mode && is_relative_to_other_filter) ? label("field_value_filter_widget_component.auto_select_date.is_relative_to_other_filter.tooltip") : null')
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date_min') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="auto_select_date_min"
+                    )
 
-
+            .auto_select_date_max(v-tooltip='(auto_select_date_relative_mode && is_relative_to_other_filter) ? label("field_value_filter_widget_component.auto_select_date.is_relative_to_other_filter.tooltip") : null')
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date_max') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="auto_select_date_max"
+                    )
+        
         .default_filter_opt_values 
             .input_label {{ label('field_value_filter_widget_component.default_filter_opt_values') }}
             .input_wrapper
@@ -386,7 +431,7 @@
                         @search-change="query_update_visible_options"
                     )
                     
-                template(v-if="is_type_date")
+                template(v-if="is_type_date && !auto_select_date_relative_mode")
                     Tsrangeinputcomponent(
                         v-model="tmp_default_ts_range_values"
                         :field="field"
@@ -448,7 +493,7 @@
                         @search-change="query_update_visible_options"
                     )
                     
-                template(v-if="is_type_date")
+                template(v-if="is_type_date && !auto_select_date_relative_mode")
                     Tsrangeinputcomponent(
                         v-model="tmp_exclude_ts_range_values"
                         :field="field"
