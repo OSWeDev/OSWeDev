@@ -12,8 +12,6 @@ export default class DashboardVO implements IDistantVOBase, IWeightedItem {
 
     public weight: number;
 
-    public api_type_ids: string[];
-
     get translatable_name_code_text(): string {
 
         if (!this.id) {

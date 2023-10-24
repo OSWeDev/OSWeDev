@@ -206,4 +206,8 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         await this.throttle_init_or_update_graph();
     }
+
+    private async update_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
+        this.$emit('update_discarded_field_paths', discarded_field_paths);
+    }
 }

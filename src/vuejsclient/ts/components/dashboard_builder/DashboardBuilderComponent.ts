@@ -45,6 +45,7 @@ import DashboardPageVOManager from '../../../../shared/modules/DashboardBuilder/
 import DashboardVOManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
 import SharedFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import SharedFiltersVOManager from '../../../../shared/modules/DashboardBuilder/manager/SharedFiltersVOManager';
+import DashboardBuilderBoardManager from '../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -59,6 +60,18 @@ import SharedFiltersVOManager from '../../../../shared/modules/DashboardBuilder/
     }
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
+
+    @ModuleDashboardPageAction
+    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
+
+    @ModuleDashboardPageAction
+    private set_dashboard_api_type_ids: (dashboard_api_type_ids: string[]) => void;
+
+    @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @Prop({ default: null })
     private dashboard_id: string;
@@ -568,7 +581,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         if (this.dashboard?.id) {
             // Update the dashboard navigation history
-            this.update_dashboard_navigation_history();
+            DashboardVOManager.update_dashboard_navigation_history(
+                this.dashboard.id,
+                this.get_dashboard_navigation_history,
+                this.set_dashboard_navigation_history
+            );
 
             this.$router.push({
                 name: 'DashboardBuilder_id',
@@ -631,28 +648,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         );
 
         return dashboard_pages;
-    }
-
-    /**
-     * update_dashboard_navigation_history
-     *  - Update the dashboard navigation history
-     */
-    private update_dashboard_navigation_history(): void {
-        // May be empty
-        const dashboard_navigation_history = this.get_dashboard_navigation_history;
-
-        if (
-            (!dashboard_navigation_history) ||
-            (dashboard_navigation_history?.current_dashboard_id != this.dashboard?.id)
-        ) {
-            // We are navigating to a new dashboard, we clear the navigation history
-            // In this case we must set the current_dashboard_id
-            // and the previous_dashboard_id (with the old current_dashboard_id)
-            this.set_dashboard_navigation_history({
-                current_dashboard_id: this.dashboard.id,
-                previous_dashboard_id: dashboard_navigation_history?.current_dashboard_id
-            });
-        }
     }
 
     private async on_dashboard_loaded() {
@@ -820,6 +815,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             WeightHandler.getInstance().sortByWeight(this.pages);
             this.page = this.pages[0];
         }
+
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
+        this.set_dashboard_api_type_ids(api_type_ids);
+        this.set_discarded_field_paths(discarded_field_paths);
     }
 
     /**
@@ -827,7 +826,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
      *  - Initialize the dashboard tab to show in case when the dashboard is loaded or changed
      */
     private init_dashboard_tab() {
-        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
+        this.can_build_page = !!(this.get_dashboard_api_type_ids && this.get_dashboard_api_type_ids.length);
         this.show_build_page = this.can_build_page;
         this.show_select_vos = !this.show_build_page;
         this.show_shared_filters = false;
@@ -844,6 +843,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private async create_new_dashboard() {
         this.dashboard = new DashboardVO();
+        this.set_dashboard_api_type_ids([]);
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
             this.dashboard
@@ -1069,24 +1069,26 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private async add_api_type_id(api_type_id: string) {
-        if (!this.dashboard.api_type_ids) {
-            this.dashboard.api_type_ids = [];
+        if (!this.get_dashboard_api_type_ids) {
+            this.set_dashboard_api_type_ids([]);
         }
-        if (this.dashboard.api_type_ids.indexOf(api_type_id) >= 0) {
+        if (this.get_dashboard_api_type_ids.indexOf(api_type_id) >= 0) {
             return;
         }
-        this.dashboard.api_type_ids.push(api_type_id);
-        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);
+        this.set_dashboard_api_type_ids(Array.concat(this.get_dashboard_api_type_ids, [api_type_id]));
+        this.can_build_page = !!(this.get_dashboard_api_type_ids && this.get_dashboard_api_type_ids.length);
     }
 
     private async del_api_type_id(api_type_id: string) {
-        if (!this.dashboard.api_type_ids) {
+        if (!this.get_dashboard_api_type_ids) {
             return;
         }
-        this.dashboard.api_type_ids = this.dashboard.api_type_ids.filter((ati) => ati != api_type_id);
-        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);
+        this.set_dashboard_api_type_ids(this.get_dashboard_api_type_ids.filter((ati) => ati != api_type_id));
+        this.can_build_page = !!(this.get_dashboard_api_type_ids && this.get_dashboard_api_type_ids.length);
+    }
+
+    private async update_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
+        this.set_discarded_field_paths(discarded_field_paths);
     }
 
     private async mounted() {

@@ -3,18 +3,21 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
@@ -24,17 +27,14 @@ import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
+import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
-import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -63,6 +63,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private all_page_widget: DashboardPageWidgetVO[];
+
+    @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     private data_rows: any[] = [];
 
@@ -337,7 +343,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if (!this.dashboard.api_type_ids) {
+        if (!this.get_dashboard_api_type_ids) {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
@@ -346,10 +352,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         let query_: ContextQueryVO = query(this.widget_options.api_type_id)
             .set_limit(this.widget_options.limit, this.pagination_offset)
-            .using(this.dashboard.api_type_ids)
+            .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
+
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
         for (let i in this.fields) {
             let field = this.fields[i];
@@ -360,7 +368,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                 continue;
             }
 
-            if (this.dashboard.api_type_ids.indexOf(field.vo_type_id) < 0) {
+            if (this.get_dashboard_api_type_ids.indexOf(field.vo_type_id) < 0) {
                 ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.vo_type_id);
                 this.data_rows = [];
@@ -464,7 +472,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private async confirm_bulkops() {
         let self = this;
-        if ((!self.field_id_selected) || (!self.dashboard.api_type_ids) || (!self.api_type_id) || (!self.moduletable)) {
+        if ((!self.field_id_selected) || (!self.get_dashboard_api_type_ids) || (!self.api_type_id) || (!self.moduletable)) {
             self.snotify.error(self.label('BulkOpsWidgetComponent.bulkops.failed'));
             return;
         }
@@ -486,7 +494,8 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected), false);
 
-                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
+                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.get_dashboard_api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
+                                    FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
                                     await ModuleContextFilter.getInstance().update_vos(
                                         context_query, {

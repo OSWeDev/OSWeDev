@@ -1,14 +1,20 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
@@ -27,12 +33,6 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import AdvancedNumberFilter from './AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
-import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 
 @Component({
     template: require('./FieldValueFilterNumberWidgetComponent.pug'),
@@ -43,6 +43,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -416,7 +419,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 );
             query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
             query_.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query);
-            query_.active_api_type_ids = this.dashboard.api_type_ids;
+            query_.active_api_type_ids = this.get_dashboard_api_type_ids;
 
             FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
@@ -457,7 +460,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     return;
                 }
             } else {
-                query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
+                query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
+                    query_,
+                    this.get_dashboard_api_type_ids,
+                    this.get_discarded_field_paths,
+                    true);
             }
 
             tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(

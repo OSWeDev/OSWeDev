@@ -1,21 +1,20 @@
-import VOFieldRefVOHandler from "../handlers/VOFieldRefVOHandler";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import RangeHandler from "../../../tools/RangeHandler";
 import TypesHandler from "../../../tools/TypesHandler";
 import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
-import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../ContextFilter/vos/ContextQueryVO";
-import VOFieldRefVO from "../vos/VOFieldRefVO";
-import DashboardVO from "../vos/DashboardVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import ModuleTable from "../../ModuleTable";
 import ModuleTableField from "../../ModuleTableField";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import VOFieldRefVOHandler from "../handlers/VOFieldRefVOHandler";
 import BooleanFilterModel from "../models/BooleanFilterModel";
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
+import VOFieldRefVO from "../vos/VOFieldRefVO";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
  * FieldValueFilterWidgetManager
@@ -638,9 +637,15 @@ export default class FieldValueFilterWidgetManager {
         return context_query;
     }
 
+    /**
+     *
+     * @param api_type_ids Il s'agit des api_type_ids sur DB, qu'on a chargé en même temps que les discarded_field_paths du dashboard dans la fonction appelante
+     * @param context_query_with_discarded_field_paths ATTENTION : on doit bien avoir pré-intégré les discarded fields_paths dans le context_query
+     * @param ignore_self_filter
+     */
     public static async get_overflowing_segmented_options_api_type_id_from_dashboard(
-        dashboard: DashboardVO,
-        context_query: ContextQueryVO,
+        api_type_ids: string[],
+        context_query_with_discarded_field_paths: ContextQueryVO,
         ignore_self_filter: boolean = true
     ): Promise<string> {
 
@@ -651,8 +656,8 @@ export default class FieldValueFilterWidgetManager {
         let has_segmented: boolean = false;
         let overflowing_api_type_id: string = null;
 
-        for (let i in dashboard.api_type_ids) {
-            let api_type_id: string = dashboard.api_type_ids[i];
+        for (let i in api_type_ids) {
+            let api_type_id: string = api_type_ids[i];
             let module_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (module_table && module_table.is_segmented) {
@@ -666,7 +671,7 @@ export default class FieldValueFilterWidgetManager {
 
                 let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(
                     api_type_id,
-                    context_query,
+                    context_query_with_discarded_field_paths,
                     ignore_self_filter
                 );
 

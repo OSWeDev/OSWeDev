@@ -53,6 +53,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageAction
@@ -888,7 +891,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
                 .set_limit(this.widget_options.max_visible_options)
                 .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-                .using(this.dashboard.api_type_ids);
+                .using(this.get_dashboard_api_type_ids);
 
             FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
                 context_query,
@@ -933,8 +936,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 }
             } else {
                 context_query = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
-                    this.dashboard,
                     context_query,
+                    this.get_dashboard_api_type_ids,
                     this.get_discarded_field_paths,
                     true);
             }
@@ -981,7 +984,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
                             .set_limit(this.widget_options.max_visible_options)
                             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-                            .using(this.dashboard.api_type_ids);
+                            .using(this.get_dashboard_api_type_ids);
 
                         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
@@ -1080,7 +1083,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_lvl2))
                             .set_limit(this.widget_options.max_visible_options)
                             .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
-                            .using(this.dashboard.api_type_ids);
+                            .using(this.get_dashboard_api_type_ids);
 
                         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
                             context_query_lvl2,

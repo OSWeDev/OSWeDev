@@ -77,9 +77,7 @@ export default class TableWidgetManager {
 
         const valuetables_widgets_options = await TableWidgetManager.get_valuetables_widgets_options(dashboard_page.id);
 
-        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
-            { id: dashboard.id } as DashboardVO
-        );
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
         for (const name in valuetables_widgets_options) {
 
@@ -111,6 +109,7 @@ export default class TableWidgetManager {
                     dashboard,
                     widget_options,
                     active_field_filters,
+                    api_type_ids,
                     discarded_field_paths,
                     all_page_widgets_by_id),
                 TableWidgetManager.get_exportable_table_columns_by_widget_options(
@@ -141,7 +140,7 @@ export default class TableWidgetManager {
                     widget_options,
                     active_field_filters,
                     all_page_widgets_by_id),
-                dashboard.api_type_ids,
+                api_type_ids,
                 discarded_field_paths,
                 false,
                 null,
@@ -201,6 +200,7 @@ export default class TableWidgetManager {
         dashboard: DashboardVO,
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
+        api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
     ): ContextQueryVO {
@@ -244,7 +244,7 @@ export default class TableWidgetManager {
 
         const context_query: ContextQueryVO = query(crud_api_type_id)
             .set_limit(limit, pagination_offset)
-            .using(dashboard.api_type_ids)
+            .using(api_type_ids)
             .add_filters(context_filter);
 
         //On évite les jointures supprimées.

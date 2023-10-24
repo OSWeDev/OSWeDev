@@ -5,32 +5,29 @@ import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQu
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IEditableDashboardPage from '../../../../../shared/modules/DashboardBuilder/interfaces/IEditableDashboardPage';
+import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
+import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
-import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
-import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
-import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
-import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
+import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
 import FavoritesFiltersModalComponent from '../widgets/favorites_filters_widget/modal/FavoritesFiltersModalComponent';
+import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import { all_promises } from '../../../../../shared/tools/PromiseTools';
-import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
-import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
-import SharedFiltersVOManager from '../../../../../shared/modules/DashboardBuilder/manager/SharedFiltersVOManager';
-import FieldFiltersVOHandler from '../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
-import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import './DashboardBuilderBoardComponent.scss';
-import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -56,9 +53,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     public static GridLayout_TOTAL_WIDTH: number = 1280;
     public static GridLayout_TOTAL_COLUMNS: number = 128;
     public static GridLayout_ELT_WIDTH: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
-
-    @ModuleDashboardPageAction
-    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
@@ -173,7 +167,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @Watch("dashboard", { immediate: true })
     private async onchange_dashboard() {
         // We should load the shared_filters with the current dashboard
-        await this.load_shared_filters_with_dashboard();
+        await DashboardVOManager.load_shared_filters_with_dashboard(
+            this.dashboard,
+            this.get_dashboard_navigation_history,
+            this.get_active_field_filters,
+            this.set_active_field_filters
+        );
     }
 
     @Watch("dashboard_page", { immediate: true })
@@ -208,8 +207,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private async rebuild_page_layout() {
 
         await all_promises([
-            this.load_widgets(),
-            this.load_discarded_field_paths(),
+            this.load_widgets()
         ]);
 
         /**
@@ -229,15 +227,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }, this.dashboard_page);
     }
 
-    private async load_discarded_field_paths() {
-
-        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
-            { id: this.dashboard.id } as DashboardVO
-        );
-
-        this.set_discarded_field_paths(discarded_field_paths);
-    }
-
     private async load_widgets() {
         let widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
             this.dashboard_page.id
@@ -250,80 +239,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.widgets = widgets;
     }
 
-    /**
-     * load_shared_filters_with_dashboard
-     * - Load shared_filters with the current dashboard and apply the field_filters from the previous dashboard
-     * - if the shared_filters.dashboard_id is the previous dashboard_id,
-     *      then apply the shared_filters.field_filters to the current dashboard
-     * -The shared_filters should be reciprocal (dashboard_id <-> shared_with_dashboard_ids)
-     *
-     */
-    private async load_shared_filters_with_dashboard(): Promise<void> {
-        // We may have a previous dashboard_id
-        const previous_dashboard_id = this.get_dashboard_navigation_history?.previous_dashboard_id;
-
-        // If we don't have a previous dashboard_id,
-        // we don't have to apply the field_filters from the previous dashboard_id
-        if (!previous_dashboard_id) {
-            return;
-        }
-
-        // We should find all shared_filters with the current dashboard_id
-        const all_shared_filters_with_dashboard = await SharedFiltersVOManager.find_shared_filters_with_dashboard_ids(
-            [this.dashboard.id]
-        );
-
-        // We should find the shared_filters from the previous dashboard_id
-        const shared_filters = all_shared_filters_with_dashboard?.find((shared_filter) => {
-            let is_shared_from_dashboard_id = false;
-
-            // Check if the given previous_dashboard_id is in the shared_from_dashboard_ids
-            // As it have the field_filters we want to apply
-            RangeHandler.foreach_ranges_sync(shared_filter.shared_from_dashboard_ids, (d_id: number) => {
-                if (d_id == previous_dashboard_id) {
-                    is_shared_from_dashboard_id = true;
-                }
-            });
-
-            return is_shared_from_dashboard_id;
-        });
-
-        const active_field_filters: FieldFiltersVO = this.get_active_field_filters;
-        const field_filters_to_apply: FieldFiltersVO = {};
-
-        // If we have shared_filters from the previous dashboard_id,
-        // we apply the field_filters from the previous dashboard_id
-        for (const api_type_id in shared_filters?.field_filters_to_share) {
-            const field_filters_to_share = shared_filters?.field_filters_to_share[api_type_id];
-
-            for (const field_id in field_filters_to_share) {
-                const can_share = field_filters_to_share[field_id];
-
-                // We check if the field_filters can be shared
-                if (!can_share) {
-                    continue;
-                }
-
-                // We check if the field_filters is empty
-                const is_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
-                    { api_type_id, field_id },
-                    active_field_filters
-                );
-
-                if (is_field_filters_empty) {
-                    continue;
-                }
-
-                const context_filter = active_field_filters[api_type_id][field_id];
-
-                field_filters_to_apply[api_type_id] = field_filters_to_apply[api_type_id] || {};
-                field_filters_to_apply[api_type_id][field_id] = context_filter;
-            }
-        }
-
-        // We apply the field_filters from the previous dashboard_id
-        this.set_active_field_filters(field_filters_to_apply);
-    }
 
     private async add_widget_to_page(widget: DashboardWidgetVO): Promise<DashboardPageWidgetVO> {
 

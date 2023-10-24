@@ -80,6 +80,32 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
             edge.source_cell.graphvoref = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_id(edge.source_cell.graphvoref.id).select_vo<DashboardGraphVORefVO>();
         }
         this.$emit('remap');
+
+        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+
+        let edges = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .select_vos<DashboardGraphVORefVO>();
+
+        for (const i in edges) {
+            const vo_type = edges[i].vo_type;
+            const db_cell_source = edges[i];
+
+            if (!db_cell_source.values_to_exclude) {
+                continue;
+            }
+
+            for (const key in db_cell_source.values_to_exclude) {
+                const field_id: string = db_cell_source.values_to_exclude[key];
+
+                if (!discarded_field_paths[vo_type]) {
+                    discarded_field_paths[vo_type] = {};
+                }
+
+                discarded_field_paths[vo_type][field_id] = true;
+            }
+        }
+        this.$emit('update_discarded_field_paths', edges);
     }
 
     private async confirm_delete_cell() {

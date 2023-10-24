@@ -278,6 +278,14 @@ export default class VarDAGNode extends DAGNodeBase {
     public current_step: number = null;
 
     /**
+     * On se rajoute un tag pour les noeuds issus d'une demande client à la base, et qui en découlent
+     *  Donc le noeud initial pas besoin on le retrouve dans VarsClientsSubsCacheHolder.clients_subs_indexes_cache
+     *  mais par contre quand on déploie, on note les noeuds issus de VarsClientsSubsCacheHolder.clients_subs_indexes_cache
+     *  ou déjà is_client_sub_dep == true
+     */
+    public is_client_sub_dep: boolean = false;
+
+    /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
     private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO) {

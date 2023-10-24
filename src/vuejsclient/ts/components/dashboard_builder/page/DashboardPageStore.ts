@@ -52,6 +52,7 @@ export interface IDashboardPageState {
 
     widgets_invisibility: { [w_id: number]: boolean };
 
+    dashboard_api_type_ids: string[];
     discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 }
 
@@ -70,6 +71,11 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
     public state: any;
     public getters: GetterTree<IDashboardPageState, DashboardPageContext>;
     public mutations = {
+
+        set_dashboard_api_type_ids(state: IDashboardPageState, dashboard_api_type_ids: string[]) {
+            state.dashboard_api_type_ids = dashboard_api_type_ids;
+        },
+
         set_page_widgets_components_by_pwid(state: IDashboardPageState, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
             state.page_widgets_components_by_pwid = page_widgets_components_by_pwid;
         },
@@ -289,6 +295,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             query_api_type_ids: [],
             shared_filters_map: [],
             widgets_invisibility: {},
+            dashboard_api_type_ids: [],
             discarded_field_paths: {}
         };
 
@@ -297,6 +304,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_page_widgets_components_by_pwid(state: IDashboardPageState): { [pwid: number]: VueComponentBase } {
                 return state.page_widgets_components_by_pwid;
+            },
+
+            get_dashboard_api_type_ids(state: IDashboardPageState): string[] {
+                return state.dashboard_api_type_ids;
             },
 
             get_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
@@ -395,6 +406,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_page_widget: (context: DashboardPageContext, page_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).set_page_widget, page_widget),
             delete_page_widget: (context: DashboardPageContext, page_widget: DashboardPageWidgetVO) => context.commit(store_mutations_names(this).delete_page_widget, page_widget),
             remove_page_widgets_components_by_pwid: (context: DashboardPageContext, pwid: number) => context.commit(store_mutations_names(this).remove_page_widgets_components_by_pwid, pwid),
+            set_dashboard_api_type_ids: (context: DashboardPageContext, dashboard_api_type_ids: string[]) => context.commit(store_mutations_names(this).set_dashboard_api_type_ids, dashboard_api_type_ids),
             set_page_widget_component_by_pwid: (context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widget_component_by_pwid, param),
         };
     }

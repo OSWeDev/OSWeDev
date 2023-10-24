@@ -250,7 +250,7 @@ export default abstract class VarsProcessBase {
                 continue;
             }
 
-            if (!VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index]) {
+            if ((!node.is_client_sub_dep) && !VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index]) {
                 continue;
             }
 

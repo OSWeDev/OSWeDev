@@ -3,21 +3,22 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import VOFieldRefVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOHandler';
 import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import WidgetOptionsVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
-import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -25,16 +26,16 @@ import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
-import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponent';
 import VueComponentBase from '../../../../VueComponentBase';
+import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponent';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import MultipleVoFieldRefHolderComponent from '../../../options_tools/multiple_vo_field_ref_holder/MultipleVoFieldRefHolderComponent';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import BooleanFilter from '../boolean/BooleanFilter';
+import AdvancedRefFieldFilter from '../ref_field/AdvancedRefFieldFilter';
 import AdvancedStringFilter from '../string/AdvancedStringFilter';
 import './FieldValueFilterWidgetOptionsComponent.scss';
-import AdvancedRefFieldFilter from '../ref_field/AdvancedRefFieldFilter';
 
 @Component({
     template: require('./FieldValueFilterWidgetOptionsComponent.pug'),
@@ -46,6 +47,12 @@ import AdvancedRefFieldFilter from '../ref_field/AdvancedRefFieldFilter';
     }
 })
 export default class FieldValueFilterWidgetOptionsComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -965,11 +972,13 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             // Load data_filters for enum
             data_filters = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
                 this.dashboard,
+                this.get_dashboard_api_type_ids,
+                this.get_discarded_field_paths,
                 this.get_widget_options(),
                 {},
                 {
                     active_api_type_ids: this.get_active_api_type_ids,
-                    query_api_type_ids: this.dashboard.api_type_ids,
+                    query_api_type_ids: this.get_dashboard_api_type_ids,
                 }
             );
 
@@ -988,7 +997,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 .field(this.vo_field_ref.field_id, 'label')
                 .set_limit(this.max_visible_options)
                 .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-                .using(this.dashboard.api_type_ids);
+                .using(this.get_dashboard_api_type_ids);
+            FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
@@ -1555,7 +1565,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     get crud_api_type_id_select_options(): string[] {
-        return this.dashboard.api_type_ids;
+        return this.get_dashboard_api_type_ids;
     }
 
     get translatable_name_code_text() {

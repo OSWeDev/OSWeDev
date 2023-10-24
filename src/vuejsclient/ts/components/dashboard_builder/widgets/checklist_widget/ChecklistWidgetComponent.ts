@@ -39,6 +39,8 @@ import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemMod
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
+import DashboardBuilderBoardManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 
 /**
  * Datatable of checklist items
@@ -67,6 +69,12 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
+
+    @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -467,9 +475,10 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             // context_query to select checklist items
             let context_query: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
                 .set_limit(this.pagination_pagesize, this.pagination_offset)
-                .using(this.dashboard.api_type_ids)
+                .using(this.get_dashboard_api_type_ids)
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(field_filters))
                 .set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
+            FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
             let items: ICheckListItem[] = await context_query.select_vos<ICheckListItem>();
 
@@ -519,8 +528,9 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         this.infos_cols_labels = this.checklist_controller.get_infos_cols_labels();
 
         let query_count: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
-            .using(this.dashboard.api_type_ids)
+            .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(field_filters));
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_count, this.get_discarded_field_paths);
 
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
 

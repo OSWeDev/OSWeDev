@@ -18,6 +18,7 @@ import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardCompon
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -28,11 +29,19 @@ import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/
 })
 export default class DashboardViewerComponent extends VueComponentBase {
 
+    @ModuleDashboardPageAction
+    private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
+
     @ModuleDashboardPageGetter
     private get_page_history: DashboardPageVO[];
 
     @ModuleDashboardPageAction
     private add_page_history: (page_history: DashboardPageVO) => void;
+
+    @ModuleDashboardPageAction
+    private set_dashboard_navigation_history: (
+        dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
+    ) => void;
 
     @ModuleDashboardPageAction
     private set_page_history: (page_history: DashboardPageVO[]) => void;
@@ -42,6 +51,16 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private clear_active_field_filters: () => void;
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
+
+    @ModuleDashboardPageGetter
+    private get_active_field_filters: FieldFiltersVO;
+
+    @ModuleDashboardPageAction
+    private set_active_field_filters: (param: FieldFiltersVO) => void;
+
 
     // @ModuleDashboardPageAction
     // private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
@@ -111,6 +130,13 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return;
         }
 
+        // Update the dashboard navigation history
+        DashboardVOManager.update_dashboard_navigation_history(
+            this.dashboard_id,
+            this.get_dashboard_navigation_history,
+            this.set_dashboard_navigation_history
+        );
+
         const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             DashboardVO.API_TYPE_ID
@@ -135,14 +161,15 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return;
         }
 
-        // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
-        // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...
-        this.clear_active_field_filters();
-        // const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
-        //     this.dashboard.id,
-        // );
+        // // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
+        // // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...
+        // this.clear_active_field_filters();
 
-        // this.add_shared_filters_to_map(shared_filters);
+        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
+            this.dashboard.id,
+        );
+
+        this.add_shared_filters_to_map(shared_filters);
 
         this.pages = await this.load_dashboard_pages_by_dashboard_id(
             this.dashboard.id
@@ -222,6 +249,18 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
         return res;
     }
+
+    @Watch("dashboard", { immediate: true })
+    private async onchange_dashboard() {
+        // We should load the shared_filters with the current dashboard
+        await DashboardVOManager.load_shared_filters_with_dashboard(
+            this.dashboard,
+            this.get_dashboard_navigation_history,
+            this.get_active_field_filters,
+            this.set_active_field_filters
+        );
+    }
+
 
     // private mounted() {
     //     let body = document.getElementById('page-top');

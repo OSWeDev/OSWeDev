@@ -20,6 +20,7 @@ import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO"
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
+import VarsClientsSubsCacheHolder from "./bgthreads/processes/VarsClientsSubsCacheHolder";
 
 export default class VarsDeployDepsHandler {
 
@@ -492,6 +493,9 @@ export default class VarsDeployDepsHandler {
                 if (!dep_node) {
                     return;
                 }
+
+                // On ajoute la logique de is_client_sub_dep
+                dep_node.is_client_sub_dep = node.is_client_sub_dep || VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
 
                 node.addOutgoingDep(dep_id, dep_node);
             })());

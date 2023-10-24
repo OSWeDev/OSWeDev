@@ -95,6 +95,8 @@ export default class FieldValueFilterEnumWidgetManager {
      */
     public static async find_enum_data_filters_from_widget_options(
         dashboard: DashboardVO,
+        dashboard_api_type_ids: string[],
+        dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         widget_options: FieldValueFilterWidgetOptionsVO,
         active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
         options?: {
@@ -119,8 +121,6 @@ export default class FieldValueFilterEnumWidgetManager {
         }
 
         const vo_field_ref = widget_options?.vo_field_ref;
-
-        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths({ id: dashboard.id } as DashboardVO);
 
         const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_ids_from_widget_options(
             widget_options,
@@ -202,7 +202,7 @@ export default class FieldValueFilterEnumWidgetManager {
             ];
 
             let api_type_context_query = query(api_type_id)
-                .using(dashboard.api_type_ids)
+                .using(dashboard_api_type_ids)
                 .field(vo_field_ref.field_id, 'label', vo_field_ref.api_type_id)
                 .add_filters(context_filters)
                 .set_limit(widget_options.max_visible_options)
@@ -210,7 +210,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
             FieldValueFilterWidgetManager.add_discarded_field_paths(
                 api_type_context_query,
-                discarded_field_paths
+                dashboard_discarded_field_paths
             );
 
             api_type_context_query.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
@@ -251,7 +251,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 }
             } else {
                 const overflowing_api_type_id = await FieldValueFilterWidgetManager.get_overflowing_segmented_options_api_type_id_from_dashboard(
-                    dashboard,
+                    dashboard_api_type_ids,
                     api_type_context_query,
                     true
                 );
@@ -260,7 +260,7 @@ export default class FieldValueFilterEnumWidgetManager {
                     api_type_context_query = FieldValueFilterWidgetManager.remove_overflowing_api_type_id_from_context_query(
                         api_type_context_query,
                         overflowing_api_type_id,
-                        discarded_field_paths
+                        dashboard_discarded_field_paths
                     );
                 }
             }
@@ -353,9 +353,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         const vo_field_ref = widget_options?.vo_field_ref;
 
-        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
-            { id: dashboard.id } as DashboardVO
-        );
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
         const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_ids_from_widget_options(
             widget_options,
@@ -469,7 +467,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 ];
 
                 const api_type_context_query = query(api_type_id)
-                    .using(dashboard.api_type_ids)
+                    .using(api_type_ids)
                     .add_filters(context_filters);
 
                 FieldValueFilterWidgetManager.add_discarded_field_paths(

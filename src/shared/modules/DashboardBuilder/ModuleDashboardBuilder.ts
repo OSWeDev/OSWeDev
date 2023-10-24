@@ -106,7 +106,6 @@ export default class ModuleDashboardBuilder extends Module {
 
         let datatable_fields = [
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField('api_type_ids', ModuleTableField.FIELD_TYPE_string_array, 'Types', false)
         ];
 
         let res = new ModuleTable(this, DashboardVO.API_TYPE_ID, () => new DashboardVO(), datatable_fields, null, "Dashboards");

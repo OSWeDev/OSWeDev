@@ -38,6 +38,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
     @ModuleDashboardPageGetter
@@ -349,6 +352,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         let data_filter_options: DataFilterOption[] = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
             this.dashboard,
+            this.get_dashboard_api_type_ids,
+            this.get_discarded_field_paths,
             this.widget_options,
             this.get_active_field_filters,
             {

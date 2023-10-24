@@ -140,7 +140,13 @@
         template(v-else)
             .row(v-if='show_select_vos && dashboard && dashboard.id')
                 .col-sm-12.tables_graph_wrapper 
-                    Tablesgraphcomponent(:key='"Tablesgraphcomponent__" + dashboard.id' :dashboard='dashboard' @add_api_type_id='add_api_type_id' @del_api_type_id='del_api_type_id')
+                    Tablesgraphcomponent(
+                        :key='"Tablesgraphcomponent__" + dashboard.id' 
+                        :dashboard='dashboard' 
+                        @add_api_type_id='add_api_type_id' 
+                        @del_api_type_id='del_api_type_id'
+                        @update_discarded_field_paths='update_discarded_field_paths'
+                    )
 
             
             .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')

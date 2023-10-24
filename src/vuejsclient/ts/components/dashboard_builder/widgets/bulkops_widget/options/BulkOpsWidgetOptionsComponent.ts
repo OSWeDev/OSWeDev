@@ -10,7 +10,7 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
@@ -32,6 +32,9 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
@@ -43,7 +46,7 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     private editable_columns: TableColumnDescVO[] = null;
 
     get api_type_id_select_options(): string[] {
-        return this.dashboard.api_type_ids;
+        return this.get_dashboard_api_type_ids;
     }
 
     private api_type_id_select_label(api_type_id: string): string {

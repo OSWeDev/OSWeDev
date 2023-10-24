@@ -10,6 +10,8 @@ import FieldFiltersVO from "../vos/FieldFiltersVO";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import DashboardVO from "../vos/DashboardVO";
 import ModuleDAO from '../../DAO/ModuleDAO';
+import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
+import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
 
 /**
  * @class SupervisionTypeWidgetManager
@@ -21,18 +23,18 @@ export default class SupervisionTypeWidgetManager {
      * load_supervision_api_type_ids_by_dashboard
      * - This method is responsible for loading the supervision api type ids by the given dashboard
      *
-     * @param {DashboardVO} dashboard
+     * @param {string[]} api_type_ids of the dashboard
      * @returns {string[]}
      */
-    public static load_supervision_api_type_ids_by_dashboard(dashboard: DashboardVO): string[] {
-        if (!(dashboard?.api_type_ids?.length > 0)) {
+    public static load_supervision_api_type_ids_by_dashboard(api_type_ids: string[]): string[] {
+        if (!(api_type_ids?.length > 0)) {
             return null;
         }
 
         const all_available_supervision_api_type_ids = SupervisionManager.load_all_supervision_api_type_ids();
 
         return all_available_supervision_api_type_ids.filter((api_type_id) => {
-            return dashboard.api_type_ids.includes(api_type_id);
+            return api_type_ids.includes(api_type_id);
         });
     }
 
@@ -74,6 +76,7 @@ export default class SupervisionTypeWidgetManager {
         }
 
         const registered_supervision_api_type_ids: string[] = [];
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
         for (const key in supervision_api_type_ids) {
             const api_type_id: string = supervision_api_type_ids[key];
@@ -149,7 +152,9 @@ export default class SupervisionTypeWidgetManager {
             const api_type_id: string = allowed_supervision_api_type_ids[key];
 
             let api_type_context_query = query(api_type_id)
-                .using(dashboard.api_type_ids);
+                .using(api_type_ids);
+
+            FieldValueFilterWidgetManager.add_discarded_field_paths(api_type_context_query, discarded_field_paths);
 
             if (category_selections?.length > 0) {
                 api_type_context_query = api_type_context_query.filter_by_num_eq(

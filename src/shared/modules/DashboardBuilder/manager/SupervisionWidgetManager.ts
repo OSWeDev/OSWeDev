@@ -14,6 +14,8 @@ import DashboardVO from "../vos/DashboardVO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
 import FieldFiltersVOManager from './FieldFiltersVOManager';
+import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
+import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
 
 /**
  * SupervisionWidgetManager
@@ -249,6 +251,8 @@ export default class SupervisionWidgetManager {
         let items: ISupervisedItem[] = [];
         let total_count: number = 0;
 
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
+
         for (const api_type_id in context_filters_by_api_type_id) {
 
             // We must have a single tree of context_filters using AND operator
@@ -263,10 +267,14 @@ export default class SupervisionWidgetManager {
             }) ?? [];
 
             const api_type_context_query = query(api_type_id)
-                .using(dashboard.api_type_ids)
+                .using(api_type_ids)
                 .add_filters(context_filters)
                 .set_query_distinct()
                 .set_sorts(sorts);
+
+            FieldValueFilterWidgetManager.add_discarded_field_paths(
+                api_type_context_query,
+                discarded_field_paths);
 
             if (!context_query) {
                 // Main first query
