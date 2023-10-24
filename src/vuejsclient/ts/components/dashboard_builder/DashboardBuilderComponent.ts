@@ -1075,7 +1075,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (this.get_dashboard_api_type_ids.indexOf(api_type_id) >= 0) {
             return;
         }
-        this.set_dashboard_api_type_ids(Array.concat(this.get_dashboard_api_type_ids, [api_type_id]));
+        let tmp = Array.from(this.get_dashboard_api_type_ids);
+        tmp.push(api_type_id);
+        this.set_dashboard_api_type_ids(tmp);
         this.can_build_page = !!(this.get_dashboard_api_type_ids && this.get_dashboard_api_type_ids.length);
     }
 

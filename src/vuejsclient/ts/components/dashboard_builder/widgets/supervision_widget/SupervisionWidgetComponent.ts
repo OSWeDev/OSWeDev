@@ -39,6 +39,9 @@ import './SupervisionWidgetComponent.scss';
 })
 export default class SupervisionWidgetComponent extends VueComponentBase {
 
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
     @ModuleDAOGetter
     private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
@@ -90,7 +93,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
         this.available_supervision_api_type_ids = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(
-            this.dashboard
+            this.get_dashboard_api_type_ids
         );
     }
 

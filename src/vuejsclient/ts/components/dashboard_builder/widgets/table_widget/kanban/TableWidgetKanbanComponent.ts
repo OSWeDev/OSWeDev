@@ -62,6 +62,7 @@ import './TableWidgetKanbanComponent.scss';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -79,6 +80,8 @@ import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardB
 })
 export default class TableWidgetKanbanComponent extends VueComponentBase {
 
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -1748,7 +1751,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.update_cpt_live++;
         this.is_busy = true;
 
-        if ((!this.kanban_column) || (!this.widget_options) || (!this.dashboard.api_type_ids) || (!this.fields) || (!this.widget_options.columns) || (!this.widget_options.columns.length)) {
+        if ((!this.kanban_column) || (!this.widget_options) || (!this.get_dashboard_api_type_ids) || (!this.fields) || (!this.widget_options.columns) || (!this.widget_options.columns.length)) {
             this.data_rows = null;
             this.kanban_column_counts = null;
             this.kanban_column_values = null;
@@ -1798,20 +1801,13 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         let query_: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
-            .using(this.dashboard.api_type_ids)
+            .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
-        //On évite les jointures supprimées.
-        for (let vo_type in this.get_discarded_field_paths) {
-            let discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-            for (let field_id in discarded_field_paths_vo_type) {
-                query_.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
-            }
-        }
-        // discard_field_path(vo_type: string, field_id: string)
         /**
          * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
          */
@@ -1858,7 +1854,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 continue;
             }
 
-            if (this.dashboard.api_type_ids.indexOf(field.vo_type_id) < 0) {
+            if (this.get_dashboard_api_type_ids.indexOf(field.vo_type_id) < 0) {
                 ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.vo_type_id);
                 this.data_rows = null;
@@ -2371,7 +2367,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             this.varcolumn_conf,
             this.get_active_field_filters,
             this.columns_custom_filters,
-            this.dashboard.api_type_ids,
+            this.get_dashboard_api_type_ids,
             this.get_discarded_field_paths,
             false,
             null,

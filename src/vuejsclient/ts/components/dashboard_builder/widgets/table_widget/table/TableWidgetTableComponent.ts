@@ -74,6 +74,7 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -88,6 +89,9 @@ import './TableWidgetTableComponent.scss';
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -1480,7 +1484,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         if (
             !(this.widget_options?.columns?.length > 0) ||
-            !this.dashboard.api_type_ids ||
+            !this.get_dashboard_api_type_ids ||
             !table_fields
         ) {
             this.init_data_rows();
@@ -1545,19 +1549,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         const context_query: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
-            .using(this.dashboard.api_type_ids)
+            .using(this.get_dashboard_api_type_ids)
             .add_filters(context_filters);
 
-        // On évite les jointures supprimées.
-        for (const vo_type in this.get_discarded_field_paths) {
-            const discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
+        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
-            for (let field_id in discarded_field_paths_vo_type) {
-                context_query.set_discarded_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
-            }
-        }
-
-        // discard_field_path(vo_type: string, field_id: string)
         /**
          * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
          */
@@ -1607,7 +1603,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
-            if (this.dashboard.api_type_ids.indexOf(field.vo_type_id) < 0) {
+            if (this.get_dashboard_api_type_ids.indexOf(field.vo_type_id) < 0) {
                 ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.vo_type_id);
                 this.init_data_rows();
@@ -2130,7 +2126,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.varcolumn_conf,
             this.get_active_field_filters,
             this.columns_custom_filters,
-            this.dashboard.api_type_ids,
+            this.get_dashboard_api_type_ids,
             this.get_discarded_field_paths,
             false,
             null,

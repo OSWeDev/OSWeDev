@@ -2,15 +2,15 @@ import { debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
@@ -19,8 +19,8 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
-import VarWidgetOptions from './options/VarWidgetOptions';
 import './VarWidgetComponent.scss';
+import VarWidgetOptions from './options/VarWidgetOptions';
 
 @Component({
     template: require('./VarWidgetComponent.pug'),
@@ -58,6 +58,9 @@ export default class VarWidgetComponent extends VueComponentBase {
 
         return custom_filters;
     }
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -198,7 +201,7 @@ export default class VarWidgetComponent extends VueComponentBase {
             VarsController.var_conf_by_id[this.var_id].name,
             this.get_active_field_filters,
             custom_filters,
-            this.dashboard.api_type_ids,
+            this.get_dashboard_api_type_ids,
             this.get_discarded_field_paths);
 
         // Si je ne suis pas sur la dernière demande, je me casse
@@ -220,7 +223,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         //     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters));
         // query.limit = this.widget_options.max_visible_options;
         // query.offset = 0;
-        // query.active_api_type_ids = this.dashboard.api_type_ids;
+        // query.active_api_type_ids = this.get_dashboard_api_type_ids;
         // let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
         //     this.vo_field_ref.api_type_id,
         //     this.vo_field_ref.field_id,

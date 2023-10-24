@@ -3,21 +3,22 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
@@ -28,13 +29,16 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
 import './VarPieChartWidgetComponent.scss';
+import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
 })
 export default class VarPieChartWidgetComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -366,19 +370,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
          */
         let query_: ContextQueryVO = query(this.widget_options.dimension_vo_field_ref.api_type_id)
             .set_limit(this.widget_options.max_dimension_values)
-            .using(this.dashboard.api_type_ids)
+            .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-
-        //On évite les jointures supprimées.
-        for (let vo_type in this.get_discarded_field_paths) {
-            let discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
-
-            for (let field_id in discarded_field_paths_vo_type) {
-                query_.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
-            }
-        }
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by_vo_field_ref) {
             query_.set_sort(new SortByVO(
@@ -428,7 +424,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
                     custom_filters_1,
-                    this.dashboard.api_type_ids,
+                    this.get_dashboard_api_type_ids,
                     this.get_discarded_field_paths);
 
                 if (!var_params_by_dimension[dimension_value]) {
@@ -549,7 +545,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
                     update_custom_filters_1,
-                    this.dashboard.api_type_ids,
+                    this.get_dashboard_api_type_ids,
                     this.get_discarded_field_paths);
 
                 if (!var_params_by_dimension[dimension_value]) {
@@ -720,7 +716,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                 this.get_active_field_filters,
                 custom_filters_1,
-                this.dashboard.api_type_ids,
+                this.get_dashboard_api_type_ids,
                 this.get_discarded_field_paths);
         })());
         promises.push((async () => {
@@ -728,7 +724,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 VarsController.var_conf_by_id[this.widget_options.var_id_2].name,
                 this.get_active_field_filters,
                 custom_filters_2,
-                this.dashboard.api_type_ids,
+                this.get_dashboard_api_type_ids,
                 this.get_discarded_field_paths);
         })());
 

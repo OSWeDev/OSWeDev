@@ -14,7 +14,7 @@ import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
 import './TableWidgetOptionsComponent.scss';
@@ -32,6 +32,9 @@ import VueAppController from '../../../../../../VueAppController';
     }
 })
 export default class TableWidgetOptionsComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
@@ -104,7 +107,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     get crud_api_type_id_select_options(): string[] {
-        return this.dashboard.api_type_ids;
+        return this.get_dashboard_api_type_ids;
     }
 
     private crud_api_type_id_select_label(api_type_id: string): string {
