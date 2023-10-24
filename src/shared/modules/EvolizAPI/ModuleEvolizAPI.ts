@@ -115,15 +115,15 @@ export default class ModuleEvolizAPI extends Module {
             EvolizProspectParamStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizContactClientVO[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizContactProspectVO[]>(
             null,
-            ModuleEvolizAPI.APINAME_list_contact_clients,
+            ModuleEvolizAPI.APINAME_list_contact_prospects,
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizContactClientVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizContactProspectVO, string>(
             null,
-            ModuleEvolizAPI.APINAME_create_contact_client,
+            ModuleEvolizAPI.APINAME_create_contact_prospect,
             [],
             EvolizContactProspectParamStatic
         ));

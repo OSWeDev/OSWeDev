@@ -75,10 +75,10 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_client, this.create_client.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_client, this.create_contact_client.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_clients, this.list_contact_clients.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_prospects, this.list_clients.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_prospect, this.create_client.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_prospects, this.list_contact_clients.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_prospect, this.create_contact_client.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_prospects, this.list_prospects.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_prospect, this.create_prospect.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_prospects, this.list_contact_prospects.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_prospect, this.create_contact_prospect.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -237,7 +237,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
     }
 
-    public async create_prospects(prospect: EvolizProspectVO) {
+    public async create_prospect(prospect: EvolizProspectVO) {
 
         try {
             let token: EvolizAPIToken = await this.getToken();
@@ -275,7 +275,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
     }
 
-    public async create_contact_prospects(contact: EvolizContactProspectVO) {
+    public async create_contact_prospect(contact: EvolizContactProspectVO) {
 
         try {
             let token: EvolizAPIToken = await this.getToken();
