@@ -222,7 +222,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
         let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_);
 
-        if (this.is_segmentation_day || this.is_segmentation_mois || this.is_segmentation_year) {
+        if ((this.is_segmentation_day || this.is_segmentation_mois || this.is_segmentation_year) && this.field) {
             if (!!min && !!max && min != max) {
                 max = Dates.add(max, this.field.max_range_offset, this.segmentation_type_);
             }
@@ -266,7 +266,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        let old_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
             (RangeHandler.is_same(old_value, new_value))) {
             return;
@@ -274,7 +274,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         this.new_value = new_value;
 
         this.$emit('input', this.new_value);
-        if (!!this.vo) {
+        if (!!this.vo && this.field) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }
     }
@@ -285,6 +285,10 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     get is_segmentation_mois(): boolean {
         return this.segmentation_type_ == TimeSegment.TYPE_MONTH;
+    }
+
+    get is_segmentation_week(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_WEEK;
     }
 
     get is_segmentation_day(): boolean {
@@ -362,7 +366,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return Dates.startOf(end_date_unix, this.segmentation_type_);
         }
 
-        return Dates.startOf(Dates.add(end_date_unix, -this.field.max_range_offset, this.segmentation_type_), this.segmentation_type_);
+        return Dates.startOf(Dates.add(end_date_unix, (this.field ? -this.field.max_range_offset : 0), this.segmentation_type_), this.segmentation_type_);
     }
 
     /**
@@ -388,7 +392,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return this.format_localized_time;
         }
 
-        if (this.field.type == 'Simple') {
+        if (this.field?.type == 'Simple') {
             return (this.field as SimpleDatatableFieldVO<any, any>).format_localized_time;
         }
 
