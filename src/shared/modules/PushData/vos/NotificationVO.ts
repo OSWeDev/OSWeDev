@@ -13,7 +13,8 @@ export default class NotificationVO implements IDistantVOBase {
         'notification.TYPE_NOTIF_TECH',
         'notification.TYPE_NOTIF_PROMPT',
         'notification.TYPE_NOTIF_REDIRECT',
-        'notification.TYPE_NOTIF_APIRESULT'
+        'notification.TYPE_NOTIF_APIRESULT',
+        'notification.TYPE_NOTIF_DOWNLOAD_FILE'
     ];
     public static TYPE_NOTIF_SIMPLE: number = 0;
     public static TYPE_NOTIF_DAO: number = 1;
@@ -24,6 +25,7 @@ export default class NotificationVO implements IDistantVOBase {
     public static TYPE_NOTIF_PROMPT: number = 6;
     public static TYPE_NOTIF_REDIRECT: number = 7;
     public static TYPE_NOTIF_APIRESULT: number = 8;
+    public static TYPE_NOTIF_DOWNLOAD_FILE: number = 9;
 
     public static TECH_DISCONNECT_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_DISCONNECT_AND_REDIRECT_HOME";
     public static TECH_LOGGED_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_LOGGED_AND_REDIRECT_HOME";

@@ -51,6 +51,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
+    public static TASK_NAME_notifyDownloadFile: string = 'PushDataServerController' + '.notifyDownloadFile';
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
     public static getInstance(): PushDataServerController {
@@ -108,6 +109,8 @@ export default class PushDataServerController {
 
         // Conf des taches qui dépendent du thread
         // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyDownloadFile, this.notifyDownloadFile.bind(this));
+        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, this.notifyRedirectHomeAndDisconnect.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarData, this.notifyVarData.bind(this));
@@ -147,7 +150,6 @@ export default class PushDataServerController {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
-
     }
 
     public getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
@@ -887,6 +889,31 @@ export default class PushDataServerController {
         await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
+    // Notifications qui permettent de télécharger un fichier
+    public async notifyDownloadFile(
+        user_id: number,
+        client_tab_id: string,
+        full_file_path: string
+    ) {
+
+        if (!full_file_path) {
+            return;
+        }
+
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDownloadFile, user_id, client_tab_id, full_file_path)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.notification_type = NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE;
+        notification.read = false;
+        notification.user_id = user_id;
+        notification.client_tab_id = client_tab_id;
+        notification.simple_downloadable_link = full_file_path;
+        await this.notify(notification);
+    }
+
     public async notifyPrompt(user_id: number, client_tab_id: string, code_text: string, simple_notif_json_params: string = null): Promise<string> {
 
         if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyPrompt, user_id, client_tab_id, code_text)) {
@@ -973,7 +1000,6 @@ export default class PushDataServerController {
         notification.notif_route_params_name = notif_route_params_name;
         notification.notif_route_params_values = notif_route_params_values;
         await this.notify(notification);
-        // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyRedirect');
     }
 
     private async notifySimple(

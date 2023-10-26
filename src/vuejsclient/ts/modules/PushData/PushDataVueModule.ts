@@ -152,6 +152,9 @@ export default class PushDataVueModule extends VueModuleBase {
             self.throttled_notifications_handler([notification]);
         });
 
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
 
         // TODO: Handle other notif types
     }
@@ -208,6 +211,7 @@ export default class PushDataVueModule extends VueModuleBase {
         let TYPE_NOTIF_PROMPT: NotificationVO[] = [];
         let TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
         let TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
+        let TYPE_NOTIF_DOWNLOAD_FILE: NotificationVO[] = [];
 
         for (let i in notifications) {
             let notification = notifications[i];
@@ -234,6 +238,9 @@ export default class PushDataVueModule extends VueModuleBase {
                 case NotificationVO.TYPE_NOTIF_REDIRECT:
                     TYPE_NOTIF_REDIRECT.push(notification);
                     break;
+                case NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE:
+                    TYPE_NOTIF_DOWNLOAD_FILE.push(notification);
+                    break;
             }
         }
 
@@ -259,6 +266,10 @@ export default class PushDataVueModule extends VueModuleBase {
 
         if (TYPE_NOTIF_REDIRECT && TYPE_NOTIF_REDIRECT.length) {
             await this.notifications_handler_TYPE_NOTIF_REDIRECT(TYPE_NOTIF_REDIRECT);
+        }
+
+        if (TYPE_NOTIF_DOWNLOAD_FILE && TYPE_NOTIF_DOWNLOAD_FILE.length) {
+            await this.notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(TYPE_NOTIF_DOWNLOAD_FILE);
         }
 
         if (TYPE_NOTIF_APIRESULT && TYPE_NOTIF_APIRESULT.length) {
@@ -357,6 +368,20 @@ export default class PushDataVueModule extends VueModuleBase {
             }
         }
         await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+    }
+
+    private async notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(notifications: NotificationVO[]) {
+
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            if (!notification.simple_downloadable_link) {
+                continue;
+            }
+
+            let iframe = $('<iframe style="display:none" src="' + notification.simple_downloadable_link + '"></iframe>');
+            $('body').append(iframe);
+        }
     }
 
     private async notifications_handler_TYPE_NOTIF_REDIRECT(notifications: NotificationVO[]) {

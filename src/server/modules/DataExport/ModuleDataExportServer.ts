@@ -549,6 +549,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 fullpath
             );
 
+            await PushDataServerController.getInstance().notifyDownloadFile(
+                target_user_id,
+                null,
+                ConfigurationService.node_configuration.BASE_URL + filepath
+            );
+
             const user: UserVO = await query(UserVO.API_TYPE_ID)
                 .filter_by_id(target_user_id)
                 .select_vo<UserVO>();

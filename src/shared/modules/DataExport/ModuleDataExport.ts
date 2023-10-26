@@ -121,8 +121,7 @@ export default class ModuleDataExport extends Module {
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO,
             [FileVO.API_TYPE_ID],
-            ExportContextQueryToXLSXParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_FILE
+            ExportContextQueryToXLSXParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(

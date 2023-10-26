@@ -126,8 +126,10 @@ export default class ClientAPIController implements IAPIController {
 
                     // const { default: $ } = await import('jquery');
 
-                    let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
-                    $('body').append(iframe);
+                    if (!!filePath) {
+                        let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
+                        $('body').append(iframe);
+                    }
                     return;
                 } else {
                     api_res = await AjaxCacheClientController.getInstance().post(
