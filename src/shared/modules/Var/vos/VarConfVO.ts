@@ -245,6 +245,13 @@ export default class VarConfVO implements INamedVO {
     public pixel_never_delete: boolean;
 
     /**
+     * Ce paramètre permet d'indiquer qu'on doit mettre en cache uniquement les vars subs client ou server, et pas leurs deps
+     *  (sauf à ce qu'elles soient également subs client ou server)
+     * @default true
+     */
+    public cache_only_exact_sub: boolean;
+
+    /**
      * @param id Pour les tests unitaires en priorité, on a juste à set l'id pour éviter de chercher en bdd
      */
     public constructor(

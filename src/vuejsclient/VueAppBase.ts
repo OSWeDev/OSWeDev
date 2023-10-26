@@ -12,7 +12,6 @@ import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import VueI18n from 'vue-i18n';
-import Intersect from 'vue-intersect';
 import VModal from 'vue-js-modal';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
@@ -440,7 +439,6 @@ export default abstract class VueAppBase {
         Vue.component('vars-bar-chart', () => import('./ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
         Vue.component('var-pie-chart', () => import('./ts/components/Var/components/piechart/VarPieChartComponent'));
         Vue.component('Resizableimg', () => import('./ts/components/resizable_img/ResizableImageComponent'));
-        Vue.component('Intersect', Intersect);
         Vue.component('Crudcomponentfield', () => import('./ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);

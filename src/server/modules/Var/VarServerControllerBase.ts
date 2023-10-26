@@ -3,13 +3,11 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 
@@ -36,7 +34,6 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     //  */
     // public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
 
-    public var_cache_conf: VarCacheConfVO = null;
     public aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
 
     protected constructor(
@@ -53,31 +50,6 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public async initialize() {
         this.varConf = await VarsServerController.registerVar(this.varConf, this);
-        let var_cache_conf = this.getVarCacheConf();
-        this.var_cache_conf = (var_cache_conf && !var_cache_conf.id) ? await VarsServerController.configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
-
-        if (var_cache_conf && var_cache_conf.id && this.varConf.id) {
-            // Cas des tests unitaires par exemple, on doit quand même init le varcacheconf_by_var_ids du VarsServerController
-            VarsServerController.varcacheconf_by_var_ids[this.varConf.id] = this.var_cache_conf;
-            if (!VarsServerController.varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type]) {
-                VarsServerController.varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type] = {};
-            }
-            VarsServerController.varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type][this.varConf.id] = this.var_cache_conf;
-        }
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.var_id = this.varConf.id;
-
-        res.estimated_compute_node_1k_card = 0.001;
-        res.estimated_ctree_ddeps_get_node_deps_1k_card = 0.001;
-        res.estimated_ctree_ddeps_handle_pixellisation_1k_card = 0.001;
-        res.estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card = 0.001;
-        res.estimated_ctree_ddeps_try_load_cache_complet_1k_card = 0.001;
-        res.estimated_ctree_ddeps_try_load_cache_partiel_1k_card = 0.001;
-        res.estimated_load_node_datas_1k_card = 0.001;
-        return res;
     }
 
     /**

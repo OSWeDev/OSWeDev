@@ -322,28 +322,15 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         this.is_busy = true;
 
-        if (!this.widget_options) {
-            this.data_rows = [];
-            this.loaded_once = true;
-            this.is_busy = false;
-            return;
-        }
-
-        if ((!this.widget_options.api_type_id) || (!this.field_id_selected)) {
-            this.data_rows = [];
-            this.loaded_once = true;
-            this.is_busy = false;
-            return;
-        }
-
-        if ((!this.fields) || (!ObjectHandler.hasAtLeastOneAttribute(this.fields))) {
-            this.data_rows = [];
-            this.loaded_once = true;
-            this.is_busy = false;
-            return;
-        }
-
-        if (!this.get_dashboard_api_type_ids) {
+        if (
+            (!this.widget_options) ||
+            (!this.widget_options.api_type_id) ||
+            (!this.field_id_selected) ||
+            (!this.fields) ||
+            (!ObjectHandler.hasAtLeastOneAttribute(this.fields)) ||
+            (!this.get_dashboard_api_type_ids) ||
+            (!this.get_dashboard_api_type_ids.length)
+        ) {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;

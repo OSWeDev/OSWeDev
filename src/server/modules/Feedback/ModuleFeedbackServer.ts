@@ -454,7 +454,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 uid,
                 'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
-                'Tu dois réaliser un résumé de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+                'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
                 'Ci-après les éléments constituant le formulaire de contact client : {' +
                 ' - Titre du formulaire : ' + feedback.title + ' ' +
                 ' - Message : ' + feedback.message + ' ' +

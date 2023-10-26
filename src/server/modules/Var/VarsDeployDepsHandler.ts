@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash";
+import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
-import MatroidController from "../../../shared/modules/Matroid/MatroidController";
-import ModuleTableField from "../../../shared/modules/ModuleTableField";
+import StatsController from "../../../shared/modules/Stats/StatsController";
 import VOsTypesManager from "../../../shared/modules/VOsTypesManager";
 import VarsController from "../../../shared/modules/Var/VarsController";
 import VarDAGNode from "../../../shared/modules/Var/graph/VarDAGNode";
@@ -9,6 +9,8 @@ import VarConfVO from "../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarPixelFieldConfVO from "../../../shared/modules/Var/vos/VarPixelFieldConfVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
+import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
+import { all_promises } from "../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../shared/tools/RangeHandler";
 import ConfigurationService from "../../env/ConfigurationService";
 import PixelVarDataController from "./PixelVarDataController";
@@ -16,11 +18,6 @@ import VarsImportsHandler from "./VarsImportsHandler";
 import VarsServerController from "./VarsServerController";
 import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
 import DataSourcesController from "./datasource/DataSourcesController";
-import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import { all_promises } from "../../../shared/tools/PromiseTools";
-import StatsController from "../../../shared/modules/Stats/StatsController";
-import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
-import VarsClientsSubsCacheHolder from "./bgthreads/processes/VarsClientsSubsCacheHolder";
 
 export default class VarsDeployDepsHandler {
 
@@ -84,10 +81,14 @@ export default class VarsDeployDepsHandler {
 
             if (VarsServerController.has_valid_value(node.var_data)) {
 
-                // Si le chargement a réussi, on indique qu'on a pas besoin de data_load/compute ou update la BDD, mais il faut notifier et supprimer le noeud
+                // Si le chargement a réussi, on indique qu'on a pas besoin de data_load/compute, mais il faut notifier et supprimer le noeud
                 node.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
                 node.add_tag(VarDAGNode.TAG_4_COMPUTED);
-                node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+
+                // Si on a un id, ça vient directement de la base donc on a pas à le réinsérer non plus
+                if (!!node.var_data.id) {
+                    node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
+                }
                 StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value');
                 StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value', Dates.now_ms() - time_in);
                 return;
@@ -483,6 +484,11 @@ export default class VarsDeployDepsHandler {
             let dep_id = deps_ids_as_array[deps_i];
 
             if (node.var_dag.nodes[dep.index]) {
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
+                }
+
                 node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index]);
                 continue;
             }
@@ -495,7 +501,12 @@ export default class VarsDeployDepsHandler {
                 }
 
                 // On ajoute la logique de is_client_sub_dep
-                dep_node.is_client_sub_dep = node.is_client_sub_dep || VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
+                dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
+                dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
+                }
 
                 node.addOutgoingDep(dep_id, dep_node);
             })());

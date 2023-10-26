@@ -5,7 +5,6 @@ import NumSegment from '../../../../src/shared/modules/DataRender/vos/NumSegment
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../src/shared/modules/IDistantVOBase';
 import VarDAGNode from '../../../../src/shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../../src/shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../src/shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../src/shared/tools/RangeHandler';
@@ -30,13 +29,6 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
         }, 2), {}, {}, {}, {});
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.id = 2;
-        res.var_id = this.varConf.id;
-        return res;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

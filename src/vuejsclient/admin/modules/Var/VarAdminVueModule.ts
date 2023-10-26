@@ -1,6 +1,5 @@
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
-import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuController from '../../../ts/components/menu/MenuController';
@@ -58,21 +57,6 @@ export default class VarAdminVueModule extends VueModuleBase {
                     "SimpleVarConfVO",
                     "fa-calculator",
                     10,
-                    null,
-                    null,
-                    menuBranch.id
-                ),
-                this.routes);
-
-            await CRUDComponentManager.getInstance().registerCRUD(
-                VarCacheConfVO.API_TYPE_ID,
-                null,
-                MenuElementVO.create_new(
-                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
-                    VueAppController.getInstance().app_name,
-                    "VarCacheConfVO",
-                    "fa-calculator",
-                    10 + 1,
                     null,
                     null,
                     menuBranch.id

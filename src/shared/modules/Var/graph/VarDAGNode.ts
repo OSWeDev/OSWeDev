@@ -1,6 +1,8 @@
 import ConfigurationService from '../../../../server/env/ConfigurationService';
 import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
+import VarsServerCallBackSubsController from '../../../../server/modules/Var/VarsServerCallBackSubsController';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
+import VarsClientsSubsCacheHolder from '../../../../server/modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import ObjectHandler from '../../../tools/ObjectHandler';
 import MatroidController from '../../Matroid/MatroidController';
@@ -183,6 +185,9 @@ export default class VarDAGNode extends DAGNodeBase {
 
             let node = new VarDAGNode(var_dag, var_data);
 
+            node.is_client_sub = VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
+            node.is_server_sub = !!VarsServerCallBackSubsController.cb_subs[node.var_data.index];
+
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
             /* istanbul ignore next: impossible to test - await query */
             if ((!already_tried_load_cache_complet) && (!ConfigurationService.IS_UNIT_TEST_MODE)) {
@@ -279,11 +284,19 @@ export default class VarDAGNode extends DAGNodeBase {
 
     /**
      * On se rajoute un tag pour les noeuds issus d'une demande client à la base, et qui en découlent
-     *  Donc le noeud initial pas besoin on le retrouve dans VarsClientsSubsCacheHolder.clients_subs_indexes_cache
-     *  mais par contre quand on déploie, on note les noeuds issus de VarsClientsSubsCacheHolder.clients_subs_indexes_cache
-     *  ou déjà is_client_sub_dep == true
+     *  Donc le noeud initial sera is_client_sub == true
+     *  et ses deps is_client_sub_dep == true
      */
+    public is_client_sub: boolean = false;
     public is_client_sub_dep: boolean = false;
+
+    /**
+     * On se met l'info d'une demande qui serait initiée par un server sub.
+     *  Donc le noeud initial sera is_server_sub == true
+     *  et ses deps is_server_sub_dep == true
+     */
+    public is_server_sub: boolean = false;
+    public is_server_sub_dep: boolean = false;
 
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
@@ -301,21 +314,59 @@ export default class VarDAGNode extends DAGNodeBase {
     public add_tag(tag: string): boolean {
 
         if (this.tags[tag]) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                ConsoleHandler.log(
+                    'VarDAGNode.add_tag:' + this.var_data.index +
+                    ':tag:' + tag +
+                    ':already in tags');
+            }
+
             return true;
         }
 
         if (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                ConsoleHandler.log(
+                    'VarDAGNode.add_tag:' + this.var_data.index +
+                    ':tag:' + tag +
+                    ':< current_step:' + this.current_step);
+            }
+
             return false;
         }
 
         // Cas spécifique des tags DATA_LOADED qu'on ne doit pas mettre, mais sans indiquer d'erreur si on est déjà IS_COMPUTABLE,
         //  et idem pour UPDATED_IN_DB si on est déjà IS_DELETABLE
         if ((tag == VarDAGNode.TAG_3_DATA_LOADED) && this.tags[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                ConsoleHandler.log(
+                    'VarDAGNode.add_tag:' + this.var_data.index +
+                    ':tag:' + tag +
+                    ':already IS_COMPUTABLE');
+            }
+
             return true;
         }
 
         if ((tag == VarDAGNode.TAG_6_UPDATED_IN_DB) && this.tags[VarDAGNode.TAG_7_IS_DELETABLE]) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                ConsoleHandler.log(
+                    'VarDAGNode.add_tag:' + this.var_data.index +
+                    ':tag:' + tag +
+                    ':already IS_DELETABLE');
+            }
+
             return true;
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            ConsoleHandler.log(
+                'VarDAGNode.add_tag:' + this.var_data.index +
+                ':tag:' + tag);
         }
 
         this.tags[tag] = true;
@@ -336,7 +387,21 @@ export default class VarDAGNode extends DAGNodeBase {
     public remove_tag(tag: string) {
 
         if (!this.tags[tag]) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                ConsoleHandler.log(
+                    'VarDAGNode.remove_tag:' + this.var_data.index +
+                    ':tag:' + tag +
+                    ':not in tags');
+            }
+
             return;
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            ConsoleHandler.log(
+                'VarDAGNode.remove_tag:' + this.var_data.index +
+                ':tag:' + tag);
         }
 
         delete this.tags[tag];
@@ -636,11 +701,21 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) && this.is_computable) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ':TAG_4_IS_COMPUTABLE');
+            }
+
             this.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
             this.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
         }
 
         if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_6_UPDATED_IN_DB]) && this.is_deletable) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_6_UPDATED_IN_DB && is_deletable:' + this.var_data.index + ':TAG_7_IS_DELETABLE');
+            }
+
             this.add_tag(VarDAGNode.TAG_7_IS_DELETABLE);
             this.remove_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
         }

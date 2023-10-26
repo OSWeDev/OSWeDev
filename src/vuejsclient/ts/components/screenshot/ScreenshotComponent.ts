@@ -67,6 +67,13 @@ export default class ScreenshotComponent extends VueComponentBase {
                             var coef = (coef_height < coef_width) ? coef_height : coef_width;
                             canvas.toBlob(async (imgData: Blob) => {
 
+                                if (!imgData) {
+                                    self.is_taking = false;
+                                    // JNE : A mon avis ça arrive au chargement de l'appli si on essaie d'aller trop vite. Si c'est bloquant, on peut essayer de relancer auto la capture plus tard.
+                                    ConsoleHandler.error('No imgData');
+                                    return;
+                                }
+
                                 let formData = new FormData();
                                 formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
 

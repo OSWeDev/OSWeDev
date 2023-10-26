@@ -1751,7 +1751,14 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.update_cpt_live++;
         this.is_busy = true;
 
-        if ((!this.kanban_column) || (!this.widget_options) || (!this.get_dashboard_api_type_ids) || (!this.fields) || (!this.widget_options.columns) || (!this.widget_options.columns.length)) {
+        if (
+            (!this.kanban_column) ||
+            (!this.widget_options) ||
+            (!this.get_dashboard_api_type_ids) ||
+            (!this.get_dashboard_api_type_ids.length) ||
+            (!this.fields) ||
+            (!this.widget_options.columns) ||
+            (!this.widget_options.columns.length)) {
             this.data_rows = null;
             this.kanban_column_counts = null;
             this.kanban_column_values = null;

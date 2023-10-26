@@ -1,7 +1,5 @@
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 
@@ -46,34 +44,29 @@ export default class VarsCacheController {
     /**
      * Cas insert en base d'un cache de var calculée et registered
      */
-    public static BDD_do_cache_param_data(var_data: VarDataBaseVO, controller: VarServerControllerBase<any>, is_requested_param: boolean): boolean {
+    public static BDD_do_cache_param_data(node: VarDAGNode): boolean {
+
+        if ((!node) || !node.var_data) {
+            throw new Error('Pas de node ou de var_data');
+        }
 
         // Si ça vient de la bdd, on le met à jour évidemment
-        if (!!var_data.id) {
+        if (!!node.var_data.id) {
             return true;
         }
 
-        // Si on veut insérer que des caches demandés explicitement par server ou client et pas tous les noeuds de l'arbre, on check ici
-        if (controller.var_cache_conf.cache_bdd_only_requested_params && !is_requested_param) {
+        let controller = VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id];
+
+        if (!controller) {
+            throw new Error('Pas de controller pour la var_id ' + node.var_data.var_id);
+        }
+
+        // Si on veut insérer que des caches demandés explicitement par le client ou le server
+        if (controller.varConf.cache_only_exact_sub &&
+            ((!node.is_client_sub) && (!node.is_server_sub))) {
             return false;
         }
 
-        switch (controller.var_cache_conf.cache_startegy) {
-            default:
-            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS:
-                return true;
-            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_NONE:
-                return false;
-            case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
-
-                /**
-                 * En stratégie pixel, on stocke tout en bdd maintenant. Les pixels sont identifiés par un flag is_pixel == true si card == 1
-                 */
-                if (!controller.varConf.pixel_activated) {
-                    ConsoleHandler.error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
-                    throw new Error('Not Implemented');
-                }
-                return true;
-        }
+        return true;
     }
 }

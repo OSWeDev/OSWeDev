@@ -1,15 +1,10 @@
-import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
-import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import UserLogVarsNamesHolder from '../../../../../shared/modules/UserLogVars/vars/UserLogVarsNamesHolder';
 import UserMinDataRangesVO from '../../../../../shared/modules/UserLogVars/vars/vos/UserMinDataRangesVO';
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../../shared/modules/Var/VarsController';
-import VarCacheConfVO from '../../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarPixelFieldConfVO from '../../../../../shared/modules/Var/vos/VarPixelFieldConfVO';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import VarServerControllerBase from '../../../Var/VarServerControllerBase';
 import VarMinCSRFCountController from './VarMinCSRFCountController';
@@ -41,13 +36,6 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
             {});
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.var_id = this.varConf.id;
-        res.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS;
-        return res;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {

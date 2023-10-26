@@ -19,6 +19,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/Da
 import './DashboardViewerComponent.scss';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -28,6 +29,12 @@ import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/F
     }
 })
 export default class DashboardViewerComponent extends VueComponentBase {
+
+    @ModuleDashboardPageAction
+    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
+
+    @ModuleDashboardPageAction
+    private set_dashboard_api_type_ids: (dashboard_api_type_ids: string[]) => void;
 
     @ModuleDashboardPageAction
     private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
@@ -115,6 +122,12 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return res;
     }
 
+    private async init_api_type_ids_and_discarded_field_paths() {
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
+        this.set_dashboard_api_type_ids(api_type_ids);
+        this.set_discarded_field_paths(discarded_field_paths);
+    }
+
     /**
      * Quand on change de dahsboard, on supprime les filtres contextuels existants (en tout cas par défaut)
      *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
@@ -160,6 +173,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
             this.loading = false;
             return;
         }
+
+        await this.init_api_type_ids_and_discarded_field_paths();
 
         // // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
         // // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...

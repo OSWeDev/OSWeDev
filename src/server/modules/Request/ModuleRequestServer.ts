@@ -81,6 +81,13 @@ export default class ModuleRequestServer extends ModuleServerBase {
             }
 
             function callback(res: http.IncomingMessage) {
+
+                if (res.statusCode >= 400) {
+                    reject({ message: 'Request failed with status code ' + res.statusCode, headers: res.headers });
+                    ConsoleHandler.error('Request failed with status code ' + res.statusCode + ' : ' + path + ' : ' + JSON.stringify(res.headers));
+                    return;
+                }
+
                 let result: Buffer[] = [];
 
                 res.on('data', (chunk: Buffer[]) => {
@@ -118,6 +125,10 @@ export default class ModuleRequestServer extends ModuleServerBase {
             }
 
             let request: http.ClientRequest = (sendHttps) ? https.request(options, callback) : http.request(options, callback);
+            request.on('error', (e) => {
+                ConsoleHandler.error('Request failed with error ' + e.message);
+                reject(new Error('Network error: ' + e.message));
+            });
 
             if (dataPosts) {
                 request.write(dataPosts);

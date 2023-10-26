@@ -7,7 +7,6 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import UserLogVarsNamesHolder from '../../../../../shared/modules/UserLogVars/vars/UserLogVarsNamesHolder';
 import UserMinDataRangesVO from '../../../../../shared/modules/UserLogVars/vars/vos/UserMinDataRangesVO';
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VarPixelFieldConfVO from '../../../../../shared/modules/Var/vos/VarPixelFieldConfVO';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
@@ -47,13 +46,6 @@ export default class VarMinLogoutCountController extends VarServerControllerBase
             {});
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.var_id = this.varConf.id;
-        res.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL;
-        return res;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

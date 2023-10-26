@@ -2,11 +2,37 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import ModulesManager from '../ModulesManager';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 
 export default class VarsInitController {
+
+    public static pre_registered_var_data_api_type_id_modules_list: { [api_type_id: string]: string[] } = {};
+    public static registered_vars_datas_api_type_ids: string[] = [];
+
+    /**
+     * On reprend la liste des api_type_id, et pour chacun
+     *  Si au moins 1 module est actif, on active l'api_type_id dans registered_vars_datas_api_type_ids
+     */
+    public static activate_pre_registered_var_data_api_type_id_modules_list() {
+        this.registered_vars_datas_api_type_ids = [];
+
+        for (let api_type_id in VarsInitController.pre_registered_var_data_api_type_id_modules_list) {
+            let modules_list = VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id];
+
+            for (let i in modules_list) {
+                let module_name = modules_list[i];
+                if (ModulesManager.getInstance().modules_by_name[module_name].getModuleComponentByRole(Module.SharedModuleRoleName).actif) {
+                    this.registered_vars_datas_api_type_ids.push(api_type_id);
+                    break;
+                }
+            }
+        }
+
+        delete VarsInitController.pre_registered_var_data_api_type_id_modules_list;
+    }
 
     public static getInstance(): VarsInitController {
         if (!VarsInitController.instance) {
@@ -24,6 +50,12 @@ export default class VarsInitController {
         module: Module = null,
         is_test: boolean = false): ModuleTable<any> {
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
+
+        if (!VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id]) {
+            VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id] = [];
+        }
+
+        VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id].push(module.name);
 
         /**
          * On ajoute un index automatiquement sur tous les champs ranges des vars

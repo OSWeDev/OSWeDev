@@ -1,21 +1,15 @@
 import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
-import VarsController from '../../../../../shared/modules/Var/VarsController';
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
-import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ModuleDAOServer from '../../../DAO/ModuleDAOServer';
-import PixelVarDataController from '../../PixelVarDataController';
 import VarsCacheController from '../../VarsCacheController';
 import VarsDatasProxy from '../../VarsDatasProxy';
-import VarsServerCallBackSubsController from '../../VarsServerCallBackSubsController';
-import VarsServerController from '../../VarsServerController';
-import VarsClientsSubsCacheHolder from './VarsClientsSubsCacheHolder';
 import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
@@ -56,6 +50,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
              *  un cache de var_data pas invalidé, et puisque pas invalidé, on y touche pas
              */
             if (!!node.var_data.id) {
+                ConsoleHandler.warn('VarsProcessUpdateDB:worker_async_batch:node.var_data.id:' + node.var_data.id + ':node.var_data.index:' + node.var_data.index + ':is_import:' + (node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT));
                 continue;
             }
 
@@ -159,9 +154,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
             for (let i in nodes) {
                 let node = nodes[i];
 
-                if (VarsCacheController.BDD_do_cache_param_data(node.var_data,
-                    VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id],
-                    VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index] || !!VarsServerCallBackSubsController.cb_subs[node.var_data.index])) {
+                if (VarsCacheController.BDD_do_cache_param_data(node)) {
 
                     if (!res_by_type[_type]) {
                         res_by_type[_type] = [];

@@ -9,7 +9,8 @@ import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/Conte
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -23,9 +24,9 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
+import VarsInitController from '../../../shared/modules/Var/VarsInitController';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -72,8 +73,6 @@ import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
-import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -100,9 +99,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public cpt_for_datasources: { [datasource_name: string]: number } = {}; // TEMP DEBUG JFE
 
-    public update_varcacheconf_from_cache = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.update_varcacheconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
-
     public update_varconf_from_cache = ThrottleHelper.declare_throttle_with_stackable_args(
         this.update_varconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
 
@@ -120,16 +116,18 @@ export default class ModuleVarServer extends ModuleServerBase {
      * Called after all modules have been configured and initialized
      */
     public async late_configuration(is_generator: boolean): Promise<void> {
+
+        VarsInitController.activate_pre_registered_var_data_api_type_id_modules_list();
+
         /**
          * On checke la cohérence des confs qu'on a chargées pour les vars, en particulier s'assurer que les
          *  pixels sont correctement configurés
          */
         if (is_generator) {
             let has_errors = false;
-            for (let var_id_str in VarsServerController.varcacheconf_by_var_ids) {
+            for (let var_id_str in VarsController.var_conf_by_id) {
                 let var_id = parseInt(var_id_str);
-                let varcacheconf = VarsServerController.varcacheconf_by_var_ids[var_id_str];
-                let varconf = VarsServerController.getVarConfById(var_id);
+                let varconf = VarsController.var_conf_by_id[var_id];
 
                 if (!varconf) {
                     has_errors = true;
@@ -138,15 +136,6 @@ export default class ModuleVarServer extends ModuleServerBase {
                 }
 
                 if (varconf.pixel_activated) {
-                    if (varcacheconf.cache_startegy != VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL) {
-                        ConsoleHandler.warn('Pixel varconf but varcacheconf strategy is not set to PIXEL for var_id :' + var_id + ': ' + varconf.name + ' - Correction automatique ...');
-
-                        varcacheconf.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL;
-                        await ModuleDAO.getInstance().insertOrUpdateVO(varcacheconf);
-
-                        ConsoleHandler.warn('Correction automatique terminée');
-                        continue;
-                    }
 
                     if ((!varconf.pixel_fields) || (!varconf.pixel_fields.length)) {
                         ConsoleHandler.error('Pixel varconf but no pixel fields for var_id :' + var_id + ': ' + varconf.name);
@@ -187,12 +176,6 @@ export default class ModuleVarServer extends ModuleServerBase {
                             continue;
                         }
                     }
-                } else {
-                    if (varcacheconf.cache_startegy == VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL) {
-                        ConsoleHandler.error('Non pixel varconf but varcacheconf strategy is set to PIXEL for var_id :' + var_id + ': ' + varconf.name);
-                        has_errors = true;
-                        continue;
-                    }
                 }
             }
 
@@ -221,9 +204,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         let preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
-        postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onCVarCacheConf);
-        postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onUVarCacheConf);
-        postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onPostDVarCacheConf);
 
         postCTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onCVarConf);
         postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onUVarConf);
@@ -349,9 +329,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             'fr-fr': 'Variable lente'
         }, 'fields.labels.ref.module_var_slow_var.___LABEL____var_id'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Var conf cache'
-        }, 'menu.menuelements.admin.VarCacheConfVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nombre de deps'
         }, 'var.desc_mode.dependencies_number.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -467,10 +444,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_update_varconf_from_cache, this.update_varconf_from_cache.bind(this));
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
-        // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data, this.force_delete_all_cache_except_imported_data.bind(this));
 
         // istanbul ignore next: nothing to test : register_task
@@ -509,7 +482,7 @@ export default class ModuleVarServer extends ModuleServerBase {
              * On ajoute les trigger preC et preU pour mettre à jour l'index bdd avant insert
              * api_type_id => les vos des vars datas
              */
-            for (let api_type_id in VarsServerController.varcacheconf_by_api_type_ids) {
+            for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
                 preCTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_c);
                 preUTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_u);
@@ -921,7 +894,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
             let promises = [];
-            for (let api_type_id in VarsServerController.varcacheconf_by_api_type_ids) {
+            for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
                 let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
                 promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
@@ -931,18 +904,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             CurrentVarDAGHolder.current_vardag = new VarDAG();
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
         });
-    }
-
-    private async onCVarCacheConf(vcc: VarCacheConfVO) {
-        if (!vcc) {
-            return;
-        }
-
-        await ForkedTasksController.broadexec(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, vcc);
-    }
-
-    private async onUVarCacheConf(vo_update_handler: DAOUpdateVOHolder<VarCacheConfVO>) {
-        await ForkedTasksController.broadexec(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, vo_update_handler.post_update_vo);
     }
 
     private async onCVarConf(vcc: VarConfVO) {
@@ -969,17 +930,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
-    private update_varcacheconf_from_cache_throttled(vccs: VarCacheConfVO[]) {
-        for (let i in vccs) {
-            let vcc = vccs[i];
-            VarsServerController.update_registered_varcacheconf(vcc.var_id, vcc);
-        }
-    }
-
-    private delete_varcacheconf_from_cache(vcc: VarCacheConfVO) {
-        VarsServerController.delete_registered_varcacheconf(vcc.var_id);
-    }
-
     private update_varconf_from_cache_throttled(vcs: VarConfVO[]) {
         for (let i in vcs) {
             let vc = vcs[i];
@@ -997,14 +947,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         await ForkedTasksController.broadexec(ModuleVarServer.TASK_NAME_delete_varconf_from_cache, vc);
-    }
-
-    private async onPostDVarCacheConf(vcc: VarCacheConfVO) {
-        if (!vcc) {
-            return;
-        }
-
-        await ForkedTasksController.broadexec(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, vcc);
     }
 
     private async get_var_id_by_names(): Promise<VarConfIds> {

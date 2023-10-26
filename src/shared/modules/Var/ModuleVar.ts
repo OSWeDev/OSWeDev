@@ -1,13 +1,14 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ConsoleHandler from '../../tools/ConsoleHandler';
+import { field_names } from '../../tools/ObjectHandler';
 import { all_promises } from '../../tools/PromiseTools';
 import RangeHandler from '../../tools/RangeHandler';
-import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
 import ContextFilterVOHandler from '../ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryJoinOnFieldVO from '../ContextFilter/vos/ContextQueryJoinOnFieldVO';
@@ -17,13 +18,13 @@ import ManualTasksController from '../Cron/ManualTasksController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
 import DashboardPageWidgetVO from '../DashboardBuilder/vos/DashboardPageWidgetVO';
+import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import NumRange from '../DataRender/vos/NumRange';
 import NumSegment from '../DataRender/vos/NumSegment';
-import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
 import TSRange from '../DataRender/vos/TSRange';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Dates from '../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
@@ -33,15 +34,13 @@ import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarsController from './VarsController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
-import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfAutoDepVO from './vos/VarConfAutoDepVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
+import VarDataInvalidatorVO from './vos/VarDataInvalidatorVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
-import { field_names } from '../../tools/ObjectHandler';
-import VarDataInvalidatorVO from './vos/VarDataInvalidatorVO';
 
 export default class ModuleVar extends Module {
 
@@ -176,7 +175,6 @@ export default class ModuleVar extends Module {
 
         this.initializeVarPixelFieldConfVO();
         this.initializeVarConfVO();
-        this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
         this.initializeVarDataInvalidatorVO();
 
@@ -760,38 +758,14 @@ export default class ModuleVar extends Module {
             new ModuleTableField(field_names<VarConfVO>().pixel_activated, ModuleTableField.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
             new ModuleTableField(field_names<VarConfVO>().pixel_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
             new ModuleTableField(field_names<VarConfVO>().pixel_never_delete, ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, true),
+
+            new ModuleTableField(field_names<VarConfVO>().cache_only_exact_sub, ModuleTableField.FIELD_TYPE_boolean, 'Mettre en cache les subs uniquements', true, true, true),
         ];
 
         let datatable = new ModuleTable(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined), datatable_fields, labelField);
         this.datatables.push(datatable);
         let var_id = this.initializeVarConfAutoDepVO();
         var_id.addManyToOneRelation(datatable);
-    }
-
-    private initializeVarCacheConfVO() {
-
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true).unique();
-        let datatable_fields = [
-            var_id,
-
-            new ModuleTableField('use_cache_read_ms_to_partial_clean', ModuleTableField.FIELD_TYPE_boolean, 'Stocker lectures + clean auto', true, true, true),
-
-            new ModuleTableField('cache_startegy', ModuleTableField.FIELD_TYPE_enum, 'Stratégie de mise en cache', true, true, 0).setEnumValues(VarCacheConfVO.VALUE_CACHE_STRATEGY_LABELS),
-            new ModuleTableField('cache_bdd_only_requested_params', ModuleTableField.FIELD_TYPE_boolean, 'Cacher uniquement les params demandés', true, true, true),
-
-            new ModuleTableField('estimated_ctree_ddeps_try_load_cache_complet_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_try_load_cache_complet_1k_card', true, true, 0.001),
-            new ModuleTableField('estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card', true, true, 0.001),
-            new ModuleTableField('estimated_ctree_ddeps_try_load_cache_partiel_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_try_load_cache_partiel_1k_card', true, true, 0.001),
-            new ModuleTableField('estimated_ctree_ddeps_get_node_deps_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_get_node_deps_1k_card', true, true, 0.001),
-            new ModuleTableField('estimated_ctree_ddeps_handle_pixellisation_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_handle_pixellisation_1k_card', true, true, 0.001),
-
-            new ModuleTableField('estimated_load_node_datas_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_load_node_datas_1k_card', true, true, 0.001),
-            new ModuleTableField('estimated_compute_node_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_compute_node_1k_card', true, true, 0.001),
-        ];
-
-        let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);
-        this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 
     private initializeVarDataValueResVO() {

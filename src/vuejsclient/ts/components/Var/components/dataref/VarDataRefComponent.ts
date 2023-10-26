@@ -1,4 +1,5 @@
 import 'jquery-contextmenu';
+import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 import { cloneDeep, debounce } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';

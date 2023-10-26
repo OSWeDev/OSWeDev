@@ -5,7 +5,6 @@ import NumSegment from '../../../../../src/shared/modules/DataRender/vos/NumSegm
 import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import VarDAGNode from '../../../../../src/shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../../src/shared/modules/Var/VarsController';
-import VarCacheConfVO from '../../../../../src/shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../../src/shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../../src/shared/tools/RangeHandler';
@@ -35,13 +34,6 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
         );
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.id = 10;
-        res.var_id = this.varConf.id;
-        return res;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

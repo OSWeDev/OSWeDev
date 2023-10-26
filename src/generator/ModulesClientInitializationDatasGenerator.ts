@@ -56,6 +56,7 @@ export default class ModulesClientInitializationDatasGenerator {
 
         fileContent += "import EnvHandler from 'oswedev/dist/shared/tools/EnvHandler';\n";
         fileContent += "import APIControllerWrapper from 'oswedev/dist/shared/modules/API/APIControllerWrapper';\n";
+        fileContent += "import VarsInitController from 'oswedev/dist/shared/modules/var/VarsInitController';\n";
 
         if (target != 'Test') {
             fileContent += "import ClientAPIController from 'oswedev/dist/vuejsclient/ts/modules/API/ClientAPIController';\n";
@@ -89,6 +90,8 @@ export default class ModulesClientInitializationDatasGenerator {
 
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
+
+        fileContent += "    VarsInitController.activate_pre_registered_var_data_api_type_id_modules_list();\n";
 
         if (target != 'Test') {
             fileContent += "    await AjaxCacheClientController.getInstance().getCSRFToken();\n";

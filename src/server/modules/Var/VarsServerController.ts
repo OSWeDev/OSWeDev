@@ -1,16 +1,13 @@
 
 
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -39,12 +36,7 @@ export default class VarsServerController {
     // TODO FIXME est-ce que tout n'est pas en cache à ce stade, si on demande toujours en insérant en base ?
     public static registered_vars_controller_by_api_type_id: { [api_type_id: string]: Array<VarServerControllerBase<any>> } = {};
 
-    // CUD during run, broadcasting CUD
-    public static varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
-    public static varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
-
     public static preloadedVarConfs: boolean = false;
-    public static preloadedVarCacheConfs_by_var_id: { [var_id: number]: VarCacheConfVO } = null;
     /**
      * ----- Global application cache - Brocasted CUD - Local R
      */
@@ -84,8 +76,6 @@ export default class VarsServerController {
         VarsServerController.registered_vars_controller_by_var_id = {};
         VarsServerController.registered_vars_by_datasource = {};
         VarsServerController.registered_vars_controller_by_api_type_id = {};
-        VarsServerController.varcacheconf_by_var_ids = {};
-        VarsServerController.varcacheconf_by_api_type_ids = {};
     }
 
     public static update_registered_varconf(id: number, conf: VarConfVO) {
@@ -104,43 +94,6 @@ export default class VarsServerController {
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
-        }
-    }
-
-    public static update_registered_varcacheconf(var_id: number, cacheconf: VarCacheConfVO) {
-        VarsServerController.varcacheconf_by_var_ids[var_id] = cacheconf;
-
-        let conf = VarsServerController.getVarConfById(cacheconf.var_id);
-        if (!conf) {
-            return;
-        }
-
-        if (!VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
-            VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type] = {};
-        }
-        VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
-
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
-            ConsoleHandler.log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
-        }
-    }
-
-    public static delete_registered_varcacheconf(var_id: number) {
-        let cacheconf = VarsServerController.varcacheconf_by_var_ids[var_id];
-        delete VarsServerController.varcacheconf_by_var_ids[var_id];
-
-        let conf = VarsServerController.getVarConfById(cacheconf.var_id);
-        if (!conf) {
-            return;
-        }
-
-        if (!VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
-            return;
-        }
-        delete VarsServerController.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
-
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
-            ConsoleHandler.log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
 
@@ -383,81 +336,71 @@ export default class VarsServerController {
         return varConf;
     }
 
-    public static async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
-
-        if (!VarsServerController.preloadedVarCacheConfs_by_var_id) {
-            let varcacheconfs = await query(VarCacheConfVO.API_TYPE_ID).select_vos<VarCacheConfVO>();
-            VarsServerController.preloadedVarCacheConfs_by_var_id = {};
-            for (let i in varcacheconfs) {
-                let varcacheconf = varcacheconfs[i];
-                VarsServerController.preloadedVarCacheConfs_by_var_id[varcacheconf.var_id] = varcacheconf;
-            }
-        }
-
-        let existing_bdd_conf: VarCacheConfVO = VarsServerController.preloadedVarCacheConfs_by_var_id[var_conf.id];
-
-        if (!!existing_bdd_conf) {
-
-            VarsServerController.varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf;
-            if (!VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
-                VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
-            }
-            VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf;
-            return existing_bdd_conf;
-        }
-
-        let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
-
-        if ((!insert_or_update_result) || (!insert_or_update_result.id)) {
-            ConsoleHandler.error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
-            return null;
-        }
-
-        var_cache_conf.id = insert_or_update_result.id;
-
-        VarsServerController.varcacheconf_by_var_ids[var_conf.id] = var_cache_conf;
-        if (!VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
-            VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
-        }
-        VarsServerController.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
-        return var_cache_conf;
-    }
-
     /**
      * On fait la somme des deps dont le nopm débute par le filtre en param.
      * @param varDAGNode Noeud dont on somme les deps
      * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? sum : ignore)
-     * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
+     * @param start_value 0 par défaut, mais peut être null aussi dans certains cas
      */
-    public static get_outgoing_deps_sum(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 0) {
+    public static get_outgoing_deps_sum(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 0, debug: boolean = false) {
         let res: number = start_value;
+
+        if (debug) {
+            ConsoleHandler.log('get_outgoing_deps_sum:START:' + varDAGNode.var_data.index + ':' + dep_name_starts_with + ':' + start_value + ':');
+        }
 
         for (let i in varDAGNode.outgoing_deps) {
             let outgoing = varDAGNode.outgoing_deps[i];
 
             if (dep_name_starts_with && !outgoing.dep_name.startsWith(dep_name_starts_with)) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_sum:SKIP:' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 continue;
             }
 
             let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
             let value = var_data ? var_data.value : null;
             if ((!var_data) || (isNaN(value))) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_sum:!var_data || isNaN(value):' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 continue;
             }
 
             if (value == null) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_sum:value == null:' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 continue;
             }
 
             // 0 ou null ça marche
             if (!res) {
                 res = value;
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_sum:res = value:' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index) + ':' + res);
+                }
+
                 continue;
             }
 
             res += value;
+            if (debug) {
+                ConsoleHandler.log('get_outgoing_deps_sum:res += value:' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index) + ':' + res + ':' + value);
+            }
         }
 
+        if (debug) {
+            ConsoleHandler.log('get_outgoing_deps_sum:END:' + varDAGNode.var_data.index + ':' + dep_name_starts_with + ':' + start_value + ':' + res);
+        }
         return res;
     }
 
@@ -465,14 +408,23 @@ export default class VarsServerController {
      * On fait un && des deps dont le nopm débute par le filtre en param.
      * @param varDAGNode Noeud dont on somme les deps
      * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? and : ignore)
-     * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
+     * @param start_value 1 par défaut, mais peut être null aussi dans certains cas
      * @param do_not_consider_null_as_false Par défaut, si on rencontre null, on renvoie false. Si on active ce param, en rencontrant null on ignore la valeur, donc ne force pas un résultat true, mais ne renvoie pas false.
      */
-    public static get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1, do_not_consider_null_as_false: boolean = false) {
+    public static get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1, do_not_consider_null_as_false: boolean = false, debug: boolean = false) {
         let res: number = start_value;
+
+        if (debug) {
+            ConsoleHandler.log('get_outgoing_deps_and:START:' + varDAGNode.var_data.index + ':' + dep_name_starts_with + ':' + start_value + ':' + do_not_consider_null_as_false);
+        }
 
         // On peut vouloir commencer à null, et du coup renvoyer null si tous les deps sont null
         if (res === 0) {
+
+            if (debug) {
+                ConsoleHandler.log('get_outgoing_deps_and:res === 0:' + varDAGNode.var_data.index + ':' + dep_name_starts_with + ':' + start_value + ':' + do_not_consider_null_as_false);
+            }
+
             return 0;
         }
 
@@ -480,6 +432,11 @@ export default class VarsServerController {
             let outgoing = varDAGNode.outgoing_deps[i];
 
             if (dep_name_starts_with && !outgoing.dep_name.startsWith(dep_name_starts_with)) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_and:SKIP:' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 continue;
             }
 
@@ -487,21 +444,45 @@ export default class VarsServerController {
             let value = var_data ? var_data.value : null;
 
             if (do_not_consider_null_as_false && (value == null)) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_and:do_not_consider_null_as_false && (value == null):' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 continue;
             }
 
             if ((!var_data) || (isNaN(value))) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_and:!var_data || isNaN(value):' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 return 0;
             }
 
             if (!value) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_and:!value:' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 return 0;
             }
 
             // Si on avait pas encore vu de true, on force le résultat à true
             if (res == null) {
+
+                if (debug) {
+                    ConsoleHandler.log('get_outgoing_deps_and:res == null:' + varDAGNode.var_data.index + ':' + outgoing.dep_name + ':' + ((outgoing.outgoing_node as VarDAGNode).var_data?.index));
+                }
+
                 res = 1;
             }
+        }
+
+        if (debug) {
+            ConsoleHandler.log('get_outgoing_deps_and:END:' + varDAGNode.var_data.index + ':' + dep_name_starts_with + ':' + start_value + ':' + do_not_consider_null_as_false + ':' + res);
         }
 
         return res;

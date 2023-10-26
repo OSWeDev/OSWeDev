@@ -1,4 +1,6 @@
 import 'jquery-contextmenu';
+import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
+
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import slug from 'slug';
 import Component from 'vue-class-component';
@@ -1483,9 +1485,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         );
 
         if (
-            !(this.widget_options?.columns?.length > 0) ||
-            !this.get_dashboard_api_type_ids ||
-            !table_fields
+            (!(this.widget_options?.columns?.length > 0)) ||
+            (!this.get_dashboard_api_type_ids) ||
+            (!this.get_dashboard_api_type_ids.length) ||
+            (!table_fields)
         ) {
             this.init_data_rows();
             return;
