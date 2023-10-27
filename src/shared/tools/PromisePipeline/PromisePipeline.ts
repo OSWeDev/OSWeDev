@@ -1,7 +1,9 @@
+import ConfigurationService from "../../../server/env/ConfigurationService";
 import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
 import EnvHandler from "../EnvHandler";
+import ThreadHandler from "../ThreadHandler";
 
 export default class PromisePipeline {
 
@@ -37,7 +39,38 @@ export default class PromisePipeline {
             setInterval(() => {
                 StatsController.register_stat_QUANTITE('PromisePipeline', this.stat_name, 'RUNNING', this.nb_running_promises);
             }, 10000);
+
+            if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
+                setInterval(() => {
+                    ConsoleHandler.log('PromisePipeline:STATS:' + this.stat_name + ':' + this.uid + ':' + this.nb_running_promises);
+                }, 1000);
+            }
         }
+    }
+
+    public async await_free_slot(): Promise<void> {
+        if (this.has_free_slot()) {
+            return;
+        }
+
+        if (this.stat_name) {
+            StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'await_free_slot');
+        }
+
+        let time_in = Dates.now_ms();
+
+        return new Promise(async (resolve, reject) => {
+
+            while (!this.has_free_slot()) {
+                await ThreadHandler.sleep(1, 'PromisePipeline.await_free_slot');
+            }
+
+            if (this.stat_name) {
+                StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'await_free_slot', Dates.now_ms() - time_in);
+            }
+
+            resolve();
+        });
     }
 
     /**
@@ -111,6 +144,10 @@ export default class PromisePipeline {
         if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.push():POSTPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
+    }
+
+    public has_free_slot(): boolean {
+        return (this.nb_running_promises < this.max_concurrent_promises);
     }
 
     /**
@@ -196,9 +233,5 @@ export default class PromisePipeline {
             this.end_promise_resolve = null;
             await end_promise("PromisePipeline.do_cb");
         }
-    }
-
-    private has_free_slot(): boolean {
-        return (this.nb_running_promises < this.max_concurrent_promises);
     }
 }

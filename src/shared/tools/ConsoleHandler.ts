@@ -117,12 +117,22 @@ export default class ConsoleHandler {
         ConsoleHandler.log_to_console_throttler();
     }
 
+    public static throttle_log(log: string): void {
+        if (!this.throttled_logs_counter[log]) {
+            this.throttled_logs_counter[log] = 0;
+        }
+        this.throttled_logs_counter[log]++;
+        ConsoleHandler.log_to_console_throttler();
+    }
+
     private static old_console_log: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
 
     private static log_to_console_cache: Array<{ msg: string, params: any[], log_type: string }> = [];
     private static log_to_console_throttler = ThrottleHelper.declare_throttle_without_args(this.log_to_console.bind(this), 1000);
+
+    private static throttled_logs_counter: { [log: string]: number } = {};
 
     // On throttle pour laisser du temps de calcul, et on indique l'heure d'exécution du throttle pour bien identifier le décalage de temps lié au throttle et la durée de loggage sur la console pour le pack.
     private static log_to_console() {
@@ -133,6 +143,18 @@ export default class ConsoleHandler {
             let log = log_to_console[i];
 
             ConsoleHandler['old_console_' + log.log_type]('[LT ' + this.get_timestamp() + '] ' + log.msg, ...log.params);
+        }
+
+        // On ajoute aussi les logs throttled
+        let throttled_logs_counter = this.throttled_logs_counter;
+        this.throttled_logs_counter = {};
+        for (let log in throttled_logs_counter) {
+            let msg = ConsoleHandler.get_text_msg(log);
+            ConsoleHandler.old_console_log('[LT ' + this.get_timestamp() + '] ' + msg + ' (' + throttled_logs_counter[log] + 'x)');
+
+            if (!!ConsoleHandler.logger_handler) {
+                ConsoleHandler.logger_handler.log("DEBUG -- " + msg + ' (' + throttled_logs_counter[log] + 'x)');
+            }
         }
     }
 

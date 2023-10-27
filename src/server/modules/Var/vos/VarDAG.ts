@@ -1,5 +1,5 @@
+import DAG from "../../../../shared/modules/Var/graph/dagbase/DAG";
 import VarDAGNode from "./VarDAGNode";
-import DAG from "./dagbase/DAG";
 
 export default class VarDAG extends DAG<VarDAGNode> {
 

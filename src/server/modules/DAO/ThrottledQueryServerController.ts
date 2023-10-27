@@ -21,7 +21,13 @@ export default class ThrottledQueryServerController {
      * ATTENTION : le résultat de cette méthode peut être immutable ! donc toujours prévoir une copie de la data si elle a vocation à être modifiée par la suite
      * @returns {Promise<any>} résultat potentiellement freeze à tester avec Object.isFrozen
      */
-    public static async throttle_select_query(query_: string = null, values: any = null, parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[], context_query: ContextQueryVO): Promise<any> {
+    public static async throttle_select_query(
+        query_: string,
+        values: any = null,
+        parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = null,
+        context_query: ContextQueryVO = null
+    ): Promise<any> {
+
         let self = this;
 
         return new Promise(async (resolve, reject) => {
@@ -120,7 +126,7 @@ export default class ThrottledQueryServerController {
                 /**
                  * On ajoute la gestion du cache ici
                  */
-                if (same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
+                if (same_field_labels_param.context_query && same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
                     ThrottledQueryServerController.handle_load_from_cache(same_field_labels_param, ThrottledQueryServerController.current_promise_resolvers[same_field_labels_param.index]);
                     continue;
                 }
@@ -373,7 +379,7 @@ export default class ThrottledQueryServerController {
                  *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
                  * On freeze aussi si on a un max_age_ms, car on ne veut pas que les données changent quand on les met en cache
                  */
-                if ((results_of_index && (param.cbs.length > 1)) || (param.context_query.max_age_ms) || force_freeze[param.parameterized_full_query]) {
+                if ((results_of_index && (param.cbs.length > 1)) || (param.context_query && param.context_query.max_age_ms) || force_freeze[param.parameterized_full_query]) {
                     Object.freeze(results_of_index);
                 } else {
                     freeze_check_passed_and_refused[param.parameterized_full_query] = true;
@@ -382,7 +388,7 @@ export default class ThrottledQueryServerController {
                 /**
                  * On ajoute la gestion du cache - attention a freeze les données avant de les mettre en cache
                  */
-                if (param.context_query.max_age_ms) {
+                if (param.context_query && param.context_query.max_age_ms) {
                     DAOCacheHandler.set_cache(param.parameterized_full_query, results_of_index, param.context_query.max_age_ms);
                 }
 

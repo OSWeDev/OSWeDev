@@ -49,6 +49,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
         }
 
         this.waiting_export_queries.push(export_query);
+        this.run_asap = true;
     }
 
     public async work(): Promise<number> {

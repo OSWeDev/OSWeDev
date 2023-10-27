@@ -8,7 +8,7 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';

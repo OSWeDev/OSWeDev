@@ -5,7 +5,7 @@ import StatsVarsNamesHolder from '../../../../../shared/modules/Stats/vars/Stats
 import StatsGroupSecDataRangesVO from '../../../../../shared/modules/Stats/vars/vos/StatsGroupDayDataRangesVO';
 import StatsGroupVO from '../../../../../shared/modules/Stats/vos/StatsGroupVO';
 import StatVO from '../../../../../shared/modules/Stats/vos/StatVO';
-import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';

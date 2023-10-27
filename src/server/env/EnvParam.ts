@@ -36,9 +36,8 @@ export default class EnvParam implements IEnvParam {
     public MAX_UNION_ALL_PER_QUERY?: number = 1000;
 
     public DEBUG_FORKS?: boolean = false;
-    public DEBUG_SLOW_QUERIES?: boolean = false;
-    public DEBUG_SLOW_QUERIES_MS_LIMIT?: number = 100;
     public DEBUG_VARS?: boolean = false;
+    public DEBUG_VARS_PROCESSES?: boolean = false;
     public DEBUG_VARS_INVALIDATION?: boolean = false;
     public DEBUG_VARS_CURRENT_TREE?: boolean = false;
     public DEBUG_VARS_DB_PARAM_BUILDER?: boolean = false;
@@ -48,13 +47,33 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_START_SERVER?: boolean = false;
     public DEBUG_DB_QUERY_add_activated_many_to_many?: boolean = false;
     public DEBUG_convert_varparamfields_to_vardatas?: boolean = false;
+
+    /**
+     * Activate this to debug SLOW QUERIES in ModuleServiceBase
+     */
+    public DEBUG_SLOW_QUERIES?: boolean = false;
+    /**
+     * Activate this to define threshold for SLOW QUERIES and VERY SLOW QUERIES (10*) in ModuleServiceBase
+     */
+    public DEBUG_SLOW_QUERIES_MS_LIMIT?: number = 100;
+    /**
+     * Activate this to log DB PERFs - redondant with DEBUG_SLOW_QUERIES but with more details on who asked the query
+     */
     public DEBUG_DB_QUERY_PERF?: boolean = false;
+    /**
+     * Activate this to log FULL QUERIES instead of a 1k cars limit
+     */
     public DEBUG_DB_FULL_QUERY_PERF?: boolean = false;
+
     public DEBUG_INTERTHREADS_MESSAGES?: boolean = false;
     public DEBUG_IMPORTS?: boolean = false;
     public DEBUG_EXPORTS?: boolean = false;
     public DEBUG_THROTTLED_SELECT?: boolean = false;
     public DEBUG_PROMISE_PIPELINE?: boolean = false;
+    /**
+     * Activate this to debug the promise pipeline nb_running_promises stat each second
+     */
+    public DEBUG_PROMISE_PIPELINE_WORKER_STATS?: boolean = false;
     public DEBUG_AZURE_MEMORY_CHECK?: boolean = false;
 
     public ACTIVATE_PWA: boolean = false;

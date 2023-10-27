@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import VarsServerController from '../../VarsServerController';

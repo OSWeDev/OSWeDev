@@ -2,7 +2,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';

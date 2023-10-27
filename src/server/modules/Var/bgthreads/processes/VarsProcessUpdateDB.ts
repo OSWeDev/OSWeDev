@@ -1,7 +1,7 @@
 import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
-import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';

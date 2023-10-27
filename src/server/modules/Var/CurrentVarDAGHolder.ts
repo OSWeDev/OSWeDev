@@ -1,6 +1,6 @@
 import StatsController from "../../../shared/modules/Stats/StatsController";
-import VarDAG from "../../../shared/modules/Var/graph/VarDAG";
-import VarDAGNode from "../../../shared/modules/Var/graph/VarDAGNode";
+import VarDAG from "../../../server/modules/Var/vos/VarDAG";
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 
 export default class CurrentVarDAGHolder {
 

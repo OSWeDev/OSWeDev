@@ -317,7 +317,7 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'Api_type_id', true),
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID du champs', true),
             new ModuleTableField('alias', ModuleTableField.FIELD_TYPE_string, 'Alias', false),
-            new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'param_text', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+            new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");

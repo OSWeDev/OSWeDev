@@ -1,4 +1,4 @@
-import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
+import VarDAG from '../../../../server/modules/Var/vos/VarDAG';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';

@@ -37,6 +37,7 @@ export default interface IEnvParam {
     DEBUG_convert_varparamfields_to_vardatas?: boolean;
     DEBUG_FORKS?: boolean;
     DEBUG_VARS?: boolean;
+    DEBUG_VARS_PROCESSES?: boolean;
     DEBUG_VARS_INVALIDATION?: boolean;
     DEBUG_VARS_CURRENT_TREE?: boolean;
     DEBUG_VARS_DB_PARAM_BUILDER?: boolean;
@@ -48,7 +49,10 @@ export default interface IEnvParam {
     DEBUG_THROTTLED_SELECT?: boolean;
     DEBUG_DB_FULL_QUERY_PERF?: boolean;
     DEBUG_INTERTHREADS_MESSAGES?: boolean;
+
     DEBUG_PROMISE_PIPELINE?: boolean;
+    DEBUG_PROMISE_PIPELINE_WORKER_STATS?: boolean;
+
     DEBUG_AZURE_MEMORY_CHECK?: boolean;
 
     START_MAINTENANCE_ACCEPTATION_CODE: string;

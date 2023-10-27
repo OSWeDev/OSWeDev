@@ -59,7 +59,7 @@ export default class ThrottledSelectQueryParam {
         let fields = this.parameterizedQueryWrapperFields;
         let fields_labels: string = null;
 
-        fields_labels = this.context_query.do_count_results ? 'number,c' : null;
+        fields_labels = (this.context_query && this.context_query.do_count_results) ? 'number,c' : null;
 
         if (!fields_labels) {
             fields_labels = fields ? fields.map((field) => {

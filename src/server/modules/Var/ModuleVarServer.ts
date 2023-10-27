@@ -25,8 +25,8 @@ import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager'
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarsInitController from '../../../shared/modules/Var/VarsInitController';
-import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAG from '../../../server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';

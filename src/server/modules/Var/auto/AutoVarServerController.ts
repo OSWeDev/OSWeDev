@@ -1,7 +1,7 @@
 import ContextFilterVO, { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
-import VarDAGNode from "../../../../shared/modules/Var/graph/VarDAGNode";
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import ModuleVar from "../../../../shared/modules/Var/ModuleVar";
 import VarConfAutoDepVO from "../../../../shared/modules/Var/vos/VarConfAutoDepVO";
 import VarConfVO from "../../../../shared/modules/Var/vos/VarConfVO";

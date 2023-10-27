@@ -2,7 +2,7 @@
 
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';

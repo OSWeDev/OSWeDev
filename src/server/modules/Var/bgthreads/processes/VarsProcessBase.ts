@@ -1,6 +1,6 @@
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../../shared/modules/Stats/StatsController';
-import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
@@ -34,7 +34,15 @@ export default abstract class VarsProcessBase {
         let promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps, 'VarsProcessBase.' + this.name, true);
         let waiting_for_invalidation_time_in = null;
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:IN');
+        }
+
         while (true) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:IN:');
+            }
 
             let did_something = false;
 
@@ -45,6 +53,9 @@ export default abstract class VarsProcessBase {
             let updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
             if (updated_waiting_for_invalidation_time_in) {
 
+                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_invalidations:updated_waiting_for_invalidation_time_in:' + updated_waiting_for_invalidation_time_in);
+                }
                 waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
                 continue;
             }
@@ -56,7 +67,21 @@ export default abstract class VarsProcessBase {
             }
 
             if (!did_something) {
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:false');
+                }
+
                 await ThreadHandler.sleep(this.thread_sleep, this.name);
+            }
+
+            // On attend d'avoir un slot de disponible si besoin avant de refaire une boucle
+            if (!!promise_pipeline) {
+                await promise_pipeline.await_free_slot();
+            }
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:true');
             }
         }
     }
@@ -81,6 +106,7 @@ export default abstract class VarsProcessBase {
                     let pipeline_end_wait_for_invalidation_time_in = Dates.now_ms();
                     // On doit attendre la fin du pipeline, pour indiquer qu'on est prêt à faire l'invalidation
                     await promise_pipeline.end();
+
                     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "pipeline_end_wait_for_invalidation", Dates.now_ms() - pipeline_end_wait_for_invalidation_time_in);
                 }
 
@@ -108,30 +134,82 @@ export default abstract class VarsProcessBase {
         let self = this;
         let valid_nodes = this.get_valid_nodes();
 
+        let time_in = Dates.now_ms();
+        let untreated_nodes: { [index: string]: VarDAGNode } = {};
+
+        for (let i in valid_nodes) {
+            untreated_nodes[i] = valid_nodes[i];
+        }
+
         let did_something = false;
         for (let i in valid_nodes) {
             let node = valid_nodes[i];
 
+            // Si on a plus de free_slot, et qu'on a fait plus de 0.5 seconde de travail - totalement arbitraire -, on attend le prochain run
+            if ((!!promise_pipeline) && (!promise_pipeline.has_free_slot()) && ((Dates.now_ms() - time_in) > 500)) {
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_individual_worker:break:!has_free_slot:' + node.var_data.index + ':' + node.var_data.value + ':' + ((Dates.now_ms() - time_in) / 1000));
+                }
+
+                // On peut pas break directement, il faut remettre les noeuds valids non traités en attente
+                for (let j in untreated_nodes) {
+                    let untreated_node = untreated_nodes[j];
+
+                    untreated_node.remove_tag(this.TAG_SELF_NAME);
+                    untreated_node.add_tag(this.TAG_IN_NAME);
+
+                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                        ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:break:node:' + untreated_node.var_data.index + ':' + untreated_node.var_data.value);
+                    }
+                }
+
+                break;
+            }
+
+            delete untreated_nodes[i];
+
             if (!!this.MAX_Workers) {
                 await promise_pipeline.push(async () => {
+
+                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                        ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:ASYNC:IN:' + node.var_data.index + ':' + node.var_data.value);
+                    }
 
                     let worker_time_in = Dates.now_ms();
                     let res = await self.worker_async(node);
                     did_something = did_something || res;
                     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
+                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                        ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:ASYNC:OUT:' + node.var_data.index + ':' + node.var_data.value);
+                    }
+
                     self.handle_worker_result(res, worker_time_in, node);
                     node.remove_tag(this.TAG_SELF_NAME);
                 });
             } else {
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:SYNC:IN:' + node.var_data.index + ':' + node.var_data.value);
+                }
+
                 let worker_time_in = Dates.now_ms();
                 let res = this.worker_sync(node);
                 did_something = did_something || res;
                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
+                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:SYNC:OUT:' + node.var_data.index + ':' + node.var_data.value);
+                }
+
                 this.handle_worker_result(res, worker_time_in, node);
                 node.remove_tag(this.TAG_SELF_NAME);
             }
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_individual_worker:OUT');
         }
 
         return did_something;
@@ -156,6 +234,10 @@ export default abstract class VarsProcessBase {
             return null;
         }
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:IN');
+        }
+
         /**
          * Si on a des vars registered par le client on veut les prioriser, donc on ignorera les autres pour le moment
          * Sinon on prend toutes les vars qui ont le tag in
@@ -163,11 +245,21 @@ export default abstract class VarsProcessBase {
         let nodes: { [node_name: string]: VarDAGNode } = CurrentVarDAGHolder.current_vardag.current_step_tags[this.TAG_IN_NAME];
 
         if ((!nodes) || (!Object.keys(nodes).length)) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:OUT:pas de nodes');
+            }
+
             return null;
         }
 
         let subbed_nodes = this.filter_by_subs(nodes);
         if (subbed_nodes && Object.keys(subbed_nodes).length) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:subbed_nodes');
+            }
+
             nodes = subbed_nodes;
         }
 
@@ -178,6 +270,10 @@ export default abstract class VarsProcessBase {
 
             if (!node) {
                 continue;
+            }
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                ConsoleHandler.log('VarsProcessBase:' + this.name + ':get_valid_nodes:node:' + node.var_data.index + ':' + node.var_data.value);
             }
 
             StatsController.register_stat_COMPTEUR('VarsProcessBase', this.name, this.TAG_IN_NAME);
@@ -199,6 +295,10 @@ export default abstract class VarsProcessBase {
             valid_nodes[node.var_data.index] = node;
         }
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:OUT:' + Object.keys(valid_nodes).length);
+        }
+
         return valid_nodes;
     }
 
@@ -207,12 +307,24 @@ export default abstract class VarsProcessBase {
         let batch_nodes: { [node_name: string]: VarDAGNode } = this.get_valid_nodes();
         let has_something_to_do = batch_nodes ? Object.keys(batch_nodes).length > 0 : false;
 
+        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_batch_worker:IN:');
+        }
+
         if (has_something_to_do) {
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_batch_worker:worker_async_batch:IN:');
+            }
 
             // On peut vouloir traiter en mode batch
             let worker_time_in = Dates.now_ms();
             let res = await this.worker_async_batch(batch_nodes);
             StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
+
+            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_batch_worker:worker_async_batch:OUT:' + res);
+            }
 
             for (let i in batch_nodes) {
                 let node = batch_nodes[i];
@@ -229,6 +341,10 @@ export default abstract class VarsProcessBase {
                 }
                 node.remove_tag(this.TAG_SELF_NAME);
             }
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_batch_worker:OUT:');
         }
 
         return has_something_to_do;
@@ -250,7 +366,19 @@ export default abstract class VarsProcessBase {
                 continue;
             }
 
-            if ((!node.is_client_sub_dep) && !VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index]) {
+            // On met à jour les infos de subs client (le serveur c'est moins grave)
+            let is_client_sub = !!VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
+            if (node.is_client_sub != is_client_sub) {
+
+                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    ConsoleHandler.log('VarsProcessBase:' + this.name + ':filter_by_subs:node:' + node.var_data.index + ':' + node.var_data.value + ':updated is_client_sub:' + is_client_sub);
+                }
+
+                node.is_client_sub = is_client_sub;
+            }
+
+            if ((!node.is_client_sub) &&
+                (!node.is_client_sub_dep)) {
                 continue;
             }
 

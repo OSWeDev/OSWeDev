@@ -19,9 +19,15 @@ import VarsClientsSubsCacheHolder from "./VarsClientsSubsCacheHolder";
 export default class VarsClientsSubsCacheManager {
 
     public static TASK_NAME_throttled_add_new_subs: string = 'throttled_add_new_subs';
+    public static TASK_NAME_throttled_remove_subs: string = 'throttled_remove_subs';
 
     public static init() {
         setInterval(VarsClientsSubsCacheManager.update_clients_subs_indexes_cache.bind(VarsClientsSubsCacheManager), 30000);
+
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, VarsClientsSubsCacheManager.throttled_add_new_subs);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(VarsClientsSubsCacheManager.TASK_NAME_throttled_remove_subs, VarsClientsSubsCacheManager.throttled_remove_subs);
     }
 
     public static add_new_sub(var_index: string) {
@@ -76,7 +82,7 @@ export default class VarsClientsSubsCacheManager {
 
         if (!await ForkedTasksController.exec_self_on_bgthread(
             VarsBGThreadNameHolder.bgthread_name,
-            VarsClientsSubsCacheManager.TASK_NAME_throttled_add_new_subs, var_indexs)) {
+            VarsClientsSubsCacheManager.TASK_NAME_throttled_remove_subs, var_indexs)) {
             return;
         }
 

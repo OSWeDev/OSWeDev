@@ -1,16 +1,17 @@
 import ConfigurationService from '../../../../server/env/ConfigurationService';
-import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
+import ThrottledQueryServerController from '../../../../server/modules/DAO/ThrottledQueryServerController';
 import VarsServerCallBackSubsController from '../../../../server/modules/Var/VarsServerCallBackSubsController';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import VarsClientsSubsCacheHolder from '../../../../server/modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
-import ConsoleHandler from '../../../tools/ConsoleHandler';
-import ObjectHandler from '../../../tools/ObjectHandler';
-import MatroidController from '../../Matroid/MatroidController';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
-import VarDataBaseVO from '../vos/VarDataBaseVO';
+import ParameterizedQueryWrapperField from '../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
+import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBase';
+import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
-import DAGNodeBase from './dagbase/DAGNodeBase';
 
 export default class VarDAGNode extends DAGNodeBase {
 
@@ -145,7 +146,49 @@ export default class VarDAGNode extends DAGNodeBase {
             throw new Error('VarDAGNode.load_from_db_if_exists :: table.is_segmented not implemented');
         }
 
-        let res = await ModuleDAOServer.getInstance().query('select * from ' + table.full_name + ' where _bdd_only_index = $1', [index]);
+        // let res = await ModuleDAOServer.getInstance().query('select * from ' + table.full_name + ' where _bdd_only_index = $1', [index]);
+
+        // // Attention aux injections...
+        // if (!/^[0-9a-zA-Z.,;!%*_@?:/#=+|]+$/.test(index)) {
+        //     throw new Error('VarDAGNode.load_from_db_if_exists :: index not valid');
+        // }
+
+        const base_moduletable_fields = table.get_fields();
+        let parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
+
+        let fields: string = 't.id';
+        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
+            _type,
+            'id',
+            null,
+            'id'
+        );
+
+        parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
+
+        // Add all fields by default
+        for (const i in base_moduletable_fields) {
+            const field = base_moduletable_fields[i];
+
+            parameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
+                _type,
+                field.field_id,
+                null,
+                field.field_id
+            );
+            parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
+            fields += ', t.' + field.field_id;
+        }
+
+        // let parameterized_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(
+        //     'select * from ' + table.full_name + ' where _bdd_only_index = $1',
+        //     [index],
+        //     parameterizedQueryWrapperFields
+        // );
+        let res = await ThrottledQueryServerController.throttle_select_query(
+            'select ' + fields + ' from ' + table.full_name + ' t where _bdd_only_index = $1',
+            [index],
+            parameterizedQueryWrapperFields);
 
         if ((!res) || (!res.length)) {
             return null;
@@ -185,7 +228,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
             let node = new VarDAGNode(var_dag, var_data);
 
-            node.is_client_sub = VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
+            node.is_client_sub = !!VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
             node.is_server_sub = !!VarsServerCallBackSubsController.cb_subs[node.var_data.index];
 
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
@@ -207,7 +250,8 @@ export default class VarDAGNode extends DAGNodeBase {
             if (VarsServerController.has_valid_value(node.var_data)) {
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
-                    ConsoleHandler.log('VarDAGNode.getInstance_semaphored:has_valid_value:TAG_4_COMPUTED & TAG_6_UPDATED_IN_DB:' + JSON.stringify(node.var_data));
+                    ConsoleHandler.log('VarDAGNode.getInstance_semaphored:has_valid_value:is_client_sub?' + node.is_client_sub +
+                        ':is_server_sub?' + node.is_server_sub + ':TAG_4_COMPUTED & TAG_6_UPDATED_IN_DB:' + JSON.stringify(node.var_data));
                 }
 
                 node.add_tag(VarDAGNode.TAG_4_COMPUTED);
@@ -216,7 +260,8 @@ export default class VarDAGNode extends DAGNodeBase {
             } else {
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
-                    ConsoleHandler.log('VarDAGNode.getInstance_semaphored:!has_valid_value:TAG_0_CREATED:' + JSON.stringify(node.var_data));
+                    ConsoleHandler.log('VarDAGNode.getInstance_semaphored:!has_valid_value:is_client_sub?' + node.is_client_sub +
+                        ':is_server_sub?' + node.is_server_sub + ':TAG_0_CREATED:' + JSON.stringify(node.var_data));
                 }
 
                 node.add_tag(VarDAGNode.TAG_0_CREATED);

@@ -1,5 +1,5 @@
+import DAGNodeDep from '../../../../shared/modules/Var/graph/dagbase/DAGNodeDep';
 import VarDAGNode from './VarDAGNode';
-import DAGNodeDep from './dagbase/DAGNodeDep';
 
 export default class VarDAGNodeDep extends DAGNodeDep<VarDAGNode> {
 

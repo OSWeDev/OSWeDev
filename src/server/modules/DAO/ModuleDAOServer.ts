@@ -1884,6 +1884,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     /**
      * DONT USE : N'utiliser que en cas de force majeure => exemple upgrade de format de BDD
+     * N'utilise PAS le throttle et donc l'aggrégation et les optimisations liées...
      * @param query_
      */
     public async query(query_: string = null, values: any = null): Promise<any> {

@@ -669,8 +669,12 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
         StatsController.register_stat_COMPTEUR('db_none', 'ok', '-');
-        StatsController.register_stat_DUREE('db_none', 'ok', '-', time_out - time_in);
+        StatsController.register_stat_DUREE('db_none', 'ok', '-', duration);
     }
 
     private count_union_all_occurrences(query: string): number {
@@ -755,8 +759,12 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
         StatsController.register_stat_COMPTEUR('db_query', 'ok', '-');
-        StatsController.register_stat_DUREE('db_query', 'time', '-', time_out - time_in);
+        StatsController.register_stat_DUREE('db_query', 'time', '-', duration);
 
         return res;
     }
@@ -815,8 +823,26 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
         StatsController.register_stat_COMPTEUR('db_oneOrNone', 'ok', '-');
-        StatsController.register_stat_DUREE('db_oneOrNone', 'time', '-', time_out - time_in);
+        StatsController.register_stat_DUREE('db_oneOrNone', 'time', '-', duration);
         return res;
+    }
+
+    private debug_slow_queries(query: string, values: any[], duration: number) {
+        duration = Math.round(duration);
+        let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
+        query_s = (ConfigurationService.node_configuration.DEBUG_DB_FULL_QUERY_PERF ? query_s : query_s.substring(0, 1000));
+
+        if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+            (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+            ConsoleHandler.error('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
+        } else if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+            (duration > ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+            ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
+        }
     }
 }

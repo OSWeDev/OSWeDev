@@ -1,6 +1,6 @@
 import DefaultTranslationManager from '../../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
-import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';

@@ -4,7 +4,7 @@ import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import VOsTypesManager from "../../../shared/modules/VOsTypesManager";
 import VarsController from "../../../shared/modules/Var/VarsController";
-import VarDAGNode from "../../../shared/modules/Var/graph/VarDAGNode";
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from "../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarPixelFieldConfVO from "../../../shared/modules/Var/vos/VarPixelFieldConfVO";

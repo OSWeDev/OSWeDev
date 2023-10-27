@@ -188,7 +188,7 @@ export default class ForkedTasksController {
         return ForkedTasksController.result_task_prefix_thread_uid + '_' + (ForkedTasksController.result_task_uid++);
     }
 
-    public static register_task(task_uid: string, handler: (...task_params) => boolean | Promise<boolean>) {
+    public static register_task(task_uid: string, handler: (...task_params) => any) {
         ForkedTasksController.registered_tasks[task_uid] = handler;
     }
 

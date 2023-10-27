@@ -6,7 +6,7 @@ import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegmen
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import UserLogVarsNamesHolder from '../../../../../shared/modules/UserLogVars/vars/UserLogVarsNamesHolder';
 import UserMinDataRangesVO from '../../../../../shared/modules/UserLogVars/vars/vos/UserMinDataRangesVO';
-import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VarPixelFieldConfVO from '../../../../../shared/modules/Var/vos/VarPixelFieldConfVO';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
