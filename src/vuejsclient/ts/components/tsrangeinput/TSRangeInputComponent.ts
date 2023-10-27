@@ -336,7 +336,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
                 this.tsrange_end = cloneDeep(this.tsrange_start);
             }
 
-            let end: number = this.tsrange_end.getTime() / 1000;
+            let end: number = Dates.parse(this.tsrange_end.toLocaleDateString(), 'DD/MM/YYYY', false);
             let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
 
             if (!hours) {

@@ -213,29 +213,31 @@ export default class TSTZInputComponent extends VueComponentBase {
             hour_ts = Dates.minutes(Dates.hours(0, parseInt(hours[0])), parseInt(hours[1]));
         }
 
+        let date_string: string = this.date_value.toLocaleDateString();
+
         switch (this.segmentation_type) {
             case TimeSegment.TYPE_YEAR:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                date = '01/01/' + Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_YEAR), 'YYYY', false) + ' 00:00:00';
+                date = '01/01/' + Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_YEAR), 'YYYY', false) + ' 00:00:00';
                 break;
             case TimeSegment.TYPE_MONTH:
-                date = '01/' + Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_MONTH), 'MM/YYYY', false) + ' 00:00:00';
+                date = '01/' + Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_MONTH), 'MM/YYYY', false) + ' 00:00:00';
                 break;
             case TimeSegment.TYPE_WEEK:
-                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_WEEK), 'DD/MM/YYYY', false) + ' 00:00:00';
+                date = Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_WEEK), 'DD/MM/YYYY', false) + ' 00:00:00';
                 break;
             case TimeSegment.TYPE_HOUR:
-                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:', false) + '00:00';
+                date = Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:', false) + '00:00';
                 break;
             case TimeSegment.TYPE_MINUTE:
-                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:mm', false) + ':00';
+                date = Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:mm', false) + ':00';
                 break;
             case TimeSegment.TYPE_SECOND:
-                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:mm:ss', false);
+                date = Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:mm:ss', false);
                 break;
             default:
             case TimeSegment.TYPE_DAY:
-                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY), 'DD/MM/YYYY', false) + ' 00:00:00';
+                date = Dates.format(Dates.startOf(Dates.parse(date_string, 'DD/MM/YYYY', false), TimeSegment.TYPE_DAY), 'DD/MM/YYYY', false) + ' 00:00:00';
                 break;
         }
 
