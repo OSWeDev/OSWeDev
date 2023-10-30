@@ -69,6 +69,8 @@ import Patch20231003ForceUnicityCodeText from './patchs/premodules/Patch20231003
 import Patch20231010ForceUnicityVarConfName from './patchs/premodules/Patch20231010ForceUnicityVarConfName';
 import Patch20231010ForceUnicityVarCacheConfVarID from './patchs/premodules/Patch20231010ForceUnicityVarCacheConfVarID';
 import Patch20231010ForceUnicityParamName from './patchs/premodules/Patch20231010ForceUnicityParamName';
+import Patch20231030FilePathUnique from './patchs/premodules/Patch20231030FilePathUnique';
+import Patch20231030ImagePathUnique from './patchs/premodules/Patch20231030ImagePathUnique';
 
 export default abstract class GeneratorBase {
 
@@ -140,6 +142,8 @@ export default abstract class GeneratorBase {
             Patch20230512DeleteAllStats.getInstance(),
             Patch20230517DeleteAllStats.getInstance(),
             Patch20230428UpdateUserArchivedField.getInstance(),
+            Patch20231030FilePathUnique.getInstance(),
+            Patch20231030ImagePathUnique.getInstance(),
         ];
 
         this.post_modules_workers = [

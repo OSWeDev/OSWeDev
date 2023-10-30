@@ -116,6 +116,9 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     protected getNewVo(): FileVO {
         return new FileVO();
     }
+    protected get_vo_type(): string {
+        return FileVO.API_TYPE_ID;
+    }
 
     private async check_secured_files_conf_update(vo_update_handler: DAOUpdateVOHolder<FileVO>): Promise<boolean> {
         return ModuleFileServer.getInstance().check_secured_files_conf(vo_update_handler.post_update_vo);

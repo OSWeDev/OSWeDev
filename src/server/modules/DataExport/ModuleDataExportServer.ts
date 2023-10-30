@@ -44,7 +44,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FilterObj, { filter_by_name } from '../../../shared/tools/Filters';
 import LocaleManager from '../../../shared/tools/LocaleManager';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import OrderedPromisePipeline from '../../../shared/tools/PromisePipeline/OrderedPromisePipeline';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -211,16 +211,23 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return null;
         }
 
-        let file: FileVO = new FileVO();
-        file.path = filepath;
-        file.file_access_policy_name = file_access_policy_name;
-        file.is_secured = is_secured;
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
-        if ((!res) || (!res.id)) {
-            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
-            return null;
+        // Si le file existe déjà, on le récupère
+        let file: FileVO = await query(FileVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<FileVO>().path, filepath)
+            .select_vo<FileVO>();
+
+        if (!file) {
+            file = new FileVO();
+            file.path = filepath;
+            file.file_access_policy_name = file_access_policy_name;
+            file.is_secured = is_secured;
+            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
+            if ((!res) || (!res.id)) {
+                ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+                return null;
+            }
+            file.id = res.id;
         }
-        file.id = res.id;
 
         return file;
     }
@@ -407,35 +414,32 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         let ordered_promise_pipeline = new OrderedPromisePipeline(100, "do_exportContextQueryToXLSX_contextuid");
-        let might_have_more_datas = true;
         let xlsx_datas = [];
         let has_query_limit = !!context_query.query_limit;
         let limit = has_query_limit ? context_query.query_limit : 25;
         let offset = 0;
 
-        while (might_have_more_datas) {
+        let context_query_with_vars = context_query.clone();
+        await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query_with_vars, columns);
 
-            let this_context_query = context_query.clone();
+        /**
+         * On commence par compter le nombre de datas à exporter, pour faire plus propre sur l'exportation
+         */
+        let context_query_count = context_query_with_vars.clone();
+        let nb_elts_to_export = await context_query_count.select_count();
+
+        while (nb_elts_to_export > 0) {
+
+            let this_context_query = context_query_with_vars.clone();
             this_context_query.set_limit(limit, offset);
             offset += limit;
+            nb_elts_to_export -= limit;
 
             await ordered_promise_pipeline.push(async () => {
 
-                if (!might_have_more_datas) {
-                    return null;
-                }
-
-                // Je sais pas pourquoi on doit le refaire à chaque fois ça ...
-                await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(this_context_query, columns);
                 let datas = (this_context_query.fields?.length > 0) ?
                     await ModuleContextFilter.getInstance().select_datatable_rows(this_context_query, columns_by_field_id, fields) :
                     await ModuleContextFilter.getInstance().select_vos(this_context_query);
-
-                if (!has_query_limit) {
-                    might_have_more_datas = (datas?.length >= limit);
-                } else {
-                    might_have_more_datas = false;
-                }
 
                 if (!datas?.length) {
                     return null;
@@ -450,7 +454,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 if (!datas_with_vars) {
                     ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
                     await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
-                    might_have_more_datas = false;
                     return null;
                 }
                 return datas_with_vars;
@@ -469,6 +472,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 xlsx_datas.push(...this_xlsx_datas);
             });
         }
+
+        await ordered_promise_pipeline.end();
 
         const sheets: IExportableSheet[] = [];
 
@@ -734,16 +739,23 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return null;
         }
 
-        let file: FileVO = new FileVO();
-        file.path = filepath;
-        file.file_access_policy_name = file_access_policy_name;
-        file.is_secured = true;
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
-        if ((!res) || (!res.id)) {
-            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
-            return null;
+        // Si le file existe déjà, on le récupère
+        let file: FileVO = await query(FileVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<FileVO>().path, filepath)
+            .select_vo<FileVO>();
+
+        if (!file) {
+            file = new FileVO();
+            file.path = filepath;
+            file.file_access_policy_name = file_access_policy_name;
+            file.is_secured = true;
+            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
+            if ((!res) || (!res.id)) {
+                ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+                return null;
+            }
+            file.id = res.id;
         }
-        file.id = res.id;
 
         return file;
     }
@@ -1061,14 +1073,26 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     private async getFileVo(filepath: string, is_secured: boolean, file_access_policy_name: string): Promise<FileVO> {
-        let file: FileVO = new FileVO();
-        file.path = filepath;
-        file.file_access_policy_name = file_access_policy_name;
-        file.is_secured = is_secured;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
-        if (!file.id) {
-            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
-            return null;
+
+        // Si le file existe déjà, on le récupère
+        let file: FileVO = await query(FileVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<FileVO>().path, filepath)
+            .select_vo<FileVO>();
+
+        if (file && (file.file_access_policy_name != file_access_policy_name)) {
+            ConsoleHandler.error('Erreur lors de l\'export:' + filepath + ' : file_access_policy_name mismatch');
+        }
+
+        if (!file) {
+            file = new FileVO();
+            file.path = filepath;
+            file.file_access_policy_name = file_access_policy_name;
+            file.is_secured = is_secured;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            if (!file.id) {
+                ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+                return null;
+            }
         }
 
         return file;

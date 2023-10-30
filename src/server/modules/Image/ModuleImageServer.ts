@@ -50,6 +50,10 @@ export default class ModuleImageServer extends ModuleFileServerBase<ImageVO> {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    protected get_vo_type(): string {
+        return ImageVO.API_TYPE_ID;
+    }
+
     protected getNewVo(): ImageVO {
         return new ImageVO();
     }

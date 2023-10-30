@@ -1,4 +1,8 @@
+import RangeHandler from '../../tools/RangeHandler';
+import IRange from '../DataRender/interfaces/IRange';
+import MatroidController from '../Matroid/MatroidController';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
+import MainAggregateOperatorsHandlers from './MainAggregateOperatorsHandlers';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataInvalidatorVO from './vos/VarDataInvalidatorVO';
@@ -63,6 +67,52 @@ export default class VarsController {
     public static get_xor_dep_code(dep_id: string): string {
         return dep_id.replace(/[.]/g, '_') + '__xor';
     }
+
+    public static get_explaination_sample_param(
+        var_data: VarDataBaseVO,
+        var_deps_names: { [dep_name: string]: string },
+        var_deps_values: { [dep_id: string]: VarDataBaseVO },
+    ): any {
+
+        let res = {
+            self: var_data.value
+        };
+        let matroid_bases = MatroidController.getMatroidBases(var_data);
+        for (let i in matroid_bases) {
+            let matroid_base = matroid_bases[i];
+
+            if (!var_data[matroid_base.field_id]) {
+                continue;
+            }
+            res[VarsController.get_card_field_code(matroid_base.field_id)] =
+                RangeHandler.getCardinalFromArray(var_data[matroid_base.field_id] as IRange[]);
+        }
+        for (let var_dep_id in var_deps_names) {
+
+            let values: number[] = [];
+            for (let param_dep_id in var_deps_values) {
+                if (!param_dep_id.startsWith(var_dep_id)) {
+                    continue;
+                }
+                values.push(var_deps_values[param_dep_id].value);
+            }
+
+            if ((!values) || (!values.length)) {
+                continue;
+            }
+
+            res[VarsController.get_sum_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM(values);
+            res[VarsController.get_max_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_MAX(values);
+            res[VarsController.get_and_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_AND(values);
+            res[VarsController.get_min_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_MIN(values);
+            res[VarsController.get_or_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_OR(values);
+            res[VarsController.get_times_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_TIMES(values);
+            res[VarsController.get_xor_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_XOR(values);
+        }
+
+        return res;
+    }
+
 
     public static get_translatable_ds_name(ds_name: string): string {
         return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DS__' + ds_name + '.name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;

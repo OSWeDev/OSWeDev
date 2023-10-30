@@ -25,6 +25,8 @@ import VarsClientController from '../../VarsClientController';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
 import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -106,6 +108,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     public show_tooltip_prefix: boolean;
 
     private entered_once: boolean = false;
+    private can_explain_var: boolean = false;
 
     private var_data: VarDataValueResVO = null;
     private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false, trailing: true });
@@ -277,7 +280,13 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.set_var_conf();
         this.set_editable_field();
 
-        await this.intersect_in();
+        let self = this;
+        await all_promises([
+            this.intersect_in(),
+            (async () => {
+                self.can_explain_var = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_FO_VAR_EXPLAIN_ACCESS);
+            })()
+        ]);
 
         /**
          * On ajoute le contextmenu
@@ -622,32 +631,39 @@ export default class VarDataRefComponent extends VueComponentBase {
     get contextmenu_items(): any {
         let contextmenu_items: any = {};
 
-        // contextmenu_items['explain_var'] = {
-        //     name: this.label('VarDataRefComponent.contextmenu.explain_var'),
-        //     disabled: function (key, opt) {
-        //         let elt = opt.$trigger[0];
+        if (this.can_explain_var) {
+            // contextmenu_items['explain_var'] = {
+            //     name: this.label('VarDataRefComponent.contextmenu.explain_var'),
+            //     disabled: function (key, opt) {
+            //         let elt = opt.$trigger[0];
 
-        //         if (!elt) {
-        //             return true;
-        //         }
+            //         if (!elt) {
+            //             return true;
+            //         }
 
-        //         return elt.getAttribute('var_param_index') == null;
-        //     },
-        //     callback: async (key, opt) => {
-        //         let elt = opt.$trigger[0];
+            //         return elt.getAttribute('var_param_index') == null;
+            //     },
+            //     callback: async (key, opt) => {
+            //         let elt = opt.$trigger[0];
 
-        //         if (!elt) {
-        //             return;
-        //         }
+            //         if (!elt) {
+            //             return;
+            //         }
 
-        //         let raw_value = elt.getAttribute('var_param_index');
-        //         if (!raw_value) {
-        //             return;
-        //         }
+            //         // let raw_value = elt.getAttribute('var_data_raw_copyable_value');
+            //         // if (!raw_value) {
+            //         //     return;
+            //         // }
 
-        //         await VarExplainerController.explain_var(raw_value);
-        //     }
-        // };
+            //         let var_param_index = elt.getAttribute('var_param_index');
+            //         if (!var_param_index) {
+            //             return;
+            //         }
+
+            //         ConsoleHandler.log(await ModuleVar.getInstance().explain_var(var_param_index));
+            //     }
+            // };
+        }
 
         contextmenu_items['copy_raw_value'] = {
             name: this.label('VarDataRefComponent.contextmenu.copy_raw_value'),

@@ -52,6 +52,7 @@ export default class ModuleVar extends Module {
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleVar.MODULE_NAME;
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.FO_ACCESS';
+    public static POLICY_FO_VAR_EXPLAIN_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.FO_VAR_EXPLAIN_ACCESS';
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_BO_VARCONF_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_VARCONF_ACCESS';
     public static POLICY_BO_IMPORTED_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_IMPORTED_ACCESS';
@@ -67,6 +68,8 @@ export default class ModuleVar extends Module {
     public static APINAME_unregister_params: string = 'unregister_params';
 
     public static APINAME_get_var_data: string = 'get_var_data';
+
+    public static APINAME_explain_var: string = 'explain_var';
 
     public static APINAME_getVarControllerVarsDeps: string = 'getVarControllerVarsDeps';
     public static APINAME_getParamDependencies: string = 'getParamDependencies';
@@ -111,6 +114,7 @@ export default class ModuleVar extends Module {
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
 
     public get_var_data: <T extends VarDataBaseVO>(var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data);
+    public explain_var: (var_data_index: string) => Promise<string> = APIControllerWrapper.sah(ModuleVar.APINAME_explain_var);
 
     public getVarParamFromContextFilters: (
         var_name: string,
@@ -254,6 +258,13 @@ export default class ModuleVar extends Module {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, VarDataBaseVO>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_data,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, string>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_explain_var,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             StringParamVOStatic
         ));

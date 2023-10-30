@@ -73,6 +73,15 @@ import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
+import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -411,6 +420,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             'fr-fr': 'Variables'
         }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Expliquer cette valeur / ce calcul'
+        }, 'VarDataRefComponent.contextmenu.explain_var.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Copier la valeur brute'
         }, 'VarDataRefComponent.contextmenu.copy_raw_value.___LABEL___'));
@@ -769,6 +781,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data, this.get_var_data.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_explain_var, this.explain_var.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
@@ -799,13 +812,23 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         let promises = [];
 
+        let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
         promises.push((async () => {
-            let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
             POLICY_FO_ACCESS.group_id = group.id;
             POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             POLICY_FO_ACCESS.translatable_name = ModuleVar.POLICY_FO_ACCESS;
             POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
                 'fr-fr': 'Accès aux Variables sur le front'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
+        let POLICY_FO_VAR_EXPLAIN_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+        promises.push((async () => {
+            POLICY_FO_VAR_EXPLAIN_ACCESS.group_id = group.id;
+            POLICY_FO_VAR_EXPLAIN_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            POLICY_FO_VAR_EXPLAIN_ACCESS.translatable_name = ModuleVar.POLICY_FO_VAR_EXPLAIN_ACCESS;
+            POLICY_FO_VAR_EXPLAIN_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_VAR_EXPLAIN_ACCESS, new DefaultTranslation({
+                'fr-fr': 'Explication des vars - GPT'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
 
@@ -850,6 +873,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         })());
         await Promise.all(promises);
         promises = [];
+
+        promises.push((async () => {
+            let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            access_dependency.src_pol_id = POLICY_FO_VAR_EXPLAIN_ACCESS.id;
+            access_dependency.depends_on_pol_id = POLICY_FO_ACCESS.id;
+            access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        })());
 
         promises.push((async () => {
             let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -1544,4 +1575,171 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async get_var_data(var_data_index: string): Promise<VarDataBaseVO> {
         return await VarsServerCallBackSubsController.get_var_data(var_data_index);
     }
+
+    /**
+     * TODO FIXME Handler errors
+     * @param var_data_index
+     * @param user_id
+     * @param lang_id
+     * @returns
+     */
+    private async explain_var(
+        var_data_index: string
+        // user_id: number = null,
+        // lang_id: number = null
+    ): Promise<string> {
+
+        let var_param = VarDataBaseVO.from_index(var_data_index);
+        if (!var_param) {
+            return null;
+        }
+
+        let var_data = await this.get_var_data(var_data_index);
+
+        if (!var_data) {
+            return null;
+        }
+
+        // PARAMS ? mais attention à l'api on peut pas avoir des params facultatifs sur l'api
+        let user_id: number = null;
+        let lang_id: number = null;
+
+
+        if (!user_id) {
+            user_id = StackContext.get('UID');
+        }
+
+        if ((!lang_id) && (!!user_id)) {
+            let user: UserVO = await ModuleAccessPolicy.getInstance().getSelfUser();
+            lang_id = user ? user.lang_id : lang_id;
+        }
+
+        // let filtered_value = this.get_filtered_value(var_data);
+        let controller = VarsServerController.registered_vars_controller_by_var_id[var_data.var_id];
+
+        let public_explaination_code_text: string = VarsController.get_translatable_public_explaination_by_var_id(var_data.var_id);
+        let explaination_code_text: string = VarsController.get_translatable_explaination_by_var_id(var_data.var_id);
+
+        let var_dep_names: { [dep_name: string]: string } = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[var_data.var_id].name);
+        let var_dep_values: { [dep_id: string]: VarDataBaseVO } = await ModuleVar.getInstance().getParamDependencies(var_data);
+
+        let has_deps_params = ObjectHandler.hasAtLeastOneAttribute(var_dep_values);
+
+        // TODO FIXME la trad côté serveur est pas compatible avec les paramètres a priori ....
+        // let explaination_sample_param = VarsController.get_explaination_sample_param(var_data, var_dep_names, var_dep_values);
+        let explaination: string = explaination_code_text ? await ModuleTranslation.getInstance().t(explaination_code_text, lang_id) : null;
+
+        let public_explaination: string = public_explaination_code_text ? await ModuleTranslation.getInstance().t(public_explaination_code_text, lang_id) : null;
+
+        let has_public_explaination: boolean = (VarsController.get_translatable_public_explaination_by_var_id(var_data.var_id) != public_explaination);
+        let has_explaination: boolean = (VarsController.get_translatable_explaination_by_var_id(var_data.var_id) != explaination);
+
+        let aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(var_data);
+        let is_aggregator: boolean = ObjectHandler.hasAtLeastOneAttribute(aggregated_var_datas);
+
+        /**
+         * Objectif : fournir un prompt pour GPT qui contienne un maximum d'informations sur la variable, ses deps, le param, les datasources.
+         *  avec pour objectif de lui demander d'expliquer le calcul et la valeur actuelle avec ces éléments.
+         */
+        let prompt = "L'objectif est de fournir une explication d'un calcul réalisé sur un outil nommé Crescendo+, à son utilisateur actuel. Un calcul et la fonction associée sont aussi appelés 'variable'.\n";
+        prompt += "Crescendo+ est un outil d'analyse de données de facturation dans des concessions et points de vente de la marque Stellantis.\n";
+        prompt += "La valeur brute actuelle de la variable est : " + var_data.value + ".\n";
+        // prompt += "La valeur formattée actuelle de la variable est : " + filtered_value + ".\n";
+        prompt += "Le nom de la variable est " + controller.varConf.name.substring(controller.varConf.name.indexOf('|') + 1, controller.varConf.name.length) + ".\n";
+        if (controller.varConf.show_help_tooltip && !!public_explaination_code_text) {
+            prompt += "Cette variable a une description faite pour un affichage à l\'utilisateur dans l'outil.\n";
+            prompt += "Son contenu peut être librement utilisé: " + public_explaination_code_text + ".\n";
+        }
+        // if (this.has_explaination) {
+        //     prompt += "Cette variable a une description technique.\nSon contenu est dédié à la compréhension interne des devs et MOAs, elle n'a pas forcément vocation à être affichée telle que à l'utilisateur : " + this.explaination + ".\n";
+        // }
+
+        prompt += 'Le calcul est paramétré par les éléments/champs de segmentation suivants : \n';
+
+        let var_data_fields = MatroidController.getMatroidFields(var_data._type);
+        for (let i in var_data_fields) {
+            let field = var_data_fields[i];
+
+            prompt += " - Le champs '" + await ModuleTranslation.getInstance().label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[var_data._type].name + '.' + field.field_id, lang_id) + "' qui filtre sur un ou plusieurs intervales de " +
+                ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
+            let ranges = var_data[field.field_id] as IRange[];
+            for (let j in ranges) {
+                let range = ranges[j];
+                let segmented_min = RangeHandler.getSegmentedMin(range);
+                let segmented_max = RangeHandler.getSegmentedMax(range);
+
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        prompt += "[" + Dates.format_segment(segmented_min, range.segment_type) + ", " + Dates.format_segment(segmented_max, range.segment_type) + "] - segmenté par " +
+                            TimeSegment.TYPE_NAMES[range.segment_type] + " -,\n";
+                        break;
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+
+                        let segmented_min_str = null;
+                        let segmented_max_str = null;
+
+                        // TODO FIXME move NumRangeComponentController to SHARED, and register enum handlers in the shared too
+                        // if (!((segmented_min == RangeHandler.MIN_INT) && (segmented_max == RangeHandler.MAX_INT)) &&
+                        //     NumRangeComponentController.getInstance().num_ranges_enum_handler &&
+                        //     NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type] &&
+                        //     NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_id]) {
+                        //     segmented_min_str = segmented_min + ' | ' + await NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_id].label_handler(
+                        //         segmented_min
+                        //     );
+                        //     if (segmented_min != segmented_max) {
+                        //         segmented_max_str = segmented_max + ' | ' +
+                        //             await NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_id].label_handler(
+                        //                 RangeHandler.getSegmentedMax(range)
+                        //             );
+                        //     } else {
+                        //         segmented_max_str = segmented_min;
+                        //     }
+                        // } else {
+                        segmented_min_str = segmented_min.toString();
+                        segmented_max_str = segmented_max.toString();
+                        // }
+
+                        prompt += "[" + segmented_min_str + ", " + segmented_max_str + "] - tu ne peux pas faire référence à cette information en disant de ... à ..., tu dois obligatoirement faire la liste exhaustive ou si tu n'as pas les éléments pour, indiquer le nombre d'éléments concernés -,\n";
+                        break;
+                }
+            }
+            prompt += "]\n";
+        }
+
+        if (has_deps_params) {
+            if (is_aggregator) {
+                prompt += "Cette variable est un agrégat de plusieurs autres variables, dont voici le détail : ";
+                throw new Error('Not implemented');
+                // for (let i in this.aggregated_var_datas) {
+                //     let aggregated_var_data = this.aggregated_var_datas[i];
+
+                //     prompt += "La variable " + aggregated_var_data. + " est un agrégat de plusieurs autres variables, dont voici le détail : ";
+                // }
+            }
+
+            for (let i in var_dep_values) {
+                let var_dep_value = var_dep_values[i];
+
+                // TODO
+            }
+        }
+
+        prompt += "Génère une explication simple destinée à l'utilisateur de l'application - donc avec un language adapté aux garagistes et gestionnaires de concessions.\n";
+        prompt += "L'explication doit avoir au maximum 100 mots, et expliquer clairement la valeur actuelle de la variable, en utilisant les éléments ci-dessus.\n";
+        ConsoleHandler.log('prompt', prompt);
+
+        let gpt_msg = await ModuleGPT.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, user_id, prompt));
+
+        return gpt_msg?.content;
+    }
+
+    // private get_filtered_value(var_data: VarDataBaseVO): string {
+    //     let params = [var_data.value];
+
+    //     if (!!this.filter_additional_params) {
+    //         params = params.concat(this.filter_additional_params);
+    //     }
+
+    //     return this.filter.apply(null, params);
+    // }
 }

@@ -20,7 +20,7 @@ include ../../../views/mixins/loading.pug
                 .filters
                     .filters-toggles
                         template(v-for="policy_group in ordered_policy_groups")
-                            template(v-if='display_policy_groups[policy_group.id]')
+                            template(v-if='access_matrix && display_policy_groups && policy_groups_segmentations && display_policy_groups[policy_group.id] && policy_groups_segmentations[policy_group.id]')
                                 template(v-for="(policy_group_segmentation, i) in policy_groups_segmentations[policy_group.id]")
                                     .filters-toggle-segment
                                         .segment-title {{ policy_group_segmentation.name }}
@@ -41,7 +41,7 @@ include ../../../views/mixins/loading.pug
                                 th(v-for="role in roles") {{ label(role.translatable_name) }}
                         template(slot="tbody")
                             template(v-for="policy_group in ordered_policy_groups")
-                                template(v-if='display_policy_groups[policy_group.id]')
+                                template(v-if='access_matrix && display_policy_groups && policy_groups_segmentations && display_policy_groups[policy_group.id] && policy_groups_segmentations[policy_group.id]')
                                     template(v-for="policy_group_segmentation in policy_groups_segmentations[policy_group.id]")
                                         template(v-if='!!display_policy_group_segmentations[policy_group_segmentation.id]')
                                             tr.show.collapse.policy(v-for="policy in policy_group_segmentation.policies" :class="{'policy_hidden': !policy_visibility[policy.id]}" :id="policy.translatable_name")
