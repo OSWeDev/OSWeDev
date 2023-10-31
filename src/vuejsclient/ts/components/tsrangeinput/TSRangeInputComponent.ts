@@ -220,7 +220,17 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
-        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_);
+        let max: number = null;
+
+        if (!RangeHandler.is_right_open(this.value)) {
+            let segmentation_type_max: number = this.segmentation_type_;
+
+            if (this.is_segmentation_week) {
+                segmentation_type_max = TimeSegment.TYPE_DAY;
+            }
+
+            max = RangeHandler.getSegmentedMax(this.value, segmentation_type_max);
+        }
 
         if ((this.is_segmentation_day || this.is_segmentation_mois || this.is_segmentation_year) && this.field) {
             if (!!min && !!max && min != max) {
@@ -254,7 +264,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        let new_value = RangeHandler.createNew(
+        let new_value: TSRange = RangeHandler.createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
@@ -262,6 +272,28 @@ export default class TSRangeInputComponent extends VueComponentBase {
             this.ts_end ? true : false,
             this.segmentation_type_
         );
+
+        // Quand on est en Week, on va vérifier qu'on a bien sélectionné le début et fin de la semaine
+        // Sinon on modifie les valeurs
+        if (this.is_segmentation_week) {
+            let to_edit: boolean = false;
+
+            let start: number = RangeHandler.getSegmentedMin(new_value, TimeSegment.TYPE_DAY);
+            if (this.tsrange_start && !Dates.isSame(start, moment(this.tsrange_start).utc(true).unix(), TimeSegment.TYPE_DAY)) {
+                this.tsrange_start = new Date(start * 1000);
+                to_edit = true;
+            }
+
+            let end: number = RangeHandler.getSegmentedMax(new_value, TimeSegment.TYPE_DAY);
+            if (this.tsrange_end && !Dates.isSame(end, moment(this.tsrange_end).utc(true).unix(), TimeSegment.TYPE_DAY)) {
+                this.tsrange_end = new Date(end * 1000);
+                to_edit = true;
+            }
+
+            if (to_edit) {
+                return;
+            }
+        }
 
         /**
          * On check que c'est bien une nouvelle value

@@ -124,15 +124,14 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             if (this.auto_select_date_relative_mode) {
                 const now = Dates.now();
 
-                const ts_range = TSRange.createNew(
+                this.ts_range = RangeHandler.createNew(
+                    TSRange.RANGE_TYPE,
                     Dates.add(now, this.auto_select_date_min, this.segmentation_type),
                     Dates.add(now, this.auto_select_date_max, this.segmentation_type),
                     true,
                     true,
                     this.segmentation_type
                 );
-
-                this.ts_range = ts_range;
             }
         } else {
             this.ts_range = options.default_ts_range_values;
@@ -256,6 +255,13 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get field_date(): SimpleDatatableFieldVO<any, any> {
-        return SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+        let field = SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id)
+            .setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+
+        if (this.segmentation_type != null) {
+            field.segmentation_type = this.segmentation_type;
+        }
+
+        return field;
     }
 }
