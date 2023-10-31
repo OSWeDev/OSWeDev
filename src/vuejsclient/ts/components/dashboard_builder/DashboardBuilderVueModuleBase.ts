@@ -307,7 +307,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         AdvancedDateFilter.default_background = '#f5f5f5';
         AdvancedDateFilter.icon_component = 'Advanceddatefilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(AdvancedDateFilter, () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null), AdvancedDateFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(AdvancedDateFilter, () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false), AdvancedDateFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Advanceddatefilterwidgetcomponent', () => import('./widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
         Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import('./widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));

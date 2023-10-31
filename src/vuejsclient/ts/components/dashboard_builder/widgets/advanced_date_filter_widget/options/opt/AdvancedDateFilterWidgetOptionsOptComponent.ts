@@ -70,6 +70,9 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
                     options.opts,
                     options.is_checkbox,
                     options.default_value,
+                    options.hide_opts,
+                    options.refuse_left_open,
+                    options.refuse_right_open,
                 ) : null;
             }
         } catch (error) {

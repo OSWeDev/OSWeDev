@@ -46,6 +46,9 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
     private editable_opts: AdvancedDateFilterOptDescVO[] = null;
     private is_checkbox: boolean = false;
+    private hide_opts: boolean = false;
+    private refuse_left_open: boolean = false;
+    private refuse_right_open: boolean = false;
     private tmp_default_value: AdvancedDateFilterOptDescVO = null;
 
     private next_update_options: AdvancedDateFilterWidgetOptions = null;
@@ -58,6 +61,9 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private onchange_widget_options() {
         if (!this.widget_options) {
             this.is_checkbox = false;
+            this.hide_opts = false;
+            this.refuse_left_open = false;
+            this.refuse_right_open = false;
             this.tmp_default_value = null;
             this.editable_opts = null;
             this.is_vo_field_ref = true;
@@ -69,6 +75,15 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         if (this.is_checkbox != this.widget_options.is_checkbox) {
             this.is_checkbox = this.widget_options.is_checkbox;
+        }
+        if (this.hide_opts != this.widget_options.hide_opts) {
+            this.hide_opts = this.widget_options.hide_opts;
+        }
+        if (this.refuse_left_open != this.widget_options.refuse_left_open) {
+            this.refuse_left_open = this.widget_options.refuse_left_open;
+        }
+        if (this.refuse_right_open != this.widget_options.refuse_right_open) {
+            this.refuse_right_open = this.widget_options.refuse_right_open;
         }
         if (this.is_vo_field_ref != this.widget_options.is_vo_field_ref) {
             this.is_vo_field_ref = this.widget_options.is_vo_field_ref;
@@ -115,7 +130,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new AdvancedDateFilterWidgetOptions(this.is_vo_field_ref, null, null, null, false, null);
+            this.next_update_options = new AdvancedDateFilterWidgetOptions(this.is_vo_field_ref, null, null, null, false, null, false, false, false);
         }
 
         this.next_update_options.is_vo_field_ref = !this.next_update_options.is_vo_field_ref;
@@ -164,7 +179,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         }
 
         if (!this.next_update_options) {
-            this.next_update_options = new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null);
+            this.next_update_options = new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false);
         }
 
         let vo_field_ref = new VOFieldRefVO();
@@ -335,7 +350,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     }
 
     private get_default_options(): AdvancedDateFilterWidgetOptions {
-        return new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null);
+        return new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false);
     }
 
     private async switch_is_checkbox() {
@@ -349,6 +364,51 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         if (this.next_update_options.is_checkbox != this.is_checkbox) {
             this.next_update_options.is_checkbox = this.is_checkbox;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_hide_opts() {
+        this.hide_opts = !this.hide_opts;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.hide_opts != this.hide_opts) {
+            this.next_update_options.hide_opts = this.hide_opts;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_refuse_left_open() {
+        this.refuse_left_open = !this.refuse_left_open;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.refuse_left_open != this.refuse_left_open) {
+            this.next_update_options.refuse_left_open = this.refuse_left_open;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_refuse_right_open() {
+        this.refuse_right_open = !this.refuse_right_open;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.refuse_right_open != this.refuse_right_open) {
+            this.next_update_options.refuse_right_open = this.refuse_right_open;
             await this.throttled_update_options();
         }
     }
@@ -406,6 +466,9 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
                     options.opts,
                     options.is_checkbox,
                     options.default_value,
+                    options.hide_opts,
+                    options.refuse_left_open,
+                    options.refuse_right_open,
                 ) : null;
             }
         } catch (error) {
