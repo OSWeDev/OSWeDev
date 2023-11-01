@@ -47,6 +47,7 @@ export default interface IEnvParam {
     DEBUG_EXPORTS?: boolean;
     DEBUG_DELETEVOS?: boolean;
     DEBUG_THROTTLED_SELECT?: boolean;
+    DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean;
     DEBUG_DB_FULL_QUERY_PERF?: boolean;
     DEBUG_INTERTHREADS_MESSAGES?: boolean;
 
@@ -54,6 +55,12 @@ export default interface IEnvParam {
     DEBUG_PROMISE_PIPELINE_WORKER_STATS?: boolean;
 
     DEBUG_AZURE_MEMORY_CHECK?: boolean;
+
+    DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
+    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS?: boolean;
+    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS?: boolean;
+    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS?: boolean;
+    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS?: boolean;
 
     START_MAINTENANCE_ACCEPTATION_CODE: string;
     AUTO_END_MAINTENANCE_ON_START: boolean;

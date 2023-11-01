@@ -417,7 +417,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let xlsx_datas = [];
         let has_query_limit = !!context_query.query_limit;
         let limit = has_query_limit ? context_query.query_limit : 25;
-        let offset = 0;
+        let offset = has_query_limit ? context_query.query_offset : 0;
 
         let context_query_with_vars = context_query.clone();
         await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query_with_vars, columns);
@@ -425,21 +425,41 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         /**
          * On commence par compter le nombre de datas à exporter, pour faire plus propre sur l'exportation
          */
+        let nb_elts_to_export = limit;
         let context_query_count = context_query_with_vars.clone();
-        let nb_elts_to_export = await context_query_count.select_count();
+
+        if (!has_query_limit) {
+            nb_elts_to_export = await context_query_count.select_count();
+        }
+
+        let step_i = 0;
 
         while (nb_elts_to_export > 0) {
 
             let this_context_query = context_query_with_vars.clone();
-            this_context_query.set_limit(limit, offset);
-            offset += limit;
+            let this_offset = offset;
+            let this_step_i = step_i;
+
+            this_context_query.set_limit(limit, this_offset);
+
+            if (!has_query_limit) {
+                offset += limit;
+            }
+
             nb_elts_to_export -= limit;
+            step_i++;
 
             await ordered_promise_pipeline.push(async () => {
 
                 let datas = (this_context_query.fields?.length > 0) ?
                     await ModuleContextFilter.getInstance().select_datatable_rows(this_context_query, columns_by_field_id, fields) :
                     await ModuleContextFilter.getInstance().select_vos(this_context_query);
+
+                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS) {
+                    for (let i in datas) {
+                        ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS:step_i:' + this_step_i + ':data_i:' + i + ':' + JSON.stringify(datas[i]));
+                    }
+                }
 
                 if (!datas?.length) {
                     return null;
@@ -450,6 +470,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     datas,
                     columns,
                     custom_filters);
+
+                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS) {
+                    for (let i in datas_with_vars) {
+                        ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS:step_i:' + this_step_i + ':data_with_var_i:' + i + ':' + JSON.stringify(datas_with_vars[i]));
+                    }
+                }
 
                 if (!datas_with_vars) {
                     ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
@@ -465,10 +491,23 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, this_context_query, this_context_query.fields?.length > 0);
 
+                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS) {
+                    for (let i in translated_datas) {
+                        ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS:step_i:' + this_step_i + ':translated_data_i:' + i + ':' + JSON.stringify(translated_datas[i]));
+                    }
+                }
+
                 await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
                 // - Update to columns format (percent, toFixed etc...)
                 const this_xlsx_datas = await this.update_data_rows_to_xlsx_columns_format(translated_datas, columns);
+
+                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS) {
+                    for (let i in this_xlsx_datas) {
+                        ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS:step_i:' + this_step_i + ':xlsx_data_i:' + i + ':' + JSON.stringify(this_xlsx_datas[i]));
+                    }
+                }
+
                 xlsx_datas.push(...this_xlsx_datas);
             });
         }

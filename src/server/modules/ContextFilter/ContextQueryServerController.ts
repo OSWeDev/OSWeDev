@@ -301,8 +301,15 @@ export default class ContextQueryServerController {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
 
+
         if ((!query_res) || (!query_res.length)) {
             return [];
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_SELECT_DATATABLE_ROWS_query_res) {
+            for (let i in query_res) {
+                ConsoleHandler.log('DEBUG_SELECT_DATATABLE_ROWS_query_res:data_i:' + i + ':' + JSON.stringify(query_res[i]));
+            }
         }
 
         /**
@@ -1231,6 +1238,11 @@ export default class ContextQueryServerController {
 
         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT');
         StatsController.register_stat_DUREE('ContextQueryServerController', 'build_select_query_not_count', 'OUT', Dates.now_ms() - time_in);
+
+        if (ConfigurationService.node_configuration.DEBUG_CONTEXT_QUERY_build_select_query_not_count) {
+            ConsoleHandler.log('build_select_query_not_count:' + res.query);
+        }
+
         return res;
     }
 
@@ -1879,45 +1891,8 @@ export default class ContextQueryServerController {
             query_wrapper.fields.push(parameterizedQueryWrapperField);
         }
 
-        /**
-         * On join tous les types demandés dans les sorts dans la requête
-         */
-        for (const i in context_query.sort_by) {
-            let sort_by = context_query.sort_by[i];
-            let active_api_type_id = sort_by.vo_type;
-
-            if (!active_api_type_id) {
-                continue;
-            }
-
-            if (query_wrapper.tables_aliases_by_type[active_api_type_id]) {
-                continue;
-            }
-
-            let moduletable = VOsTypesManager.moduleTables_by_voType[active_api_type_id];
-            if (!moduletable) {
-                return null;
-            }
-
-            /**
-             * Checker le format des types
-             */
-            ContextQueryInjectionCheckHandler.assert_api_type_id_format(active_api_type_id);
-
-            /**
-             * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
-             */
-            aliases_n = await ContextQueryServerController.join_api_type_id(
-                context_query,
-                aliases_n,
-                active_api_type_id,
-                query_wrapper.jointures,
-                query_wrapper.cross_joins,
-                query_wrapper.joined_tables_by_vo_type,
-                query_wrapper.tables_aliases_by_type,
-                access_type
-            );
-        }
+        // On check qu'on a bien un sort si on a un LIMIT
+        ContextQueryServerController.check_limit(context_query);
 
         /**
          * On join tous les types demandés dans les sorts dans la requête
@@ -2116,6 +2091,9 @@ export default class ContextQueryServerController {
     ): Promise<{ query_wrapper: ParameterizedQueryWrapper, SORT_BY: string, QUERY: string, aliases_n: number, }> {
 
         let SORT_BY = '';
+
+        // On check qu'on a bien un sort si on a un LIMIT
+        ContextQueryServerController.check_limit(context_query);
 
         if (context_query.sort_by?.length > 0) {
 
@@ -2675,6 +2653,13 @@ export default class ContextQueryServerController {
         let res = '';
         if (context_query.query_limit) {
 
+            // Si on a une limite, mais pas de sort à ce stade il faut alerter
+            if ((context_query.query_limit > 1) && ((!context_query.sort_by || !context_query.sort_by.length))) {
+                ConsoleHandler.error('get_limit:No sort_by, but query_limit:' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
+                    'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
+                    'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
+            }
+
             ContextQueryInjectionCheckHandler.assert_integer(context_query.query_limit);
             res += ' LIMIT ' + context_query.query_limit;
 
@@ -2686,6 +2671,43 @@ export default class ContextQueryServerController {
         }
 
         return res;
+    }
+
+    /**
+     * Objectif : résoudre le fait qu'un sort est obligatoire si on utilise LIMIT pour assurer des résultats cohérents
+     * cf https://www.postgresql.org/docs/16/queries-limit.html
+     * When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.
+     * Otherwise you will get an unpredictable subset of the query's rows.
+     * You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ?
+     * The ordering is unknown, unless you specified ORDER BY.
+     *
+     * Check injection OK : pas d'usage d'un param strict
+     */
+    private static check_limit(context_query: ContextQueryVO): void {
+
+        if (!context_query) {
+            return;
+        }
+
+        // >1 pour éviter le cas du select_one
+        if (context_query.query_limit > 1) {
+
+            // Si on a une limite, mais pas de sort à ce stade il faut alerter
+            if (!context_query.sort_by || !context_query.sort_by.length) {
+                ConsoleHandler.warn('check_limit:No sort_by, but query_limit: AUTO SETTING ORDER TO FIRST COL :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
+                    'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
+                    'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
+
+                if ((!context_query.fields) || (!context_query.fields.length)) {
+                    ConsoleHandler.error('check_limit:No sort_by, but query_limit: NO FIELD :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
+                        'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
+                        'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
+                    return;
+                }
+
+                context_query.set_sort(new SortByVO(context_query.base_api_type_id, context_query.fields[0].field_id, true));
+            }
+        }
     }
 
     /**

@@ -167,7 +167,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
                 returnvalue = await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                    async () => await api.SERVER_HANDLER(...params, req));
+                    async () => await api.SERVER_HANDLER(...params, req, res));
                 StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name, Dates.now_ms() - date_in_ms);
             } catch (error) {
                 ConsoleHandler.error(error);

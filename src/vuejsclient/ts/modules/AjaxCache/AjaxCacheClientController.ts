@@ -62,6 +62,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private disableCache = false;
     private defaultInvalidationTimeout: number = 300; //seconds
+    private maxWrappedRequestByBarrel: number = 10;
 
     // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
     private api_logs_limit: number = 101;
@@ -531,47 +532,54 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
         let sendable_objects_by_request_num: { [num: number]: LightWeightSendableRequestVO[] } = {};
         let wrappable_requests_by_request_num: { [num: number]: RequestResponseCacheVO[] } = {};
-        let request_num_from_url: { [url: string]: number } = {};
+        let request_barrel_num_from_request_uid: { [request_uid: string]: number } = {};
         let request_barrel_num: number = -1;
 
         // let sendable_objects: LightWeightSendableRequestVO[] = [];
         let correspondance_by_request_num: { [num: number]: { [id_local: string]: string } } = {};
         for (let i in wrappable_requests) {
             let request = wrappable_requests[i];
+            let request_uid = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
 
             // Choix du pool de requête
-            if (!request_num_from_url[request.url]) {
+            if (!request_barrel_num_from_request_uid[request_uid]) {
                 request_barrel_num++;
 
                 if (request_barrel_num >= nb_requests) {
                     request_barrel_num = 0;
                 }
 
-                request_num_from_url[request.url] = request_barrel_num;
+                request_barrel_num_from_request_uid[request_uid] = request_barrel_num;
+            }
+
+            // Si on dépasse la limite et donc tous les barrels sont utilisés, on repush la requête dans le pool
+            if (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]] && (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length >= this.maxWrappedRequestByBarrel)) {
+                this.waitingForRequest.push(request);
+                continue;
             }
 
             // Ajout de la requête dans le pool
-            if (!wrappable_requests_by_request_num[request_num_from_url[request.url]]) {
-                wrappable_requests_by_request_num[request_num_from_url[request.url]] = [];
+            if (!wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]]) {
+                wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]] = [];
             }
-            wrappable_requests_by_request_num[request_num_from_url[request.url]].push(request);
+            wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].push(request);
 
             // Ajout de l'index de la requête au sein du pool
-            let this_query_index: string = (wrappable_requests_by_request_num[request_num_from_url[request.url]].length - 1).toString();
+            let this_query_index: string = (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length - 1).toString();
             request.index = this_query_index;
 
             // Ajout de la correspondance entre l'index de la requête et son id local
-            if (!correspondance_by_request_num[request_num_from_url[request.url]]) {
-                correspondance_by_request_num[request_num_from_url[request.url]] = {};
+            if (!correspondance_by_request_num[request_barrel_num_from_request_uid[request_uid]]) {
+                correspondance_by_request_num[request_barrel_num_from_request_uid[request_uid]] = {};
             }
-            correspondance_by_request_num[request_num_from_url[request.url]][this_query_index] = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
+            correspondance_by_request_num[request_barrel_num_from_request_uid[request_uid]][this_query_index] = request_uid;
 
             // Version Light pour envoi
             let light_weight = new LightWeightSendableRequestVO(request);
-            if (!sendable_objects_by_request_num[request_num_from_url[request.url]]) {
-                sendable_objects_by_request_num[request_num_from_url[request.url]] = [];
+            if (!sendable_objects_by_request_num[request_barrel_num_from_request_uid[request_uid]]) {
+                sendable_objects_by_request_num[request_barrel_num_from_request_uid[request_uid]] = [];
             }
-            sendable_objects_by_request_num[request_num_from_url[request.url]].push(light_weight);
+            sendable_objects_by_request_num[request_barrel_num_from_request_uid[request_uid]].push(light_weight);
 
 
             if (this.api_logs.length >= this.api_logs_limit) {

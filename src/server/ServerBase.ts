@@ -237,6 +237,10 @@ export default abstract class ServerBase {
         this.app = express();
 
         let responseTime = require('response-time');
+
+        this.app.use(express.json({ limit: '50mb' }));
+        this.app.use(express.urlencoded({ limit: '50mb' }));
+
         this.app.use(responseTime(async (req, res, time) => {
             let url = req.originalUrl;
             let method = req.method;

@@ -48,6 +48,14 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_DB_QUERY_add_activated_many_to_many?: boolean = false;
     public DEBUG_convert_varparamfields_to_vardatas?: boolean = false;
 
+    public DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean = false;
+
+    public DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean = false;
+    public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS?: boolean = false;
+    public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS?: boolean = false;
+    public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS?: boolean = false;
+    public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS?: boolean = false;
+
     /**
      * Activate this to debug SLOW QUERIES in ModuleServiceBase
      */
