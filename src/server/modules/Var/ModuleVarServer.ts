@@ -128,6 +128,29 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsInitController.activate_pre_registered_var_data_api_type_id_modules_list();
 
+        let postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+
+
+        /**
+         * On ajoute les trigger preC et preU pour mettre à jour l'index bdd avant insert
+         * api_type_id => les vos des vars datas
+         */
+        for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
+
+            preCTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_c);
+            preUTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_u);
+
+            // On invalide l'arbre par intersection si on passe un type en import, ou si on change la valeur d'un import, ou si on passe de import à calculé
+            postCTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_c as any);
+            postUTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_u as any);
+            postDTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_d as any);
+        }
+
+
         /**
          * On checke la cohérence des confs qu'on a chargées pour les vars, en particulier s'assurer que les
          *  pixels sont correctement configurés
@@ -209,8 +232,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         let postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         let postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         let postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
 
@@ -488,21 +509,6 @@ export default class ModuleVarServer extends ModuleServerBase {
                 postCTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
                 postUTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_u);
                 postDTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
-            }
-
-            /**
-             * On ajoute les trigger preC et preU pour mettre à jour l'index bdd avant insert
-             * api_type_id => les vos des vars datas
-             */
-            for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
-
-                preCTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_c);
-                preUTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_u);
-
-                // On invalide l'arbre par intersection si on passe un type en import, ou si on change la valeur d'un import, ou si on passe de import à calculé
-                postCTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_c as any);
-                postUTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_u as any);
-                postDTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_d as any);
             }
 
             VarsServerController.init_varcontrollers_dag();

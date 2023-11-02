@@ -1544,7 +1544,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             try {
                 // JSON parse may throw exeception (case when empty or Non-JSON)
-                filter_additional_params = JSON.parse(column.filter_additional_params);
+                filter_additional_params = column.filter_additional_params ? JSON.parse(column.filter_additional_params) : null;
             } catch (e) {
 
             }

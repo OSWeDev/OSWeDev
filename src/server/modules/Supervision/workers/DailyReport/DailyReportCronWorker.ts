@@ -114,8 +114,10 @@ export default class DailyReportCronWorker implements ICronWorker {
     }
 
     private get_log_for_teams(ordered_supervised_items: ISupervisedItem[]): string {
-
         let log_errors: string = null;
+        let log_errors_max = 10;
+        let log_errors_remaining = log_errors_max;
+
         for (let i in ordered_supervised_items) {
             let supervised_item = ordered_supervised_items[i];
 
@@ -123,6 +125,12 @@ export default class DailyReportCronWorker implements ICronWorker {
                 log_errors = '<ul>';
             }
             log_errors += '<li><a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
+
+            log_errors_remaining--;
+            if (!log_errors_remaining) {
+                log_errors += '<li>... (limit ' + log_errors_max + ')</li>';
+                break;
+            }
         }
 
         if (!!log_errors) {
