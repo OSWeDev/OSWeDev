@@ -128,6 +128,12 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public fg_color_text?: string,
         public can_select_all?: boolean,
         public can_select_none?: boolean,
+        public date_relative_mode?: boolean,
+        public auto_select_date?: boolean,
+        public auto_select_date_relative_mode?: boolean,
+        public relative_to_other_filter_id?: number,
+        public auto_select_date_min?: number,
+        public auto_select_date_max?: number,
     ) {
         super();
     }

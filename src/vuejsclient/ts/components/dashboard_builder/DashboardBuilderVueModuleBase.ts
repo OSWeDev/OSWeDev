@@ -19,6 +19,9 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -94,6 +97,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_MonthFilter();
         await this.initializeWidget_YearFilter();
         await this.initializeWidget_AdvancedDateFilter();
+        await this.initializeWidget_CurrentUserFilter();
 
         await this.initializeWidget_VarPieChart();
 
@@ -308,6 +312,36 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Advanceddatefilterwidgetcomponent', () => import('./widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
         Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import('./widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));
         Vue.component('Advanceddatefilterwidgeticoncomponent', () => import('./widgets/advanced_date_filter_widget/icon/AdvancedDateFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CurrentUserFilter() {
+        let CurrentUserFilter = new DashboardWidgetVO();
+
+        CurrentUserFilter.default_height = 5;
+        CurrentUserFilter.default_width = 2;
+        CurrentUserFilter.name = DashboardWidgetVO.WIDGET_NAME_currentuserfilter;
+        CurrentUserFilter.widget_component = 'Currentuserfilterwidgetcomponent';
+        CurrentUserFilter.options_component = 'Currentuserfilterwidgetoptionscomponent';
+        CurrentUserFilter.weight = 6;
+        CurrentUserFilter.default_background = '#f5f5f5';
+        CurrentUserFilter.icon_component = 'Currentuserfilterwidgeticoncomponent';
+        CurrentUserFilter.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            CurrentUserFilter,
+            () => new CurrentUserFilterWidgetOptionsVO(
+                new VOFieldRefVO().from({
+                    api_type_id: UserVO.API_TYPE_ID,
+                    field_id: "id"
+                }),
+                true
+            ),
+            CurrentUserFilterWidgetOptionsVO.get_selected_fields
+        );
+
+        Vue.component('Currentuserfilterwidgetcomponent', () => import('./widgets/current_user_filter_widget/CurrentUserFilterWidgetComponent'));
+        Vue.component('Currentuserfilterwidgetoptionscomponent', () => import('./widgets/current_user_filter_widget/options/CurrentUserFilterWidgetOptionsComponent'));
+        Vue.component('Currentuserfilterwidgeticoncomponent', () => import('./widgets/current_user_filter_widget/icon/CurrentUserFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_VarPieChart() {
