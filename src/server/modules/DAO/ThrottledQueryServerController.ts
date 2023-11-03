@@ -127,7 +127,7 @@ export default class ThrottledQueryServerController {
                  * On ajoute la gestion du cache ici
                  */
                 if (same_field_labels_param.context_query && same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
-                    ThrottledQueryServerController.handle_load_from_cache(same_field_labels_param, ThrottledQueryServerController.current_promise_resolvers[same_field_labels_param.index]);
+                    ThrottledQueryServerController.handle_load_from_cache(same_field_labels_param, ThrottledQueryServerController.current_promise_resolvers[same_field_labels_param.index])();
                     continue;
                 }
                 StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');
