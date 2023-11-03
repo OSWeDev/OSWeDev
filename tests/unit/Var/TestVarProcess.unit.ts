@@ -13,8 +13,8 @@ import VarsProcessLoadDatas from '../../../src/server/modules/Var/bgthreads/proc
 import VarsProcessNotifyEnd from '../../../src/server/modules/Var/bgthreads/processes/VarsProcessNotifyEnd';
 import VarsProcessNotifyStart from '../../../src/server/modules/Var/bgthreads/processes/VarsProcessNotifyStart';
 import VarsProcessUpdateDB from '../../../src/server/modules/Var/bgthreads/processes/VarsProcessUpdateDB';
-import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAG from '../../../src/server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../src/server/modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../src/shared/tools/PromisePipeline/PromisePipeline';
 import FakeTriangularValidDataHandler from './fakes/vars_triangular_dag/FakeTriangularValidDataHandler';

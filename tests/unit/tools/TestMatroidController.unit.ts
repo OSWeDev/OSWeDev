@@ -127,7 +127,17 @@ test('MatroidController: test cut_matroids', () => {
 
     expect(remaning_calcs.length).toStrictEqual(1);
     remaning_calcs.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.log(f['index'])));
-    let res = Object.assign(FakeDataHandler.get_var_data_C(), { var_id: 4 });
+    expect(remaning_calcs[0].chopped_items).toStrictEqual([]);
+
+
+    var_data_F.var_id = 2;
+    remaning_calcs = MatroidController.cut_matroids(
+        var_data_C,
+        [var_data_F]);
+
+    expect(remaning_calcs.length).toStrictEqual(1);
+    remaning_calcs.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.log(f['index'])));
+    let res = FakeDataHandler.get_var_data_C();
     res["_index"] = null;
     res['_is_pixel'] = null;
     ConsoleHandler.log(res["index"]);
@@ -146,7 +156,7 @@ test('MatroidController: test cut_matroids', () => {
 
     expect(remaning_calcs.length).toStrictEqual(1);
     remaning_calcs.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.log(f['index'])));
-    res = Object.assign(FakeDataHandler.get_var_data_B(), { var_id: 4 });
+    res = FakeDataHandler.get_var_data_B();
     res["_index"] = null;
     res['_is_pixel'] = null;
     ConsoleHandler.log(res["index"]);
@@ -349,6 +359,7 @@ test('MatroidController: test getMatroidFields', () => {
     let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
     let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
     let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
+    var_data_F.var_id = 2;
     let remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings(
         [var_data_C, var_data_B],
         [var_data_F]);

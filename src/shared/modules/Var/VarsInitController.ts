@@ -17,6 +17,12 @@ export default class VarsInitController {
      *  Si au moins 1 module est actif, on active l'api_type_id dans registered_vars_datas_api_type_ids
      */
     public static activate_pre_registered_var_data_api_type_id_modules_list() {
+
+        if ((!!VarsInitController.registered_vars_datas_api_type_ids) && (VarsInitController.registered_vars_datas_api_type_ids.length > 0)) {
+            // Cas des tests unitaires
+            return;
+        }
+
         this.registered_vars_datas_api_type_ids = [];
 
         for (let api_type_id in VarsInitController.pre_registered_var_data_api_type_id_modules_list) {
@@ -55,7 +61,12 @@ export default class VarsInitController {
             VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id] = [];
         }
 
-        VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id].push(module.name);
+        if ((!module) && (!!is_test)) {
+            // Cas des tests unitaires
+            VarsInitController.registered_vars_datas_api_type_ids.push(api_type_id);
+        } else {
+            VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id].push(module.name);
+        }
 
         /**
          * On ajoute un index automatiquement sur tous les champs ranges des vars

@@ -4,8 +4,8 @@ import TSRange from '../../../../src/shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../src/shared/modules/ModuleTableField';
 import VarsInitController from '../../../../src/shared/modules/Var/VarsInitController';
-import VarDAG from '../../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAG from '../../../../src/server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../../src/server/modules/Var/vos/VarDAGNode';
 import RangeHandler from '../../../../src/shared/tools/RangeHandler';
 import FakeDataVO from './vos/FakeDataVO';
 
@@ -314,7 +314,7 @@ export default class FakeDataHandler {
 
     public static get_var_data_F_moins_BC(): FakeDataVO {
         let var_data: FakeDataVO = new FakeDataVO();
-        var_data.var_id = 4;
+        var_data.var_id = 2;
         var_data.ts_ranges = [
             RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
@@ -330,7 +330,7 @@ export default class FakeDataHandler {
 
     public static get_var_data_F_moins_C(): FakeDataVO {
         let var_data: FakeDataVO = new FakeDataVO();
-        var_data.var_id = 4;
+        var_data.var_id = 2;
         var_data.ts_ranges = [
             RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
@@ -353,7 +353,7 @@ export default class FakeDataHandler {
 
     public static get_var_data_F_moins_B(): FakeDataVO {
         let var_data: FakeDataVO = new FakeDataVO();
-        var_data.var_id = 4;
+        var_data.var_id = 2;
         var_data.ts_ranges = [
             RangeHandler.createNew(
                 TSRange.RANGE_TYPE,

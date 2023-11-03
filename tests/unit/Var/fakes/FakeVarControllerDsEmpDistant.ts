@@ -4,7 +4,7 @@ import VarServerControllerBase from '../../../../src/server/modules/Var/VarServe
 import NumSegment from '../../../../src/shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../src/shared/modules/IDistantVOBase';
-import VarDAGNode from '../../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../src/server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../src/shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../src/shared/tools/RangeHandler';

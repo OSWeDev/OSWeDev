@@ -1,6 +1,6 @@
 import VarServerControllerBase from '../../../../../../src/server/modules/Var/VarServerControllerBase';
 import TimeSegment from '../../../../../../src/shared/modules/DataRender/vos/TimeSegment';
-import VarDAGNode from '../../../../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../../src/server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../../../src/shared/modules/Var/vos/VarConfVO';
 import FakeDataVO from '../vos/FakeDataVO';
 

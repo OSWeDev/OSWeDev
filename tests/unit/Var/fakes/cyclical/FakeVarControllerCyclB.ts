@@ -1,6 +1,6 @@
 import VarServerControllerBase from '../../../../../src/server/modules/Var/VarServerControllerBase';
 import VarsServerController from '../../../../../src/server/modules/Var/VarsServerController';
-import VarDAGNode from '../../../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../src/server/modules/Var/vos/VarDAGNode';
 import VarsController from '../../../../../src/shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../src/shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../src/shared/modules/Var/vos/VarDataBaseVO';

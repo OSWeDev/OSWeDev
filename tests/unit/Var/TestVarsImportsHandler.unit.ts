@@ -8,8 +8,8 @@ import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment'
 import MatroidController from '../../../src/shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../src/shared/modules/Var/ModuleVar';
 import VarsController from '../../../src/shared/modules/Var/VarsController';
-import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAG from '../../../src/server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../src/server/modules/Var/vos/VarDAGNode';
 import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeVarControllerDeps from './fakes/FakeVarControllerDeps';
 import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';

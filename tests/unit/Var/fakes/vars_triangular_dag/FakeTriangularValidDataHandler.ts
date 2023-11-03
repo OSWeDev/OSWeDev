@@ -3,8 +3,8 @@ import moment from 'moment';
 import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../src/shared/modules/ModuleTableField';
 import VarsInitController from '../../../../../src/shared/modules/Var/VarsInitController';
-import VarDAG from '../../../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAG from '../../../../../src/server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../../../src/server/modules/Var/vos/VarDAGNode';
 import RangeHandler from '../../../../../src/shared/tools/RangeHandler';
 import FakeDataVO from './vos/FakeDataVO';
 

@@ -4,9 +4,9 @@ import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerW
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect, test } from "playwright-test-coverage";
-import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
-import VarDAGNodeDep from '../../../src/shared/modules/Var/graph/VarDAGNodeDep';
+import VarDAG from '../../../src/server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../src/server/modules/Var/vos/VarDAGNode';
+import VarDAGNodeDep from '../../../src/server/modules/Var/vos/VarDAGNodeDep';
 import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeDataVO from './fakes/vos/FakeDataVO';

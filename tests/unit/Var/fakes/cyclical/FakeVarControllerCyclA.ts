@@ -3,7 +3,7 @@ import VarServerControllerBase from '../../../../../src/server/modules/Var/VarSe
 import VarsServerController from '../../../../../src/server/modules/Var/VarsServerController';
 import NumSegment from '../../../../../src/shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSegment';
-import VarDAGNode from '../../../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../src/server/modules/Var/vos/VarDAGNode';
 import VarsController from '../../../../../src/shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../src/shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../src/shared/modules/Var/vos/VarDataBaseVO';
