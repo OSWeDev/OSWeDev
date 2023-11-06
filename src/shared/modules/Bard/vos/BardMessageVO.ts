@@ -20,7 +20,8 @@ export default class BardMessageVO extends AbstractVO implements IDistantVOBase 
     public static createNew(
         role_type: number,
         user_id: number,
-        content: string): BardMessageVO {
+        content: string
+    ): BardMessageVO {
 
         let res: BardMessageVO = new BardMessageVO();
 
@@ -38,6 +39,7 @@ export default class BardMessageVO extends AbstractVO implements IDistantVOBase 
 
     public role_type: number;
     public user_id: number;
+    public conversation_id: number;
     public content: string;
 
     public date: number;

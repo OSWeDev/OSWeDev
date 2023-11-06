@@ -54,17 +54,27 @@ export default class BardApiService {
      * @param cookies
      * @param prompt
      * @param conversation
-     * @returns
+     * @returns {Promise<{response_1: string, response_2: string, response_3: string}>}
      */
-    public async ask(cookies: string, prompt: string, conversation: IConversation) {
-        const res_data = await this.send_message(cookies, prompt, conversation);
+    public async ask(cookies: string, prompt: string, conversation: IConversation): Promise<IConversation> {
 
-        return res_data[3];
+        conversation = await this.send_message(cookies, prompt, conversation);
+
+        return conversation;
     }
 
-    public async send_message(cookies: string, prompt: string, conversation: IConversation): Promise<any> {
+    /**
+     * send_message
+     *
+     * @param cookies
+     * @param prompt
+     * @param conversation
+     * @returns {Promise<IConversation>}
+     */
+    public async send_message(cookies: string, prompt: string, conversation: IConversation): Promise<IConversation> {
         const url = `${BardApiService.BARD_API_URL}/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate`;
         const { at, bl } = await this.get_request_params(cookies);
+
         const headers: any = {
             ...this._headers,
             Cookie: cookies,
@@ -97,14 +107,20 @@ export default class BardApiService {
 
             const response = await res.text();
 
-            const parsedResponse = this.parse_response_bis(response);
-            conversation.conversation_id = parsedResponse.conversation_id;
-            conversation.request_id = parsedResponse.request_id;
-            conversation.response_id = parsedResponse.response_id;
+            const parsed_response = this.parse_response(response);
 
-            return parsedResponse.responses;
+            conversation.conversation_id = parsed_response.conversation_id;
+            conversation.request_id = parsed_response.request_id;
+            conversation.response_id = parsed_response.response_id;
+            conversation.responses = [
+                parsed_response.responses[3],
+                parsed_response.responses[6],
+                parsed_response.responses[9]
+            ];
+
+            return conversation;
         } catch (e: any) {
-            console.log(e.message);
+            console.error(e.message);
         }
 
         return null;
@@ -160,8 +176,8 @@ export default class BardApiService {
         return { at, bl };
     }
 
-    private parse_response_bis(text: string) {
-        let resData = {
+    private parse_response(text: string) {
+        let res_data = {
             request_id: "",
             conversation_id: "",
             response_id: "",
@@ -169,40 +185,46 @@ export default class BardApiService {
         };
 
         try {
-            let parseData = (data: string) => {
+            const parse_data = (data: string) => {
                 if (typeof data === "string") {
                     if (data?.startsWith("c_")) {
-                        resData.conversation_id = data;
+                        res_data.conversation_id = data;
                         return;
                     }
                     if (data?.startsWith("r_")) {
-                        resData.request_id = data;
+                        res_data.request_id = data;
                         return;
                     }
                     if (data?.startsWith("rc_")) {
-                        resData.response_id = data;
+                        res_data.response_id = data;
                         return;
                     }
-                    resData.responses.push(data);
+                    res_data.responses.push(data);
                 }
+
                 if (Array.isArray(data)) {
                     data.forEach((item) => {
-                        parseData(item);
+                        parse_data(item);
                     });
                 }
             };
+
             try {
                 const lines = text.split("\n");
-                for (let i in lines) {
+
+                for (const i in lines) {
                     const line = lines[i];
+
                     if (line.includes("wrb.fr")) {
-                        let data = JSON.parse(line);
-                        let responsesData = JSON.parse(data[0][2]);
-                        responsesData.forEach((response) => {
-                            parseData(response);
+                        const data = JSON.parse(line);
+
+                        const responses_data = JSON.parse(data[0][2]);
+                        responses_data.forEach((response) => {
+                            parse_data(response);
                         });
                     }
                 }
+
             } catch (e: any) {
                 throw new Error(
                     `Error parsing response: make sure you are using the correct cookie, ` +
@@ -220,99 +242,6 @@ export default class BardApiService {
             );
         }
 
-        return resData;
-    }
-
-    /**
-     * parse_response
-     *
-     * @param {string} text
-     * @returns {IConversation}
-     */
-    private parse_response(text: string): IConversation {
-        let response_lines = {
-            request_id: "",
-            conversation_id: "",
-            response_id: "",
-            responses: [],
-        };
-
-        try {
-            const lines = text.split("\n");
-
-            for (let i in lines) {
-                const line = lines[i];
-
-                if (line.includes("wrb.fr")) {
-                    let data = JSON.parse(line);
-                    let responsesData = JSON.parse(data[0][2]);
-
-                    response_lines = responsesData.map((response) => {
-                        return this.parse_response_line(response);
-                    });
-                }
-
-            }
-        } catch (e: any) {
-            throw new Error(
-                `Error parsing response: make sure you are using the correct cookie, ` +
-                `copy the value of "__Secure-1PSID" cookie and set it like this: \n\n ` +
-                `new Bard("__Secure-1PSID=<COOKIE_VALUE>")\n\n ` +
-                `Also using a US proxy is recommended.\n\n `
-            );
-        }
-
-        return response_lines;
-    }
-
-    /**
-     * parse_response_line
-     *
-     * @param {string | string[]} line
-     * @param response_line
-     * @returns {IConversation}
-     */
-    private parse_response_line(
-        line: string | string[],
-        response_line = {
-            request_id: "",
-            conversation_id: "",
-            response_id: "",
-            responses: [],
-        }
-    ): IConversation {
-
-        try {
-            if (typeof line === "string") {
-                if (line?.startsWith("c_")) {
-                    response_line.conversation_id = line;
-                    return;
-                }
-                if (line?.startsWith("r_")) {
-                    response_line.request_id = line;
-                    return;
-                }
-                if (line?.startsWith("rc_")) {
-                    response_line.response_id = line;
-                    return;
-                }
-
-                response_line.responses.push(line);
-            }
-
-            if (Array.isArray(line)) {
-                line.map((item) => {
-                    this.parse_response_line(item, response_line);
-                });
-            }
-        } catch (err) {
-            throw new Error(
-                `Error parsing response: make sure you are using the correct cookie, ` +
-                `copy the value of "__Secure-1PSID" cookie and set it like this: \n\n ` +
-                `new Bard("__Secure-1PSID=<COOKIE_VALUE>")\n\nAlso using a US proxy is recommended.\n\n `
-            );
-        }
-
-        return response_line;
+        return res_data;
     }
 }

@@ -11,5 +11,6 @@ export default class BardConversationVO extends AbstractVO implements IDistantVO
     public _type: string = BardConversationVO.API_TYPE_ID;
 
 
-    public messages: GPTMessageVO[];
+    public conversation_id: string;
+    public title: string;
 }

@@ -14,7 +14,7 @@ import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimp
 
 export default class ModuleBard extends Module {
 
-    public static MODULE_NAME: string = 'BARD';
+    public static MODULE_NAME: string = 'Bard';
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleBard.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleBard.MODULE_NAME + ".BO_ACCESS";
@@ -53,37 +53,62 @@ export default class ModuleBard extends Module {
         this.datatables = [];
 
         this.initializeBardConfigurationVO();
-        this.initializeBardMessageVO();
-        this.initializeBardConversationVO();
+        const db_conversation = this.initializeBardConversationVO();
+
+        this.initializeBardMessageVO(db_conversation);
     }
 
     private initializeBardConfigurationVO() {
 
-        let user_id = new ModuleTableField(
+        const user_id = new ModuleTableField(
             field_names<BardConfigurationVO>().user_id,
             ModuleTableField.FIELD_TYPE_foreign_key,
             'User',
             false
         );
 
-        let fields = [
+        const fields = [
             user_id,
             new ModuleTableField(field_names<BardConfigurationVO>().cookies, ModuleTableField.FIELD_TYPE_string, 'Cookies', false),
             new ModuleTableField(field_names<BardConfigurationVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
         ];
 
-        let table = new ModuleTable(this, BardConfigurationVO.API_TYPE_ID, () => new BardConfigurationVO(), fields, null, 'BARD configurations');
+        const table = new ModuleTable(this, BardConfigurationVO.API_TYPE_ID, () => new BardConfigurationVO(), fields, null, 'BARD configurations');
 
         this.datatables.push(table);
 
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
     }
 
-    private initializeBardMessageVO() {
+    private initializeBardConversationVO() {
 
-        let user_id = new ModuleTableField(field_names<BardMessageVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', false);
+        const user_id = new ModuleTableField(
+            field_names<BardConfigurationVO>().user_id,
+            ModuleTableField.FIELD_TYPE_foreign_key,
+            'User',
+            false
+        );
 
-        let fields = [
+        const fields = [
+            user_id,
+            new ModuleTableField(field_names<BardConversationVO>().conversation_id, ModuleTableField.FIELD_TYPE_string, 'Conversation With Bard id', false),
+            new ModuleTableField(field_names<BardConversationVO>().title, ModuleTableField.FIELD_TYPE_string, 'Title', false)
+        ];
+
+        const table = new ModuleTable(this, BardConversationVO.API_TYPE_ID, () => new BardConversationVO(), fields, null, 'Conversation BARD');
+        this.datatables.push(table);
+
+        return table;
+    }
+
+    private initializeBardMessageVO(db_conversation: ModuleTable<any>) {
+
+        const user_id = new ModuleTableField(field_names<BardMessageVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', false);
+        const conversation_id = new ModuleTableField('conversation_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Conversation', true);
+
+        const fields = [
+            conversation_id,
+            user_id,
             new ModuleTableField(
                 field_names<BardMessageVO>().role_type,
                 ModuleTableField.FIELD_TYPE_enum,
@@ -92,24 +117,14 @@ export default class ModuleBard extends Module {
                 true,
                 BardMessageVO.BARD_MSG_ROLE_TYPE_SYSTEM
             ).setEnumValues(BardMessageVO.BARD_MSG_ROLE_TYPE_LABELS),
-            user_id,
             new ModuleTableField(field_names<BardMessageVO>().content, ModuleTableField.FIELD_TYPE_string, 'Contenu', false),
             new ModuleTableField(field_names<BardMessageVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
         ];
 
-        let table = new ModuleTable(this, BardMessageVO.API_TYPE_ID, () => new BardMessageVO(), fields, null, 'Message BARD');
+        const table = new ModuleTable(this, BardMessageVO.API_TYPE_ID, () => new BardMessageVO(), fields, null, 'Message BARD');
         this.datatables.push(table);
 
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-    }
-
-    private initializeBardConversationVO() {
-
-        let fields = [
-            new ModuleTableField(field_names<BardConversationVO>().messages, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Messages', false)
-        ];
-
-        let table = new ModuleTable(this, BardConversationVO.API_TYPE_ID, () => new BardConversationVO(), fields, null, 'Conversation BARD');
-        this.datatables.push(table);
+        conversation_id.addManyToOneRelation(db_conversation);
     }
 }

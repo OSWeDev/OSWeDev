@@ -9,7 +9,6 @@ import BardMessageVO from '../../../shared/modules/Bard/vos/BardMessageVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -87,37 +86,70 @@ export default class ModuleBardServer extends ModuleServerBase {
      * bard_ask
      *  - Called by the client to ask the assistant a question
      *
-     * @param {BardMessageVO} message
+     * @param {BardMessageVO} ask_message
      * @returns {Promise<BardMessageVO>} should return the assistant's response
      */
-    public async bard_ask(message: BardMessageVO): Promise<BardMessageVO> {
-        if (!message) {
+    public async bard_ask(ask_message: BardMessageVO): Promise<BardMessageVO> {
+        if (!ask_message) {
             return null;
         }
 
+        // Create message from assistant's response
+        let response_message: BardMessageVO = null;
+
         try {
             // Get the user configuration
-            const user_id = message.user_id;
+            const user_id = ask_message.user_id;
+            const current_conversation_id = ask_message.conversation_id;
 
             // Get the user's cookies
             const bard_configuration = await query(BardConfigurationVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<BardConfigurationVO>().user_id, user_id)
                 .select_vo<BardConfigurationVO>();
 
+            let current_conversation: BardConversationVO = await query(BardConversationVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<BardConversationVO>().id, current_conversation_id)
+                .select_vo<BardConversationVO>();
+
             if (!bard_configuration) {
                 throw new Error("No bard configuration for user " + user_id);
             }
 
+            if (!current_conversation) {
+                current_conversation = new BardConversationVO();
+                current_conversation.conversation_id = "";
+                current_conversation.title = "";
+            }
+
             // Get the conversation
-            const response = await this.bard_api_service.ask(
+            const conversation = await this.bard_api_service.ask(
                 bard_configuration.cookies,
-                message.content,
-                { conversation_id: "", request_id: "", response_id: "" }
+                ask_message.content,
+                {
+                    conversation_id: current_conversation.conversation_id,
+                    request_id: "",
+                    response_id: ""
+                }
             );
 
+            // Generate the assistant's response
+            response_message = new BardMessageVO();
+            response_message.content = conversation.responses?.length > 0 ? conversation.responses[0] : "";
+            response_message.role_type = BardMessageVO.BARD_MSG_ROLE_TYPE_ASSISTANT;
+            response_message.date = Dates.now();
+
+            const current_conversation_res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(current_conversation);
+
+            response_message.conversation_id = current_conversation_res.id;
+
+            const response_message_res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(response_message);
+
+            response_message.id = response_message_res.id;
         } catch (err) {
 
         }
+
+        return response_message;
     }
 
     public async generate_response(conversation: BardConversationVO, newPrompt: BardMessageVO): Promise<BardMessageVO> {
@@ -127,10 +159,10 @@ export default class ModuleBardServer extends ModuleServerBase {
             }
 
             // Add the new message to the conversation
-            if (!conversation.messages) {
-                conversation.messages = [];
-            }
-            conversation.messages.push(newPrompt);
+            // if (!conversation.messages) {
+            //     conversation.messages = [];
+            // }
+            // conversation.messages.push(newPrompt);
 
             // Extract the currentMessages from the conversation
             const currentMessages = BardAPIMessage.fromConversation(conversation);
@@ -142,16 +174,16 @@ export default class ModuleBardServer extends ModuleServerBase {
             // TODO: Call the API to get the assistant's response
 
             const responseText = '';
-            const responseMessage: BardMessageVO = new BardMessageVO();
-            responseMessage.date = Dates.now();
-            responseMessage.content = responseText;
-            responseMessage.role_type = BardMessageVO.BARD_MSG_ROLE_TYPE_ASSISTANT;
+            const response_message: BardMessageVO = new BardMessageVO();
+            response_message.date = Dates.now();
+            response_message.content = responseText;
+            response_message.role_type = BardMessageVO.BARD_MSG_ROLE_TYPE_ASSISTANT;
 
             // Add the assistant's response to the conversation
-            conversation.messages.push(responseMessage);
+            // conversation.messages.push(response_message);
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conversation);
 
-            return responseMessage;
+            return response_message;
         } catch (err) {
             ConsoleHandler.error(err);
         }

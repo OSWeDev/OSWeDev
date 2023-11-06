@@ -12,11 +12,11 @@ export default class BardAPIMessage {
     public static fromConversation(conversation: GPTConversationVO): BardAPIMessage[] {
         let res: BardAPIMessage[] = [];
 
-        for (let i in conversation.messages) {
-            let message = conversation.messages[i];
+        // for (let i in conversation.messages) {
+        //     let message = conversation.messages[i];
 
-            res.push(BardAPIMessage.fromMessage(message));
-        }
+        //     res.push(BardAPIMessage.fromMessage(message));
+        // }
 
         return res;
     }
