@@ -1,0 +1,12 @@
+.chat_modal_component
+    .chat-container(v-show="!isMinimized")
+        .chat-header
+            h3 Chat avec l'IA
+            button.minimize-button(@click="toggleMinimize") -
+        .chat-body
+            .message(v-for="message in messages" :key="message.id" :class="{'user-message': message.isUser, 'ai-message': !message.isUser}")
+                p {{ message.text }}
+        .chat-footer
+            input(type="text" v-model="userInput" @keyup.enter="sendMessage")
+            button.send-button(@click="sendMessage") Envoyer
+    button.open-chat(@click="toggleMinimize" v-show="isMinimized") Chat
