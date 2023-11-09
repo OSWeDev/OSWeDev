@@ -58,6 +58,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'StatVO.AGGREGATOR_MAX'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtres favoris'
+        }, 'favorites_filters_select.multiselect_placeholder.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Graphique de var - Donut, Jauge ou Camembert'
         }, 'dashboards.widgets.icons_tooltips.varpiechart.___LABEL___'));
 
@@ -1159,7 +1163,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Options des dimensions'
         }, 'var_pie_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Enregistrer les filtres'
+            'fr-fr': 'Créer un filtre favori'
         }, 'dashboard_viewer.save_favorites_filters.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
@@ -2051,11 +2055,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.date_custom_configs.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Configurez vos requêtes" },
+            { 'fr-fr': "Configurer le filtre favori" },
             'dashboard_viewer.favorites_filters.modal_title.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Configurer les requêtes" },
+            { 'fr-fr': "Paramètres" },
             'dashboard_viewer.favorites_filters.selection_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -2071,7 +2075,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.form_errors.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Entrer le nom de la requête *:" },
+            { 'fr-fr': "Entrer le nom du filtre favori *:" },
             'dashboard_viewer.favorites_filters.enter_name.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -2103,7 +2107,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.exportable_data.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Comportements des requêtes" },
+            { 'fr-fr': "Comportement du filtre favori" },
             'dashboard_viewer.favorites_filters.behaviors_options.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

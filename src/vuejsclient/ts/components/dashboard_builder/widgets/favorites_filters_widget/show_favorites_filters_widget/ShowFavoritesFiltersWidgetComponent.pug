@@ -11,7 +11,8 @@ include ../../../../../../views/mixins/loading.pug
                 :preselect-first="false"
                 :close-on-select="false"
                 :show-labels="false"
-                
+                :placeholder="label('favorites_filters_select.multiselect_placeholder')"
+
                 v-model="tmp_active_favorites_filters_option"
                 autocomplete="off"
                 track-by="id"

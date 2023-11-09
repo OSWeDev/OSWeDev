@@ -192,6 +192,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async update_visible_options(): Promise<void> {
 
+        this.tmp_active_favorites_filters_option = null;
+
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;

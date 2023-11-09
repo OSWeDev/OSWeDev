@@ -1,8 +1,16 @@
 @import 'skin-variables.scss';
 
-.dragsize{
+.dragsize {
 
-    background: rgba(255,255,255,1);
+    &.closed {
+        overflow-y: hidden;
+
+        .dragsize_handle {
+            width: 446px;
+        }
+    }
+
+    background: rgba(255, 255, 255, 1);
     border: solid 1px #CCC;
     z-index: 10000;
     overflow: auto;
@@ -11,7 +19,7 @@
     border-bottom-left-radius: 10px;
     box-shadow: -1px 1px 3px #888;
 
-    &.vdr.row.draggable{
+    &.vdr.row.draggable {
         position: fixed;
     }
 
@@ -22,7 +30,7 @@
     .no-padding {
         padding: 0;
     }
-    
+
     .dragsize_handle {
         background: $main_menu_bg_color;
         color: $main_menu_text_color;
@@ -32,15 +40,20 @@
         top: auto;
         left: auto;
         width: 429px;
-        opacity: .95;
+        opacity: 1;
         border-top-left-radius: 10px;
         border-bottom-left-radius: 10px;
 
-        i{
+        i {
             cursor: pointer;
-            font-size: 1.3em;
+            font-size: 1.5em;
             padding: 12px;
-            padding-bottom: 6px;
+            margin-left: 5px;
+
+            &.disabled {
+                cursor: not-allowed;
+                opacity: 0.3;
+            }
         }
     }
 

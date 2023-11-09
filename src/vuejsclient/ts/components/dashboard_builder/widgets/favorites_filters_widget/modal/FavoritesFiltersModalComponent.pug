@@ -22,7 +22,7 @@
                                 li.error(v-for="error in form_errors")
                                     div.alert.alert-danger {{ error }}
 
-                        ul.row.nav.nav-pills.nav-fill(role="tablist")
+                        ul.row.nav.nav-pills.nav-fill(role="tablist" v-if='can_configure_export')
                             li.col-md-6(:class="{'active': active_tab_view == 'selection_tab'}")
                                 a#selection_pill.nav-item.nav-link(
                                     @click="set_active_tab_view('selection_tab')"
