@@ -149,16 +149,16 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         this.throttled_update_visible_options();
     }
 
-    /**
-     * onchange_tmp_active_filter_options
-     * tmp_active_favorites_filters_option is the visible active filters of the widget
-     *  - Handle change on tmp filter active options
-     *  - Happen each time tmp_active_favorites_filters_option changes
-     *
-     * @returns {void}
-     */
-    @Watch('tmp_active_favorites_filters_option')
-    private async onchange_tmp_active_filter_options(): Promise<void> {
+    // /**
+    //  * onchange_tmp_active_filter_options
+    //  * tmp_active_favorites_filters_option is the visible active filters of the widget
+    //  *  - Handle change on tmp filter active options
+    //  *  - Happen each time tmp_active_favorites_filters_option changes
+    //  *
+    //  * @returns {void}
+    //  */
+    // @Watch('tmp_active_favorites_filters_option')
+    private async validate_favorites_filters_selection(): Promise<void> {
 
         if (!this.tmp_active_favorites_filters_option) {
             if (this.is_updating) {

@@ -2168,6 +2168,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Appliquer les filtres' },
+            'show_favorites_filters_widget_component.validate_favorites_filters_selection.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Décimales' },
             'to_fixed_filter_options.fractionalDigits.___LABEL___'
         ));

@@ -51,3 +51,7 @@ include ../../../../../../views/mixins/loading.pug
                             span.option__tag {{ props.option.name }}
                         i.fa-duotone.fa-times(@click='props.remove(props.option)')
 
+        .favorites_filters_select_button
+            button.btn-primary(@click="validate_favorites_filters_selection")
+                span {{ label('show_favorites_filters_widget_component.validate_favorites_filters_selection') }}
+
