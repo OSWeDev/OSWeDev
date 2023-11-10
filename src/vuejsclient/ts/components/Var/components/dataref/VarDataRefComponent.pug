@@ -1,6 +1,4 @@
-
-mixin var_data_content()
-
+.var-data--intersector-wrapper
     .var-data-wrapper
         template(v-if='!!var_param')
             //- .var_data_ref(@click='selectVar', v-tooltip.top='loadedData',:class='{"selected_var":is_selected_var, "selectable_var":isDescMode, "has_loaded_data":has_loaded_data, "selected_var_dependency": is_selected_var_dependency, "selected_var_dependent": is_selected_var_dependent, "dependencies_heatmap_lvl_0":is_dependencies_heatmap_lvl_0, "dependencies_heatmap_lvl_1":is_dependencies_heatmap_lvl_1, "dependencies_heatmap_lvl_2":is_dependencies_heatmap_lvl_2, "dependencies_heatmap_lvl_3":is_dependencies_heatmap_lvl_3, "dependencies_heatmap_lvl_4":is_dependencies_heatmap_lvl_4, "dependencies_heatmap_lvl_5":is_dependencies_heatmap_lvl_5}')
@@ -68,9 +66,3 @@ mixin var_data_content()
         template(v-else)
             .var_data_ref(:class='{"is_show_public_tooltip": is_show_public_tooltip && !!var_data_value_tooltip}' v-tooltip.top='var_data_value_tooltip')
                 | -
-
-
-
-
-.var-data--intersector-wrapper
-    +var_data_content()
