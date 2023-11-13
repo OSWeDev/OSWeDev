@@ -16,8 +16,9 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
 import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTMultiModalConversationVO from '../../../shared/modules/GPT/vos/GPTMultiModalConversationVO';
+import GPTMultiModalMessageVO from '../../../shared/modules/GPT/vos/GPTMultiModalMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
@@ -449,9 +450,16 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string, api_logs: string) {
         let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
-            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
+
+            let screen_capture_1: FileVO = feedback.screen_capture_1_id ? await query(FileVO.API_TYPE_ID).filter_by_id(feedback.screen_capture_1_id).select_vo<FileVO>() : null;
+            let screen_capture_2: FileVO = feedback.screen_capture_2_id ? await query(FileVO.API_TYPE_ID).filter_by_id(feedback.screen_capture_2_id).select_vo<FileVO>() : null;
+            let screen_capture_3: FileVO = feedback.screen_capture_3_id ? await query(FileVO.API_TYPE_ID).filter_by_id(feedback.screen_capture_3_id).select_vo<FileVO>() : null;
+
+            let gpt_message = GPTMultiModalMessageVO.createNew(
                 GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
-                uid,
+                uid);
+
+            gpt_message.add_text(
                 'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
                 'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
@@ -461,22 +469,37 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 ' - Infos de l\'utilisateur : ' + user_infos +
                 ' - feedback_infos : ' + feedback_infos +
                 ' - console_logs_errors : ' + console_logs_errors +
-                ' - api_logs : ' + api_logs
-            ));
+                ' - api_logs : ' + api_logs +
+                (screen_capture_1 ? '. Pour aider à la compréhension du besoin, des captures écran peuvent être jointes à ce prompt.' : '')
+            );
+
+            if (screen_capture_1) {
+                gpt_message.add_image_url(ConfigurationService.node_configuration.BASE_URL + screen_capture_1.path);
+            }
+            if (screen_capture_2) {
+                gpt_message.add_image_url(ConfigurationService.node_configuration.BASE_URL + screen_capture_2.path);
+            }
+            if (screen_capture_3) {
+                gpt_message.add_image_url(ConfigurationService.node_configuration.BASE_URL + screen_capture_3.path);
+            }
+
+            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_multimodal_response(new GPTMultiModalConversationVO(), gpt_message);
             let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
-            if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
+            if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content && (gtp_4_brief.content.length > 0) && gtp_4_brief.content[0].text) {
                 let teamsWebhookContent = new TeamsWebhookContentVO();
                 teamsWebhookContent.title = 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
-                teamsWebhookContent.summary = gtp_4_brief.content;
 
-                if (feedback.screen_capture_1_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_1_id, 1, teamsWebhookContent);
+                let gpt_answer = gtp_4_brief.content[0].text;
+                teamsWebhookContent.summary = gpt_answer;
+
+                if (screen_capture_1) {
+                    await this.handle_screen_capture(screen_capture_1, 1, teamsWebhookContent);
                 }
-                if (feedback.screen_capture_2_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_2_id, 2, teamsWebhookContent);
+                if (screen_capture_2) {
+                    await this.handle_screen_capture(screen_capture_2, 2, teamsWebhookContent);
                 }
-                if (feedback.screen_capture_3_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_3_id, 3, teamsWebhookContent);
+                if (screen_capture_3) {
+                    await this.handle_screen_capture(screen_capture_3, 3, teamsWebhookContent);
                 }
 
                 if (feedback.file_attachment_1_id) {
@@ -491,7 +514,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
                 teamsWebhookContent.sections.push(
                     new TeamsWebhookContentSectionVO().set_text('<h2>' + feedback.title + '</h2>' +
-                        '<p>' + gtp_4_brief.content + '</p>'));
+                        '<p>' + gpt_answer + '</p>'));
 
                 // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
                 let dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
@@ -518,12 +541,22 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
     }
 
-    private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
-        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
-        if (!file) {
+    // private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
+    //     let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+    //     if (!file) {
+    //         return '';
+    //     }
+    //     let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+
+    //     message.sections.push(
+    //         new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
+    //             .set_activityImage(file_url));
+    // }
+    private async handle_screen_capture(screen_capture_vo: FileVO, num: number, message: TeamsWebhookContentVO) {
+        if (!screen_capture_vo) {
             return '';
         }
-        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+        let file_url = ConfigurationService.node_configuration.BASE_URL + screen_capture_vo.path;
 
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')

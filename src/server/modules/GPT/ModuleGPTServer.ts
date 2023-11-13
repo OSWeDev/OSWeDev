@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -6,8 +7,12 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 import GPTAPIMessage from '../../../shared/modules/GPT/api/GPTAPIMessage';
+import GPTMultiModalAPIMessage from '../../../shared/modules/GPT/api/GPTMultiModalAPIMessage';
 import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
 import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTMultiModalConversationVO from '../../../shared/modules/GPT/vos/GPTMultiModalConversationVO';
+import GPTMultiModalMessagePartVO from '../../../shared/modules/GPT/vos/GPTMultiModalMessagePartVO';
+import GPTMultiModalMessageVO from '../../../shared/modules/GPT/vos/GPTMultiModalMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -17,7 +22,6 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -41,6 +45,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_multimodal_response, this.generate_multimodal_response.bind(this));
     }
 
     // istanbul ignore next: cannot test configure
@@ -91,7 +96,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test extern apis
     public async generate_response(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTMessageVO> {
         try {
-            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4", 60000);
+            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-1106-preview", 60000);
             // const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-3.5-turbo", 60000);
             // const modelId = "gpt-3.5-turbo";
 
@@ -112,6 +117,48 @@ export default class ModuleGPTServer extends ModuleServerBase {
         }
         return null;
     }
+
+    /**
+     * Si le new_prompt utilise des images, on utilise le modèle vision, sinon le modèle classique
+     * @param conversation
+     * @param newPrompt
+     * @returns
+     */
+    // istanbul ignore next: cannot test extern apis
+    public async generate_multimodal_response(conversation: GPTMultiModalConversationVO, newPrompt: GPTMultiModalMessageVO): Promise<GPTMultiModalMessageVO> {
+        try {
+
+            if (!conversation || !newPrompt) {
+                throw new Error("Invalid conversation or prompt");
+            }
+
+            let modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-1106-preview", 60000);
+
+            if (newPrompt.content && newPrompt.content.length) {
+                for (let i in newPrompt.content) {
+                    let content = newPrompt.content[i];
+
+                    if (content.type == GPTMultiModalMessagePartVO.CONTENT_TYPE_IMAGE_URL) {
+                        modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_VISION_ID, "gpt-4-vision-preview", 60000);
+                        break;
+                    }
+                }
+            }
+
+            const currentMessages = await this.prepare_for_multimodal_api(conversation, newPrompt);
+            if (!currentMessages) {
+                throw new Error("Invalid currentMessages");
+            }
+
+            const result = await this.call_multimodal_api(modelId, currentMessages);
+
+            return await this.multimodal_api_response_handler(conversation, result);
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+        return null;
+    }
+
 
     /**
      *
@@ -168,4 +215,72 @@ export default class ModuleGPTServer extends ModuleServerBase {
             ConsoleHandler.error(err);
         }
     }
+
+
+
+
+
+
+
+
+
+    /**
+     *
+     * @param conversation
+     * @param newPrompt
+     * @returns current messages for the API
+     */
+    private async prepare_for_multimodal_api(conversation: GPTMultiModalConversationVO, newPrompt: GPTMultiModalMessageVO): Promise<GPTMultiModalAPIMessage[]> {
+        try {
+            if (!conversation || !newPrompt) {
+                throw new Error("Invalid conversation or prompt");
+            }
+
+            // Add the new message to the conversation
+            if (!conversation.messages) {
+                conversation.messages = [];
+            }
+            conversation.messages.push(newPrompt);
+
+            // Extract the currentMessages from the conversation
+            return GPTMultiModalAPIMessage.fromConversation(conversation);
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+        return null;
+    }
+
+    // istanbul ignore next: cannot test extern apis
+    private async call_multimodal_api(modelId: string, currentMessages: GPTMultiModalAPIMessage[]): Promise<any> {
+        try {
+            return await this.openai.chat.completions.create({
+                model: modelId,
+                messages: currentMessages,
+                max_tokens: 10000
+            });
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+    }
+
+    private async multimodal_api_response_handler(conversation: GPTMultiModalConversationVO, result: any): Promise<GPTMultiModalMessageVO> {
+        try {
+            const responseText = result.choices.shift().message.content;
+            const responseMessage: GPTMultiModalMessageVO = new GPTMultiModalMessageVO();
+            responseMessage.date = Dates.now();
+            responseMessage.content = [
+                GPTMultiModalMessagePartVO.createNew(GPTMultiModalMessagePartVO.CONTENT_TYPE_TEXT, responseText)
+            ];
+            responseMessage.role_type = GPTMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+
+            // Add the assistant's response to the conversation
+            conversation.messages.push(responseMessage);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conversation);
+
+            return responseMessage;
+        } catch (err) {
+            ConsoleHandler.error(err);
+        }
+    }
+
 }

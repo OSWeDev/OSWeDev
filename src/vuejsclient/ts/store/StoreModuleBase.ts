@@ -2,7 +2,7 @@ import { ActionTree, GetterTree, MutationTree } from 'vuex';
 import AppVuexStoreManager from './AppVuexStoreManager';
 import IStoreModule from './IStoreModule';
 
-export const store_mutations_names: <T extends { mutations }>(obj?: T) => { [P in keyof T["mutations"]]?: P } = <T extends { mutations }>(obj?: T): { [P in keyof T["mutations"]]?: P } => {
+export const store_mutations_names: <T extends { mutations }>(obj?: T) => { [P in keyof T["mutations"]]: P } = <T extends { mutations }>(obj?: T): { [P in keyof T["mutations"]]: P } => {
 
     return new Proxy({}, {
         get: (_, prop) => prop,
@@ -10,7 +10,7 @@ export const store_mutations_names: <T extends { mutations }>(obj?: T) => { [P i
             throw Error('Set not supported');
         },
     }) as {
-            [P in keyof T]?: P;
+            [P in keyof T]: P;
         };
 };
 
