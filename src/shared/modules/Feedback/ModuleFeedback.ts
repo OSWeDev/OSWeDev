@@ -32,7 +32,7 @@ export default class ModuleFeedback extends Module {
 
     private static instance: ModuleFeedback = null;
 
-    public feedback: (feedback: FeedbackVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleFeedback.APINAME_feedback);
+    public feedback: (feedback: FeedbackVO) => Promise<FeedbackVO> = APIControllerWrapper.sah(ModuleFeedback.APINAME_feedback);
 
     private constructor() {
 
@@ -42,7 +42,7 @@ export default class ModuleFeedback extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, FeedbackVO>(
             ModuleFeedback.POLICY_FO_ACCESS,
             ModuleFeedback.APINAME_feedback,
             [FeedbackVO.API_TYPE_ID],

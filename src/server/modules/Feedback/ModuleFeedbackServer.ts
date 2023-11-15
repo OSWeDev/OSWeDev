@@ -284,10 +284,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
      * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
      *  Pour trouver le idList => https://customer.io/actions/trello/
      */
-    private async feedback(feedback: FeedbackVO): Promise<boolean> {
+    private async feedback(feedback: FeedbackVO): Promise<FeedbackVO> {
 
         if (!feedback) {
-            return false;
+            return null;
         }
 
         let time_in: number = Dates.now_ms();
@@ -301,7 +301,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
             if (!user_session) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_USER_SESSION");
-                return false;
+                return null;
             }
 
             let FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
@@ -437,12 +437,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "FEEDBACK_CREATED");
             StatsController.register_stat_DUREE("ModuleFeedback", "feedback", "FEEDBACK_CREATED", Dates.now_ms() - time_in);
 
-            return true;
+            return feedback;
         } catch (error) {
             ConsoleHandler.error(error);
             StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_THROWN");
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
-            return false;
+            return null;
         }
     }
 

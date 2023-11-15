@@ -86,6 +86,7 @@ import ModuleDocumentServer from './Document/ModuleDocumentServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
+import moduleActionURLServer from './ActionURL/ModuleActionURLServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
@@ -123,6 +124,7 @@ import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGPTServer from './GPT/ModuleGPTServer';
 import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
+import ModuleActionURL from '../../shared/modules/ActionURL/ModuleActionURL';
 
 export default abstract class ModuleServiceBase {
 
@@ -555,6 +557,7 @@ export default abstract class ModuleServiceBase {
             ModulePlayWright.getInstance(),
             ModuleGPT.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
+            ModuleActionURL.getInstance(),
         ];
     }
 
@@ -616,6 +619,7 @@ export default abstract class ModuleServiceBase {
             ModulePlayWrightServer.getInstance(),
             ModuleGPTServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
+            moduleActionURLServer.getInstance(),
         ];
     }
 
