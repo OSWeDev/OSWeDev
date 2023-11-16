@@ -71,6 +71,7 @@ import Patch20231010ForceUnicityVarCacheConfVarID from './patchs/premodules/Patc
 import Patch20231010ForceUnicityParamName from './patchs/premodules/Patch20231010ForceUnicityParamName';
 import Patch20231030FilePathUnique from './patchs/premodules/Patch20231030FilePathUnique';
 import Patch20231030ImagePathUnique from './patchs/premodules/Patch20231030ImagePathUnique';
+import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20231116AddUniqPhoneUserConstraint';
 
 export default abstract class GeneratorBase {
 
@@ -144,6 +145,7 @@ export default abstract class GeneratorBase {
             Patch20230428UpdateUserArchivedField.getInstance(),
             Patch20231030FilePathUnique.getInstance(),
             Patch20231030ImagePathUnique.getInstance(),
+            Patch20231116AddUniqPhoneUserConstraint.getInstance(),
         ];
 
         this.post_modules_workers = [

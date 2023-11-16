@@ -1928,26 +1928,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throw new Error('Login or password empty');
             }
 
-            // NEW method with query
-            let filters = [
+            /**
+             * Refonte de la version query, par ce que bizarrement avec 2k elements en base, un filter name+email+phone => 200ms, un filter name+email+phone+pwd => 10s, un filter pwd => 200ms ...
+             */
+            let user: UserVO = await query(UserVO.API_TYPE_ID).add_filters([
                 ContextFilterVO.or([
                     filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(login, true),
                     filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(login, true),
                     filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(login, true),
                 ]),
-                filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq(password),
-            ];
+            ])
+                .exec_as_server()
+                .select_vo<UserVO>();
 
-            if (check_pwd) {
-                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq(password));
+            if ((!user) || (!user.id)) {
+                return null;
             }
 
-            return await query(UserVO.API_TYPE_ID)
-                .exec_as_server()
+            if (check_pwd) {
+                return await query(UserVO.API_TYPE_ID).filter_by_id(user.id).filter_by_text_eq(field_names<UserVO>().password, password).exec_as_server().select_vo<UserVO>();
+            }
 
-                .add_filters(filters)
-
-                .select_vo();
+            return user;
 
             // let query_string = "select * from ref.get_user('" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', PWD, " + (check_pwd ? 'true' : 'false') + ");";
             // let query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOneUser', query_string);

@@ -76,6 +76,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         public default_export_option?: number,
         public has_default_export_option?: boolean,
         public use_kanban_by_default_if_exists?: boolean,
+        public use_kanban_card_archive_if_exists?: boolean,
         public use_kanban_column_weight_if_exists?: boolean,
         public use_for_count?: boolean, // Seulement pour enum pour l'instant
         public archive_button?: boolean,

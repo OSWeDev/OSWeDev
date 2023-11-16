@@ -1,68 +1,74 @@
+import 'jquery-contextmenu';
+import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
+
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../../shared/modules/DAO/vos/CRUD';
+import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import CRUDActionsDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import Datatable from '../../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SelectBoxDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
-import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
-import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import SemaphoreHandler from '../../../../../../../shared/tools/SemaphoreHandler';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
+import IWeightedItem from '../../../../../../../shared/tools/interfaces/IWeightedItem';
 import VueAppBase from '../../../../../../VueAppBase';
 import AjaxCacheClientController from '../../../../../modules/AjaxCache/AjaxCacheClientController';
+import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
+import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
+import VueComponentBase from '../../../../VueComponentBase';
 import CRUDComponentManager from '../../../../crud/CRUDComponentManager';
 import DatatableRowController from '../../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
-import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
-import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
-import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
+import TableWidgetController from './../TableWidgetController';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
-import TableWidgetController from './../TableWidgetController';
+import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import './TableWidgetKanbanComponent.scss';
-import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
-import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -1140,6 +1146,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             this.page_widget.id,
             this.throttle_do_update_visible_options.bind(this),
         );
+
+        /**
+         * On ajoute le contextmenu
+         */
+        SemaphoreHandler.semaphore_sync("TableWidgetKanbanComponent.contextmenu", async () => {
+            $['contextMenu']({
+                selector: ".card.kanban_row",
+                items: this.contextmenu_items
+            });
+        });
+
         this.stopLoading();
     }
 
@@ -1828,8 +1845,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         // Si on est sur un kanban, on ordonne par weight si c'est activé
-        if (this.kanban_column && this.kanban_column.kanban_use_weight) {
-            query_.set_sort(new SortByVO(this.kanban_column.api_type_id, 'weight', true));
+        let kanban_moduletable = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id];
+
+        if (this.kanban_column && this.kanban_column.kanban_use_weight && kanban_moduletable.has_field_id(field_names<IWeightedItem & IDistantVOBase>().weight)) {
+            query_.set_sort(new SortByVO(this.kanban_column.api_type_id, field_names<IWeightedItem & IDistantVOBase>().weight, true));
         } else {
             if (this.fields && (
                 ((this.order_asc_on_id != null) && this.fields[this.order_asc_on_id]) ||
@@ -1839,6 +1858,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                 query_.set_sort(new SortByVO(field.vo_type_id, field.module_table_field_id, (this.order_asc_on_id != null)));
             }
+        }
+
+        if (this.widget_options.use_kanban_card_archive_if_exists && kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived)) {
+            query_.filter_is_false(field_names<IArchivedVOBase>().archived);
         }
 
         let clone = cloneDeep(this.columns_by_field_id);
@@ -2861,4 +2884,61 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     //         );
     //     }
     // }
+
+    get contextmenu_items(): any {
+        let contextmenu_items: any = {};
+
+        contextmenu_items['archive'] = {
+            name: this.label('TableWidgetTableComponent.contextmenu.archive'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                if (!this.widget_options.use_kanban_card_archive_if_exists) {
+                    return true;
+                }
+
+                let kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
+                let kanban_moduletable = VOsTypesManager.moduleTables_by_voType[kanban_api_type_id];
+                let item_id = elt.getAttribute('item_id');
+                return (!item_id) || !kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived);
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                if (!this.widget_options.use_kanban_card_archive_if_exists) {
+                    return;
+                }
+
+                let item_id = elt.getAttribute('item_id');
+
+                if (!item_id) {
+                    return;
+                }
+
+                let kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
+                let kanban_moduletable = VOsTypesManager.moduleTables_by_voType[kanban_api_type_id];
+
+                if (!kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived)) {
+                    return;
+                }
+
+                await query(this.kanban_column.api_type_id)
+                    .filter_by_id(item_id)
+                    .update_vos<IArchivedVOBase>({
+                        [field_names<IArchivedVOBase>().archived]: true,
+                    });
+                this.throttle_do_update_visible_options();
+            }
+        };
+
+        return contextmenu_items;
+    }
 }

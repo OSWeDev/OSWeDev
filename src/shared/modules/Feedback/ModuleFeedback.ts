@@ -118,7 +118,7 @@ export default class ModuleFeedback extends Module {
 
             new ModuleTableField('routes_fullpaths', ModuleTableField.FIELD_TYPE_string, 'Routes - Fullpath', true).hide_from_datatable(),
 
-            new ModuleTableField('apis_log_json', ModuleTableField.FIELD_TYPE_string, 'APIs Log - JSON', true).hide_from_datatable(),
+            // new ModuleTableField('apis_log_json', ModuleTableField.FIELD_TYPE_string, 'APIs Log - JSON', true).hide_from_datatable(),
 
             new ModuleTableField('console_logs', ModuleTableField.FIELD_TYPE_string_array, 'Console Logs', false).hide_from_datatable(),
             new ModuleTableField('wish_be_called', ModuleTableField.FIELD_TYPE_boolean, 'Je souhaite être rappelé', false).hide_from_datatable(),

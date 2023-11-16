@@ -93,6 +93,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     private use_kanban_by_default_if_exists: boolean = true;
     private use_kanban_column_weight_if_exists: boolean = true;
+    private use_kanban_card_archive_if_exists: boolean = true;
+
+    private async switch_use_kanban_card_archive_if_exists() {
+        this.use_kanban_card_archive_if_exists = !this.use_kanban_card_archive_if_exists;
+        this.widget_options.use_kanban_card_archive_if_exists = this.use_kanban_card_archive_if_exists;
+        await this.update_options();
+    }
 
     private async switch_use_kanban_column_weight_if_exists() {
         this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
@@ -591,6 +598,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             false,
             null,
             false,
+            true,
             true,
             true,
             false,

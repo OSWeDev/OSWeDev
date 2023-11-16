@@ -364,10 +364,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let console_logs_errors = await this.console_logs_to_string(feedback);
             trello_message += console_logs_errors;
 
-            let api_logs = await this.api_logs_to_string(feedback);
-            if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
-                trello_message += api_logs;
-            }
+            // let api_logs = await this.api_logs_to_string(feedback);
+            // if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
+            //     trello_message += api_logs;
+            // }
             switch (feedback.feedback_type) {
                 case FeedbackVO.FEEDBACK_TYPE_BUG:
                     idLabels.push(FEEDBACK_TRELLO_POSSIBLE_BUG_ID);
@@ -427,7 +427,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             feedback.id = ires.id;
 
-            await this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors, api_logs);
+            await this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
+                // , api_logs
+            );
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
@@ -446,7 +448,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
     }
 
-    private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string, api_logs: string) {
+    private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string
+        // , api_logs: string
+    ) {
         let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
             let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
@@ -460,8 +464,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 ' - Message : ' + feedback.message + ' ' +
                 ' - Infos de l\'utilisateur : ' + user_infos +
                 ' - feedback_infos : ' + feedback_infos +
-                ' - console_logs_errors : ' + console_logs_errors +
-                ' - api_logs : ' + api_logs
+                ' - console_logs_errors : ' + console_logs_errors
+                // ' - api_logs : ' + api_logs
             ));
             let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
             if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
@@ -530,50 +534,50 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 .set_activityImage(file_url));
     }
 
-    private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {
-        let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);
-        let API_LOG_LIMIT: number = FEEDBACK_TRELLO_API_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_API_LOG_LIMIT.toString()) : 100;
+    // private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {
+    //     let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);
+    //     let API_LOG_LIMIT: number = FEEDBACK_TRELLO_API_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_API_LOG_LIMIT.toString()) : 100;
 
-        let apis_log: LightWeightSendableRequestVO[] = parse(feedback.apis_log_json);
-        let apis_log_message: string = '';
-        API_LOG_LIMIT = API_LOG_LIMIT - apis_log.length;
-        let limited: boolean = API_LOG_LIMIT < 0;
+    //     let apis_log: LightWeightSendableRequestVO[] = parse(feedback.apis_log_json);
+    //     let apis_log_message: string = '';
+    //     API_LOG_LIMIT = API_LOG_LIMIT - apis_log.length;
+    //     let limited: boolean = API_LOG_LIMIT < 0;
 
-        for (let i in apis_log) {
-            let api_log = apis_log[i];
+    //     for (let i in apis_log) {
+    //         let api_log = apis_log[i];
 
-            API_LOG_LIMIT++;
-            if (API_LOG_LIMIT <= 0) {
-                continue;
-            }
+    //         API_LOG_LIMIT++;
+    //         if (API_LOG_LIMIT <= 0) {
+    //             continue;
+    //         }
 
-            // On commence par un retour à la ligne aussi puisque sinon la liste fonctionne pas
-            apis_log_message += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
+    //         // On commence par un retour à la ligne aussi puisque sinon la liste fonctionne pas
+    //         apis_log_message += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
 
-            let type: string = null;
-            switch (api_log.type) {
-                case LightWeightSendableRequestVO.API_TYPE_GET:
-                    type = 'GET';
-                    break;
-                case LightWeightSendableRequestVO.API_TYPE_POST:
-                    type = 'POST';
-                    break;
-                case LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET:
-                    type = 'POST_FOR_GET';
-                    break;
-            }
+    //         let type: string = null;
+    //         switch (api_log.type) {
+    //             case LightWeightSendableRequestVO.API_TYPE_GET:
+    //                 type = 'GET';
+    //                 break;
+    //             case LightWeightSendableRequestVO.API_TYPE_POST:
+    //                 type = 'POST';
+    //                 break;
+    //             case LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET:
+    //                 type = 'POST_FOR_GET';
+    //                 break;
+    //         }
 
-            let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
-            let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
-            apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
-        }
+    //         let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+    //         let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
+    //         apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
+    //     }
 
-        let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
-        res += '##APIS LOG' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
-        res += (limited ? ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ...' : '');
-        res += apis_log_message;
-        return res;
-    }
+    //     let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
+    //     res += '##APIS LOG' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
+    //     res += (limited ? ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ...' : '');
+    //     res += apis_log_message;
+    //     return res;
+    // }
 
     private async console_logs_to_string(feedback: FeedbackVO): Promise<string> {
         let FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);

@@ -48,7 +48,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      */
     public client_tab_id: string = Dates.now() + '_' + Math.floor(Math.random() * 100000);
 
-    public api_logs: LightWeightSendableRequestVO[] = [];
+    // public api_logs: LightWeightSendableRequestVO[] = [];
 
     public csrf_token: string = null;
 
@@ -64,8 +64,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private defaultInvalidationTimeout: number = 300; //seconds
     private maxWrappedRequestByBarrel: number = 10;
 
-    // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
-    private api_logs_limit: number = 101;
+    // // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
+    // private api_logs_limit: number = 101;
 
     /**
      * On se fait un PromisePipeline de 6 requêtes max, qui correspond à la limite de requêtes simultanées du navigateur
@@ -217,10 +217,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             light_weight.dataType = dataType;
             light_weight.processData = processData;
             light_weight.type = post_for_get ? LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET : LightWeightSendableRequestVO.API_TYPE_POST;
-            if (this.api_logs.length >= this.api_logs_limit) {
-                this.api_logs.shift();
-            }
-            this.api_logs.push(light_weight);
+            // if (this.api_logs.length >= this.api_logs_limit) {
+            //     this.api_logs.shift();
+            // }
+            // this.api_logs.push(light_weight);
         }
 
         let res = new Promise(async (resolve, reject) => {
@@ -582,10 +582,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             sendable_objects_by_request_num[request_barrel_num_from_request_uid[request_uid]].push(light_weight);
 
 
-            if (this.api_logs.length >= this.api_logs_limit) {
-                this.api_logs.shift();
-            }
-            this.api_logs.push(light_weight);
+            // if (this.api_logs.length >= this.api_logs_limit) {
+            //     this.api_logs.shift();
+            // }
+            // this.api_logs.push(light_weight);
         }
 
         // On encapsule les gets dans une requête de type post
@@ -751,10 +751,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         let self = this;
         let light_weight = new LightWeightSendableRequestVO(request);
 
-        if (this.api_logs.length >= this.api_logs_limit) {
-            this.api_logs.shift();
-        }
-        this.api_logs.push(light_weight);
+        // if (this.api_logs.length >= this.api_logs_limit) {
+        //     this.api_logs.shift();
+        // }
+        // this.api_logs.push(light_weight);
 
         switch (request.type) {
             case RequestResponseCacheVO.API_TYPE_GET:

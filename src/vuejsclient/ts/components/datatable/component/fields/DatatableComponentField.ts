@@ -1,29 +1,31 @@
-import { cloneDeep, isNumber } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import IRange from '../../../../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
-import VueComponentBase from '../../../VueComponentBase';
-import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
-import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
-import './DatatableComponentField.scss';
-import DAOController from '../../../../../../shared/modules/DAO/DAOController';
+import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConditionHandler, { ConditionStatement } from '../../../../../../shared/tools/ConditionHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import VueComponentBase from '../../../VueComponentBase';
+import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
+import './DatatableComponentField.scss';
+import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -248,6 +250,22 @@ export default class DatatableComponentField extends VueComponentBase {
 
     get simple_field(): SimpleDatatableFieldVO<any, any> {
         return (this.field as SimpleDatatableFieldVO<any, any>);
+    }
+
+    private get_segmented_max(range: IRange) {
+        if (!range) {
+            return null;
+        }
+
+        return RangeHandler.getSegmentedMax(range);
+    }
+
+    private get_segmented_min(range: IRange) {
+        if (!range) {
+            return null;
+        }
+
+        return RangeHandler.getSegmentedMin(range);
     }
 
     get field_value(): any {

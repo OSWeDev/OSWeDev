@@ -314,6 +314,12 @@ export default class ContextFilterVOHandler {
                         simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_id :
                         simpleField.moduleTableField.field_id;
 
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                        let raw_value = raw_data[module_table_field_id + '__raw'];
+                        resData[field.datatable_field_uid] = RangeHandler.humanizeRanges(raw_value);
+                        break;
+                    }
+
                     let value = field.dataToReadIHM(raw_data[module_table_field_id], raw_data);
                     // Limite à 300 cars si c'est du html et strip html
                     if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {

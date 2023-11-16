@@ -935,35 +935,49 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: string = "";
+        let prefer_inclusive_max: boolean = (range.range_type != HourRange.RANGE_TYPE);
+        let min = this.getSegmentedMin(range);
+        let max = prefer_inclusive_max ? this.getSegmentedMax(range) : range.max;
 
-        res += (range.min_inclusiv ? '[' : '(');
+        let min_str: string = null;
         switch (range.range_type) {
             case NumRange.RANGE_TYPE:
-                res += range.min;
+                min_str = ((min != null) && !!min.toString) ? min.toString() : null;
                 break;
             case HourRange.RANGE_TYPE:
-                res += Durations.hours(range.min) + ':' + Durations.minutes(range.min);
+                min_str = Durations.hours(min) + ':' + Durations.minutes(min);
                 break;
             case TSRange.RANGE_TYPE:
-                res += Dates.format(range.min, 'DD/MM/Y');
+                min_str = Dates.format(min, 'DD/MM/Y');
                 break;
         }
-        res += ',';
+
+        if (!min_str) {
+            return null;
+        }
+
+        if (min == max) {
+            return min_str;
+        }
+
+        let max_str: string = null;
         switch (range.range_type) {
             case NumRange.RANGE_TYPE:
-                res += range.max;
+                max_str = ((max != null) && !!max.toString) ? max.toString() : null;
                 break;
             case HourRange.RANGE_TYPE:
-                res += Durations.hours(range.max) + ':' + Durations.minutes(range.max);
+                max_str = Durations.hours(max) + ':' + Durations.minutes(max);
                 break;
             case TSRange.RANGE_TYPE:
-                res += Dates.format(range.max, 'DD/MM/Y');
+                max_str = Dates.format(max, 'DD/MM/Y');
                 break;
         }
-        res += (range.max_inclusiv ? ']' : ')');
 
-        return res;
+        if (this.getCardinal(range) == 2) {
+            return min_str + ', ' + max_str;
+        }
+
+        return '[' + min_str + ', ' + max_str + (prefer_inclusive_max ? ']' : ')');
     }
 
     public static rangesFromIndex(index: string, range_type: number): IRange[] {
@@ -1006,7 +1020,8 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: string = "[";
+        // let res: string = "[";
+        let res: string = "";
 
         for (let i in ranges) {
             let range = ranges[i];
@@ -1017,10 +1032,10 @@ export default class RangeHandler {
                 return null;
             }
 
-            res += (res == '[' ? '' : ',');
+            res += (res == '' ? '' : ', ');
             res += range_index;
         }
-        res += ']';
+        // res += ']';
 
         return res;
     }

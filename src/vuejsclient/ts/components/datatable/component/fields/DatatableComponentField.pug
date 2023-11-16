@@ -45,7 +45,16 @@
                     pre {{ field_value }}
                 template(v-else-if="field_type == 'translatable_text'")
                     span {{ t(field_value) }}
-                
+
+                //- template(v-else-if="field_type == 'tstzrange[]'")
+                //-     template(v-for='(range, i) in field_value')
+                //-         template(v-if="get_segmented_max(range) != get_segmented_min(range)")
+                //-             span [{{ get_filtered_value(get_segmented_min(range)) }}, {{ get_filtered_value(get_segmented_max(range)) }}]
+                //-         template(v-else)
+                //-             span {{ get_filtered_value(get_segmented_min(range)) }}
+                //-         template(v-if="i < (field_value.length - 1)")
+                //-             span ,
+
                 template(v-else)
                     span {{ get_filtered_value(field_value) }}
                     

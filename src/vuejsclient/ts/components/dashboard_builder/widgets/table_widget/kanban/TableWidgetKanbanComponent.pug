@@ -94,7 +94,10 @@ include ../../../../../../views/mixins/loading.pug
                                     :get_elt_id="get_elt_id")
 
                                     template(slot-scope="slot_props")
-                                        .card.kanban_row
+                                        .card.kanban_row(
+                                            :item_id="slot_props.sortable_list_item.id"
+                                            :kanban_api_type_id="kanban_column.api_type_id"
+                                            )
                                             Tablewidgetkanbancardheadercollagecomponent.card-img-top(
                                                 :image_ids="get_images_ids(slot_props.sortable_list_item)" 
                                                 v-if='sorted_image_datatable_field_uids && sorted_image_datatable_field_uids.length'
