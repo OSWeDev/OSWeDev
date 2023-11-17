@@ -1,10 +1,12 @@
 import { Express } from 'express';
 import { IDatabase } from 'pg-promise';
+import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleActionURL from '../../shared/modules/ActionURL/ModuleActionURL';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
-import ModuleAPI from '../../shared/modules/API/ModuleAPI';
+import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
 import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
@@ -30,6 +32,7 @@ import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleFork from '../../shared/modules/Fork/ModuleFork';
 import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
 import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
@@ -52,8 +55,8 @@ import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervisio
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
-import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
+import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ModuleUserLogVars from '../../shared/modules/UserLogVars/ModuleUserLogVars';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
@@ -62,11 +65,13 @@ import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../shared/tools/PromiseTools';
 import ConfigurationService from '../env/ConfigurationService';
+import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
+import ModuleActionURLServer from './ActionURL/ModuleActionURLServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
-import ModuleAPIServer from './API/ModuleAPIServer';
+import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
 import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
@@ -86,11 +91,11 @@ import ModuleDocumentServer from './Document/ModuleDocumentServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
-import moduleActionURLServer from './ActionURL/ModuleActionURLServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
 import ModuleFormatDatesNombresServer from './FormatDatesNombres/ModuleFormatDatesNombresServer';
+import ModuleGPTServer from './GPT/ModuleGPTServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
@@ -113,18 +118,13 @@ import ModuleStatsServer from './Stats/ModuleStatsServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
-import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
+import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTriggerServer from './Trigger/ModuleTriggerServer';
 import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
-import ModuleGPTServer from './GPT/ModuleGPTServer';
-import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
-import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
-import ModuleActionURL from '../../shared/modules/ActionURL/ModuleActionURL';
 
 export default abstract class ModuleServiceBase {
 
@@ -619,7 +619,7 @@ export default abstract class ModuleServiceBase {
             ModulePlayWrightServer.getInstance(),
             ModuleGPTServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
-            moduleActionURLServer.getInstance(),
+            ModuleActionURLServer.getInstance(),
         ];
     }
 

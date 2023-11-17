@@ -2897,7 +2897,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     return true;
                 }
 
-                if (!this.widget_options.use_kanban_card_archive_if_exists) {
+                let use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
+                if (!use_kanban_card_archive_if_exists) {
                     return true;
                 }
 
@@ -2913,7 +2914,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     return;
                 }
 
-                if (!this.widget_options.use_kanban_card_archive_if_exists) {
+                let use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
+                if (!use_kanban_card_archive_if_exists) {
                     return;
                 }
 
@@ -2931,7 +2933,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 }
 
                 await query(this.kanban_column.api_type_id)
-                    .filter_by_id(item_id)
+                    .filter_by_id(parseInt(item_id))
                     .update_vos<IArchivedVOBase>({
                         [field_names<IArchivedVOBase>().archived]: true,
                     });

@@ -72,6 +72,7 @@ import Patch20231010ForceUnicityParamName from './patchs/premodules/Patch2023101
 import Patch20231030FilePathUnique from './patchs/premodules/Patch20231030FilePathUnique';
 import Patch20231030ImagePathUnique from './patchs/premodules/Patch20231030ImagePathUnique';
 import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20231116AddUniqPhoneUserConstraint';
+import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch20231117AddUniqCookieNamePopup';
 
 export default abstract class GeneratorBase {
 
@@ -146,6 +147,7 @@ export default abstract class GeneratorBase {
             Patch20231030FilePathUnique.getInstance(),
             Patch20231030ImagePathUnique.getInstance(),
             Patch20231116AddUniqPhoneUserConstraint.getInstance(),
+            Patch20231117AddUniqCookieNamePopup.getInstance(),
         ];
 
         this.post_modules_workers = [

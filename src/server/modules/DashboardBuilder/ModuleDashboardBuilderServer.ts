@@ -127,7 +127,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'on_move_columns_kanban_element.ok.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Permette l\'archivage des cartes Kanban si possible'
+            'fr-fr': 'Archiver'
+        }, 'TableWidgetTableComponent.contextmenu.archive.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Permettre l\'archivage des cartes Kanban si possible'
         }, 'table_widget_options_component.use_kanban_card_archive_if_exists.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Oui'
