@@ -191,6 +191,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                 :table_is_busy="is_busy"
                                                                 :editable="false"
                                                                 :explicit_html="column.explicit_html"
+                                                                :refresh="refresh_column_field" 
                                                             )
 
                                                 template(v-else)

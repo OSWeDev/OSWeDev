@@ -127,6 +127,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private throttle_update_visible_options = debounce(this.throttled_update_visible_options.bind(this), 500);
     private throttle_do_update_visible_options = debounce(this.throttled_do_update_visible_options.bind(this), 500);
     private debounced_onchange_dashboard_vo_route_param = debounce(this.onchange_dashboard_vo_route_param, 100);
+    private debounced_reset_refresh_column_field = debounce(this.throttled_reset_refresh_column_field, 1000);
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
@@ -172,6 +173,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private vos_by_id: { [id: number]: any } = {};
 
     private show_export_alert: boolean = false;
+
+    private refresh_column_field: boolean = false;
 
     get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
@@ -1693,6 +1696,18 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows));
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
         await this.throttle_do_update_visible_options();
+
+        this.on_refresh();
+    }
+
+    private on_refresh() {
+        this.refresh_column_field = true;
+
+        this.debounced_reset_refresh_column_field();
+    }
+
+    private throttled_reset_refresh_column_field() {
+        this.refresh_column_field = false;
     }
 
     @Watch('widget_options', { immediate: true })

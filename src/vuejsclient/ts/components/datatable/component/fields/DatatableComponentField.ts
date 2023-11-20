@@ -79,6 +79,9 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private editable: boolean;
 
+    @Prop({ default: false })
+    private refresh: boolean; // trigger that should force a refresh of the field
+
     @Prop({ default: null })
     private filter_additional_params: any[];
 
