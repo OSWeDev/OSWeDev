@@ -74,4 +74,12 @@ export default interface IEnvParam {
 
     OPEN_API_API_KEY?: string;
 
+    TEAMS_WEBHOOK__TECH_ERROR?: string;
+    TEAMS_WEBHOOK__TECH_WARN?: string;
+    TEAMS_WEBHOOK__TECH_INFO?: string;
+    TEAMS_WEBHOOK__TECH_SUCCESS?: string;
+
+    TEAMS_WEBHOOK__THROTTLE_MS?: number;
+    TEAMS_WEBHOOK__MESSAGE_MAX_SIZE?: number;
+    TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean;
 }

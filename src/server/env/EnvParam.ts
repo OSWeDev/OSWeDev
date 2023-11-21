@@ -96,4 +96,13 @@ export default class EnvParam implements IEnvParam {
     public OPEN_API_API_KEY?: string = null;
 
     public DEBUG_add_var_columns_values_for_xlsx_datas?: boolean = false;
+
+    public TEAMS_WEBHOOK__TECH_ERROR?: string = null;
+    public TEAMS_WEBHOOK__TECH_WARN?: string = null;
+    public TEAMS_WEBHOOK__TECH_INFO?: string = null;
+    public TEAMS_WEBHOOK__TECH_SUCCESS?: string = null;
+
+    public TEAMS_WEBHOOK__THROTTLE_MS?: number = 15000;
+    public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE?: number = 10000;
+    public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean = true;
 }
