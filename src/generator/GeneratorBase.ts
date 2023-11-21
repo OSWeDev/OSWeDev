@@ -73,6 +73,7 @@ import Patch20231030FilePathUnique from './patchs/premodules/Patch20231030FilePa
 import Patch20231030ImagePathUnique from './patchs/premodules/Patch20231030ImagePathUnique';
 import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20231116AddUniqPhoneUserConstraint';
 import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch20231117AddUniqCookieNamePopup';
+import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch20231120AddUniqCronPlanificationUID';
 
 export default abstract class GeneratorBase {
 
@@ -148,6 +149,7 @@ export default abstract class GeneratorBase {
             Patch20231030ImagePathUnique.getInstance(),
             Patch20231116AddUniqPhoneUserConstraint.getInstance(),
             Patch20231117AddUniqCookieNamePopup.getInstance(),
+            Patch20231120AddUniqCronPlanificationUID.getInstance()
         ];
 
         this.post_modules_workers = [

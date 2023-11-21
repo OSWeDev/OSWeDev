@@ -7,6 +7,8 @@ import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
 import ModuleDataExportServer from '../ModuleDataExportServer';
 import ExportContextQueryToXLSXQueryVO from './vos/ExportContextQueryToXLSXQueryVO';
+import TableColumnDescVO from '../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import ContextQueryFieldVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 
 export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
@@ -47,6 +49,25 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
         if (!await ForkedTasksController.exec_self_on_bgthread(ExportContextQueryToXLSXBGThread.getInstance().name, ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query, export_query)) {
             return;
         }
+
+        // // On rajoute juste un filtrage sur le fait qu'on n'exporte pas des colonnes pour lesquelles on charge pas de données
+        // let export_columns: TableColumnDescVO[] = [];
+        // for (let i in export_query.columns) {
+        //     let export_query_column = export_query.columns[i];
+
+        //     if (export_query_column.type !== TableColumnDescVO.TYPE_vo_field_ref) {
+        //         export_columns.push(export_query_column);
+        //         continue;
+        //     }
+
+        //     if (!export_query.context_query.fields.find((field: ContextQueryFieldVO) =>
+        //         (field.api_type_id == export_query_column.api_type_id) && (field.field_id == export_query_column.field_id))) {
+        //         continue;
+        //     }
+
+        //     export_columns.push(export_query_column);
+        // }
+        // export_query.columns = export_columns;
 
         this.waiting_export_queries.push(export_query);
         this.run_asap = true;

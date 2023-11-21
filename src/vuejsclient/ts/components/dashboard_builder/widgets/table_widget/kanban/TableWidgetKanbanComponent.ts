@@ -1431,40 +1431,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 this.last_sticky_col_id = column.id;
             }
 
-            /**
-             * Gestion du check des droits
-             */
-            if (column.filter_by_access && !this.filter_by_access_cache[column.filter_by_access]) {
+            if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {
                 continue;
-            }
-
-            /**
-             * Gestion du check de présence d'un filtrage
-             */
-            if (column.show_if_any_filter_active && column.show_if_any_filter_active.length) {
-
-                let activated = false;
-                for (let j in column.show_if_any_filter_active) {
-                    let page_filter_id = column.show_if_any_filter_active[j];
-
-                    let page_widget = this.all_page_widgets_by_id[page_filter_id];
-                    if (!page_widget) {
-                        column.show_if_any_filter_active = [];
-                        continue;
-                    }
-                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
-                    if ((!this.get_active_field_filters) ||
-                        (!this.get_active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
-                        (!this.get_active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
-                        continue;
-                    }
-
-                    activated = true;
-                }
-
-                if (!activated) {
-                    continue;
-                }
             }
 
             res.push(Object.assign(new TableColumnDescVO(), column));
@@ -1904,6 +1872,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             let aggregator: number = VarConfVO.NO_AGGREGATOR;
 
             if (column) {
+                if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {
+                    continue;
+                }
+
                 if (column.many_to_many_aggregate) {
                     if (column.is_nullable) {
                         aggregator = VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT;
@@ -2546,6 +2518,11 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             if (!column.exportable) {
                 continue;
             }
+
+            if (FieldFiltersVOManager.is_column_filtered(column, this.filter_by_access_cache, this.get_active_field_filters, this.all_page_widgets_by_id)) {
+                continue;
+            }
+
             if (column.type != TableColumnDescVO.TYPE_header) {
 
                 res.push(column.datatable_field_uid);

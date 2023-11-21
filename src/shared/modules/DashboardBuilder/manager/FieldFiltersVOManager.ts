@@ -15,6 +15,8 @@ import ModuleTable from "../../ModuleTable";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
 import ObjectHandler from "../../../tools/ObjectHandler";
+import TableColumnDescVO from "../vos/TableColumnDescVO";
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 
 /**
  * FieldFiltersVOManager
@@ -745,5 +747,55 @@ export default class FieldFiltersVOManager {
         const has_field_filters = !!(api_type_id_filters[vo_field_ref.field_id]);
 
         return !(has_field_filters);
+    }
+
+    /**
+     * Filtrage des colonnes en fonction des filtrages actuels et de l'utilisateur actuel
+     * @param column
+     * @returns true if the column is filtered (invalid - should not be used)
+     */
+    public static is_column_filtered(
+        column: TableColumnDescVO,
+        filter_by_access_cache: { [access_name: string]: boolean },
+        active_field_filters: FieldFiltersVO,
+        all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }): boolean {
+
+        /**
+         * Gestion du check des droits
+         */
+        if (column.filter_by_access && !filter_by_access_cache[column.filter_by_access]) {
+            return true;
+        }
+
+        /**
+         * Gestion du check de présence d'un filtrage
+         */
+        if (column.show_if_any_filter_active && column.show_if_any_filter_active.length) {
+
+            let activated = false;
+            for (let j in column.show_if_any_filter_active) {
+                let page_filter_id = column.show_if_any_filter_active[j];
+
+                let page_widget = all_page_widgets_by_id[page_filter_id];
+                if (!page_widget) {
+                    column.show_if_any_filter_active = [];
+                    continue;
+                }
+                let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                if ((!active_field_filters) ||
+                    (!active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
+                    (!active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
+                    continue;
+                }
+
+                activated = true;
+            }
+
+            if (!activated) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

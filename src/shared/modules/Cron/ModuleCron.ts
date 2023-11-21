@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -71,13 +72,13 @@ export default class ModuleCron extends Module {
         this.fields = [];
         this.datatables = [];
 
-        let label_field = new ModuleTableField('planification_uid', ModuleTableField.FIELD_TYPE_string, 'planification_uid', true);
+        let label_field = new ModuleTableField(field_names<CronWorkerPlanification>().planification_uid, ModuleTableField.FIELD_TYPE_string, 'planification_uid', true).unique();
         let datatable_fields = [
             label_field,
-            new ModuleTableField('worker_uid', ModuleTableField.FIELD_TYPE_string, 'worker_uid', true),
-            new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(true),
-            new ModuleTableField('type_recurrence', ModuleTableField.FIELD_TYPE_enum, 'type_recurrence', true).setEnumValues(CronWorkerPlanification.TYPE_RECURRENCE_LABELS),
-            new ModuleTableField('intervale_recurrence', ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
+            new ModuleTableField(field_names<CronWorkerPlanification>().worker_uid, ModuleTableField.FIELD_TYPE_string, 'worker_uid', true),
+            new ModuleTableField(field_names<CronWorkerPlanification>().date_heure_planifiee, ModuleTableField.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(true),
+            new ModuleTableField(field_names<CronWorkerPlanification>().type_recurrence, ModuleTableField.FIELD_TYPE_enum, 'type_recurrence', true).setEnumValues(CronWorkerPlanification.TYPE_RECURRENCE_LABELS),
+            new ModuleTableField(field_names<CronWorkerPlanification>().intervale_recurrence, ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
 
         this.datatables.push(new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, () => new CronWorkerPlanification(), datatable_fields, label_field, "Tâches planifiées"));
