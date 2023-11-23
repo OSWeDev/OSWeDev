@@ -33,6 +33,11 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
 
     public async send_to_teams_webhook(webhook: string, message: TeamsWebhookContentVO) {
 
+        if (ConfigurationService.node_configuration.BLOCK_TEAMS_MESSAGES) {
+            ConsoleHandler.log('ModuleTeamsAPIServer.send_to_teams_webhook: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.title);
+            return;
+        }
+
         let TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
         let msg = TextHandler.getInstance().sanityze_object(message);
 

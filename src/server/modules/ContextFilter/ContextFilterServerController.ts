@@ -282,9 +282,21 @@ export default class ContextFilterServerController {
                             let text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
-                                where_conditions.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " ILIKE ANY(" + field_id + ')');
+
+                                where_conditions.push(
+                                    'EXISTS ( ' +
+                                    '  select 1' +
+                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                    '  where a ILIKE ' + pgPromise.as.format('$1', ["%" + text + "%"]) +
+                                    '  )');
                             } else {
-                                where_conditions.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " LIKE ANY(" + field_id + ')');
+
+                                where_conditions.push(
+                                    'EXISTS ( ' +
+                                    '  select 1' +
+                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                    '  where a LIKE ' + pgPromise.as.format('$1', ["%" + text + "%"]) +
+                                    '  )');
                             }
                         } else if (context_filter.param_textarray != null) {
                             let like_array = [];
@@ -295,9 +307,21 @@ export default class ContextFilterServerController {
                                 }
 
                                 if (context_filter.text_ignore_case) {
-                                    like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " ILIKE ANY(" + field_id + ')');
+
+                                    where_conditions.push(
+                                        'EXISTS ( ' +
+                                        '  select 1' +
+                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                        '  where a ILIKE ANY(ARRAY[' + like_array.join(',') + '])' +
+                                        '  )');
                                 } else {
-                                    like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " LIKE ANY(" + field_id + ')');
+
+                                    where_conditions.push(
+                                        'EXISTS ( ' +
+                                        '  select 1' +
+                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                        '  where a LIKE ANY(ARRAY[' + like_array.join(',') + '])' +
+                                        '  )');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {

@@ -28,8 +28,14 @@ export default class TeamsAPIServerController {
         await TeamsAPIServerController.send_teams_level('success', title, message, webhook_param_name, webhook_default_value);
     }
 
-    private static throttle_send_teams_level = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.TEAMS_WEBHOOK__THROTTLE_MS);
+    private static throttle_send_teams_level = null;
 
+    private static get_throttle_send_teams_level() {
+        if (!TeamsAPIServerController.throttle_send_teams_level) {
+            TeamsAPIServerController.throttle_send_teams_level = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.TEAMS_WEBHOOK__THROTTLE_MS);
+        }
+        return TeamsAPIServerController.throttle_send_teams_level;
+    }
     private static async send_teams_level(level: string, title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         try {
             let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) :
@@ -38,7 +44,7 @@ export default class TeamsAPIServerController {
             if (webhook) {
 
                 let param = new SendTeamsLevelParam(level, title, message, webhook);
-                await TeamsAPIServerController.throttle_send_teams_level(param);
+                await (TeamsAPIServerController.get_throttle_send_teams_level()(param));
             }
         } catch (error) {
             ConsoleHandler.error(error);

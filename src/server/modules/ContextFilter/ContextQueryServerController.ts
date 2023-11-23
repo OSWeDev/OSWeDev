@@ -487,10 +487,10 @@ export default class ContextQueryServerController {
 
         for (let i in query_res) {
             let res_field = query_res[i] ? query_res[i][field.alias] : null;
-            let line_option = ContextQueryFieldServerController.translate_db_res_to_dataoption(field, res_field);
+            let line_options: DataFilterOption[] = ContextQueryFieldServerController.translate_db_res_to_dataoption(field, res_field);
 
-            if (line_option) {
-                res.push(line_option);
+            if (line_options) {
+                res.push(...line_options);
             }
         }
 

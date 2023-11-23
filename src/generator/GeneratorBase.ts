@@ -74,6 +74,7 @@ import Patch20231030ImagePathUnique from './patchs/premodules/Patch20231030Image
 import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20231116AddUniqPhoneUserConstraint';
 import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch20231117AddUniqCookieNamePopup';
 import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch20231120AddUniqCronPlanificationUID';
+import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
 
 export default abstract class GeneratorBase {
 
@@ -170,6 +171,7 @@ export default abstract class GeneratorBase {
             Patch20230519AddRightsFeedbackStateVO.getInstance(),
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
+            Patch20231123AddRightsSharedFilters.getInstance()
         ];
     }
 

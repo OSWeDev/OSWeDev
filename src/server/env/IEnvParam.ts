@@ -82,4 +82,6 @@ export default interface IEnvParam {
     TEAMS_WEBHOOK__THROTTLE_MS?: number;
     TEAMS_WEBHOOK__MESSAGE_MAX_SIZE?: number;
     TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean;
+
+    BLOCK_TEAMS_MESSAGES?: boolean;
 }

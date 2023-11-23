@@ -111,6 +111,8 @@ export default class ContextFilterVOManager {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableField.FIELD_TYPE_html_array:
                 context_filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
                 context_filter.param_textarray = [active_option.string_value];
                 break;
@@ -129,10 +131,6 @@ export default class ContextFilterVOManager {
                 break;
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableField.FIELD_TYPE_html_array:
-                throw new Error('Not Implemented');
-
-
             default:
                 throw new Error('Not Implemented');
         }
