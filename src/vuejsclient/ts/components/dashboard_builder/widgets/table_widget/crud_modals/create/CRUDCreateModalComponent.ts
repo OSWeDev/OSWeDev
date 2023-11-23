@@ -16,11 +16,18 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
     private api_type_id: string = null;
     private on_hidden_initialized: boolean = false;
     private vo_init: IDistantVOBase = null;
+    private show_insert_or_update_target: boolean = true;
 
     private onclose_callback: () => Promise<void> = null;
 
-    public async open_modal(api_type_id: string, onclose_callback: () => Promise<void>, vo_init: IDistantVOBase = null) {
+    public async open_modal(
+        api_type_id: string,
+        onclose_callback: () => Promise<void>,
+        vo_init: IDistantVOBase = null,
+        show_insert_or_update_target: boolean = true,
+    ) {
         this.api_type_id = api_type_id;
+        this.show_insert_or_update_target = show_insert_or_update_target;
 
         let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
 
