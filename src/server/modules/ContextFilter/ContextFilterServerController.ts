@@ -3438,6 +3438,9 @@ export default class ContextFilterServerController {
                         let ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
 
                         if ((!ids) || (!ids.length)) {
+                            // Pour le coup sur une table segmentée qu'on essaie de join, si on a pas de données, c'est un gros problème.
+                            //  On ne peut pas faire de jointure, donc on ne peut pas faire de query
+                            ConsoleHandler.error('ERROR : no segmentation found for segmented table ' + table.full_name + ' on context_query :' + context_query.log(true));
                             return aliases_n;
                         }
 

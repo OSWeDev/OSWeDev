@@ -2242,14 +2242,42 @@ export default class ContextQueryServerController {
         for (let i in context_query_join.join_on_fields) {
             let join_on_field: ContextQueryJoinOnFieldVO = context_query_join.join_on_fields[i];
 
+            // On doit adapter le type de join à l'aggrégateur utilisé sur le field originel
+            //  Si on a une aggrégation sur le champs de jointure, on doit faire un check sur ANY l'aggrégat
+            let source_joined_field = null;
+            for (let j in context_query_join.joined_context_query.fields) {
+                let joined_field = context_query_join.joined_context_query.fields[j];
+                if ((joined_field.field_id == join_on_field.joined_table_field_alias) || (joined_field.alias == join_on_field.joined_table_field_alias)) {
+                    source_joined_field = joined_field;
+                    break;
+                }
+            }
+
+            if (!source_joined_field) {
+                throw new Error('ContextQueryServerController.handle_join_context_query:source_joined_field:source_joined_field is null');
+            }
+            let is_aggregate = ((source_joined_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR) || (source_joined_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT));
+
             // On doit checker l'égalite et ajouter le cas d'un null de part et d'autre
-            join_on_fields.push(
-                '((' +
-                tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ' = ' +
-                tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ') OR ((' +
-                tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ' IS NULL) AND (' +
-                tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ' IS NULL)))'
-            );
+            if (!is_aggregate) {
+
+                join_on_fields.push(
+                    '((' +
+                    tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ' = ' +
+                    tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ') OR ((' +
+                    tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ' IS NULL) AND (' +
+                    tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ' IS NULL)))'
+                );
+            } else {
+
+                join_on_fields.push(
+                    '((' +
+                    tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ' = ANY(' +
+                    tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ')) OR ((' +
+                    tables_aliases_by_type[context_query_join.joined_table_alias] + '.' + join_on_field.joined_table_field_alias + ' IS NULL) AND (' +
+                    tables_aliases_by_type[join_on_field.initial_context_query_api_type_id] + '.' + join_on_field.initial_context_query_field_id_or_alias + ' IS NULL)))'
+                );
+            }
         }
 
         let joined_query_str: string = await context_query_join.joined_context_query.get_select_query_str();
