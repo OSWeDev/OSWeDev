@@ -19,7 +19,6 @@ import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/T
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -30,7 +29,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SupervisionBGThread from './bgthreads/SupervisionBGThread';
 import SupervisedCRONServerController from './cron_supervision/SupervisedCRONServerController';
@@ -347,7 +346,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));
         }
 
-        await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
+        await TeamsAPIServerController.send_to_teams_webhook(webhook, message);
     }
 
     private async on_back_to_normal(supervised_item: ISupervisedItem) {
@@ -388,7 +387,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));
         }
 
-        await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
+        await TeamsAPIServerController.send_to_teams_webhook(webhook, message);
     }
 
     private async execute_manually(text: string) {

@@ -15,6 +15,7 @@ import ConfigurationService from '../../../../env/ConfigurationService';
 import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 import SendInBlueMailServerController from '../../../SendInBlue/SendInBlueMailServerController';
 import ModuleTeamsAPIServer from '../../../TeamsAPI/ModuleTeamsAPIServer';
+import TeamsAPIServerController from '../../../TeamsAPI/TeamsAPIServerController';
 
 export default class DailyReportCronWorker implements ICronWorker {
 
@@ -107,7 +108,7 @@ export default class DailyReportCronWorker implements ICronWorker {
                 (ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN] ? ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN].length : 0)
                 + "</blockquote>"));
 
-            await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(TEAMS_WEBHOOK_PARAM_NAME, message);
+            await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK_PARAM_NAME, message);
         } else {
             ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour Teams, le paramètre requis n\'est pas initialisé :' + DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME + ':');
         }
