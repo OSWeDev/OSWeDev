@@ -1,8 +1,10 @@
+import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
 /* tslint:disable:no-unused-expression */
 import { expect, test } from "playwright-test-coverage";
-import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
 import VarsImportsHandler from '../../../src/server/modules/Var/VarsImportsHandler';
-import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 import MatroidController from '../../../src/shared/modules/Matroid/MatroidController';
@@ -16,7 +18,8 @@ import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
 import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeDataVO from './fakes/vos/FakeDataVO';
-APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
+import ConfigurationService from '../../../src/server/env/ConfigurationService';
 
 // test('VarsImportsHandler: test load_imports_and_split_nodes', async () => {
 
@@ -28,6 +31,10 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 //     expect(VarsImportsHandler.getInstance().load_imports_and_split_nodes(var_data_A, var_data_B)).toStrictEqual(1);
 // });
+
+ConsoleHandler.init();
+ConfigurationService.setEnvParams({});
+ConfigurationService.IS_UNIT_TEST_MODE = true;
 
 test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () => {
 

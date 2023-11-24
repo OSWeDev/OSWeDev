@@ -3,12 +3,11 @@ import ServerAPIController from '../../../src/server/modules/API/ServerAPIContro
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-import { test, expect } from "playwright-test-coverage";
+import { expect, test } from "playwright-test-coverage";
+import ConfigurationService from '../../../src/server/env/ConfigurationService';
 import DAOUpdateVOHolder from '../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
 import VarsDatasVoUpdateHandler from '../../../src/server/modules/Var/VarsDatasVoUpdateHandler';
-import VarsServerController from '../../../src/server/modules/Var/VarsServerController';
 import IDistantVOBase from '../../../src/shared/modules/IDistantVOBase';
-import VarsController from '../../../src/shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 import FakeDataHandler from './fakes/FakeDataHandler';
@@ -19,6 +18,8 @@ import FakeVarsInit from './fakes/FakeVarsInit';
 import FakeCyclicalDataHandler from './fakes/cyclical/FakeCyclicalDataHandler';
 
 ConsoleHandler.init();
+ConfigurationService.setEnvParams({});
+ConfigurationService.IS_UNIT_TEST_MODE = true;
 
 
 // test('VarsDatasVoUpdateHandler: test compute_intersectors', async () => {

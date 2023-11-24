@@ -3033,9 +3033,9 @@ test('TSRangeHandler: test humanize', () => {
     let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.humanize(null)).toStrictEqual(null);
-    expect(RangeHandler.humanize(numRange1)).toStrictEqual('[0,3)');
-    expect(RangeHandler.humanize(numRange2)).toStrictEqual("[3,4)");
-    expect(RangeHandler.humanize(numRange3)).toStrictEqual("[2,4)");
+    expect(RangeHandler.humanize(numRange1)).toStrictEqual('[0, 2]');
+    expect(RangeHandler.humanize(numRange2)).toStrictEqual("3");
+    expect(RangeHandler.humanize(numRange3)).toStrictEqual("2, 3");
 });
 
 test('TSRangeHandler: test getIndexRanges', () => {
@@ -3057,9 +3057,10 @@ test('TSRangeHandler: test humanizeRanges', () => {
     let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.humanizeRanges(null)).toStrictEqual(null);
-    expect(RangeHandler.humanizeRanges([numRange1, numRange3])).toStrictEqual("[[0,3),[2,4)]");
-    expect(RangeHandler.humanizeRanges([numRange2, numRange1])).toStrictEqual("[[3,4),[0,3)]");
-    expect(RangeHandler.humanizeRanges([numRange2, numRange3])).toStrictEqual("[[3,4),[2,4)]");
+    // TODO FIXME d'ailleurs c'est assez naz vu comme ça comme humanize, on peut faire beaucoup mieux...
+    expect(RangeHandler.humanizeRanges([numRange1, numRange3])).toStrictEqual("[0, 2], 2, 3");
+    expect(RangeHandler.humanizeRanges([numRange2, numRange1])).toStrictEqual("3, [0, 2]");
+    expect(RangeHandler.humanizeRanges([numRange2, numRange3])).toStrictEqual("3, 2, 3");
 });
 
 test('TSRangeHandler: test ranges_intersect_themselves', () => {

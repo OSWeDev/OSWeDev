@@ -1,3 +1,7 @@
+import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
 import { test } from '@playwright/test';
 import { cloneDeep } from 'lodash';
 import VarServerControllerBase from '../../../src/server/modules/Var/VarServerControllerBase';
@@ -15,6 +19,8 @@ import FakeVarsInit from './fakes/FakeVarsInit';
 import ConfigurationService from '../../../src/server/env/ConfigurationService';
 
 ConsoleHandler.init();
+ConfigurationService.setEnvParams({});
+ConfigurationService.IS_UNIT_TEST_MODE = true;
 
 test.describe('VarsCacheVarsCacheController', () => {
     let var_data: FakeEmpDayDataVO;
@@ -24,11 +30,11 @@ test.describe('VarsCacheVarsCacheController', () => {
     test.beforeEach(async () => {
 
         await FakeVarsInit.initAll();
-        ConfigurationService.IS_UNIT_TEST_MODE = true;
 
         // Initialize VarsCacheController with appropriate config
         var_data = new FakeEmpDayDataVO();
         var_controller = cloneDeep(FakeVarControllerDeps.getInstance());
+        var_data.var_id = var_controller.varConf.id;
         var_node = await VarDAGNode.getInstance(new VarDAG(), var_data);
     });
 
