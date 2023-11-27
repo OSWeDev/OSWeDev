@@ -183,6 +183,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     reject_stats_wrapper,
                     post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
                 self.addToWaitingRequestsStack(cache);
+                // resolve(await this.process_get_and_post_for_get_requests(cache.index, cache));
             }
         });
     }

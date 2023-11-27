@@ -17,6 +17,7 @@ import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment'
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
@@ -1179,23 +1180,34 @@ export default class CRUDComponent extends VueComponentBase {
      * @param field
      * @param fileVo
      */
-    private async uploadedFile(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
+    private async uploadedFile(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO | ImageVO) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
         }
-        if (this.api_type_id != FileVO.API_TYPE_ID) {
-            return;
-        }
 
+        switch (this.api_type_id) {
+            case FileVO.API_TYPE_ID:
+            case ImageVO.API_TYPE_ID:
+                if (vo && vo.id) {
+                    let tmp = this.editableVO[field.datatable_field_uid];
+                    this.editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
+                    fileVo[field.datatable_field_uid] = tmp;
 
-        if (vo && vo.id) {
-            let tmp = this.editableVO[field.datatable_field_uid];
-            this.editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
-            fileVo[field.datatable_field_uid] = tmp;
+                    await ModuleDAO.getInstance().insertOrUpdateVOs([this.editableVO, fileVo]);
+                    this.updateData(this.editableVO);
+                    this.updateData(fileVo);
+                }
+                break;
 
-            await ModuleDAO.getInstance().insertOrUpdateVOs([this.editableVO, fileVo]);
-            this.updateData(this.editableVO);
-            this.updateData(fileVo);
+            default:
+                if (vo) {
+                    this.editableVO[field.datatable_field_uid] = fileVo.path;
+
+                    await ModuleDAO.getInstance().insertOrUpdateVO(this.editableVO);
+                    this.updateData(this.editableVO);
+                    this.updateData(fileVo);
+                }
+                break;
         }
 
         // On ferme la modal, devenue inutile

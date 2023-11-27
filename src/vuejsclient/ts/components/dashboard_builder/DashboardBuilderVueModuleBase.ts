@@ -320,7 +320,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             AdvancedDateFilter,
-            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false),
+            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null),
             AdvancedDateFilterWidgetOptions.get_selected_fields
         );
 

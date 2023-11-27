@@ -26,6 +26,7 @@ import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/dat
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import VOFieldRefVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import BulkActionVO from '../../../../../../../shared/modules/DashboardBuilder/vos/BulkActionVO';
@@ -76,7 +77,6 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
-import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -573,6 +573,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private get_identifier(vo: any): number {
         return vo.__crud_actions;
+    }
+
+    private async callback_action(action: BulkActionVO) {
+        if (!action) {
+            return;
+        }
+
+        await action.callback(this.selected_vos_true);
+
+        this.refresh();
     }
 
     get can_refresh(): boolean {
@@ -2626,16 +2636,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         await all_promises(promises);
-    }
-
-    private async callback_action(action: BulkActionVO) {
-        if (!action) {
-            return;
-        }
-
-        await action.callback(this.selected_vos_true);
-
-        this.refresh();
     }
 
     get dashboard_vo_action() {

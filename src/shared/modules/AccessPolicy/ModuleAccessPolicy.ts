@@ -16,7 +16,8 @@ import ModuleTableField from '../ModuleTableField';
 import ModuleVO from '../ModuleVO';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import LangVO from '../Translation/vos/LangVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import VersionedVOController from '../Versioned/VersionedVOController';
+import VOsTypesManager from '../VOsTypesManager';
 import AccessPolicyGroupVO from './vos/AccessPolicyGroupVO';
 import AccessPolicyVO from './vos/AccessPolicyVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
@@ -431,6 +432,8 @@ export default class ModuleAccessPolicy extends Module {
         datatable.set_is_archived();
 
         this.datatables.push(datatable);
+
+        VersionedVOController.getInstance().registerModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
     }
 
     private initializeUserSession() {

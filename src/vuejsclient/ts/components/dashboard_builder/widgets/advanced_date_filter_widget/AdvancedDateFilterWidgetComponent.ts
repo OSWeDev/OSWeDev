@@ -23,6 +23,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
+import e from 'express';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetComponent.pug'),
@@ -75,9 +76,13 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
+        this.tmp_filter_active_opt = this.widget_options.default_value;
+
         // Si on a qu'un seul choix possible, et que ce n'est pas le choix qui change la date (is_type_custom par exemple qui ne fait qu'afficher un input), on le sélectionne
-        if (this.is_auto_selectable_choice) {
+        if ((!this.widget_options.default_value) && this.is_auto_selectable_choice) {
             this.tmp_filter_active_opt = this.opts[0];
+        } else if (this.widget_options.default_value) {
+            this.tmp_filter_active_opt = this.widget_options.default_value;
         } else {
             this.tmp_filter_active_opt = null;
         }
@@ -329,6 +334,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                     options.custom_filter_name,
                     options.opts,
                     options.is_checkbox,
+                    options.default_value,
                 ) : null;
             }
         } catch (error) {
@@ -378,6 +384,12 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         let options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         return options.is_checkbox;
+    }
+
+    get default_value(): AdvancedDateFilterOptDescVO {
+        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+
+        return options.default_value;
     }
 
     get is_type_custom(): boolean {

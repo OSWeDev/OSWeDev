@@ -69,6 +69,7 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
                     options.custom_filter_name,
                     options.opts,
                     options.is_checkbox,
+                    options.default_value,
                 ) : null;
             }
         } catch (error) {
