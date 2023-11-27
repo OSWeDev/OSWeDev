@@ -75,8 +75,18 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
-        this.tmp_filter_active_opt = null;
+        // Si on a qu'un seul choix possible, et que ce n'est pas le choix qui change la date (is_type_custom par exemple qui ne fait qu'afficher un input), on le sélectionne
+        if (this.is_auto_selectable_choice) {
+            this.tmp_filter_active_opt = this.opts[0];
+        } else {
+            this.tmp_filter_active_opt = null;
+        }
+
         this.tmp_ts_range = null;
+    }
+
+    get is_auto_selectable_choice() {
+        return (this.opts && (this.opts.length == 1) && (this.opts[0].search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_CUSTOM));
     }
 
     @Watch('tmp_ts_range')

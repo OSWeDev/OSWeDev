@@ -676,7 +676,7 @@ export default class ModuleVar extends Module {
                         // et on limite à la limite configurée dans l'application
                         var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_ts_ranges_on_param_by_context_filter);
 
-                        if ((!var_param[matroid_field.field_id]) || (!var_param[matroid_field.field_id].length)) {
+                        if ((!var_param[matroid_field.field_id]) || (!var_param[matroid_field.field_id].length) || RangeHandler.is_max_range(var_param[matroid_field.field_id][0])) {
                             if (!accept_max_ranges) {
 
                                 if (!refuse_param) {

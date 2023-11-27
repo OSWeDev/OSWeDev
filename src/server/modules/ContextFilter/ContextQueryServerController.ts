@@ -2733,7 +2733,7 @@ export default class ContextQueryServerController {
                     return;
                 }
 
-                context_query.set_sort(new SortByVO(context_query.base_api_type_id, context_query.fields[0].field_id, true));
+                context_query.set_sort(new SortByVO(context_query.fields[0].api_type_id, context_query.fields[0].field_id, true));
             }
         }
     }
