@@ -1,0 +1,14 @@
+.var_line_chart_widget_component(:style='widget_options ? {background: widget_options.bg_color ? widget_options.bg_color : "inherit"} : {}')
+
+    template(v-if='current_var_params && current_var_dataset_descriptor && current_options')
+        .chart_wrapper
+            .chart_frame
+                var-line-chart(
+                    :var_params="current_var_params"
+                    :getlabel="getlabel"
+                    :var_dataset_descriptor="current_var_dataset_descriptor"
+                    :options="current_options"
+                    :filter='var_filter'
+                    :filter_additional_params='var_filter_additional_params'
+                    :key="'var_line_chart_widget_' + page_widget.id"
+                )

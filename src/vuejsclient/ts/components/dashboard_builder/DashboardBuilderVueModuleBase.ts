@@ -22,9 +22,9 @@ import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/opti
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import VarLineChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -103,6 +103,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CurrentUserFilter();
 
         await this.initializeWidget_VarPieChart();
+        await this.initializeWidget_VarLineChart();
 
         await this.initializeWidget_Checklist();
         await this.initializeWidget_Supervision();
@@ -446,6 +447,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
         Vue.component('Varpiechartwidgeticoncomponent', () => import('./widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
+    }
+
+    private async initializeWidget_VarLineChart() {
+        let VarLineChart = new DashboardWidgetVO();
+
+        VarLineChart.default_height = 10;
+        VarLineChart.default_width = 2;
+        VarLineChart.name = DashboardWidgetVO.WIDGET_NAME_varlinechart;
+        VarLineChart.widget_component = 'Varlinechartwidgetcomponent';
+        VarLineChart.options_component = 'Varlinechartwidgetoptionscomponent';
+        VarLineChart.weight = 15;
+        VarLineChart.default_background = '#f5f5f5';
+        VarLineChart.icon_component = 'Varlinechartwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarLineChart, () => VarLineChartWidgetOptionsVO.createDefault(), VarLineChartWidgetOptionsVO.get_selected_fields);
+
+        Vue.component('Varlinechartwidgetcomponent', () => import('./widgets/var_line_chart_widget/VarLineChartWidgetComponent'));
+        Vue.component('Varlinechartwidgetoptionscomponent', () => import('./widgets/var_line_chart_widget/options/VarLineChartWidgetOptionsComponent'));
+        Vue.component('Varlinechartwidgeticoncomponent', () => import('./widgets/var_line_chart_widget/icon/VarLineChartWidgetIconComponent'));
     }
 
     private async initializeWidget_YearFilter() {

@@ -1,0 +1,49 @@
+.chart_js_scale_time_display_format_options_component
+    .time_unit_options_selector 
+        .input_label {{ label('chart_js_scale_time_display_format_options_component.time_unit_options_selector') }}
+        .input_wrapper
+            multiselect.time_unit_options_selector(
+                :preselect-first="false"
+                :options="time_unit_options"
+                :allow-empty="false"
+                :multiple="false"
+
+                :searchable="true"
+                :internal-search="true"
+                
+                v-model="time_unit"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="time_unit_options"
+            )
+        .input_label {{ label('chart_js_scale_time_display_format_options_component.display_format_options_selector') }}
+        .input_wrapper
+            multiselect.display_format_options_selector(
+                :preselect-first="false"
+                :options="display_format_options"
+                :allow-empty="false"
+                :multiple="false"
+
+                :searchable="true"
+                :internal-search="true"
+                
+                v-model="display_format"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="display_format_options"
+            )
+        

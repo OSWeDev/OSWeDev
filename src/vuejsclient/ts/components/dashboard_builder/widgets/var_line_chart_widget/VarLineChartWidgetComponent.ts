@@ -8,16 +8,17 @@ import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextF
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import VarPieChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
+import VarLineDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarLineDataSetDescriptor';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
@@ -29,13 +30,12 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
-import './VarPieChartWidgetComponent.scss';
+import './VarLineChartWidgetComponent.scss';
 
 @Component({
-    template: require('./VarPieChartWidgetComponent.pug')
+    template: require('./VarLineChartWidgetComponent.pug')
 })
-export default class VarPieChartWidgetComponent extends VueComponentBase {
+export default class VarLineChartWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
@@ -190,7 +190,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     /**
      * 2 cas : soit on a 2 vars, soit on a 1 var et une dimension sur laquelle on déploie la var
      */
-    get var_dataset_descriptor(): VarPieDataSetDescriptor {
+    get var_dataset_descriptor(): VarLineDataSetDescriptor {
 
         if (!this.widget_options) {
             return null;
@@ -201,9 +201,10 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                 // tentative de faire un dégradé automatique de couleur pour les dimensions.
                 // à voir comment on peut proposer de paramétrer cette partie
-                let colors = [];
                 let base_color = null;
                 let is_rbga = false;
+                let colors = [];
+
                 if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('#')) {
                     base_color = this.widget_options.bg_color_1;
                 } else if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('rgb(')) {
@@ -227,7 +228,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     colors.push(color);
                 }
 
-                return new VarPieDataSetDescriptor(
+                return new VarLineDataSetDescriptor(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
                     .set_backgrounds(colors)
@@ -237,7 +238,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         } else {
             if (this.widget_options.var_id_1 && VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
-                return new VarPieDataSetDescriptor(
+                return new VarLineDataSetDescriptor(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name, // ?? flou le var_name à utiliser ici
                     this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))) // ?? flou le label à utiliser ici
                     .set_backgrounds([this.widget_options.bg_color_1, this.widget_options.bg_color_2])
@@ -606,54 +607,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         RangeHandler.foreach_ranges_sync(ts_ranges, (d: number) => {
             dimension_values.push(d);
         }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
+
         return dimension_values;
-
-        // let year_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
-        // let month_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
-        // let dom_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
-        // let dow_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
-        // let week_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
-
-        // /**
-        //  * Pour l'instant on ne gère que mois et année, avec obligation de saisir l'année et possibilité de filtrer sur le mois
-        //  */
-        // if (dom_filter || dow_filter || week_filter || !year_filter) {
-        //     throw new Error('Not implemented');
-        // }
-
-        // let ranges = [];
-        // let nb_ranges = 0;
-        // // Si la semgentation est annuelle, inutile/impossible de filtrer sur le mois => on prend tous les mois, est-ce qu'on devrait renvoyer une erreur ?
-        // // On part du principe que les ranges sont déjà ordonnés, via une union par exemple ou une normalisation quelconque - voir si c'est ok
-        // if (month_filter && (this.widget_options.dimension_custom_filter_segment_type >= TimeSegment.TYPE_MONTH)) {
-        //     RangeHandler.foreach_ranges_sync(year_filter.param_numranges, (year: number) => {
-        //         RangeHandler.foreach_ranges_sync(month_filter.param_numranges, (month: number) => {
-
-        //             if (nb_ranges >= this.widget_options.max_dimension_values) {
-        //                 return;
-        //             }
-
-        //             ranges.push(RangeHandler.create_single_elt_TSRange(Dates.month(Dates.year(0, year), month - 1), TimeSegment.TYPE_MONTH));
-        //             nb_ranges++;
-        //         }, TimeSegment.TYPE_MONTH, null, null, !this.widget_options.sort_dimension_by_asc);
-        //     }, TimeSegment.TYPE_YEAR, null, null, !this.widget_options.sort_dimension_by_asc);
-        // } else {
-        //     ranges = year_filter.param_numranges;
-        // }
-
-        // nb_ranges = 0;
-        // let dimension_values: number[] = [];
-        // RangeHandler.foreach_ranges_sync(ranges, (d: number) => {
-
-        //     if (nb_ranges >= this.widget_options.max_dimension_values) {
-        //         return;
-        //     }
-
-        //     dimension_values.push(d);
-        //     nb_ranges++;
-        // }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
-
-        // return dimension_values;
     }
 
     private async do_update_visible_options() {
@@ -773,47 +728,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let options: VarPieChartWidgetOptions = null;
+        let options: VarPieChartWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptions;
-                options = options ? new VarPieChartWidgetOptions(
-                    options.bg_color,
-                    options.legend_display,
-                    options.legend_position,
-                    options.legend_font_color,
-                    options.legend_font_size,
-                    options.legend_box_width,
-                    options.legend_padding,
-                    options.legend_use_point_style,
-                    options.title_display,
-                    options.title_font_color,
-                    options.title_font_size,
-                    options.title_padding,
-                    options.cutout_percentage,
-                    options.rotation,
-                    options.circumference,
-                    options.has_dimension,
-                    options.max_dimension_values,
-                    options.sort_dimension_by_vo_field_ref,
-                    options.sort_dimension_by_asc,
-                    options.dimension_is_vo_field_ref,
-                    options.dimension_vo_field_ref,
-                    options.dimension_custom_filter_name,
-                    options.dimension_custom_filter_segment_type,
-                    options.filter_type,
-                    options.filter_additional_params,
-                    options.var_id_1,
-                    options.filter_custom_field_filters_1,
-                    options.bg_color_1,
-                    options.border_color_1,
-                    options.border_width_1,
-                    options.var_id_2,
-                    options.filter_custom_field_filters_2,
-                    options.bg_color_2,
-                    options.border_color_2,
-                    options.border_width_2,
-                    options.max_is_sum_of_var_1_and_2) : null;
+                options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptionsVO;
+                options = options ? new VarPieChartWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
