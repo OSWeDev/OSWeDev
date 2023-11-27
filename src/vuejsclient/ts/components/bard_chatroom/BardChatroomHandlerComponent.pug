@@ -1,0 +1,50 @@
+.bard_chatroom_handler
+    .bard_chatroom_handler_switcher(@click='switch_hidden')
+        template(v-if='get_hidden')
+            i.fa-solid.fa-comment.fa-fw(aria-hidden="true")
+        template(v-else)
+            i.fa-solid.fa-comment-dots.fa-fw(aria-hidden="true")
+        span {{ label('bard_chatroom_handler.btn.title') }}
+
+    .bard_chatroom_handler_modal(:class='{"hidden": !!get_hidden}')
+        .bard_chatroom_handler_modal_header {{ label('bard_chatroom_handler.header') }}
+        .bard_chatroom_handler_modal_content
+        
+            form(v-on:submit.prevent="save_bard_user_cookies")
+                .row
+                    .col-sm-12
+                        label(for='bard_chatroom_user_cookies') {{ label('bard_chatroom_handler.user_cookies') }}
+                            i.fa-solid.fa-asterisk.mandatory
+                .row
+                    .col-sm-12.bard_chatroom_user_cookies
+                        input.form-control(type='text' name='bard_chatroom_user_cookies' v-model="user_cookies")
+
+                        .spacer(v-if="has_cookies_changes")
+                            button.btn.btn-primary.btn-block.btn-flat.mb-3(type="submit") 
+                                span {{ label('bard_chatroom_handler.submit_cookies') }}
+
+                .spacer
+
+            form(v-on:submit.prevent="send_bard_chatroom_message")
+                //- should be in the footer
+                .row
+                    .col-sm-12
+                        label(for='bard_chatroom_message') {{ label('bard_chatroom_handler.message.label') }}
+                            i.fa-solid.fa-asterisk.mandatory
+                .row
+                    .col-sm-12
+                        textarea.form-control(name="bard_chatroom_message" cols="80" rows="10" v-model="tmp_message")
+
+                .spacer
+
+                template(v-if="!is_already_sending_bard_chatroom_message")
+                    button.btn.btn-primary.btn-block.btn-flat.mb-3(type="submit") {{ label('bard_chatroom_handler.submit') }}
+                    .row
+                        .col-sm-6
+                            .btn.btn-secondary.btn-block.btn-flat(@click='switch_hidden') {{ label('bard_chatroom_handler.hide') }}
+                        .col-sm-6
+                            .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('bard_chatroom_handler.clear') }}
+
+                template(v-else)
+                    i.fa.fa-spinner.fa-spin
+

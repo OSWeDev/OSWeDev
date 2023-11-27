@@ -109,6 +109,9 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
      */
     public onChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
     public onEndOfChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
@@ -230,12 +233,18 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
     public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onChange = onChange;
 
         return this;
     }
 
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
     public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onEndOfChange = onEndOfChange;
 
