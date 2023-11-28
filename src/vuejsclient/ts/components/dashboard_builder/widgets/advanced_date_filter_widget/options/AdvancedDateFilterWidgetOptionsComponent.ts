@@ -114,7 +114,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new AdvancedDateFilterWidgetOptions(this.is_vo_field_ref, null, null, null, false, null);
+            this.next_update_options = new AdvancedDateFilterWidgetOptions(this.is_vo_field_ref == null ? true : this.is_vo_field_ref, null, null, null, false, null);
         }
 
         this.next_update_options.is_vo_field_ref = !this.next_update_options.is_vo_field_ref;
@@ -399,7 +399,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
                 options = options ? new AdvancedDateFilterWidgetOptions(
-                    options.is_vo_field_ref,
+                    options.is_vo_field_ref == null ? true : options.is_vo_field_ref,
                     options.vo_field_ref,
                     options.custom_filter_name,
                     options.opts,

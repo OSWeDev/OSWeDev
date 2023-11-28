@@ -29,6 +29,11 @@ export default class DashboardVOManager {
         get_active_field_filters: FieldFiltersVO,
         set_active_field_filters: (field_filters: FieldFiltersVO) => void,
     ): Promise<void> {
+
+        if (!dashboard) {
+            return;
+        }
+
         // We may have a previous dashboard_id
         const previous_dashboard_id = get_dashboard_navigation_history?.previous_dashboard_id;
 
