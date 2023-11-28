@@ -1004,7 +1004,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
             }
 
-            ConsoleHandler.log('select_filter_visible_options:1:' + query_.base_api_type_id);
             tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
                 query_,
                 this.actual_query,
@@ -1034,7 +1033,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
-                        ConsoleHandler.log('select_filter_visible_options:2:' + query_field_ref.base_api_type_id);
                         let tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                             query_field_ref,
                             this.actual_query,
@@ -1117,7 +1115,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                             .using(this.dashboard.api_type_ids);
                         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_opt_lvl2, this.get_discarded_field_paths);
 
-                        ConsoleHandler.log('select_filter_visible_options:3:' + query_opt_lvl2.base_api_type_id);
                         let tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                             query_opt_lvl2,
                             this.actual_query

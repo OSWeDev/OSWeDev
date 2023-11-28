@@ -1634,7 +1634,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         let rows = null;
         await all_promises([
             (async () => {
-                ConsoleHandler.log('select_datatable_rows');
                 rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
             })(),
             (async () => {
