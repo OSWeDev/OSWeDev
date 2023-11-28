@@ -8,7 +8,6 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -162,7 +161,6 @@ export default class AccessPolicyServerController {
 
         let uid: number = StackContext.get('UID');
         if (!uid) {
-            ConsoleHandler.log('TEMP_DELETE_ME:checkAccessSync:!UID:' + policy_name + ':');
             // profil anonyme
             return AccessPolicyServerController.checkAccessTo(
                 target_policy,
@@ -771,7 +769,7 @@ export default class AccessPolicyServerController {
             return roleFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de role échoué:' + role.translatable_name + ':');
             return null;
@@ -827,7 +825,7 @@ export default class AccessPolicyServerController {
             return groupFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(group);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(group);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de groupe échoué :' + group.translatable_name + ':');
             return null;
@@ -897,7 +895,7 @@ export default class AccessPolicyServerController {
                 policyFromBDD.module_id = moduleVoID;
                 policyFromBDD.default_behaviour = policy.default_behaviour;
                 policyFromBDD.group_id = policy.group_id;
-                let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policyFromBDD);
+                let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policyFromBDD);
                 if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
                     ConsoleHandler.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
@@ -910,7 +908,7 @@ export default class AccessPolicyServerController {
             return policyFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policy);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de droit échoué :' + policy.translatable_name + ':');
             return null;
@@ -965,7 +963,7 @@ export default class AccessPolicyServerController {
             return dependencyFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(dependency);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dependency);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
             return null;

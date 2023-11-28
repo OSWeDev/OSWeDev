@@ -583,7 +583,8 @@ export default class ContextQueryServerController {
         // On vérifie qu'on peut faire un update
         if ((!context_query.is_server) && !AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, context_query.base_api_type_id))) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'failed_checkAccessSync');
-            ConsoleHandler.warn('WARNING: update_vos without access and not as server:' + JSON.stringify(context_query));
+            ConsoleHandler.error('WARNING: update_vos without access and not as server: ' + JSON.stringify(new_api_translated_values));
+            context_query.log(true);
             return null;
         }
 

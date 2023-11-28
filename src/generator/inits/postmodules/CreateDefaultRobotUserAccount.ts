@@ -54,7 +54,7 @@ export default class CreateDefaultRobotUserAccount implements IGeneratorWorker {
         user.password = user_name + '$';
         user.email = email;
 
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(user);
+        let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
         if ((!res) || (!res.id)) {
             throw new Error('Echec de création du compte robot par défaut');
         }

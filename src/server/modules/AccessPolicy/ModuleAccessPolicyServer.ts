@@ -1444,7 +1444,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         role_policy.granted = true;
         role_policy.role_id = role.id;
 
-        insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role_policy);
+        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role_policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return false;
         }
@@ -1904,7 +1904,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
-                await ModuleDAO.getInstance().insertOrUpdateVO(user);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
             }
 
             session.uid = user.id;

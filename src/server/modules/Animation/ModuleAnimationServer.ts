@@ -338,7 +338,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         aum.user_id = user_id;
         aum.module_id = module_id;
         aum.support = support;
-        await ModuleDAO.getInstance().insertOrUpdateVO(aum);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(aum);
 
         return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
@@ -370,7 +370,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             res.end_date = Dates.now();
 
             // insertion en base pour pouvouvoir faire le calcul de la reussite apres qui demande une end_date sur les usermodules
-            await ModuleDAO.getInstance().insertOrUpdateVO(res);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(res);
 
             let data = null;
             try {
@@ -387,7 +387,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             res.prct_reussite = (data && data.value) ? data.value : 0;
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(res);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(res);
 
         return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }

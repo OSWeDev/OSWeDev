@@ -8,6 +8,7 @@ import SupervisionController from '../../../shared/modules/Supervision/Supervisi
 import SupervisedCRONVO from '../../../shared/modules/Supervision/vos/SupervisedCRONVO';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class Patch20230927AddSupervisionToCrons implements IGeneratorWorker {
 
@@ -47,7 +48,7 @@ export default class Patch20230927AddSupervisionToCrons implements IGeneratorWor
                     '' : (' - ' + supervised_cron.planification_uid));
                 supervised_cron.state = SupervisionController.STATE_UNKOWN;
                 supervised_cron.invalid = true;
-                await ModuleDAO.getInstance().insertOrUpdateVO(supervised_cron);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_cron);
             }
         }
     }
