@@ -2,13 +2,10 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDocument from '../../../shared/modules/Document/ModuleDocument';
 import DocumentLangVO from '../../../shared/modules/Document/vos/DocumentLangVO';
 import DocumentRoleVO from '../../../shared/modules/Document/vos/DocumentRoleVO';
@@ -20,15 +17,12 @@ import DocumentVO from '../../../shared/modules/Document/vos/DocumentVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import FileHandler from '../../../shared/tools/FileHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
@@ -238,7 +232,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
                 // Techniquement, en faisant cette modif avec le DAO ça fait lancer le trigger preupdate du doc et donc recalc le field... mais bon
                 //  on est en post update du file donc ça marche ...
                 doc.document_url = url;
-                await ModuleDAO.getInstance().insertOrUpdateVO(doc);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(doc);
             }
         }
     }

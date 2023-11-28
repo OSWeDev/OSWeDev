@@ -1,5 +1,6 @@
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicyServer from '../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../../server/modules/DAO/ModuleDAOServer';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyVO from '../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RolePolicyVO from '../../shared/modules/AccessPolicy/vos/RolePolicyVO';
@@ -129,6 +130,6 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
             rights_role_destination.push(right_role_destination);
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs(rights_role_destination);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(rights_role_destination);
     }
 }

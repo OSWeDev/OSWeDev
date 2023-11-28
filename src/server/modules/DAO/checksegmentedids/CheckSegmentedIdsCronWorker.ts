@@ -1,4 +1,3 @@
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -61,8 +60,8 @@ export default class CheckSegmentedIdsCronWorker implements ICronWorker {
 
                     // A cette étape on peut directement modifier l'id du nouveau, en utilisant l'auto incrément pour supprimer la duplication.
                     //  Dans l'outil à date impossible d'avoir des références vers des datas segmentées donc ça devrait pas poser de problèmes.
-                    await ModuleDAO.getInstance().deleteVOs([vo]);
-                    await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                    await ModuleDAOServer.getInstance().deleteVOs_as_server([vo]);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
                 }
             }
         }

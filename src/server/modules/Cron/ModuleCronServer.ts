@@ -13,6 +13,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -187,7 +188,7 @@ export default class ModuleCronServer extends ModuleServerBase {
             .select_vo<CronWorkerPlanification>();
 
         if (!vo) {
-            await ModuleDAO.getInstance().insertOrUpdateVO(cronWorkerPlan);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cronWorkerPlan);
         }
     }
 

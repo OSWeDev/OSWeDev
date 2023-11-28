@@ -221,7 +221,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = is_secured;
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
+            let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -788,7 +788,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = true;
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
+            let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;

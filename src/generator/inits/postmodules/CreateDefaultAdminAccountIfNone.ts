@@ -8,7 +8,6 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import { field_names } from '../../../shared/tools/ObjectHandler';
@@ -104,6 +103,6 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
         userrole.role_id = role.id;
         userrole.user_id = user.id;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(userrole);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userrole);
     }
 }

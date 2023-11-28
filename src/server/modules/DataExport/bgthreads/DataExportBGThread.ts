@@ -1,17 +1,14 @@
 import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IExportableDatas from '../../../../shared/modules/DataExport/interfaces/IExportableDatas';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import DataExportServerController from '../DataExportServerController';
 
@@ -102,7 +99,7 @@ export default class DataExportBGThread implements IBGThread {
 
         exhi.start_date = Dates.now();
         exhi.state = ExportHistoricVO.EXPORT_STATE_RUNNING;
-        await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exhi);
 
         if (!DataExportServerController.getInstance().export_handlers[exhi.export_type_id]) {
             ConsoleHandler.error('Impossible de trouver la méthode pour exporter');
@@ -125,14 +122,14 @@ export default class DataExportBGThread implements IBGThread {
             }
 
             exhi.prepare_date = Dates.now();
-            await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exhi);
 
             if (!await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].export(exhi, datas)) {
                 throw new Error('Echec lors de l\'export :' + exhi.id + ':' + exhi.export_type_id + ':');
             }
 
             exhi.export_date = Dates.now();
-            await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exhi);
 
             if (!await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].send(exhi)) {
                 throw new Error('Echec lors de l\'envoi :' + exhi.id + ':' + exhi.export_type_id + ':');
@@ -140,7 +137,7 @@ export default class DataExportBGThread implements IBGThread {
 
             exhi.sent_date = Dates.now();
             exhi.state = ExportHistoricVO.EXPORT_STATE_DONE;
-            await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exhi);
 
             if (!!exhi.export_to_uid) {
                 await PushDataServerController.getInstance().notifySimpleSUCCESS(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.success");
@@ -162,6 +159,6 @@ export default class DataExportBGThread implements IBGThread {
 
     private async failExport(exhi: ExportHistoricVO) {
         exhi.state = ExportHistoricVO.EXPORT_STATE_ERROR;
-        await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exhi);
     }
 }

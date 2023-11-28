@@ -1,8 +1,8 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
@@ -48,7 +48,7 @@ export default class Patch20220725DashboardWidgetUpdate implements IGeneratorWor
 
             dw.is_filter = true;
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(dw);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dw);
         }
     }
 }

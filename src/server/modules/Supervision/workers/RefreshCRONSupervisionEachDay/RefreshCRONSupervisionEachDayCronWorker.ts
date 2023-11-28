@@ -1,8 +1,8 @@
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import SupervisedCRONVO from "../../../../../shared/modules/Supervision/vos/SupervisedCRONVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
 import ICronWorker from "../../../Cron/interfaces/ICronWorker";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 
 export default class RefreshCRONSupervisionEachDayCronWorker implements ICronWorker {
 
@@ -34,7 +34,7 @@ export default class RefreshCRONSupervisionEachDayCronWorker implements ICronWor
                 let supervised_pdv = supervised_pdvs[i];
                 supervised_pdv.invalid = true;
             }
-            await ModuleDAO.getInstance().insertOrUpdateVOs(supervised_pdvs);
+            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(supervised_pdvs);
         } catch (error) {
             ConsoleHandler.error('Erreur lors du RefreshCRONSupervisionEachDayCronWorker:' + error + ':');
         }

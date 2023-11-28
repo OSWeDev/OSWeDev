@@ -1,10 +1,10 @@
 import ModuleAnimationImportTheme from "../../../../../shared/modules/Animation/import/Theme/ModuleAnimationImportTheme";
 import AnimationImportThemeVO from "../../../../../shared/modules/Animation/import/Theme/vos/AnimationImportThemeVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportColumnVO from "../../../../../shared/modules/DataImport/vos/DataImportColumnVO";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import ModulesManagerServer from "../../../ModulesManagerServer";
 
 export default class ModuleAnimationImportThemeDefaultFormats {
@@ -40,7 +40,7 @@ export default class ModuleAnimationImportThemeDefaultFormats {
         import_base_data_import_file.type = DataImportFormatVO.TYPE_XLSX;
         import_base_data_import_file.type_column_position = DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL;
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs([import_base_data_import_file]);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server([import_base_data_import_file]);
         import_base_data_import_file = await ModuleDataImport.getInstance().getDataImportFile(default_import_format_name);
 
         if (!import_base_data_import_file) {
@@ -57,6 +57,6 @@ export default class ModuleAnimationImportThemeDefaultFormats {
         import_base_data_import_columns.push(DataImportColumnVO.createNew('weight', import_base_data_import_file.id).setMandatory());
         import_base_data_import_columns.push(DataImportColumnVO.createNew('id_import', import_base_data_import_file.id).setMandatory());
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs(import_base_data_import_columns);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(import_base_data_import_columns);
     }
 }

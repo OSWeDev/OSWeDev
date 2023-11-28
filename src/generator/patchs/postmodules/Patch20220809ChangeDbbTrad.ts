@@ -1,8 +1,8 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -51,7 +51,7 @@ export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
                     }, code));
                 } else {
                     trad_fr.translated = text;
-                    await ModuleDAO.getInstance().insertOrUpdateVO(trad_fr);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(trad_fr);
                 }
             }
         }

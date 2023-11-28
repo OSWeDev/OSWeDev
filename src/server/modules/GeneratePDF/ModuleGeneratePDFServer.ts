@@ -2,10 +2,10 @@ import fs from 'fs';
 import wkhtmltopdf from 'wkhtmltopdf';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleGeneratePDFServer extends ModuleServerBase {
@@ -57,7 +57,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
             file.file_access_policy_name = null;
             file.is_secured = false;
             file.path = filepath_return;
-            await ModuleDAO.getInstance().insertOrUpdateVO(file);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
         }
 
         return await new Promise((resolve, reject) => {

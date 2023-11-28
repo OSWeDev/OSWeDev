@@ -652,7 +652,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (error_logs.length > 0) {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(error_logs);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(error_logs);
                 }
             }
 
@@ -1091,7 +1091,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
         importHistoric.historic_uid = importHistoric.id.toString();
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
     }
 
     private async handleImportFormatCreate(format: DataImportFormatVO): Promise<void> {
@@ -1123,7 +1123,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (!!importHistoric.reimport_of_dih_id) {
             let reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1136,7 +1136,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (!!importHistoric.reimport_of_dih_id) {
             let reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1186,7 +1186,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private async reimportdih(dih: DataImportHistoricVO): Promise<void> {
         dih.status_before_reimport = dih.state;
         dih.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(dih);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dih);
 
     }
 
@@ -1377,7 +1377,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
              */
             this.check_text_fields(ordered_vo, ordered_vos_by_type_and_initial_id);
             ordered_vo.id = new_id;
-            let insert_res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ordered_vo);
+            let insert_res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ordered_vo);
             if ((!insert_res) || (!insert_res.id) || (new_id && (new_id != insert_res.id))) {
                 throw new Error('Failed insert');
             }

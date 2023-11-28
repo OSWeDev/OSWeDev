@@ -8,6 +8,7 @@ import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/
 import FieldFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO";
 import ExportContextQueryToXLSXParamVO from "../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import ModuleDAOServer from "../../DAO/ModuleDAOServer";
 import ModuleDataExportServer from "../../DataExport/ModuleDataExportServer";
 
 /**
@@ -287,6 +288,6 @@ export default class FavoritesFiltersVOService {
         export_params.last_export_at_ts = new Date().getTime();
 
         // update this favorites_filters
-        await ModuleDAO.getInstance().insertOrUpdateVO(favorites_filters);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(favorites_filters);
     }
 }

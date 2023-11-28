@@ -1,10 +1,10 @@
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import CronWorkerPlanification from "../../../../shared/modules/Cron/vos/CronWorkerPlanification";
-import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import SupervisionController from "../../../../shared/modules/Supervision/SupervisionController";
 import SupervisedCRONVO from "../../../../shared/modules/Supervision/vos/SupervisedCRONVO";
 import { field_names } from "../../../../shared/tools/ObjectHandler";
+import ModuleDAOServer from "../../DAO/ModuleDAOServer";
 import DAOPostCreateTriggerHook from "../../DAO/triggers/DAOPostCreateTriggerHook";
 import DAOPreDeleteTriggerHook from "../../DAO/triggers/DAOPreDeleteTriggerHook";
 import DAOPreUpdateTriggerHook from "../../DAO/triggers/DAOPreUpdateTriggerHook";
@@ -62,7 +62,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         if (!planification) {
             supervised_pdv.state = SupervisionController.STATE_ERROR;
-            await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
             return true;
         }
 
@@ -77,7 +77,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         if (!next_planned_launch) {
             supervised_pdv.state = SupervisionController.STATE_WARN;
-            await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
             return true;
         }
 
@@ -87,12 +87,12 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         if (time_waited < -max_time_to_wait_sec) {
             supervised_pdv.state = SupervisionController.STATE_ERROR;
-            await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
             return true;
         }
 
         supervised_pdv.state = SupervisionController.STATE_OK;
-        await ModuleDAO.getInstance().insertOrUpdateVO(supervised_pdv);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(supervised_pdv);
         return true;
     }
 
@@ -111,7 +111,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
                 '' : (' - ' + existing.planification_uid));
             existing.state = SupervisionController.STATE_UNKOWN;
             existing.invalid = true;
-            await ModuleDAO.getInstance().insertOrUpdateVO(existing);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(existing);
         }
     }
 

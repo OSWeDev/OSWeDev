@@ -7,6 +7,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ICronWorker from "../../Cron/interfaces/ICronWorker";
 import FileServerController from "../FileServerController";
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
 
 export default class ArchiveFilesCronWorker implements ICronWorker {
@@ -113,7 +114,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                                     file_vo.path = file_vo_updated;
                                 }
                             }
-                            await ModuleDAO.getInstance().insertOrUpdateVO(file_vo);
+                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file_vo);
                         }
                     });
                 }

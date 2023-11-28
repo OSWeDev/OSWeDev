@@ -2,7 +2,6 @@ import ModuleAnimationImportTheme from "../../../../../shared/modules/Animation/
 import AnimationImportThemeVO from "../../../../../shared/modules/Animation/import/Theme/vos/AnimationImportThemeVO";
 import AnimationThemeVO from "../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
@@ -10,6 +9,7 @@ import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataIm
 import LangVO from "../../../../../shared/modules/Translation/vos/LangVO";
 import TranslatableTextVO from "../../../../../shared/modules/Translation/vos/TranslatableTextVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import DataImportModuleBase from "../../../DataImport/DataImportModuleBase/DataImportModuleBase";
 import ImportLogger from "../../../DataImport/logger/ImportLogger";
 import ModuleAnimationImportThemeDefaultFormats from "./ModuleAnimationImportThemeDefaultFormat";
@@ -109,7 +109,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             if (!this.alreadyPresent(themeData, themesInDB)) {
                 let theme: AnimationThemeVO = this.createThemeBase(themeData);
 
-                let queryRes = await ModuleDAO.getInstance().insertOrUpdateVO(theme);
+                let queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(theme);
 
                 if (!queryRes) {
                     succeeded = false;

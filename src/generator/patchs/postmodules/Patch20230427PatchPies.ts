@@ -7,6 +7,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class Patch20230427PatchPies implements IGeneratorWorker {
 
@@ -32,21 +33,21 @@ export default class Patch20230427PatchPies implements IGeneratorWorker {
             .filter_by_text_eq('code_lang', 'fr-fr', LangVO.API_TYPE_ID)
             .select_vo<TranslationVO>();
         translation.translated = 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités en pourcentage. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut';
-        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
 
         translation = await query(TranslationVO.API_TYPE_ID)
             .filter_by_text_eq('code_text', 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
             .filter_by_text_eq('code_lang', 'fr-fr', LangVO.API_TYPE_ID)
             .select_vo<TranslationVO>();
         translation.translated = 'Point de départ du graphique en degrés. Entre 0 et 360. Exemple pour une jauge : 270';
-        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
 
         translation = await query(TranslationVO.API_TYPE_ID)
             .filter_by_text_eq('code_text', 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
             .filter_by_text_eq('code_lang', 'fr-fr', LangVO.API_TYPE_ID)
             .select_vo<TranslationVO>();
         translation.translated = 'Circumference du graphique. Entre 0 et 360. Exemple pour une jauge : 180';
-        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
 
 
     }

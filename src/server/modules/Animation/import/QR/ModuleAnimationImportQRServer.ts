@@ -3,13 +3,13 @@ import AnimationImportQRVO from "../../../../../shared/modules/Animation/import/
 import AnimationModuleVO from "../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationQRVO from "../../../../../shared/modules/Animation/vos/AnimationQRVO";
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
 import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataImportLogVO";
 import FileVO from "../../../../../shared/modules/File/vos/FileVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import DataImportModuleBase from "../../../DataImport/DataImportModuleBase/DataImportModuleBase";
 import ImportLogger from "../../../DataImport/logger/ImportLogger";
 import ModuleAnimationImportQRDefaultFormats from "./ModuleAnimationImportQRDefaultFormat";
@@ -118,7 +118,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
             if (!this.alreadyPresent(QRData, QRsInDB, modules)) {
                 let QR = this.createQRBase(QRData, modules);
-                let queryRes = await ModuleDAO.getInstance().insertOrUpdateVO(QR);
+                let queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(QR);
 
                 if (!queryRes) {
                     succeeded = false;

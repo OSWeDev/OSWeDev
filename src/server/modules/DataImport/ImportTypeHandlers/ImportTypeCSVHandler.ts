@@ -1,7 +1,8 @@
 
 
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import { createReadStream, ReadStream } from 'fs';
+import moment from 'moment';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
@@ -15,13 +16,11 @@ import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
+import FileHandler from '../../../../shared/tools/FileHandler';
 import TextHandler from '../../../../shared/tools/TextHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ImportLogger from '../logger/ImportLogger';
-import moment from 'moment';
-import { createReadStream, ReadStream } from 'fs';
-import FileHandler from '../../../../shared/tools/FileHandler';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 const CsvReadableStream = require('csv-reader');
 const AutoDetectDecoderStream = require('oswedev-autodetect-decoder-stream');
 
@@ -321,7 +320,7 @@ export default class ImportTypeCSVHandler {
                                 batch_datas = [];
                                 self.resume();
                             } else {
-                                await ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas);
+                                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(batch_datas);
                                 batch_datas = [];
                                 self.resume();
                             }
@@ -338,7 +337,7 @@ export default class ImportTypeCSVHandler {
                             resolve(!closed);
                             batch_datas = [];
                         } else {
-                            await ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas);
+                            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(batch_datas);
                             resolve(!closed);
                             batch_datas = [];
                         }

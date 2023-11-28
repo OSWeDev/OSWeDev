@@ -1,7 +1,6 @@
 import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
@@ -17,6 +16,7 @@ import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import ModuleDataImportServer from '../ModuleDataImportServer';
 
@@ -248,7 +248,7 @@ export default class DataImportBGThread implements IBGThread {
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
     }
 
     /**
@@ -315,7 +315,7 @@ export default class DataImportBGThread implements IBGThread {
             return false;
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
 
         return true;
     }
@@ -380,7 +380,7 @@ export default class DataImportBGThread implements IBGThread {
             case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
 
                 importHistoric.state = (((importHistoric.status_before_reimport != null) && (typeof importHistoric.status_before_reimport != 'undefined')) ? importHistoric.status_before_reimport : ModuleDataImport.IMPORTATION_STATE_POSTTREATED);
-                await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
 
                 let new_importHistoric = new DataImportHistoricVO();
                 new_importHistoric.api_type_id = importHistoric.api_type_id;
@@ -395,7 +395,7 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.reimport_of_dih_id = importHistoric.id;
                 new_importHistoric.use_fast_track = importHistoric.use_fast_track;
 
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
+                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     ConsoleHandler.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');

@@ -24,6 +24,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -280,7 +281,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
             historique._type = SupervisionController.getInstance().getSupHistVoType(vo_update_handler.post_update_vo._type);
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(historique);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(historique);
         }
 
         return true;

@@ -5,6 +5,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
@@ -51,7 +52,7 @@ export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
             lang.code_lang = code_lang;
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(lang);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(lang);
         } catch (error) {
             console.error(error);
         }
