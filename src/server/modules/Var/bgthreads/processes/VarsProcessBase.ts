@@ -72,7 +72,7 @@ export default abstract class VarsProcessBase {
 
             // // if (!has_client_nodes) {
             // if (!has_node) {
-            if ((!this.has_nodes_to_process_in_current_tree) && ((!promise_pipeline) || (!promise_pipeline.nb_running_promises)) {
+            if ((!this.has_nodes_to_process_in_current_tree) && ((!promise_pipeline) || (!promise_pipeline.has_running_or_waiting_promises))) {
 
                 // On checke une invalidation en attente
                 let updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
@@ -143,15 +143,15 @@ export default abstract class VarsProcessBase {
             return waiting_for_invalidation_time_in;
         }
 
-        // si on était en attente et que l'invalidation vient de se terminer, on indique qu'on reprend le travail
-        if (VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
-            VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
-            StatsController.register_stat_DUREE('VarsProcessBase', this.name, "waiting_for_invalidation", Dates.now_ms() - waiting_for_invalidation_time_in);
+        // // si on était en attente et que l'invalidation vient de se terminer, on indique qu'on reprend le travail
+        // if (VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
+        //     VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
+        //     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "waiting_for_invalidation", Dates.now_ms() - waiting_for_invalidation_time_in);
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
-                ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:OUT');
-            }
-        }
+        //     if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+        //         ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:OUT');
+        //     }
+        // }
 
         return null;
     }

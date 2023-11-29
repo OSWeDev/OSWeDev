@@ -16,7 +16,7 @@ export default class EditablePageController {
 
     private static instance: EditablePageController;
 
-    public debounce_timer: number = 5000;
+    public debounce_timer: number = 1000;
 
     private semaphore_saving: boolean = false;
 

@@ -4,6 +4,7 @@ import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import DataSourceControllerBase from './DataSourceControllerBase';
+import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 
 export default abstract class DataSourceControllerSimpleCacheBase extends DataSourceControllerBase {
 
@@ -57,9 +58,9 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
             let time_in = Dates.now_ms();
             let data = await this.get_data(node.var_data);
             let time_out = Dates.now_ms();
+
             // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
             StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
-
             CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'] = ((typeof data === 'undefined') ? null : data);
 
             let nodes_waiting_for_semaphore_indexes = Object.keys(this.nodes_waiting_for_semaphore);

@@ -9,11 +9,11 @@ export default class PromisePipeline {
 
     private static GLOBAL_UID: number = 0;
 
-    public nb_running_promises: number = 0;
     private uid: number = 0;
     private cb_uid: number = 0;
     // private semaphore_check_wrapped_cbs: boolean = false;
 
+    private nb_running_promises: number = 0;
     private all_waiting_and_running_promises_by_cb_uid: { [cb_uid: number]: Promise<any> } = {};
     // private all_running_promises_by_cb_uid: Array<Promise<any>> = [];
 
@@ -71,6 +71,10 @@ export default class PromisePipeline {
 
             resolve();
         });
+    }
+
+    get has_running_or_waiting_promises(): boolean {
+        return (this.nb_running_promises > 0) || (Object.keys(this.all_waiting_and_running_promises_by_cb_uid).length > 0);
     }
 
     /**

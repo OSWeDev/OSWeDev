@@ -1,7 +1,6 @@
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ForkedTasksController from '../../../Fork/ForkedTasksController';
-import VarsBGThreadNameHolder from '../../VarsBGThreadNameHolder';
 
 export default class VarsComputationHole {
 
@@ -19,7 +18,7 @@ export default class VarsComputationHole {
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(VarsComputationHole.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
+        ForkedTasksController.register_task(VarsComputationHole.TASK_NAME_exec_in_computation_hole, VarsComputationHole.exec_in_computation_hole.bind(VarsComputationHole));
     }
 
     /**
@@ -44,9 +43,9 @@ export default class VarsComputationHole {
                 resolve(true);
             };
 
-            this.current_cbs_stack.push(wrapped_cb);
+            VarsComputationHole.current_cbs_stack.push(wrapped_cb);
 
-            await this.wait_for_hole();
+            await VarsComputationHole.wait_for_hole();
         });
     }
 
@@ -56,33 +55,35 @@ export default class VarsComputationHole {
 
     private static async wait_for_hole() {
 
-        if (this.currently_in_a_hole_semaphore || this.currently_waiting_for_hole_semaphore || !this.current_cbs_stack.length) {
+        if (VarsComputationHole.currently_in_a_hole_semaphore || VarsComputationHole.currently_waiting_for_hole_semaphore || !VarsComputationHole.current_cbs_stack.length) {
             return;
         }
 
-        this.currently_waiting_for_hole_semaphore = true;
+        VarsComputationHole.currently_waiting_for_hole_semaphore = true;
 
         VarsComputationHole.waiting_for_computation_hole = true;
 
-        await this.wait_for_everyone_to_be_ready();
+        await VarsComputationHole.wait_for_everyone_to_be_ready();
 
-        await this.handle_hole();
+        await VarsComputationHole.handle_hole();
+
+        await VarsComputationHole.free_everyone();
 
         VarsComputationHole.waiting_for_computation_hole = false;
     }
 
     private static async handle_hole() {
 
-        this.currently_waiting_for_hole_semaphore = false;
-        this.currently_in_a_hole_semaphore = true;
+        VarsComputationHole.currently_waiting_for_hole_semaphore = false;
+        VarsComputationHole.currently_in_a_hole_semaphore = true;
 
         // On fait les cbs à la suite, pas en // par ce que si on demande un trou c'est probablement pour être seul sur l'arbre
-        while (this.current_cbs_stack.length) {
-            let cb = this.current_cbs_stack.shift();
+        while (VarsComputationHole.current_cbs_stack.length) {
+            let cb = VarsComputationHole.current_cbs_stack.shift();
             await cb();
         }
 
-        this.currently_in_a_hole_semaphore = false;
+        VarsComputationHole.currently_in_a_hole_semaphore = false;
     }
 
     private static async wait_for_everyone_to_be_ready(): Promise<void> {
@@ -105,6 +106,12 @@ export default class VarsComputationHole {
         }
     }
 
+    private static async free_everyone(): Promise<void> {
+
+        for (let i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
+            VarsComputationHole.processes_waiting_for_computation_hole_end[i] = false;
+        }
+    }
 
     protected constructor() { }
 }

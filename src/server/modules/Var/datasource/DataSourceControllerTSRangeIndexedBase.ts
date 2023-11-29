@@ -7,6 +7,7 @@ import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import DataSourceControllerBase from './DataSourceControllerBase';
+import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 
 export default abstract class DataSourceControllerTSRangeIndexedBase extends DataSourceControllerBase {
 
@@ -51,7 +52,9 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
                 let time_in = Dates.now_ms();
+
                 let data = await this.get_data(node.var_data);
+
                 let time_out = Dates.now_ms();
                 // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
                 StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
