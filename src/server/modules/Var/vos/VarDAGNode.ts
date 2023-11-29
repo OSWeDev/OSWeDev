@@ -494,6 +494,10 @@ export default class VarDAGNode extends DAGNodeBase {
         if (!!this.var_dag.leafs[this.var_data.index]) {
             delete this.var_dag.leafs[this.var_data.index];
         }
+
+        // On ajoute la logique de is_client_sub_dep
+        outgoing_node.is_client_sub_dep = outgoing_node.is_client_sub_dep || this.is_client_sub || this.is_client_sub_dep;
+        outgoing_node.is_server_sub_dep = outgoing_node.is_server_sub_dep || this.is_server_sub || this.is_server_sub_dep;
     }
 
     /**

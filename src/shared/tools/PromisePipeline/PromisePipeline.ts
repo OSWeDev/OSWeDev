@@ -9,9 +9,9 @@ export default class PromisePipeline {
 
     private static GLOBAL_UID: number = 0;
 
+    public nb_running_promises: number = 0;
     private uid: number = 0;
     private cb_uid: number = 0;
-    private nb_running_promises: number = 0;
     // private semaphore_check_wrapped_cbs: boolean = false;
 
     private all_waiting_and_running_promises_by_cb_uid: { [cb_uid: number]: Promise<any> } = {};

@@ -49,21 +49,47 @@ export default abstract class VarsProcessBase {
             // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
             BGThreadServerController.register_alive_on_main_thread(VarsBGThreadNameHolder.bgthread_name);
 
-            // On checke une invalidation en attente
-            let updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
-            if (updated_waiting_for_invalidation_time_in) {
+            let valid_nodes = this.get_valid_nodes();
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
-                    ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_invalidations:updated_waiting_for_invalidation_time_in:' + updated_waiting_for_invalidation_time_in);
+            // // Si on a des noeuds, et en particulier des noeuds clients, on ne doit pas faire d'invalidation sans avoir traité les noeuds clients
+            // // let has_client_nodes = false;
+            // let has_node = false;
+            // for (let i in valid_nodes) {
+            //     let node = valid_nodes[i];
+
+            //     if (!node) {
+            //         continue;
+            //     }
+
+            //     has_node = true;
+            //     break;
+
+            //     // if (node.is_client_sub) {
+            //     //     has_client_nodes = true;
+            //     //     break;
+            //     // }
+            // }
+
+            // // if (!has_client_nodes) {
+            // if (!has_node) {
+            if ((!this.has_nodes_to_process_in_current_tree) && ((!promise_pipeline) || (!promise_pipeline.nb_running_promises)) {
+
+                // On checke une invalidation en attente
+                let updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
+                if (updated_waiting_for_invalidation_time_in) {
+
+                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                        ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_invalidations:updated_waiting_for_invalidation_time_in:' + updated_waiting_for_invalidation_time_in);
+                    }
+                    waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
+                    continue;
                 }
-                waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
-                continue;
             }
 
             if (!this.as_batch) {
-                did_something = await this.handle_individual_worker(promise_pipeline);
+                did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
             } else {
-                did_something = await this.handle_batch_worker();
+                did_something = await this.handle_batch_worker(valid_nodes);
             }
 
             if (!did_something) {
@@ -130,9 +156,8 @@ export default abstract class VarsProcessBase {
         return null;
     }
 
-    private async handle_individual_worker(promise_pipeline: PromisePipeline): Promise<boolean> {
+    private async handle_individual_worker(promise_pipeline: PromisePipeline, valid_nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
         let self = this;
-        let valid_nodes = this.get_valid_nodes();
 
         let time_in = Dates.now_ms();
         let untreated_nodes: { [index: string]: VarDAGNode } = {};
@@ -302,9 +327,8 @@ export default abstract class VarsProcessBase {
         return valid_nodes;
     }
 
-    private async handle_batch_worker(): Promise<boolean> {
+    private async handle_batch_worker(batch_nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
 
-        let batch_nodes: { [node_name: string]: VarDAGNode } = this.get_valid_nodes();
         let has_something_to_do = batch_nodes ? Object.keys(batch_nodes).length > 0 : false;
 
         if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
@@ -392,5 +416,9 @@ export default abstract class VarsProcessBase {
         }
 
         return filtered_nodes;
+    }
+
+    get has_nodes_to_process_in_current_tree() {
+        return !!CurrentVarDAGHolder.current_vardag && !!CurrentVarDAGHolder.current_vardag.nb_nodes;
     }
 }

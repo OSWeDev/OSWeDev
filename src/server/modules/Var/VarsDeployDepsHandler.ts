@@ -320,7 +320,9 @@ export default class VarsDeployDepsHandler {
          */
         for (let depi in aggregated_datas) {
             let aggregated_data = aggregated_datas[depi];
-            await VarDAGNode.getInstance(node.var_dag, aggregated_data, true);
+            let agg_node = await VarDAGNode.getInstance(node.var_dag, aggregated_data, true);
+            // agg_node.is_client_sub_dep = node.is_client_sub || node.is_client_sub_dep;
+            // agg_node.is_server_sub_dep = node.is_server_sub || node.is_server_sub_dep;
         }
 
         let nb_known_pixels = known_pixels ? known_pixels.length : 0;
@@ -500,9 +502,8 @@ export default class VarsDeployDepsHandler {
                     return;
                 }
 
-                // On ajoute la logique de is_client_sub_dep
-                dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
-                dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
+                // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
+                // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
