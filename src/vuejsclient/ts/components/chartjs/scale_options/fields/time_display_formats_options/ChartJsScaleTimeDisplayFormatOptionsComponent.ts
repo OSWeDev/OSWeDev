@@ -18,19 +18,19 @@ export default class ChartJsScaleTimeDisplayFormatOptionsComponent extends VueCo
 
     private options_props: { time_unit: string, display_format: string } = null;
 
-    private time_unit: string = null;
+    private time_unit: any = {};
     private display_format: string = null;
 
-    private time_unit_options: string[] = [
-        'millisecond',
-        'second',
-        'minute',
-        'hour',
-        'day',
-        'week',
-        'month',
-        'quarter',
-        'year'
+    private time_unit_options: any[] = [
+        { label: this.label('chart_js_scale_options_component.time_unit_millisecond_options'), value: 'millisecond' },
+        { label: this.label('chart_js_scale_options_component.time_unit_second_options'), value: 'second' },
+        { label: this.label('chart_js_scale_options_component.time_unit_minute_options'), value: 'minute' },
+        { label: this.label('chart_js_scale_options_component.time_unit_hour_options'), value: 'hour' },
+        { label: this.label('chart_js_scale_options_component.time_unit_day_options'), value: 'day' },
+        { label: this.label('chart_js_scale_options_component.time_unit_week_options'), value: 'week' },
+        { label: this.label('chart_js_scale_options_component.time_unit_month_options'), value: 'month' },
+        { label: this.label('chart_js_scale_options_component.time_unit_quarter_options'), value: 'quarter' },
+        { label: this.label('chart_js_scale_options_component.time_unit_year_options'), value: 'year' },
     ];
 
     private display_format_options: string[] = [
@@ -67,6 +67,11 @@ export default class ChartJsScaleTimeDisplayFormatOptionsComponent extends VueCo
 
         // TODO: make sure we have all required fields
         for (const key in this.options) {
+            if (key == 'time_unit') {
+                this.time_unit = this.time_unit_options.find((option) => option.value == this.options[key]);
+                continue;
+            }
+
             this[key] = this.options[key];
         }
 
@@ -82,7 +87,7 @@ export default class ChartJsScaleTimeDisplayFormatOptionsComponent extends VueCo
     private on_time_unit_changed() {
         this.options_props = {
             ...this.options_props,
-            time_unit: this.time_unit
+            time_unit: this.time_unit?.value
         };
     }
 

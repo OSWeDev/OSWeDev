@@ -7,6 +7,7 @@
                 :options="time_unit_options"
                 :allow-empty="false"
                 :multiple="false"
+                label="label"
 
                 :searchable="true"
                 :internal-search="true"
@@ -23,6 +24,14 @@
                 
                 name="time_unit_options"
             )
+                span(slot="noOptions") -
+
+                template(slot="option", slot-scope="props")
+                    span.option__title {{ props.option.label }}
+
+                template(slot="tag", slot-scope="props")
+                    span.option__tag {{ label(props.option.label) }}
+                    
         .input_label {{ label('chart_js_scale_time_display_format_options_component.display_format_options_selector') }}
         .input_wrapper
             multiselect.display_format_options_selector(

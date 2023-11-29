@@ -71,21 +71,26 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
     } = null;
 
     private isoWeekday: string = null;
-    private round: 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' = null;
+    private round: any = {};
     private tooltipFormat: string = null;
-    private unit: 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' = null; // Equivalent of moment unit
-    private minUnit: 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' = null;
+    private unit: any = {}; // Equivalent of moment unit
+    private minUnit: any = {};
+    private parser: string = null;
 
-    private time_unit_options: string[] = [
-        'millisecond',
-        'second',
-        'minute',
-        'hour',
-        'day',
-        'week',
-        'month',
-        'quarter',
-        'year'
+    private time_unit_options: any[] = [
+        { label: this.label('chart_js_scale_options_component.time_unit_millisecond_options'), value: 'millisecond' },
+        { label: this.label('chart_js_scale_options_component.time_unit_second_options'), value: 'second' },
+        { label: this.label('chart_js_scale_options_component.time_unit_minute_options'), value: 'minute' },
+        { label: this.label('chart_js_scale_options_component.time_unit_hour_options'), value: 'hour' },
+        { label: this.label('chart_js_scale_options_component.time_unit_day_options'), value: 'day' },
+        { label: this.label('chart_js_scale_options_component.time_unit_week_options'), value: 'week' },
+        { label: this.label('chart_js_scale_options_component.time_unit_month_options'), value: 'month' },
+        { label: this.label('chart_js_scale_options_component.time_unit_quarter_options'), value: 'quarter' },
+        { label: this.label('chart_js_scale_options_component.time_unit_year_options'), value: 'year' },
+    ];
+
+    private time_parser_options: string[] = [
+        'DD/MM/YYYY',
     ];
 
     @Watch('options', { immediate: true, deep: true })
@@ -96,6 +101,21 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
 
         // TODO: make sure we have all required fields
         for (const key in this.options) {
+            if (key == 'unit') {
+                this.unit = this.time_unit_options.find((option) => option.value == this.options[key]);
+                continue;
+            }
+
+            if (key == 'round') {
+                this.round = this.time_unit_options.find((option) => option.value == this.options[key]);
+                continue;
+            }
+
+            if (key == 'minUnit') {
+                this.minUnit = this.time_unit_options.find((option) => option.value == this.options[key]);
+                continue;
+            }
+
             this[key] = this.options[key];
         }
 
@@ -114,7 +134,7 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
     private on_round_changed() {
         this.options_props = {
             ...this.options_props,
-            round: this.round
+            round: this.round?.value
         };
     }
 
@@ -122,7 +142,15 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
     private on_unit_changed() {
         this.options_props = {
             ...this.options_props,
-            unit: this.unit
+            unit: this.unit?.value
+        };
+    }
+
+    @Watch('parser')
+    private on_parser_changed() {
+        this.options_props = {
+            ...this.options_props,
+            parser: this.parser
         };
     }
 
@@ -130,7 +158,7 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
     private on_min_unit_changed() {
         this.options_props = {
             ...this.options_props,
-            minUnit: this.minUnit
+            minUnit: this.minUnit?.value
         };
     }
 

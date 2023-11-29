@@ -1,4 +1,63 @@
 .chart_js_scale_time_options_component
+
+    .unit_options_selector 
+        .input_label {{ label('chart_js_scale_time_options_component.unit_options_selector') }}
+        .input_wrapper
+            multiselect.unit_options_selector(
+                :preselect-first="false"
+                :options="time_unit_options"
+                :allow-empty="false"
+                :multiple="false"
+                label="label"
+
+                :searchable="true"
+                :internal-search="true"
+                
+                v-model="unit"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="scale_unit_options"
+            )   
+                span(slot="noOptions") -
+
+                template(slot="option", slot-scope="props")
+                    span.option__title {{ props.option.label }}
+
+                template(slot="tag", slot-scope="props")
+                    span.option__tag {{ label(props.option.label) }}
+
+    .parser_options_selector 
+        .input_label {{ label('chart_js_scale_time_options_component.parser_options_selector') }}
+        .input_wrapper
+            multiselect.parser_options_selector(
+                :preselect-first="false"
+                :options="time_parser_options"
+                :allow-empty="false"
+                :multiple="false"
+
+                :searchable="true"
+                :internal-search="true"
+                
+                v-model="parser"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="scale_parser_options"
+            )
+
     .round_options_selector 
         .input_label {{ label('chart_js_scale_time_options_component.round_options_selector') }}
         .input_wrapper
@@ -7,6 +66,7 @@
                 :options="time_unit_options"
                 :allow-empty="false"
                 :multiple="false"
+                label="label"
 
                 :searchable="true"
                 :internal-search="true"
@@ -23,6 +83,13 @@
                 
                 name="scale_round_options"
             )
+                span(slot="noOptions") -
+
+                template(slot="option", slot-scope="props")
+                    span.option__title {{ props.option.label }}
+
+                template(slot="tag", slot-scope="props")
+                    span.option__tag {{ label(props.option.label) }}
     
     .display_format_options_selector 
         .input_label {{ label('chart_js_scale_time_options_component.display_format_options_selector') }}
@@ -40,31 +107,6 @@
                     @click="remove_display_format(index)"
                 ) {{ label('chart_js_scale_time_options_component.remove_display_format_button') }}
         
-    .unit_options_selector 
-        .input_label {{ label('chart_js_scale_time_options_component.unit_options_selector') }}
-        .input_wrapper
-            multiselect.unit_options_selector(
-                :preselect-first="false"
-                :options="time_unit_options"
-                :allow-empty="false"
-                :multiple="false"
-
-                :searchable="true"
-                :internal-search="true"
-                
-                v-model="unit"
-                
-                select-label=''
-                select-group-label=''
-                selected-label=''
-                deselect-label=''
-                deselect-group-label=''
-
-                placeholder=''
-                
-                name="scale_unit_options"
-            )
-
     .min_unit_options_selector 
         .input_label {{ label('chart_js_scale_time_options_component.min_unit_options_selector') }}
         .input_wrapper
@@ -73,6 +115,7 @@
                 :options="time_unit_options"
                 :allow-empty="false"
                 :multiple="false"
+                label="label"
 
                 :searchable="true"
                 :internal-search="true"
@@ -89,4 +132,11 @@
                 
                 name="scale_min_unit_options"
             )
+                span(slot="noOptions") -
+
+                template(slot="option", slot-scope="props")
+                    span.option__title {{ props.option.label }}
+
+                template(slot="tag", slot-scope="props")
+                    span.option__tag {{ label(props.option.label) }}
         

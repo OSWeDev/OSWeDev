@@ -2689,6 +2689,42 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'chart_js_scale_options_component.time_options_selector.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Milliseconde" },
+            'chart_js_scale_options_component.time_unit_millisecond_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Seconde" },
+            'chart_js_scale_options_component.time_unit_second_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Minute" },
+            'chart_js_scale_options_component.time_unit_minute_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Heure" },
+            'chart_js_scale_options_component.time_unit_hour_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Jour" },
+            'chart_js_scale_options_component.time_unit_day_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Semaine" },
+            'chart_js_scale_options_component.time_unit_week_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Mois" },
+            'chart_js_scale_options_component.time_unit_month_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Trimestre" },
+            'chart_js_scale_options_component.time_unit_quarter_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Année" },
+            'chart_js_scale_options_component.time_unit_year_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Arrondie à l'unité: " },
             'chart_js_scale_time_options_component.round_options_selector.___LABEL___'
         ));

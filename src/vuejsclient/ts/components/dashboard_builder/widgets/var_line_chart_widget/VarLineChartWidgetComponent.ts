@@ -141,6 +141,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         return {
             responsive: true,
             maintainAspectRatio: false,
+            locale: 'fr-fr',
 
             plugins: {
 
