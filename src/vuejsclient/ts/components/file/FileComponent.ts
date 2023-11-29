@@ -150,4 +150,17 @@ export default class FileComponent extends VueComponentBase {
 
         return Object.assign(dropoptions, this.options);
     }
+
+    get uri_compatible_file_path(): string {
+        if (!this.filevo || !this.filevo.path) {
+            return null;
+        }
+
+        // On remplace tous les caractères spéciaux, comme dièse, par leur code URI
+        // On garde le slash pour les dossiers
+        let path = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(0, this.filevo.path.lastIndexOf('/') + 1) : '';
+        let filename = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(this.filevo.path.lastIndexOf('/') + 1) : this.filevo.path;
+
+        return path + encodeURIComponent(filename);
+    }
 }

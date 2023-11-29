@@ -4,7 +4,7 @@
             vue-dropzone(v-if="!readonly" :ref="'filedropzone' + uid" :id="'filedropzone' + uid" :options="dropzoneOptions")
                 .dz-message
                     i.fa-solid.fa-upload.fa-3x(aria-hidden="true")
-            a.btn.btn-sm.btn-primary(v-if="(!!filevo) && filevo.id" :href="'/' + filevo.path" target='_blank')
+            a.btn.btn-sm.btn-primary(v-if="(!!filevo) && filevo.id" :href="'/' + uri_compatible_file_path" target='_blank')
                 i.fa-download.fa.fa-lg.btn_icon(aria-hidden="true" v-if='has_valid_file_linked')
                 i.fa-times.fa.fa-lg.btn_icon.text-danger(aria-hidden="true" v-else)
                 | {{ label('file.download') }}
