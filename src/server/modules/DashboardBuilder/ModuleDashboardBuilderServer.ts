@@ -2671,6 +2671,58 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.cb_bulk_actions.___LABEL___'
         ));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configuration de l'échelle sur l'axe des abscisse" },
+            'var_line_chart_widget_options_component.scale_x_axis_options_1.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configuration de l'échelle sur l'axe des ordonnées" },
+            'var_line_chart_widget_options_component.scale_y_axis_options_1.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Coordonnées de type: " },
+            'chart_js_scale_options_component.types_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configuration des coordonnées de type temps: " },
+            'chart_js_scale_options_component.time_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Arrondie à l'unité: " },
+            'chart_js_scale_time_options_component.round_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer l'afficage selon les échelles: " },
+            'chart_js_scale_time_options_component.display_format_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ajouter un format d'afficage " },
+            'chart_js_scale_time_options_component.add_display_format_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Supprimer" },
+            'chart_js_scale_time_options_component.remove_display_format_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner une unité" },
+            'chart_js_scale_time_options_component.unit_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner une unité minimal" },
+            'chart_js_scale_time_options_component.min_unit_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Unité d'affichage" },
+            'chart_js_scale_time_display_format_options_component.time_unit_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Format d'affichage" },
+            'chart_js_scale_time_display_format_options_component.display_format_options_selector.___LABEL___'
+        ));
+
+
+
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);

@@ -1,8 +1,8 @@
 
 import { Prop, Watch } from 'vue-property-decorator';
 import Component from 'vue-class-component';
-import VueComponentBase from '../../../../VueComponentBase';
 import { isEqual } from 'lodash';
+import VueComponentBase from '../../../../VueComponentBase';
 
 @Component({
     template: require('./ChartJsScaleTimeDisplayFormatOptionsComponent.pug'),

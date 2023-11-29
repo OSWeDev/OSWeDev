@@ -2,6 +2,7 @@
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import Component from 'vue-class-component';
 import { TimeUnit } from 'chart.js';
+import { isEqual } from 'lodash';
 import ChartJsScaleTimeDisplayFormatOptionsComponent from '../time_display_formats_options/ChartJsScaleTimeDisplayFormatOptionsComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 
@@ -63,7 +64,7 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
     })
     private options: Partial<ITimeScaleFields>;
 
-    private _options: Partial<ITimeScaleFields> = null;
+    private options_props: Partial<ITimeScaleFields> = null;
 
     private displayFormats: {
         [time_unit: string]: string;
@@ -89,18 +90,51 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
 
     @Watch('options', { immediate: true, deep: true })
     private on_input_options_changes() {
-        this._options = this.options;
+        if (isEqual(this.options_props, this.options)) {
+            return;
+        }
+
+        // TODO: make sure we have all required fields
+        for (const key in this.options) {
+            this[key] = this.options[key];
+        }
+
+        this.options_props = this.options;
     }
 
     @Watch('displayFormats')
     private on_type_changed() {
-        this._options = {
-            ...this._options,
+        this.options_props = {
+            ...this.options_props,
             displayFormats: this.displayFormats
         };
     }
 
-    @Watch('_options', { immediate: true, deep: true })
+    @Watch('round')
+    private on_round_changed() {
+        this.options_props = {
+            ...this.options_props,
+            round: this.round
+        };
+    }
+
+    @Watch('unit')
+    private on_unit_changed() {
+        this.options_props = {
+            ...this.options_props,
+            unit: this.unit
+        };
+    }
+
+    @Watch('minUnit')
+    private on_min_unit_changed() {
+        this.options_props = {
+            ...this.options_props,
+            minUnit: this.minUnit
+        };
+    }
+
+    @Watch('options_props', { immediate: true, deep: true })
     private on_options_changed() {
         this.emit_change();
     }
@@ -161,6 +195,6 @@ export default class ChartJsScaleTimeOptionsComponent extends VueComponentBase {
     }
 
     private emit_change() {
-        this.$emit('on_change', this.options);
+        this.$emit('on_change', this.options_props);
     }
 }

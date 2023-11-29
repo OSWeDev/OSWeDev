@@ -1,6 +1,7 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import 'chartjs-adapter-moment';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -8,7 +9,7 @@ import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextF
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import VarPieChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarPieChartWidgetOptionsVO';
+import VarLineChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -30,6 +31,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
+
 import './VarLineChartWidgetComponent.scss';
 
 @Component({
@@ -121,6 +123,21 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
     get options() {
         let self = this;
+
+        const scales = {};
+
+        if (this.widget_options.scale_options_x_1) {
+            scales['x'] = this.widget_options.scale_options_x_1;
+        }
+
+        if (this.widget_options.scale_options_y_1) {
+            scales['y'] = this.widget_options.scale_options_y_1;
+        }
+
+        if (this.widget_options.scale_options_r_1) {
+            scales['r'] = this.widget_options.scale_options_r_1;
+        }
+
         return {
             responsive: true,
             maintainAspectRatio: false,
@@ -173,9 +190,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                 },
             },
 
-            cutout: (self.widget_options.cutout_percentage == null) ? "50%" : self.widget_options.cutout_percentage.toString() + '%',
-            rotation: (self.widget_options.rotation == null) ? 270 : self.widget_options.rotation,
-            circumference: (self.widget_options.circumference == null) ? 180 : self.widget_options.circumference,
+            scales: scales
         };
     }
 
@@ -728,11 +743,11 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let options: VarPieChartWidgetOptionsVO = null;
+        let options: VarLineChartWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptionsVO;
-                options = options ? new VarPieChartWidgetOptionsVO().from(options) : null;
+                options = JSON.parse(this.page_widget.json_options) as VarLineChartWidgetOptionsVO;
+                options = options ? new VarLineChartWidgetOptionsVO().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

@@ -1,9 +1,10 @@
 
 import { Prop, Watch } from 'vue-property-decorator';
-import Component from 'vue-class-component';
 import { Scale, TimeScaleOptions } from 'chart.js';
-import VueComponentBase from '../../VueComponentBase';
+import Component from 'vue-class-component';
+import { isEqual } from 'lodash';
 import ChartJsScaleTimeOptionsComponent, { ITimeScaleFields } from './fields/time_options/ChartJsScaleTimeOptionsComponent';
+import VueComponentBase from '../../VueComponentBase';
 
 /**
  * Component for chart.js scale options builder.
@@ -26,7 +27,8 @@ export default class ChartJsScaleOptionsComponent extends VueComponentBase {
     })
     private options: Partial<Scale | TimeScaleOptions>;
 
-    private _options: Partial<Scale | TimeScaleOptions> = null;
+    private options_props: Partial<Scale | TimeScaleOptions> = null;
+
     private type: string = null;
     private time: ITimeScaleFields = null;
 
@@ -41,31 +43,35 @@ export default class ChartJsScaleOptionsComponent extends VueComponentBase {
 
     @Watch('options', { immediate: true, deep: true })
     private on_input_options_changed() {
-        this._options = this.options;
+        if (isEqual(this.options_props, this.options)) {
+            return;
+        }
 
         // TODO: make sure we have all required fields
         for (const key in this.options) {
             this[key] = this.options[key];
         }
+
+        this.options_props = this.options;
     }
 
     @Watch('type')
     private on_type_changed() {
-        this._options = {
-            ...this._options,
+        this.options_props = {
+            ...this.options_props,
             type: this.type
         };
     }
 
     @Watch('time')
     private on_time_changed() {
-        this._options = {
-            ...this._options,
+        this.options_props = {
+            ...this.options_props,
             time: this.time // case when its a | TimeScaleOptions
         } as any;
     }
 
-    @Watch('_options', { immediate: true, deep: true })
+    @Watch('options_props', { immediate: true, deep: true })
     private on_options_changed() {
         this.emit_change();
     }
@@ -75,6 +81,6 @@ export default class ChartJsScaleOptionsComponent extends VueComponentBase {
     }
 
     private emit_change() {
-        this.$emit('on_change', this.options);
+        this.$emit('on_change', this.options_props);
     }
 }

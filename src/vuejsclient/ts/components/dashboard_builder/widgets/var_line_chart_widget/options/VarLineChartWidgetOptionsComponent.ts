@@ -352,11 +352,34 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     }
 
     private handle_scale_x_axis_options_1_change(options: Partial<Scale>) {
-        // TODO: update scale x axis options
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.scale_options_x_1 = options;
+        this.next_update_options.scale_options_x_1 = this.scale_options_x_1;
+
+        this.throttled_update_options();
     }
 
     private handle_scale_y_axis_options_1_change(options: Partial<Scale>) {
-        // TODO: update scale y axis options
+        this.scale_options_y_1 = options;
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.scale_options_y_1 = options;
+        this.next_update_options.scale_options_y_1 = this.scale_options_y_1;
+
+        this.throttled_update_options();
     }
 
     get fields_that_could_get_custom_filter_1(): string[] {
@@ -692,7 +715,12 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         if (this.title_font_color != this.widget_options.title_font_color) {
             this.title_font_color = this.widget_options.title_font_color;
         }
-
+        if (this.scale_options_x_1 != this.widget_options.scale_options_x_1) {
+            this.scale_options_x_1 = this.widget_options.scale_options_x_1;
+        }
+        if (this.scale_options_y_1 != this.widget_options.scale_options_y_1) {
+            this.scale_options_y_1 = this.widget_options.scale_options_y_1;
+        }
         if (this.next_update_options != this.widget_options) {
             this.next_update_options = this.widget_options;
         }
