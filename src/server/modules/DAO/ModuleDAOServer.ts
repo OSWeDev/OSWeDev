@@ -1283,15 +1283,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
             await promise_pipeline.push(async () => {
                 let vo_id: number = !!vo.id ? vo.id : 0;
 
-                if (!vo_id) {
-                    try {
-                        vo.id = await this.check_uniq_indexes(vo, moduleTable);
-                    } catch (err) {
-                        return null;
-                    }
+                /**
+                 * MODIF MAJEURE : on retire ce comportement. On ne devrait jamais demander à insérer un objet avec un champs unique déjà défini.
+                 *  on refuse l'insert dans ce cas, et charge au système qui a fait la demande en amont de mettre à jour son cache, et de refaire une demande adaptée
+                 * ANCIEN COMPORTEMENT Si on a des fields de type unique, et pas de id fourni, on veut tester de charger depuis la bdd un objet avec
+                 *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
+                 */
+                // if (!vo_id) {
+                //     try {
+                //         vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                //     } catch (err) {
+                //         return null;
+                //     }
 
-                    vo_id = vo.id;
-                }
+                //     vo_id = vo.id;
+                // }
 
                 if (!vos_by_vo_tablename_and_ids[tablename].vos[vo_id]) {
                     vos_by_vo_tablename_and_ids[tablename].vos[vo_id] = [];
