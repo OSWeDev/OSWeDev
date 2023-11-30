@@ -86,6 +86,8 @@ export default class ModuleBardServer extends ModuleServerBase {
      * bard_ask
      *  - Called by the client to ask the assistant a question
      *
+     * TODO: maybe use websockets
+     *
      * @param {BardMessageVO} ask_message
      * @returns {Promise<BardMessageVO>} should return the assistant's response
      */
@@ -134,7 +136,7 @@ export default class ModuleBardServer extends ModuleServerBase {
 
             // Generate the assistant's response
             response_message = new BardMessageVO();
-            response_message.content = conversation.responses?.length > 0 ? conversation.responses[0] : "";
+            response_message.content = conversation.responses?.length > 0 ? conversation.responses[3] : "";
             response_message.role_type = BardMessageVO.BARD_MSG_ROLE_TYPE_ASSISTANT;
             response_message.date = Dates.now();
 
@@ -146,7 +148,7 @@ export default class ModuleBardServer extends ModuleServerBase {
 
             response_message.id = response_message_res.id;
         } catch (err) {
-
+            ConsoleHandler.error(`Error while asking the assistant: ${JSON.stringify(err)}`);
         }
 
         return response_message;

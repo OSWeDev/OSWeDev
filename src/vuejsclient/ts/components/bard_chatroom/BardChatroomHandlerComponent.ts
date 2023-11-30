@@ -62,7 +62,7 @@ export default class BardChatroomHandlerComponent extends VueComponentBase {
 
     @Watch('user_cookies', { immediate: true })
     private async onchange_user_cookies() {
-        if (this.bard_user_config.cookies != this.user_cookies) {
+        if (this.bard_user_config?.cookies != this.user_cookies) {
             this.has_cookies_changes = true;
         }
     }

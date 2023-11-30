@@ -112,11 +112,7 @@ export default class BardApiService {
             conversation.conversation_id = parsed_response.conversation_id;
             conversation.request_id = parsed_response.request_id;
             conversation.response_id = parsed_response.response_id;
-            conversation.responses = [
-                parsed_response.responses[3],
-                parsed_response.responses[6],
-                parsed_response.responses[9]
-            ];
+            conversation.responses = parsed_response.responses;
 
             return conversation;
         } catch (e: any) {
@@ -158,8 +154,8 @@ export default class BardApiService {
             const script = html.replace("window.WIZ_global_data", "googleData");
 
             const context = { googleData: { cfb2h: "", SNlM0e: "" } };
-            vm.createContext(context);
-            vm.runInContext(script, context);
+            vm.createContext(context); // @see: https://nodejs.org/api/vm.html#vmcreatecontextcontextobject-options
+            vm.runInContext(script, context); // @see: https://nodejs.org/api/vm.html#vmrunincontextcode-contextifiedobject-options
 
             at = context.googleData.SNlM0e;
             bl = context.googleData.cfb2h;
