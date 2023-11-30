@@ -1,7 +1,5 @@
-'use strict';
-
 import moment from 'moment';
-import { _adapters } from 'chart.js';
+import { DateAdapter, _adapters } from 'chart.js';
 
 const FORMATS = {
     datetime: 'MMM D, YYYY, h:mm:ss a',
@@ -18,9 +16,9 @@ const FORMATS = {
 
 export default class DatesChartJsAdapters {
 
-    public static add_adapters() {
-        _adapters._date.override({
-            // _id: 'moment', // DEBUG ONLY
+    public static get_adapters(): DateAdapter {
+        return {
+            _id: 'moment', // DEBUG ONLY
 
             formats: function () {
                 return FORMATS;
@@ -61,6 +59,6 @@ export default class DatesChartJsAdapters {
             endOf: function (time, unit) {
                 return moment(time).endOf(unit).valueOf();
             }
-        });
+        } as any;
     }
 }

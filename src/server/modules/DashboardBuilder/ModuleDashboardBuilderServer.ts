@@ -2745,6 +2745,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'chart_js_scale_time_options_component.unit_options_selector.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Format de date à décoder (parser) en paramètre" },
+            'chart_js_scale_time_options_component.parser_options_selector.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner une unité minimal" },
             'chart_js_scale_time_options_component.min_unit_options_selector.___LABEL___'
         ));

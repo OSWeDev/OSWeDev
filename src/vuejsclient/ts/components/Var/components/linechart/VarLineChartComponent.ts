@@ -2,7 +2,9 @@ import { debounce } from 'lodash';
 import { Line } from 'vue-chartjs';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
+import { _adapters } from 'chart.js';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
 import VarLineDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarLineDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -14,6 +16,10 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
+
+const date_adapter = DatesChartJsAdapters.get_adapters();
+
+_adapters._date.override(date_adapter);
 
 @Component({
     template: require('./VarLineChartComponent.pug'),
