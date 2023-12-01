@@ -1,18 +1,6 @@
 export default class BooleanHandler {
 
-    public static getInstance(): BooleanHandler {
-        if (!BooleanHandler.instance) {
-            BooleanHandler.instance = new BooleanHandler();
-        }
-        return BooleanHandler.instance;
-    }
-
-    private static instance: BooleanHandler = null;
-
-    private constructor() {
-    }
-
-    public OR(bools: boolean[], empty_value: boolean = false): boolean {
+    public static OR(bools: boolean[], empty_value: boolean = false): boolean {
 
         if ((!bools) || (bools.length <= 0)) {
             return empty_value;
@@ -27,7 +15,7 @@ export default class BooleanHandler {
         return res;
     }
 
-    public AND(bools: boolean[], empty_value: boolean = false): boolean {
+    public static AND(bools: boolean[], empty_value: boolean = false): boolean {
 
         if ((!bools) || (bools.length <= 0)) {
             return empty_value;

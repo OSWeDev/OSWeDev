@@ -16,16 +16,16 @@
             :opened_width="448"
             :opened_height="840"
             :closed_width="448"
-            :closed_height="37"
-            :unusable_height="37"
+            :closed_height="46"
+            :unusable_height="46"
             :opened_minh="115"
             :opened_minw="448"
-            :closed_minh="37"
+            :closed_minh="46"
             :closed_minw="448"
         )
             .slot_header(slot='icons')
-                i.fa-solid.fa-repeat.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_redo}" @click='redo')
-                i.fa-solid.fa-undo.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_undo}" @click='undo')
+                i.fa-duotone.fa-diagram-next.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_redo}" @click='redo')
+                i.fa-duotone.fa-diagram-previous.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_undo}" @click='undo')
 
             var-desc(:var_param='getDescSelectedVarParam')
 
@@ -40,11 +40,11 @@
             :opened_width="448"
             :opened_height="840"
             :closed_width="448"
-            :closed_height="37"
-            :unusable_height="37"
+            :closed_height="46"
+            :unusable_height="46"
             :opened_minh="115"
             :opened_minw="448"
-            :closed_minh="37"
+            :closed_minh="46"
             :closed_minw="448"
         )
             Varsdatasexplorercomponent

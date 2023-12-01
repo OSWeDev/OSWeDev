@@ -1,6 +1,7 @@
 import { debounce } from 'lodash';
 import { Line } from 'vue-chartjs';
-import 'chartjs-plugin-labels';
+import Chart from "chart.js/auto";
+import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -10,7 +11,10 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../VueComponentBase';
 
 @Component({
-    extends: Line
+    template: require('./SupervisedItemHistChartComponent.pug'),
+    components: {
+        linechart: Line
+    },
 })
 export default class SupervisedItemHistChartComponent extends VueComponentBase {
 
@@ -37,6 +41,13 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
 
     private debounced_rerender = debounce(this.rerender, 500);
 
+    public async created() {
+        window['Chart'] = Chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
+
     private mounted() {
         this.debounced_rerender();
     }
@@ -48,10 +59,10 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     }
 
     private rerender() {
-        this['renderChart'](this.chartData, this.chartOptions);
+        this['renderChart'](this.chart_data, this.chart_options);
     }
 
-    get chartData() {
+    get chart_data() {
         return {
             labels: this.labels,
             datasets: [{
@@ -65,7 +76,7 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         return Math.floor(Math.random() * (50 - 5 + 1)) + 5;
     }
 
-    get chartOptions() {
+    get chart_options() {
         return Object.assign(
             {
                 plugins: {

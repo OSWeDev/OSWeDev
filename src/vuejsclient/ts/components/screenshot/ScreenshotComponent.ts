@@ -44,7 +44,7 @@ export default class ScreenshotComponent extends VueComponentBase {
 
         try {
 
-            let { default: html2canvas } = await import(/* webpackChunkName: "html2canvas" */ 'html2canvas');
+            let { default: html2canvas } = await import('html2canvas');
 
             await html2canvas(
                 document.getElementById("VueMain"),
@@ -66,6 +66,13 @@ export default class ScreenshotComponent extends VueComponentBase {
                             var coef_width = ((width > (297 - 20)) ? (297 - 20) / width : 1);
                             var coef = (coef_height < coef_width) ? coef_height : coef_width;
                             canvas.toBlob(async (imgData: Blob) => {
+
+                                if (!imgData) {
+                                    self.is_taking = false;
+                                    // JNE : A mon avis ça arrive au chargement de l'appli si on essaie d'aller trop vite. Si c'est bloquant, on peut essayer de relancer auto la capture plus tard.
+                                    ConsoleHandler.error('No imgData');
+                                    return;
+                                }
 
                                 let formData = new FormData();
                                 formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');

@@ -1,10 +1,12 @@
 import { Express } from 'express';
 import { IDatabase } from 'pg-promise';
+import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleActionURL from '../../shared/modules/ActionURL/ModuleActionURL';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
-import ModuleAPI from '../../shared/modules/API/ModuleAPI';
+import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
 import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
@@ -23,11 +25,14 @@ import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
+import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
 import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleFork from '../../shared/modules/Fork/ModuleFork';
+import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
 import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
@@ -37,31 +42,36 @@ import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
 import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
-import ModulePerfMon from '../../shared/modules/PerfMon/ModulePerfMon';
+import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
+import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
-import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
-import ModulePopup from '../../shared/modules/Popup/ModulePopup';
+import ModuleStats from '../../shared/modules/Stats/ModuleStats';
+import StatsController from '../../shared/modules/Stats/StatsController';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
+import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
-import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
+import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
+import ModuleUserLogVars from '../../shared/modules/UserLogVars/ModuleUserLogVars';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../shared/tools/PromiseTools';
 import ConfigurationService from '../env/ConfigurationService';
+import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
+import ModuleActionURLServer from './ActionURL/ModuleActionURLServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
-import ModuleAPIServer from './API/ModuleAPIServer';
+import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
 import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
@@ -79,11 +89,13 @@ import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
+import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
 import ModuleFormatDatesNombresServer from './FormatDatesNombres/ModuleFormatDatesNombresServer';
+import ModuleGPTServer from './GPT/ModuleGPTServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
@@ -95,31 +107,28 @@ import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
 import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
-import ModulePerfMonServer from './PerfMon/ModulePerfMonServer';
+import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
+import ModulePopupServer from './Popup/ModulePopupServer';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
+import ModuleStatsServer from './Stats/ModuleStatsServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
-import ModulePopupServer from './Popup/ModulePopupServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
-import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
+import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
+import ModuleTriggerServer from './Trigger/ModuleTriggerServer';
+import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ModuleStats from '../../shared/modules/Stats/ModuleStats';
-import ModuleStatsServer from './Stats/ModuleStatsServer';
-import StatVO from '../../shared/modules/Stats/vos/StatVO';
-import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
-import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
-import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
-import StatsServerController from './Stats/StatsServerController';
 
 export default abstract class ModuleServiceBase {
+
+    public static db;
 
     public static getInstance(): ModuleServiceBase {
         return ModuleServiceBase.instance;
@@ -129,8 +138,6 @@ export default abstract class ModuleServiceBase {
     /**
      * Local thread cache -----
      */
-    public db;
-
     public post_modules_installation_hooks: Array<() => void> = [];
 
     protected registered_child_modules: Module[] = [];
@@ -154,7 +161,7 @@ export default abstract class ModuleServiceBase {
         ModuleServiceBase.instance = null;
         ModuleServiceBase.instance = this;
 
-        this.db = {
+        ModuleServiceBase.db = {
             none: this.db_none.bind(this),
             oneOrNone: this.db_oneOrNone.bind(this),
             query: this.db_query.bind(this),
@@ -351,7 +358,7 @@ export default abstract class ModuleServiceBase {
      * FIXME : pour le moment on est obligé de tout faire dans l'ordre, impossible de paraléliser à ce niveau
      *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
      */
-    public async configure_server_modules(app: Express) {
+    public async configure_server_modules(app: Express, is_generator: boolean = false) {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
@@ -362,7 +369,7 @@ export default abstract class ModuleServiceBase {
             if (server_module.actif) {
 
                 await all_promises([
-                    server_module.registerAccessPolicies(),
+                    server_module.registerAccessPolicies(is_generator),
                     server_module.registerAccessRoles(),
                     server_module.registerImport(),
                 ]);
@@ -392,12 +399,12 @@ export default abstract class ModuleServiceBase {
         }
     }
 
-    public async late_server_modules_configurations() {
+    public async late_server_modules_configurations(is_generator: boolean) {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
-                await server_module.late_configuration();
+                await server_module.late_configuration(is_generator);
             }
         }
     }
@@ -416,9 +423,9 @@ export default abstract class ModuleServiceBase {
 
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
-        await this.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
-        await this.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
-        await this.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
+        await ModuleServiceBase.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
+        await ModuleServiceBase.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
+        await ModuleServiceBase.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
     }
 
     private async install_modules() {
@@ -426,7 +433,7 @@ export default abstract class ModuleServiceBase {
             let registered_module = this.registered_modules[i];
 
             try {
-                await ModuleDBService.getInstance(this.db).module_install(
+                await ModuleDBService.getInstance(ModuleServiceBase.db).module_install(
                     registered_module
                 );
             } catch (e) {
@@ -450,7 +457,7 @@ export default abstract class ModuleServiceBase {
 
             try {
                 if (registered_module.actif) {
-                    await ModuleDBService.getInstance(this.db).module_configure(
+                    await ModuleDBService.getInstance(ModuleServiceBase.db).module_configure(
                         registered_module
                     );
                 }
@@ -495,7 +502,6 @@ export default abstract class ModuleServiceBase {
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
-            ModulePerfMon.getInstance(),
             ModuleAPI.getInstance(),
             ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
@@ -546,7 +552,12 @@ export default abstract class ModuleServiceBase {
             ModuleDashboardBuilder.getInstance(),
             ModuleMenu.getInstance(),
             ModuleStats.getInstance(),
-            ModuleExpressDBSessions.getInstance()
+            ModuleExpressDBSessions.getInstance(),
+            ModuleUserLogVars.getInstance(),
+            ModulePlayWright.getInstance(),
+            ModuleGPT.getInstance(),
+            ModuleAzureMemoryCheck.getInstance(),
+            ModuleActionURL.getInstance(),
         ];
     }
 
@@ -555,11 +566,11 @@ export default abstract class ModuleServiceBase {
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
-            ModulePerfMonServer.getInstance(),
             ModuleAPIServer.getInstance(),
             ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
+            ModuleTriggerServer.getInstance(),
             ModuleCronServer.getInstance(),
             ModuleContextFilterServer.getInstance(),
             ModuleVarServer.getInstance(),
@@ -603,7 +614,12 @@ export default abstract class ModuleServiceBase {
             ModuleMenuServer.getInstance(),
             ModuleFormatDatesNombresServer.getInstance(),
             ModuleStatsServer.getInstance(),
-            ModuleExpressDBSessionServer.getInstance()
+            ModuleExpressDBSessionServer.getInstance(),
+            ModuleUserLogVarsServer.getInstance(),
+            ModulePlayWrightServer.getInstance(),
+            ModuleGPTServer.getInstance(),
+            ModuleAzureMemoryCheckServer.getInstance(),
+            ModuleActionURLServer.getInstance(),
         ];
     }
 
@@ -620,7 +636,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsServerController.register_stat('db_none.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_none', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -634,15 +650,15 @@ export default abstract class ModuleServiceBase {
                 return;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsServerController.register_stat('db_none.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_none', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
 
-                    setTimeout(() => {
+                    setTimeout(async () => {
 
                         try {
-                            self.db_none(query, values);
+                            await self.db_none(query, values);
                             resolve(null);
                         } catch (error2) {
                             ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
@@ -657,8 +673,17 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('db_none.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('db_none.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
+        StatsController.register_stat_COMPTEUR('db_none', 'ok', '-');
+        StatsController.register_stat_DUREE('db_none', 'ok', '-', duration);
+    }
+
+    private count_union_all_occurrences(query: string): number {
+        const matches = query.match(/ union all /gi);
+        return matches ? matches.length : 0;
     }
 
     private async db_query(query: string, values?: []) {
@@ -667,6 +692,31 @@ export default abstract class ModuleServiceBase {
         let time_in = Dates.now_ms();
 
         try {
+
+            // On rajoute quelques contrôles de cohérence | des garde-fous simples mais qui protège d'une panne idiote
+
+            if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
+
+                // export query to txt file for debug
+                let fs = require('fs');
+                let path = require('path');
+                let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                fs.writeFileSync(filename, query);
+
+                throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
+            }
+
+            if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
+
+                // export query to txt file for debug
+                let fs = require('fs');
+                let path = require('path');
+                let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                fs.writeFileSync(filename, query);
+
+                throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
+            }
+
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
@@ -675,7 +725,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsServerController.register_stat('db_query.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_query', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -689,7 +739,7 @@ export default abstract class ModuleServiceBase {
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsServerController.register_stat('db_query.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_query', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -708,13 +758,17 @@ export default abstract class ModuleServiceBase {
             }
 
             ConsoleHandler.error(error);
-            StatsServerController.register_stat('db_query.error.others', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('db_query', 'error', 'others');
             return res;
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('db_query.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('db_query.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
+        StatsController.register_stat_COMPTEUR('db_query', 'ok', '-');
+        StatsController.register_stat_DUREE('db_query', 'time', '-', duration);
 
         return res;
     }
@@ -736,7 +790,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsServerController.register_stat('db_oneOrNone.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -750,7 +804,7 @@ export default abstract class ModuleServiceBase {
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsServerController.register_stat('db_oneOrNone.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -773,8 +827,26 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('db_oneOrNone.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('db_oneOrNone.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
+        StatsController.register_stat_COMPTEUR('db_oneOrNone', 'ok', '-');
+        StatsController.register_stat_DUREE('db_oneOrNone', 'time', '-', duration);
         return res;
+    }
+
+    private debug_slow_queries(query: string, values: any[], duration: number) {
+        duration = Math.round(duration);
+        let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
+        query_s = (ConfigurationService.node_configuration.DEBUG_DB_FULL_QUERY_PERF ? query_s : query_s.substring(0, 1000));
+
+        if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+            (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+            ConsoleHandler.error('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
+        } else if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+            (duration > ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+            ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
+        }
     }
 }

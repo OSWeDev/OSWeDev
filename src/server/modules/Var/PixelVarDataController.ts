@@ -23,7 +23,7 @@ export default class PixelVarDataController {
      */
     public get_pixel_card(var_data: VarDataBaseVO): number {
 
-        let varconf = VarsController.getInstance().var_conf_by_id[var_data.var_id];
+        let varconf = VarsController.var_conf_by_id[var_data.var_id];
         let prod_cardinaux = 1;
         let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
         for (let i in varconf.pixel_fields) {

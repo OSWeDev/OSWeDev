@@ -1,12 +1,12 @@
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
-import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import StatsServerController from '../../Stats/StatsServerController';
-import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
+import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import DataSourceControllerBase from './DataSourceControllerBase';
+import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 
 export default abstract class DataSourceControllerNumRangeIndexedBase extends DataSourceControllerBase {
 
@@ -25,14 +25,12 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
      */
     public async load_node_data(node: VarDAGNode) {
 
-        StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stat('DataSourceControllerNumRangeIndexedBase.' + node.var_data.var_id + '.load_node_data.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
+
+        StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
+        let time_load_node_data_in = Dates.now_ms();
 
         let data_index: NumRange[] = this.get_data_index(node.var_data) as NumRange[];
 
@@ -42,19 +40,21 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
         }
 
         node.datasources[this.name] = {};
-        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]) {
+            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name] = {};
         }
         await RangeHandler.foreach_ranges(data_index, async (i: number) => {
 
-            if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i] === 'undefined') {
+            if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][i] === 'undefined') {
 
-                StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-                StatsServerController.register_stat('DataSourceControllerNumRangeIndexedBase.' + node.var_data.var_id + '.get_data.nb',
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
+                let time_in = Dates.now_ms();
 
                 let data = await this.get_data(node.var_data);
+
+                let time_out = Dates.now_ms();
+                // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
+                StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
                 for (let j in data) {
                     let e = data[j];
@@ -62,16 +62,20 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
                     /**
                      * On ne change pas les datas qu'on avait déjà
                      */
-                    if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] === 'undefined') {
-                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
+                    if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][j] === 'undefined') {
+                        CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
                     }
                 }
             }
 
-            if (VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i]) {
-                node.datasources[this.name][i] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i];
+            if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][i]) {
+                node.datasources[this.name][i] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][i];
             }
         });
+
+        let time_load_node_data_out = Dates.now_ms();
+        // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
+        StatsController.register_stat_DUREE('DataSources', this.name, 'load_node_data', time_load_node_data_out - time_load_node_data_in);
     }
 
     /**

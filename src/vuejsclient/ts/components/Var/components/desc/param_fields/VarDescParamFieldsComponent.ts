@@ -6,7 +6,7 @@ import MatroidController from '../../../../../../../shared/modules/Matroid/Matro
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../../VueComponentBase';
 import './VarDescParamFieldsComponent.scss';
 
@@ -23,7 +23,7 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
     }
 
     private get_card_field_code(field: ModuleTableField<any>) {
-        return '{' + VarsController.getInstance().get_card_field_code(field.field_id) + '}';
+        return '{' + VarsController.get_card_field_code(field.field_id) + '}';
     }
 
     get ts_range_type(): number {
@@ -53,6 +53,6 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
             return null;
         }
 
-        return MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        return MatroidController.getMatroidFields(this.var_param._type);
     }
 }

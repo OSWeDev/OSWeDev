@@ -96,7 +96,7 @@ export default class VarsDirective {
                 let has_valid_value = true;
                 for (let i in value.var_params) {
                     let var_param = value.var_params[i].index;
-                    let var_data = VarsClientController.getInstance().cached_var_datas[var_param];
+                    let var_data = VarsClientController.cached_var_datas[var_param];
 
                     if ((!var_data) || (typeof var_data.value === 'undefined')) {
                         has_valid_value = false;
@@ -119,7 +119,7 @@ export default class VarsDirective {
                 let has_valid_value = true;
                 for (let i in value.var_params) {
                     let var_param = value.var_params[i].index;
-                    let var_data = VarsClientController.getInstance().cached_var_datas[var_param];
+                    let var_data = VarsClientController.cached_var_datas[var_param];
 
                     if ((!var_data) || (typeof var_data.value === 'undefined')) {
                         has_valid_value = false;

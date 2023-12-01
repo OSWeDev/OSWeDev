@@ -8,21 +8,14 @@ import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamV
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import IRange from '../DataRender/interfaces/IRange';
-import NumRange from '../DataRender/vos/NumRange';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
-import APIDAOIdsRangesParamsVO, { APIDAOIdsRangesParamsVOStatic } from './vos/APIDAOIdsRangesParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
 import APIDAOParamsVO, { APIDAOParamsVOStatic } from './vos/APIDAOParamsVO';
-import APIDAOParamVO, { APIDAOParamVOStatic } from './vos/APIDAOParamVO';
-import APIDAORefFieldParamsVO, { APIDAORefFieldParamsVOStatic } from './vos/APIDAORefFieldParamsVO';
-import APIDAORefFieldsAndFieldsStringParamsVO, { APIDAORefFieldsAndFieldsStringParamsVOStatic } from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
-import APIDAORefFieldsParamsVO, { APIDAORefFieldsParamsVOStatic } from './vos/APIDAORefFieldsParamsVO';
 import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
 import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/APIDAOTypeLimitOffsetVO';
 import CRUDFieldRemoverConfVO from './vos/CRUDFieldRemoverConfVO';
@@ -39,6 +32,9 @@ export default class ModuleDAO extends Module {
 
     public static POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDAO.MODULE_NAME + ".CAN_EDIT_REMOVED_CRUD_FIELDS_ACCESS";
 
+    public static PARAM_NAME_MAX_DELETE_PER_QUERY: string = "ModuleDAO.MAX_DELETE_PER_QUERY";
+    public static PARAM_NAME_MAX_UPDATE_PER_QUERY: string = "ModuleDAO.MAX_UPDATE_PER_QUERY";
+
     public static APINAME_selectUsersForCheckUnicity = "selectUsersForCheckUnicity";
 
     public static APINAME_truncate = "truncate";
@@ -49,28 +45,18 @@ export default class ModuleDAO extends Module {
 
     public static APINAME_DELETE_VOS_BY_IDS = "DAO_DELETE_VOS_BY_IDS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
+    public static APINAME_INSERT_VOS = "INSERT_VOS";
     public static APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS = "DAO_INSERT_OR_UPDATE_VOS_MULTICONNEXIONS";
 
     public static APINAME_INSERT_OR_UPDATE_VO = "DAO_INSERT_OR_UPDATE_VO";
     public static APINAME_SELECT_ALL = "SELECT_ALL";
     public static APINAME_SELECT_ONE = "SELECT_ONE";
 
-    public static APINAME_GET_VO_BY_ID = "GET_VO_BY_ID";
-    public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
-    public static APINAME_GET_VOS_BY_IDS_RANGES = "GET_VOS_BY_IDS_RANGES";
     public static APINAME_GET_VOS = "GET_VOS";
-    // public static APINAME_FILTER_VOS_BY_FIELD_RANGES = "FILTER_VOS_BY_FIELD_RANGES";
-    // public static APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS = "FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS";
-    public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
-    public static APINAME_GET_VOS_BY_REFFIELDS_IDS = "GET_VOS_BY_REFFIELDS_IDS";
-    public static APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING = "GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING";
     public static APINAME_GET_NAMED_VO_BY_NAME = "GET_NAMED_VO_BY_NAME";
     public static APINAME_GET_BASE_URL = "GET_BASE_URL";
-    // public static APINAME_GET_VOS_BY_EXACT_FIELD_RANGE = "GET_VOS_BY_EXACT_FIELD_RANGE";
 
-    public static APINAME_GET_VOS_BY_EXACT_MATROIDS = "GET_VOS_BY_EXACT_MATROIDS";
     public static APINAME_FILTER_VOS_BY_MATROIDS = "FILTER_VOS_BY_MATROIDS";
-    public static APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS = "FILTER_VOS_BY_MATROIDS_INTERSECTIONS";
     public static APINAME_getVarImportsByMatroidParams = "getVarImportsByMatroidParams";
 
     // Optimisation pour les vars initialement
@@ -86,6 +72,7 @@ export default class ModuleDAO extends Module {
 
     public static DAO_ACCESS_QUERY: string = ModuleDAO.POLICY_GROUP_OVERALL + '.' + "QUERY";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDAO.instance) {
             ModuleDAO.instance = new ModuleDAO();
@@ -97,33 +84,6 @@ export default class ModuleDAO extends Module {
 
     public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
         APIControllerWrapper.sah(ModuleDAO.APINAME_selectUsersForCheckUnicity);
-
-    /**
-     * @deprecated
-     */
-    public getVosByRefFieldsIdsAndFieldsString: <T extends IDistantVOBase>(
-        API_TYPE_ID: string,
-        field_name1: string, ids1: number[],
-        field_name2?: string, values2?: string[],
-        field_name3?: string, values3?: string[],
-        segmentation_ranges?: IRange[]) => Promise<T[]> = APIControllerWrapper.sah(
-            ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING,
-            null, (
-                API_TYPE_ID: string,
-                field_name1: string, ids1: number[],
-                field_name2: string, values2: string[],
-                field_name3: string, values3: string[]) => {
-            if (field_name1 && ((!ids1) || (!ids1.length))) {
-                return false;
-            }
-            if (field_name2 && ((!values2) || (!values2.length))) {
-                return false;
-            }
-            if (field_name3 && ((!values3) || (!values3.length))) {
-                return false;
-            }
-            return true;
-        });
 
     public truncate: (api_type_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleDAO.APINAME_truncate);
     public delete_all_vos_triggers_ok: (api_type_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleDAO.APINAME_delete_all_vos_triggers_ok);
@@ -148,71 +108,15 @@ export default class ModuleDAO extends Module {
 
     public deleteVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS);
     public deleteVOs: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS);
+
     public insertOrUpdateVOs: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS);
-    // public insertOrUpdateVOsMulticonnections: (vos: IDistantVOBase[], max_connections_to_use?: number) => Promise<InsertOrDeleteQueryResult[]> =
-    //     APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS, null, (vos: IDistantVOBase[], max_connections_to_use?: number) => {
-    //         if ((!vos) || (!vos.length)) {
-    //             return false;
-    //         }
-    //         return true;
-    //     }, (vos: IDistantVOBase[], max_connections_to_use?: number) => {
-    //         if (max_connections_to_use == null) {
-    //             max_connections_to_use = 0;
-    //         }
-    //     });
 
+    /**
+     * Insère les vos, et met l'id retourné par la bdd dans le vo et le retourne également en InsertOrDeleteQueryResult
+     */
+    public insert_vos: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_VOS);
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
-    /**
-     * @deprecated
-     */
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME);
-    /**
-     * @deprecated
-     */
-    public getVoById: <T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges?: IRange[]) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VO_BY_ID);
-    /**
-     * @deprecated
-     */
-    public getVosByIds: <T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(
-        ModuleDAO.APINAME_GET_VOS_BY_IDS,
-        null,
-        (API_TYPE_ID: string, ids: number[]) => {
-            let nettoyage_ids: number[] = [];
-            for (let i in ids) {
-                if (!!ids[i]) {
-                    nettoyage_ids.push(ids[i]);
-                }
-            }
-
-            if ((!nettoyage_ids) || (!nettoyage_ids.length)) {
-                return false;
-            }
-
-            return true;
-        });
-    /**
-     * @deprecated
-     */
-    public getVosByIdsRanges: <T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]) => Promise<T[]> = APIControllerWrapper.sah(
-        ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
-        null,
-        (API_TYPE_ID: string, ranges: NumRange[]) => {
-            if ((!ranges) || (!ranges.length)) {
-                return false;
-            }
-
-            return true;
-        });
-    public getVosByExactMatroids: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<T[]> = APIControllerWrapper.sah(
-        ModuleDAO.APINAME_GET_VOS_BY_EXACT_MATROIDS,
-        null,
-        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => {
-            if ((!matroids) || (!matroids.length)) {
-                return false;
-            }
-
-            return true;
-        });
     public getColSumFilterByMatroid: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<number> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_getColSumFilterByMatroid,
         null,
@@ -243,7 +147,6 @@ export default class ModuleDAO extends Module {
         });
 
     /**
-     * @deprecated
      * Retourne tous les matroids inclus les matroids en param
      * @param API_TYPE_ID
      * @param matroids
@@ -259,61 +162,6 @@ export default class ModuleDAO extends Module {
 
             return true;
         });
-
-    /**
-     * @deprecated
-     * Retourne tous les matroids intersectant les matroids en param
-     * @param API_TYPE_ID
-     * @param matroids
-     * @param fields_ids_mapper
-     */
-    public filterVosByMatroidsIntersections: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<T[]> = APIControllerWrapper.sah(
-        ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS,
-        null,
-        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => {
-            if ((!matroids) || (!matroids.length)) {
-                return false;
-            }
-
-            return true;
-        });
-
-    /**
-     * @deprecated
-     */
-    public getVosByRefFieldIds: <T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS);
-    /**
-     * @deprecated
-     */
-    public getVosByRefFieldsIds: <T extends IDistantVOBase>(
-        API_TYPE_ID: string,
-        field_name1: string, ids1: number[],
-        field_name2?: string, ids2?: number[],
-        field_name3?: string, ids3?: number[]) => Promise<T[]> = APIControllerWrapper.sah(
-            ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS,
-            null,
-            (
-                API_TYPE_ID: string,
-                field_name1: string, ids1: number[],
-                field_name2?: string, ids2?: number[],
-                field_name3?: string, ids3?: number[]) => {
-
-                if (field_name1 && ((!ids1) || (!ids1.length))) {
-                    return false;
-                }
-                if (field_name2 && ((!ids2) || (!ids2.length))) {
-                    return false;
-                }
-                if (field_name3 && ((!ids3) || (!ids3.length))) {
-                    return false;
-                }
-                return true;
-            });
-
-    /**
-     * @deprecated
-     */
-    public getVos: <T extends IDistantVOBase>(API_TYPE_ID: string, limit?: number, offset?: number) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS);
 
     private constructor() {
 
@@ -358,6 +206,23 @@ export default class ModuleDAO extends Module {
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVOStatic
         ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+            null,
+            ModuleDAO.APINAME_INSERT_VOS,
+            (params: IDistantVOBase[]) => {
+                let res: { [type: string]: boolean } = {};
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    res[param._type] = true;
+                }
+
+                return Object.keys(res);
+            }
+        ));
+
         APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
@@ -373,39 +238,10 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             }
         ));
-        // APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
-        //     null,
-        //     ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS,
-        //     (params: IDistantVOBase[]) => {
-        //         let res: { [type: string]: boolean } = {};
-
-        //         for (let i in params) {
-        //             let param = params[i];
-
-        //             res[param._type] = true;
-        //         }
-
-        //         return Object.keys(res);
-        //     }
-        // ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type]
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
-            null,
-            ModuleDAO.APINAME_GET_VOS_BY_IDS,
-            (param: APIDAOParamsVO) => [param.API_TYPE_ID],
-            APIDAOParamsVOStatic
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOIdsRangesParamsVO, IDistantVOBase[]>(
-            null,
-            ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
-            (param: APIDAOIdsRangesParamsVO) => [param.API_TYPE_ID],
-            APIDAOIdsRangesParamsVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
@@ -429,53 +265,11 @@ export default class ModuleDAO extends Module {
             APIDAOApiTypeAndMatroidsParamsVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
-            null,
-            ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS,
-            (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
-            APIDAOApiTypeAndMatroidsParamsVOStatic
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
-            null,
-            ModuleDAO.APINAME_GET_VOS_BY_EXACT_MATROIDS,
-            (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
-            APIDAOApiTypeAndMatroidsParamsVOStatic
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAORefFieldParamsVO, IDistantVOBase[]>(
-            null,
-            ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS,
-            (param: APIDAORefFieldParamsVO) => [param.API_TYPE_ID],
-            APIDAORefFieldParamsVOStatic
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAORefFieldsParamsVO, IDistantVOBase[]>(
-            null,
-            ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS,
-            (param: APIDAORefFieldsParamsVO) => [param.API_TYPE_ID],
-            APIDAORefFieldsParamsVOStatic
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAORefFieldsAndFieldsStringParamsVO, IDistantVOBase[]>(
-            null,
-            ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING,
-            (param: APIDAORefFieldsAndFieldsStringParamsVO) => [param.API_TYPE_ID],
-            APIDAORefFieldsAndFieldsStringParamsVOStatic
-        ));
-
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
             null,
             ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
             (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
             APIDAONamedParamVOStatic
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
-            null,
-            ModuleDAO.APINAME_GET_VO_BY_ID,
-            (param: APIDAOParamVO) => [param.API_TYPE_ID],
-            APIDAOParamVOStatic
         ));
         APIControllerWrapper.registerApi(new GetAPIDefinition<APIDAOTypeLimitOffsetVO, IDistantVOBase[]>(
             null,
@@ -523,7 +317,7 @@ export default class ModuleDAO extends Module {
         return vo_type + '__label_function';
     }
 
-    public async late_configuration() {
+    public async late_configuration(is_generator: boolean) {
 
         for (let i in VOsTypesManager.moduleTables_by_voType) {
             let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[i];
@@ -538,7 +332,7 @@ export default class ModuleDAO extends Module {
     }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
-        await this.late_configuration();
+        await this.late_configuration(false);
     }
 
 

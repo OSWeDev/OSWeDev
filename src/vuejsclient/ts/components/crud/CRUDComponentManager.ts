@@ -2,12 +2,13 @@ import { RouteConfig } from 'vue-router';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
 import MenuController from '../menu/MenuController';
 
 export default class CRUDComponentManager {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
 
         if (!CRUDComponentManager.instance) {
@@ -80,7 +81,7 @@ export default class CRUDComponentManager {
             routes.push({
                 path: url,
                 name: route_name,
-                component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
+                component: () => import('../../components/crud/component/CRUDComponent'),
                 props: () => ({
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
@@ -93,7 +94,7 @@ export default class CRUDComponentManager {
             routes.push({
                 path: url + "/update/:id",
                 name: route_name + " --UPDATE",
-                component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
+                component: () => import('../../components/crud/component/CRUDComponent'),
                 props: (route) => ({
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
@@ -108,7 +109,7 @@ export default class CRUDComponentManager {
                 routes.push({
                     path: url + "/create",
                     name: route_name + " --CREATE",
-                    component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
+                    component: () => import('../../components/crud/component/CRUDComponent'),
                     props: (route) => ({
                         crud: crud,
                         key: '__manage__' + API_TYPE_ID,
@@ -121,7 +122,7 @@ export default class CRUDComponentManager {
                 routes.push({
                     path: url + "/delete/:id",
                     name: route_name + " --DELETE",
-                    component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
+                    component: () => import('../../components/crud/component/CRUDComponent'),
                     props: (route) => ({
                         crud: crud,
                         key: '__manage__' + API_TYPE_ID,
@@ -154,7 +155,7 @@ export default class CRUDComponentManager {
         routes.push({
             path: url,
             name: route_name,
-            component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
+            component: () => import('../../components/crud/component/CRUDComponent'),
             props: () => ({
                 crud: CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID],
                 key: '__manage__' + API_TYPE_ID,

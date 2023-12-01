@@ -7,6 +7,7 @@ import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import ConsoleLog from '../console_logger/ConsoleLog';
@@ -87,11 +88,15 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     }
 
     @Watch('get_hidden', { immediate: true })
-    private onchange_get_hidden() {
+    private async onchange_get_hidden() {
         // If first time, store date + url
         if (!this.tmp_start_date) {
             this.tmp_start_date = Dates.now();
             this.tmp_start_url = this.$route.fullPath;
+        }
+
+        if (!this.get_hidden && this.$refs.ScreenshotComponent1) {
+            await (this.$refs.ScreenshotComponent1 as ScreenshotComponent).take_screenshot();
         }
     }
 
@@ -101,11 +106,15 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private async send_feedback() {
 
+        StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "IN");
+        let time_in: number = Dates.now_ms();
+
         /**
          * On empêche d'appeler à nouveau la fonction tant que l'envoi n'a pas été effectué
          * Cela permet d'éviter l'envoi multiple du ticket en spammant le btn d'envoi
          */
         if (this.is_already_sending_feedback) {
+            StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "ALREADY_SENDING");
             return;
         }
         this.is_already_sending_feedback = true;
@@ -116,24 +125,28 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
          *  - Si on a pas de titre ou de message (l'un des deux suffit) on refuse avec un snotify
          */
         if ((!this.tmp_message) || (!this.tmp_title)) {
+            StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "ERROR_NO_MESSAGE_OR_TITLE");
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_message_and_title'));
             this.is_already_sending_feedback = false;
             return;
         }
 
         if ((!this.tmp_user) || (!this.tmp_email)) {
+            StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "ERROR_NO_USER_OR_EMAIL");
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_user_and_email'));
             this.is_already_sending_feedback = false;
             return;
         }
 
         if ((!this.tmp_capture_1_vo) || (!this.tmp_capture_1_vo.id)) {
+            StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "ERROR_NO_SCREENSHOT");
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_at_least_one_screenshot'));
             this.is_already_sending_feedback = false;
             return;
         }
 
         if (this.tmp_wish_be_called && (!this.tmp_phone || !this.tmp_preferred_times_called)) {
+            StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "ERROR_NO_PHONE");
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_phone'));
             this.is_already_sending_feedback = false;
             return;
@@ -141,7 +154,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
         let feedback: FeedbackVO = new FeedbackVO();
 
-        feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
+        // feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
         // feedback.apis_log_json = "";
         feedback.console_logs = this.console_logs_tostring_array();
         feedback.email = this.tmp_email;
@@ -167,6 +180,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         if (!await ModuleFeedback.getInstance().feedback(feedback)) {
             this.set_hidden(true);
 
+            StatsController.register_stat_DUREE("FeedbackHandlerComponent", "send_feedback", "ERROR_SENDING_FEEDBACK", Dates.now_ms() - time_in);
+            StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "ERROR_SENDING_FEEDBACK");
             this.snotify.error(this.label('FeedbackHandlerComponent.error_sending_feedback'));
             this.is_already_sending_feedback = false;
             return;
@@ -175,6 +190,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.set_hidden(true);
         this.is_already_sending_feedback = false;
         this.reload();
+        StatsController.register_stat_DUREE("FeedbackHandlerComponent", "send_feedback", "OUT", Dates.now_ms() - time_in);
     }
 
     private async uploadedFile1(fileVo: FileVO) {

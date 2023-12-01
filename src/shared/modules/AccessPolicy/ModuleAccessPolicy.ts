@@ -230,7 +230,7 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         APIControllerWrapper.registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
-            null,
+            ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
             ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX,
             [AccessPolicyVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID],
             BooleanParamVOStatic

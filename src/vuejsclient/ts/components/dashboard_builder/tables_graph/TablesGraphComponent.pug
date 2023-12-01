@@ -1,16 +1,30 @@
 .tables_graph
-    .row 
+    .row(v-if='("", " ").indexOf(label("dashboard_builder.tables_graph.message.error")) == -1')
+        .col-sm-12
+            .message.error {{ label('dashboard_builder.tables_graph.message.error') }}
+    .row(v-if='("", " ").indexOf(label("dashboard_builder.tables_graph.message.warning")) == -1')
+        .col-sm-12
+            .message.warning {{ label('dashboard_builder.tables_graph.message.warning') }}
+    .row(v-if='("", " ").indexOf(label("dashboard_builder.tables_graph.message.info")) == -1')
+        .col-sm-12
+            .message.info {{ label('dashboard_builder.tables_graph.message.info') }}
+
+    .row
         .col-sm-9.container_wrapper
             .container(ref="container")
     
         .col-sm-3.fields_wrapper
             .sidebar(ref="sidebar")
                 Tablesgrapheditformcomponent(
-                    ref="form" 
-                    @delete_cell="delete_cell" 
-                    @toggle_check="toggle_check"
-                    :cell-data="current_cell"
-                    :toggle ="toggle"
-                    :toggles = "end_toggles"
-                    :all_cells = "end_graphic_cells" )
-            Droppablevoscomponent(ref="droppables")
+                    :maxgraph="maxgraph"
+                    :current_cell_mapper ="current_cell_mapper"
+                    @remap="throttle_init_or_update_graph"
+                    :dashboard='dashboard'
+                    @update_discarded_field_paths="update_discarded_field_paths"
+                    :graph_mapper='graph_mapper'
+                    @delete_cell="delete_cell"
+                )
+                
+            Droppablevoscomponent(
+                ref="droppables"
+            )

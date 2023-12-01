@@ -6,9 +6,10 @@ import HourRange from "../../DataRender/vos/HourRange";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import ContextQueryVO from "./ContextQueryVO";
 
-export default class ContextFilterVO implements IDistantVOBase {
+export default class ContextFilterVO extends AbstractVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_filter";
 
     public static CUSTOM_FILTERS_TYPE: string = "__custom_filters__";
@@ -18,6 +19,7 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.FILTER_AND',
         'context_filter.type.FILTER_OR',
         'context_filter.type.FILTER_XOR',
+
         'context_filter.type.NULL_ALL',
         'context_filter.type.NULL_ANY',
         'context_filter.type.NULL_NONE',
@@ -72,8 +74,9 @@ export default class ContextFilterVO implements IDistantVOBase {
 
         'context_filter.type.TYPE_NUMERIC_NOT_EQUALS',
         'context_filter.type.TYPE_NUMERIC_EQUALS_ANY',
-        'context_filter.type.TYPE_EXISTS'
+        'context_filter.type.TYPE_EXISTS',
 
+        'context_filter.type.FILTER_UNION',
     ];
 
     /**
@@ -96,6 +99,7 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_FILTER_AND: number = 1;
     public static TYPE_FILTER_OR: number = 2;
     public static TYPE_FILTER_XOR: number = 3;
+    public static TYPE_FILTER_UNION: number = 60;
 
     /**
      * B - Les filtres sur les datas
@@ -287,6 +291,14 @@ export default class ContextFilterVO implements IDistantVOBase {
         return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_XOR);
     }
 
+    /**
+     * Sucre syntaxique pour echaîner facilement des union et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne UNION
+     */
+    public static union(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_UNION);
+    }
+
     private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
         if ((!filters) || (!filters.length)) {
             return null;
@@ -344,6 +356,11 @@ export default class ContextFilterVO implements IDistantVOBase {
      * En fait on stocke pas pour le moment en base, à voir après comment on pourra repeupler ces fields au chargement depuis la bdd si besoin
      */
     public left_hook: ContextFilterVO;
+
+    /**
+     * - Can be actual field_filter
+     * - Can be a tree of context_filters (in case when filter_type is one of AND/OR/XOR)
+     */
     public right_hook: ContextFilterVO;
 
     /**
@@ -356,6 +373,16 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Sous-requête liée dans le cas d'un type sub_query
      */
     public sub_query: ContextQueryVO = null;
+
+    /**
+     * Hydrate this from the given properties
+     *
+     * @param {Partial<T>} props
+     * @returns {T}
+     */
+    public from(props: Partial<ContextFilterVO>): this {
+        return super.from(props);
+    }
 
     /**
      * Filtrer par text en début de la valeur du champ
@@ -596,6 +623,18 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Enchaîner des and
+     * @param _filters le filtre qu'on veut chaîner en ET
+     */
+    public andMany(_filters: ContextFilterVO[]): ContextFilterVO {
+        if (!(_filters?.length > 0)) {
+            return this;
+        }
+
+        return ContextFilterVO.and([this, ..._filters]);
+    }
+
+    /**
      * Enchaîner des xor
      * @param filter le filtre qu'on veut chaîner en XOR
      */
@@ -605,6 +644,30 @@ export default class ContextFilterVO implements IDistantVOBase {
         }
 
         return ContextFilterVO.xor([this, filter_]);
+    }
+
+    /**
+     * Enchaîner des union
+     * @param {ContextFilterVO} _filter le filtre qu'on veut chaîner en XOR
+     */
+    public union(_filter: ContextFilterVO): ContextFilterVO {
+        if (!_filter) {
+            return this;
+        }
+
+        return ContextFilterVO.union([this, _filter]);
+    }
+
+    /**
+     * Enchaîner des union
+     * @param {ContextFilterVO} _filter le filtre qu'on veut chaîner en XOR
+     */
+    public unionMany(_filters: ContextFilterVO[]): ContextFilterVO {
+        if (!(_filters?.length > 0)) {
+            return this;
+        }
+
+        return ContextFilterVO.union([this, ..._filters]);
     }
 
     /**
@@ -790,7 +853,7 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
-     * Filtre par intersection de ts_ranges
+     * Filtre par inclusion de ts_ranges
      * @param ranges
      */
     public by_date_is_in_ranges(ranges: TSRange[]): ContextFilterVO {

@@ -5,7 +5,6 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -16,13 +15,18 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
+import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
+import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
+import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
+import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
-import FileHandler from '../../../shared/tools/FileHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import StackContext from '../../StackContext';
@@ -30,16 +34,23 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
+import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
 const { parse } = require('flatted/cjs');
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
+    public static FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS: string = 'FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS';
+
     public static FEEDBACK_TRELLO_LIST_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_LIST_ID';
+    public static TEAMS_WEBHOOK_PARAM_NAME: string = 'ModuleFeedbackServer.TEAMS_WEBHOOK';
+    public static DASHBOARD_FEEDBACK_ID_PARAM_NAME: string = 'ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID';
 
     public static FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_POSSIBLE_BUG_ID';
     public static FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID';
@@ -51,6 +62,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     public static FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT';
     public static FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_ROUTE_LIMIT';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleFeedbackServer.instance) {
             ModuleFeedbackServer.instance = new ModuleFeedbackServer();
@@ -63,10 +75,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
     private static instance: ModuleFeedbackServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFeedback.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFeedback.POLICY_GROUP;
@@ -84,7 +98,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
@@ -96,6 +110,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -236,10 +251,11 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             'survey.btn.title.___LABEL___')
         );
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(FeedbackVO.API_TYPE_ID, this, this.pre_create_feedback_assign_default_state);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
     }
@@ -266,24 +282,29 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
      * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
      *  Pour trouver le idList => https://customer.io/actions/trello/
      */
-    private async feedback(feedback: FeedbackVO): Promise<boolean> {
+    private async feedback(feedback: FeedbackVO): Promise<FeedbackVO> {
 
         if (!feedback) {
-            return false;
+            return null;
         }
 
-        let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let time_in: number = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "IN");
+
+        let uid = ModuleAccessPolicyServer.getLoggedUserId();
         let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
 
             let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
             if (!user_session) {
-                return false;
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_USER_SESSION");
+                return null;
             }
 
             let FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
             if (!FEEDBACK_TRELLO_LIST_ID) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_LIST_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration du paramètre FEEDBACK_TRELLO_LIST_ID qui indique le code du tableau Trello à utiliser (cf URL d\'une card de la liste +.json => idList)');
             }
 
@@ -293,6 +314,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
             let FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
             if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_POSSIBLE_BUG_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
             }
 
@@ -314,6 +336,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Puis créer le feedback en base
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!res) || (!res.id)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
                 throw new Error('Failed feedback creation');
             }
             feedback.id = res.id;
@@ -324,18 +347,25 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let idLabels: string[] = [];
             let trello_message = feedback.message + '\x0A' + '\x0A';
 
-            trello_message += await this.user_infos_to_string(feedback);
-            trello_message += await this.feedback_infos_to_string(feedback);
+            let user_infos = await this.user_infos_to_string(feedback);
+            trello_message += user_infos;
+            let feedback_infos = await this.feedback_infos_to_string(feedback);
+            trello_message += feedback_infos;
 
-            trello_message += await this.screen_captures_to_string(feedback);
-            trello_message += await this.attachments_to_string(feedback);
+            let screen_captures = await this.screen_captures_to_string(feedback);
+            trello_message += screen_captures;
+            let attachments = await this.attachments_to_string(feedback);
+            trello_message += attachments;
 
-            trello_message += await this.routes_to_string(feedback);
-            trello_message += await this.console_logs_to_string(feedback);
+            let routes = await this.routes_to_string(feedback);
+            trello_message += routes;
+            let console_logs_errors = await this.console_logs_to_string(feedback);
+            trello_message += console_logs_errors;
 
-            if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
-                trello_message += await this.api_logs_to_string(feedback);
-            }
+            // let api_logs = await this.api_logs_to_string(feedback);
+            // if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
+            //     trello_message += api_logs;
+            // }
             switch (feedback.feedback_type) {
                 case FeedbackVO.FEEDBACK_TYPE_BUG:
                     idLabels.push(FEEDBACK_TRELLO_POSSIBLE_BUG_ID);
@@ -371,76 +401,181 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
             trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
 
-            response = await trello_api.card.create({
-                name: card_name,
-                desc: trello_message,
-                pos: 'top',
-                idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
-                idLabels: idLabels,
-            });
+            try {
+
+                response = await trello_api.card.create({
+                    name: card_name,
+                    desc: trello_message,
+                    pos: 'top',
+                    idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
+                    idLabels: idLabels,
+                });
+            } catch (error) {
+                ConsoleHandler.error(error);
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_TRELLO_API");
+            }
 
             // Faire le lien entre le feedback en base et le Trello
             feedback.trello_ref = response;
             let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            if ((!ires) || (!ires.id)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
+                throw new Error('Failed feedback creation');
+            }
+
             feedback.id = ires.id;
+
+            await this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
+                // , api_logs
+            );
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
 
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
-            return true;
+            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "FEEDBACK_CREATED");
+            StatsController.register_stat_DUREE("ModuleFeedback", "feedback", "FEEDBACK_CREATED", Dates.now_ms() - time_in);
+
+            return feedback;
         } catch (error) {
             ConsoleHandler.error(error);
+            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_THROWN");
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
-            return false;
+            return null;
         }
     }
 
-    private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {
-        let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);
-        let API_LOG_LIMIT: number = FEEDBACK_TRELLO_API_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_API_LOG_LIMIT.toString()) : 100;
+    private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string
+        // , api_logs: string
+    ) {
+        let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
+        if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
+            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
+                GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+                uid,
+                'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
+                // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
+                'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+                'Ci-après les éléments constituant le formulaire de contact client : {' +
+                ' - Titre du formulaire : ' + feedback.title + ' ' +
+                ' - Message : ' + feedback.message + ' ' +
+                ' - Infos de l\'utilisateur : ' + user_infos +
+                ' - feedback_infos : ' + feedback_infos +
+                ' - console_logs_errors : ' + console_logs_errors
+                // ' - api_logs : ' + api_logs
+            ));
+            let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
+            if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
+                let teamsWebhookContent = new TeamsWebhookContentVO();
+                teamsWebhookContent.title = 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
+                teamsWebhookContent.summary = gtp_4_brief.content;
 
-        let apis_log: LightWeightSendableRequestVO[] = parse(feedback.apis_log_json);
-        let apis_log_message: string = '';
-        API_LOG_LIMIT = API_LOG_LIMIT - apis_log.length;
-        let limited: boolean = API_LOG_LIMIT < 0;
+                if (feedback.screen_capture_1_id) {
+                    await this.handle_screen_capture(feedback.screen_capture_1_id, 1, teamsWebhookContent);
+                }
+                if (feedback.screen_capture_2_id) {
+                    await this.handle_screen_capture(feedback.screen_capture_2_id, 2, teamsWebhookContent);
+                }
+                if (feedback.screen_capture_3_id) {
+                    await this.handle_screen_capture(feedback.screen_capture_3_id, 3, teamsWebhookContent);
+                }
 
-        for (let i in apis_log) {
-            let api_log = apis_log[i];
+                if (feedback.file_attachment_1_id) {
+                    await this.handle_file_attachement(feedback.file_attachment_1_id, 1, teamsWebhookContent);
+                }
+                if (feedback.file_attachment_2_id) {
+                    await this.handle_file_attachement(feedback.file_attachment_2_id, 2, teamsWebhookContent);
+                }
+                if (feedback.file_attachment_3_id) {
+                    await this.handle_file_attachement(feedback.file_attachment_3_id, 3, teamsWebhookContent);
+                }
 
-            API_LOG_LIMIT++;
-            if (API_LOG_LIMIT <= 0) {
-                continue;
+                teamsWebhookContent.sections.push(
+                    new TeamsWebhookContentSectionVO().set_text('<h2>' + feedback.title + '</h2>' +
+                        '<p>' + gtp_4_brief.content + '</p>'));
+
+                // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
+                let dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
+                if ((!!feedback.id) && !!dashboard_feedback_id) {
+                    teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
+                        new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
+                            ConfigurationService.node_configuration.BASE_URL + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
+                }
+
+                let teams_res = await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
+                ConsoleHandler.log("teams_res : " + teams_res);
             }
-
-            // On commence par un retour à la ligne aussi puisque sinon la liste fonctionne pas
-            apis_log_message += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
-
-            let type: string = null;
-            switch (api_log.type) {
-                case LightWeightSendableRequestVO.API_TYPE_GET:
-                    type = 'GET';
-                    break;
-                case LightWeightSendableRequestVO.API_TYPE_POST:
-                    type = 'POST';
-                    break;
-                case LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET:
-                    type = 'POST_FOR_GET';
-                    break;
-            }
-
-            let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
-            let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
-            apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
         }
-
-        let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
-        res += '##APIS LOG' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
-        res += (limited ? ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ...' : '');
-        res += apis_log_message;
-        return res;
     }
+
+    private async handle_file_attachement(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        if (!file) {
+            return '';
+        }
+        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+
+        message.sections.push(
+            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
+    }
+
+    private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        if (!file) {
+            return '';
+        }
+        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+
+        message.sections.push(
+            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
+                .set_activityImage(file_url));
+    }
+
+    // private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {
+    //     let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);
+    //     let API_LOG_LIMIT: number = FEEDBACK_TRELLO_API_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_API_LOG_LIMIT.toString()) : 100;
+
+    //     let apis_log: LightWeightSendableRequestVO[] = parse(feedback.apis_log_json);
+    //     let apis_log_message: string = '';
+    //     API_LOG_LIMIT = API_LOG_LIMIT - apis_log.length;
+    //     let limited: boolean = API_LOG_LIMIT < 0;
+
+    //     for (let i in apis_log) {
+    //         let api_log = apis_log[i];
+
+    //         API_LOG_LIMIT++;
+    //         if (API_LOG_LIMIT <= 0) {
+    //             continue;
+    //         }
+
+    //         // On commence par un retour à la ligne aussi puisque sinon la liste fonctionne pas
+    //         apis_log_message += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
+
+    //         let type: string = null;
+    //         switch (api_log.type) {
+    //             case LightWeightSendableRequestVO.API_TYPE_GET:
+    //                 type = 'GET';
+    //                 break;
+    //             case LightWeightSendableRequestVO.API_TYPE_POST:
+    //                 type = 'POST';
+    //                 break;
+    //             case LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET:
+    //                 type = 'POST_FOR_GET';
+    //                 break;
+    //         }
+
+    //         let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+    //         let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
+    //         apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
+    //     }
+
+    //     let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
+    //     res += '##APIS LOG' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
+    //     res += (limited ? ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ...' : '');
+    //     res += apis_log_message;
+    //     return res;
+    // }
 
     private async console_logs_to_string(feedback: FeedbackVO): Promise<string> {
         let FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);

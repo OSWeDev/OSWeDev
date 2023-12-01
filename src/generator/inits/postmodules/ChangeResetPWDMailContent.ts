@@ -1,8 +1,8 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
@@ -37,7 +37,7 @@ export default class ChangeResetPWDMailContent implements IGeneratorWorker {
                 .select_one();
 
             trad.translated = 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.';
-            await ModuleDAO.getInstance().insertOrUpdateVO(trad);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(trad);
         } catch (error) {
             ConsoleHandler.log('Ignore this error if new project: ' + error);
         }

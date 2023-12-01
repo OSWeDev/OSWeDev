@@ -5,7 +5,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import PopupVO from './vos/PopupVO';
 
 export default class ModulePopup extends Module {
@@ -42,10 +42,10 @@ export default class ModulePopup extends Module {
 
         let fields = [
             new ModuleTableField('activated_ts_range', ModuleTableField.FIELD_TYPE_tsrange, "Période d'affichage").set_segmentation_type(TimeSegment.TYPE_DAY),
-            new ModuleTableField('title', ModuleTableField.FIELD_TYPE_html, 'Titre'),
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_html, 'Message'),
+            new ModuleTableField('title', ModuleTableField.FIELD_TYPE_html, 'Titre', true),
+            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_html, 'Message', true),
             new ModuleTableField('btn_txt', ModuleTableField.FIELD_TYPE_string, 'Texte du bouton', false, true, 'Fermer'),
-            new ModuleTableField('cookie_name', ModuleTableField.FIELD_TYPE_string, "Cookie pour bloquer l'affichage"),
+            new ModuleTableField('cookie_name', ModuleTableField.FIELD_TYPE_string, "Cookie pour bloquer l'affichage", true).unique(false),
             only_roles,
         ];
 

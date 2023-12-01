@@ -1,14 +1,14 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import TableWidgetKanbanComponent from './kanban/TableWidgetKanbanComponent';
 import TableWidgetOptions from './options/TableWidgetOptions';
-import Tablewidgettablecomponent from './table/Tablewidgettablecomponent';
+import TableWidgetTableComponent from './table/TableWidgetTableComponent';
 import './TableWidgetComponent.scss';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
@@ -17,7 +17,7 @@ import './TableWidgetComponent.scss';
     template: require('./TableWidgetComponent.pug'),
     components: {
         Tablewidgetkanbancomponent: TableWidgetKanbanComponent,
-        Tablewidgettablecomponent: Tablewidgettablecomponent
+        Tablewidgettablecomponent: TableWidgetTableComponent
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {

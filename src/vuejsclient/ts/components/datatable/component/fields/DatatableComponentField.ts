@@ -1,22 +1,31 @@
 import { cloneDeep } from 'lodash';
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import IRange from '../../../../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import ConditionHandler, { ConditionStatement } from '../../../../../../shared/tools/ConditionHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import TypesHandler from '../../../../../../shared/tools/TypesHandler';
+import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
-import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
 import './DatatableComponentField.scss';
+import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -27,11 +36,17 @@ import './DatatableComponentField.scss';
 })
 export default class DatatableComponentField extends VueComponentBase {
 
-    @Prop()
-    private field: DatatableField<any, any>;
+    @Prop({
+        type: Object,
+        default: () => ({})
+    })
+    private field: DatatableField<any, any> | VarDatatableFieldVO<any, any>;
 
     @Prop()
     private vo: IDistantVOBase;
+
+    @Prop({ default: null })
+    private column: TableColumnDescVO;
 
     @Prop({ default: null })
     private columns: TableColumnDescVO[];
@@ -76,20 +91,46 @@ export default class DatatableComponentField extends VueComponentBase {
     private editable: boolean;
 
     @Prop({ default: null })
+    private with_style: string;
+
+    @Prop({ default: null })
+    private column_key: string;
+
+    @Prop({ default: null })
     private filter_additional_params: any[];
 
     private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
+
     private is_load: boolean = false;
+
+    get field_type(): string {
+        return this.field?.field_type || ModuleTableField.FIELD_TYPE_int; // Pour le cas de l'id
+    }
+    private var_value: VarDataValueResVO = null;
+
+    private custom_style: string = null;
+
+    private throttle_init_custom_style = ThrottleHelper.declare_throttle_without_args(this.init_custom_style.bind(this), 50, { leading: false });
 
     public async mounted() {
         if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
             this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type)
+                DAOController.getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
+                    (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type
+                )
             );
         }
 
         this.is_load = true;
     }
+
+    @Watch('with_style', { immediate: true })
+    @Watch('var_value')
+    private async onchange_var_value() {
+        this.throttle_init_custom_style();
+    }
+
 
     private get_crud_link(api_type_id: string, vo_id: number) {
         if (!this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE) {
@@ -122,49 +163,6 @@ export default class DatatableComponentField extends VueComponentBase {
         return this.getCRUDUpdateLink(api_type_id, vo_id);
     }
 
-    get simple_field(): SimpleDatatableFieldVO<any, any> {
-        return (this.field as SimpleDatatableFieldVO<any, any>);
-    }
-
-    get field_value(): any {
-
-        // if (this.vo[this.field.datatable_field_uid] == null) {
-        //     return this.vo[this.field.datatable_field_uid];
-        // }
-
-        // switch (this.field.type) {
-        //     case DatatableField.SIMPLE_FIELD_TYPE:
-
-        //         switch (this.simple_field.moduleTableField.field_type) {
-        //             case ModuleTableField.FIELD_TYPE_enum:
-
-        //                 let enum_val = this.vo[this.field.datatable_field_uid];
-        //                 return this.t(this.simple_field.moduleTableField.enum_values[enum_val]);
-
-        //             default:
-        //                 return this.vo[this.field.datatable_field_uid];
-        //         }
-        //     default:
-        return this.vo[this.field.datatable_field_uid];
-        // }
-    }
-
-    get transliterate_enum_value_to_class_name(): string {
-        return ((this.field_value !== null && this.field_value !== undefined) ? this.field_value.toString().replace(/[^a-zA-Z0-9-_]/ig, '_') : this.field_value);
-    }
-
-    get is_custom_field_type(): boolean {
-        return !!this.custom_field_types;
-    }
-
-    get custom_field_types(): TableFieldTypeControllerBase {
-        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.moduleTableField.field_type];
-        }
-
-        return null;
-    }
-
     private get_filtered_value(val) {
 
         if (val == null) {
@@ -182,5 +180,141 @@ export default class DatatableComponentField extends VueComponentBase {
         }
 
         return this.filter.apply(null, params);
+    }
+
+    /**
+     * init_custom_style
+     * - init the custom style of the cell depending on the field type and the value
+     *
+     * @returns {void}
+     */
+    private init_custom_style(): void {
+        const column_key = this.column_key;
+        let style = this.with_style ?? '';
+
+        if (!this.columns || !column_key) {
+            return;
+        }
+
+        // The column description
+        const column: TableColumnDescVO = this.columns[column_key];
+
+        let added_dynamic_style = false;
+
+        // deduct style from field type and column colors_by_value_and_conditions
+        for (const key in column?.colors_by_value_and_conditions) {
+            const color_by_value_and_condition = column.colors_by_value_and_conditions[key];
+
+            if (!color_by_value_and_condition) {
+                continue;
+            }
+
+            // The condition to apply the color
+            const condition = color_by_value_and_condition.condition;
+            // The value to compare
+            const value = TypesHandler.isNumeric(color_by_value_and_condition.value) ?
+                parseFloat(color_by_value_and_condition.value) :
+                color_by_value_and_condition.value;
+
+            if (column.is_number && ConditionHandler.dynamic_statement(this.field_value, condition as ConditionStatement, value)) {
+                style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
+                added_dynamic_style = true;
+            }
+
+            if (column.is_var && ConditionHandler.dynamic_statement(this.var_value ? this.var_value.value : null, condition as ConditionStatement, value)) {
+                style += `; background-color: ${color_by_value_and_condition.color?.bg}; color: ${color_by_value_and_condition.color?.text};`;
+                added_dynamic_style = true;
+            }
+        }
+
+        if (added_dynamic_style) {
+            style += ";text-align: center;border-radius: 4px;";
+        }
+
+
+        this.custom_style = style;
+    }
+
+    /**
+     * handle_var_value_callback
+     * - keep track of the var value (from the VarDataRefComponent child)
+     *
+     * @param {VarDataValueResVO} var_value
+     * @param {VarDataRefComponent} component
+     */
+    private handle_var_value_callback(var_value: VarDataValueResVO, component: VarDataRefComponent) {
+        this.var_value = var_value;
+
+        return var_value.value;
+    }
+
+    get simple_field(): SimpleDatatableFieldVO<any, any> {
+        return (this.field as SimpleDatatableFieldVO<any, any>);
+    }
+
+    private get_segmented_max(range: IRange) {
+        if (!range) {
+            return null;
+        }
+
+        return RangeHandler.getSegmentedMax(range);
+    }
+
+    private get_segmented_min(range: IRange) {
+        if (!range) {
+            return null;
+        }
+
+        return RangeHandler.getSegmentedMin(range);
+    }
+
+    get field_value(): any {
+
+        // if (this.vo[this.field.datatable_field_uid] == null) {
+        //     return this.vo[this.field.datatable_field_uid];
+        // }
+
+        // switch (this.field.type) {
+        //     case DatatableField.SIMPLE_FIELD_TYPE:
+
+        //         switch (this.simple_field.field_type) {
+        //             case ModuleTableField.FIELD_TYPE_enum:
+
+        //                 let enum_val = this.vo[this.field.datatable_field_uid];
+        //                 return this.t(this.simple_field.enum_values[enum_val]);
+
+        //             default:
+        //                 return this.vo[this.field.datatable_field_uid];
+        //         }
+        //     default:
+
+        // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
+        if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+            if (
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html) ||
+                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html_array)
+            ) {
+                return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
+            }
+        }
+
+        return this.vo[this.field.datatable_field_uid];
+        // }
+    }
+
+    get transliterate_enum_value_to_class_name(): string {
+        return ((this.field_value !== null && this.field_value !== undefined) ? this.field_value.toString().replace(/[^a-zA-Z0-9-_]/ig, '_') : this.field_value);
+    }
+
+    get is_custom_field_type(): boolean {
+        return !!this.custom_field_types;
+    }
+
+    get custom_field_types(): TableFieldTypeControllerBase {
+        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.field_type];
+        }
+
+        return null;
     }
 }

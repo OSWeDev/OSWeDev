@@ -4,6 +4,7 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import { query } from '../ContextFilter/vos/ContextQueryVO';
+import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -14,7 +15,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import VarsInitController from '../Var/VarsInitController';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MessageModuleTableFieldTypeController from './fields/message_module/MessageModuleTableFieldTypeController';
 import AnimationMessageModuleVO from './fields/message_module/vos/AnimationMessageModuleVO';
 import ReponseTableFieldTypeController from './fields/reponse/ReponseTableFieldTypeController';
@@ -92,31 +93,31 @@ export default class ModuleAnimation extends Module {
 
     public registerApis() {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationModuleParamVO, AnimationUserModuleVO>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
             ModuleAnimation.APINAME_startModule,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationModuleParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationModuleParamVO, AnimationUserModuleVO>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
             ModuleAnimation.APINAME_endModule,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationModuleParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationParamVO, { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationQRVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationQRVO.API_TYPE_ID),
             ModuleAnimation.APINAME_getQRsByThemesAndModules,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationParamVOStatic,
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationParamVO, { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserQRVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserQRVO.API_TYPE_ID),
             ModuleAnimation.APINAME_getUQRsByThemesAndModules,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationParamVOStatic,
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationReportingParamVO, AnimationUserModuleVO[]>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
             ModuleAnimation.APINAME_getAumsFiltered,
             [AnimationUserModuleVO.API_TYPE_ID],
             AnimationReportingParamVOStatic,
@@ -124,13 +125,10 @@ export default class ModuleAnimation extends Module {
     }
 
     public async getUserModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
-        let ums: AnimationUserModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-            AnimationUserModuleVO.API_TYPE_ID,
-            'module_id',
-            [module_id],
-            'user_id',
-            [user_id],
-        );
+        let ums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID)
+            .filter_by_num_eq('module_id', module_id)
+            .filter_by_num_eq('user_id', user_id)
+            .select_vos<AnimationUserModuleVO>();
 
         return ums ? ums[0] : null;
     }

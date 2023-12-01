@@ -1,7 +1,6 @@
 
-import { unitOfTime } from "moment";
-import * as moment from "moment";
-import * as screenfull from "screenfull";
+import moment from "moment";
+import screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
@@ -14,7 +13,7 @@ import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultT
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
-import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
+import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter, tstzFilter } from '../../../shared/tools/Filters';
 import LocaleManager from "../../../shared/tools/LocaleManager";
 import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
@@ -275,6 +274,7 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
+        tstz: tstzFilter
     };
 
     public $snotify: any;
@@ -302,6 +302,7 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
+        tstz: tstzFilter
     };
 
 
@@ -319,7 +320,7 @@ export default class VueComponentBase extends Vue
         }
 
         if (VueAppController.getInstance().has_access_to_onpage_translation) {
-            AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
+            VueAppController.getInstance().throttled_register_translation({
                 translation_code: txt,
                 missing: false
             });
@@ -888,6 +889,9 @@ export default class VueComponentBase extends Vue
     }
 
     protected routeExists(url: string): boolean {
+        if (!url) {
+            return false;
+        }
 
         let resolved = this['$router'].resolve(url);
         if (resolved.route.name != '404') {

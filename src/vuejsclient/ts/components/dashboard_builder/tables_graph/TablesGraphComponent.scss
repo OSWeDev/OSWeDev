@@ -13,4 +13,24 @@
         color: white;
         font-size: 1.2em;
     }
+
+    .message {
+        padding: 1em;
+        margin: 1em;
+        background: darkred;
+        color: white;
+        border-radius: 1em;
+
+        &.error {
+            background: darkred;
+        }
+
+        &.warning {
+            background: darkorange;
+        }
+
+        &.info {
+            background: darkblue;
+        }
+    }
 }

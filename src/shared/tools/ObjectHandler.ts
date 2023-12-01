@@ -1,30 +1,222 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
+import ModuleTable from '../modules/ModuleTable';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
+export const field_names: <T extends IDistantVOBase>(obj?: T) => { [P in keyof T]?: P } = <T extends IDistantVOBase>(obj?: T): { [P in keyof T]?: P } => {
+
+    return new Proxy({}, {
+        get: (_, prop) => prop,
+        set: () => {
+            throw Error('Set not supported');
+        },
+    }) as {
+            [P in keyof T]?: P;
+        };
+};
+
 export default class ObjectHandler {
+
+    /**
+     * Copie d'object VO. Pas opti mais fonctionnel
+     */
+    public static clone_vo<T extends IDistantVOBase>(vo: T): T {
+        return ModuleTable.default_from_api_version(ModuleTable.default_get_api_version(vo));
+    }
+
+    public static clone_vos<T extends IDistantVOBase>(vos: T[]): T[] {
+        let res: T[] = [];
+
+        for (let i in vos) {
+            res.push(ObjectHandler.clone_vo(vos[i]));
+        }
+
+        return res;
+    }
+
+    public static empty_target(val) {
+        return Array.isArray(val) ? [] : {};
+    }
+
+    public static clone_unless_otherwise_pecified(value, options) {
+        return (options.clone !== false && options.is_mergeable_object(value))
+            ? ObjectHandler.deepmerge(ObjectHandler.empty_target(value), value, options)
+            : value;
+    }
+
+    public static default_array_merge(target, source, options) {
+        return target.concat(source).map(function (element) {
+            return ObjectHandler.clone_unless_otherwise_pecified(element, options);
+        });
+    }
+
+    public static get_merge_function(key, options) {
+        if (!options.customMerge) {
+            return ObjectHandler.deepmerge;
+        }
+
+        let customMerge = options.customMerge(key);
+
+        return typeof customMerge === 'function' ? customMerge : ObjectHandler.deepmerge;
+    }
+
+    public static get_enumerable_own_property_symbols(target) {
+        return Object.getOwnPropertySymbols
+            ? Object.getOwnPropertySymbols(target).filter((symbol) => {
+                return Object.propertyIsEnumerable.call(target, symbol);
+            })
+            : [];
+    }
+
+    public static get_keys(target) {
+        return Object.keys(target).concat(ObjectHandler.get_enumerable_own_property_symbols(target).map((symbol) => symbol.toString()));
+    }
+
+    public static property_is_on_object(object, property) {
+        try {
+            return property in object;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // Protects from prototype poisoning and unexpected merging up the prototype chain.
+    public static property_is_unsafe(target, key) {
+        return ObjectHandler.property_is_on_object(target, key) // Properties are safe to merge if they don't exist in the target yet,
+            && !(Object.hasOwnProperty.call(target, key) // unsafe if they exist up the prototype chain,
+                && Object.propertyIsEnumerable.call(target, key)); // and also unsafe if they're nonenumerable.
+    }
+
+    public static merge_object<T>(target, source, options): T {
+        let destination = new target.constructor();
+
+        if (options.is_mergeable_object(target)) {
+            ObjectHandler.get_keys(target).forEach((key) => {
+                destination[key] = ObjectHandler.clone_unless_otherwise_pecified(target[key], options);
+            });
+        }
+
+        ObjectHandler.get_keys(source).forEach((key) => {
+            if (ObjectHandler.property_is_unsafe(target, key)) {
+                return;
+            }
+
+            if (ObjectHandler.property_is_on_object(target, key) && options.is_mergeable_object(source[key])) {
+                destination[key] = ObjectHandler.get_merge_function(key, options)(target[key], source[key], options);
+            } else {
+                destination[key] = ObjectHandler.clone_unless_otherwise_pecified(source[key], options);
+            }
+        });
+
+        return destination;
+    }
+
+    /**
+     * TODO: Keep the same reference of target if possible
+     *
+     * @param target
+     * @param source
+     * @param options
+     * @returns
+     */
+    public static deepmerge<T>(target, source, options = null): T {
+        options = options || {};
+        options.arrayMerge = options.arrayMerge || ObjectHandler.default_array_merge;
+        options.is_mergeable_object = options.is_mergeable_object || ObjectHandler.is_mergeable_object;
+        // clone_unless_otherwise_pecified is added to `options` so that custom arrayMerge()
+        // implementations can use it. The caller may not replace it.
+        options.clone_unless_otherwise_pecified = ObjectHandler.clone_unless_otherwise_pecified;
+
+        let sourceIsArray = Array.isArray(source);
+        let targetIsArray = Array.isArray(target);
+        let sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
+
+        if (!sourceAndTargetTypesMatch) {
+            return ObjectHandler.clone_unless_otherwise_pecified(source, options);
+        } else if (sourceIsArray) {
+            return options.arrayMerge(target, source, options);
+        } else {
+            return ObjectHandler.merge_object(target, source, options);
+        }
+    }
+
+    public static is_mergeable_object(value) {
+        return ObjectHandler.is_non_null_object(value)
+            && !ObjectHandler.is_special(value);
+    }
+
+    public static is_non_null_object(value) {
+        return !!value && typeof value === 'object';
+    }
+
+    public static is_special(value) {
+        let stringValue = Object.prototype.toString.call(value);
+
+        return stringValue === '[object RegExp]'
+            || stringValue === '[object Date]';
+    }
+
+    public static map_array_by_object_field_value<T>(target: T[], field: string): { [i: string]: T } {
+        let res: { [i: string]: T } = {};
+
+        for (const key in target) {
+            const obj = target[key];
+
+            if (!(typeof obj[field] == 'string')) {
+                throw new Error(`ObjectHandler.map_array_by_object_field_value: field ` +
+                    `${field} is not a string in ${JSON.stringify(obj)} ` +
+                    `(${typeof obj[field]} givren!)`);
+            }
+
+            res[obj[field]] = obj;
+        }
+
+        return res;
+    }
+
+
+    public static map_by_number_field_from_array<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
+        let res: { [i: number]: T } = {};
+
+        for (let i in a) {
+            let e = a[i];
+            res[e[map_index_field_id]] = e;
+        }
+        return res;
+    }
+
+    public static sort_by_key<T>(target: T, sort_func = null): T {
+        let result: T = {} as T;
+
+        return Object.keys(target)
+            .sort()
+            .reduce((obj, key) => {
+                obj[key] = target[key];
+
+                return obj;
+            },
+                result
+            );
+
+    }
 
     /* istanbul ignore next: nothing to test here */
     public static getInstance(): ObjectHandler {
         if (!ObjectHandler.instance) {
             ObjectHandler.instance = new ObjectHandler();
         }
+
         return ObjectHandler.instance;
     }
 
-    private static instance: ObjectHandler = null;
-
-    private constructor() {
-    }
-
-    public are_equal(a: any, b: any): boolean {
+    public static are_equal(a: any, b: any): boolean {
         return JSON.stringify(a) == JSON.stringify(b);
     }
 
-    public sortObjectByKey(obj: {}, sort_func = null): {} {
-        var keys = [];
-        var sorted_obj = {};
+    public static sortObjectByKey(obj: {}, sort_func = null): {} {
+        let keys = [];
+        let sorted_obj = {};
 
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -46,7 +238,7 @@ export default class ObjectHandler {
         return sorted_obj;
     }
 
-    public arrayFromMap<T>(map: { [i: number]: T }): T[] {
+    public static arrayFromMap<T>(map: { [i: number]: T }): T[] {
         let res: T[] = [];
 
         for (let i in map) {
@@ -55,7 +247,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public mapByNumberFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
+    public static mapByNumberFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
         let res: { [i: number]: T } = {};
 
         for (let i in a) {
@@ -65,7 +257,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public mapByStringFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: string]: T } {
+    public static mapByStringFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: string]: T } {
         let res: { [i: string]: T } = {};
 
         for (let i in a) {
@@ -75,7 +267,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public mapFromIdsArray(a: number[]): { [i: number]: boolean } {
+    public static mapFromIdsArray(a: number[]): { [i: number]: boolean } {
         let res: { [i: number]: boolean } = {};
 
         for (let i in a) {
@@ -84,7 +276,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public getIdsList(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): number[] {
+    public static getIdsList(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): number[] {
         let res: number[] = [];
 
         for (let i in vos) {
@@ -99,7 +291,7 @@ export default class ObjectHandler {
     /**
      * @param map The map of type {[index:number] : any} from which we want to extract the indexes as number[]
      */
-    public getNumberMapIndexes(map: { [index: number]: any }): number[] {
+    public static getNumberMapIndexes(map: { [index: number]: any }): number[] {
         let res: number[] = [];
 
         for (let i in map) {
@@ -112,7 +304,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public hasData(object): boolean {
+    public static hasData(object): boolean {
         return (object != null) && (typeof object != "undefined");
     }
 
@@ -120,7 +312,7 @@ export default class ObjectHandler {
      * Returns true if the object has an attribute, even if the attribute is valued to null
      * @param object
      */
-    public hasAtLeastOneAttribute(object): boolean {
+    public static hasAtLeastOneAttribute(object): boolean {
         for (let i in object) {
             return true;
         }
@@ -133,7 +325,7 @@ export default class ObjectHandler {
      * Returns true if the object has an attribute, even if the attribute is valued to null
      * @param object
      */
-    public hasOneAndOnlyOneAttribute(object): boolean {
+    public static hasOneAndOnlyOneAttribute(object): boolean {
 
         let res: boolean = false;
         for (let i in object) {
@@ -148,10 +340,10 @@ export default class ObjectHandler {
         return res;
     }
     /**
-     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a var we delete right next ...
+     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a let we delete right next ...
      * @param object
      */
-    public shiftAttribute(object): any {
+    public static shiftAttribute(object): any {
         for (let i in object) {
             let res = object[i];
             delete object[i];
@@ -162,10 +354,10 @@ export default class ObjectHandler {
     }
 
     /**
-     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a var we delete right next ...
+     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a let we delete right next ...
      * @param object
      */
-    public getFirstAttributeName(object): any {
+    public static getFirstAttributeName(object): any {
         for (let i in object) {
             return i;
         }
@@ -176,7 +368,7 @@ export default class ObjectHandler {
     /**
      * Returns the path if exists in the object
      */
-    public getPathInObject(object, path: string): any {
+    public static getPathInObject(object, path: string): any {
 
         if ((!path) || (!object)) {
             return null;
@@ -198,7 +390,7 @@ export default class ObjectHandler {
     }
 
 
-    public filterVosIdsByNumRange<T>(elts_by_id: { [id: number]: T }, range: NumRange): { [id: number]: T } {
+    public static filterVosIdsByNumRange<T>(elts_by_id: { [id: number]: T }, range: NumRange): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
         for (let id in elts_by_id) {
@@ -214,7 +406,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public filterVosIdsByNumRanges<T>(elts_by_id: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
+    public static filterVosIdsByNumRanges<T>(elts_by_id: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
         for (let id in elts_by_id) {
@@ -227,4 +419,8 @@ export default class ObjectHandler {
 
         return res;
     }
+
+    private static instance: ObjectHandler = null;
+
+    private constructor() { }
 }

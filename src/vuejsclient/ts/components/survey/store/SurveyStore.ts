@@ -1,7 +1,7 @@
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors } from "vuex-typescript";
 import IStoreModule from '../../../store/IStoreModule';
+import { store_mutations_names } from "../../../store/StoreModuleBase";
 
 export type SurveyContext = ActionContext<ISurveyState, any>;
 
@@ -23,7 +23,9 @@ export default class SurveyStore implements IStoreModule<ISurveyState, SurveyCon
     public module_name: string;
     public state: any;
     public getters: GetterTree<ISurveyState, SurveyContext>;
-    public mutations: MutationTree<ISurveyState>;
+    public mutations = {
+        set_hidden(state: ISurveyState, hidden: boolean) { state.hidden = hidden; },
+    };
     public actions: ActionTree<ISurveyState, SurveyContext>;
     public namespaced: boolean = true;
 
@@ -41,22 +43,11 @@ export default class SurveyStore implements IStoreModule<ISurveyState, SurveyCon
             get_hidden(state: ISurveyState): boolean { return state.hidden; },
         };
 
-        this.mutations = {
-
-            set_hidden(state: ISurveyState, hidden: boolean) { state.hidden = hidden; },
-        };
-
-
-
         this.actions = {
-            set_hidden(context: SurveyContext, hidden: boolean) { commit_set_hidden(context, hidden); },
+            set_hidden: (context: SurveyContext, hidden: boolean) => context.commit(store_mutations_names(this).set_hidden, hidden)
         };
     }
 }
 
-const { commit, read, dispatch } =
-    getStoreAccessors<ISurveyState, any>("SurveyStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleSurveyGetter = namespace('SurveyStore', Getter);
 export const ModuleSurveyAction = namespace('SurveyStore', Action);
-
-export const commit_set_hidden = commit(SurveyStore.getInstance().mutations.set_hidden);

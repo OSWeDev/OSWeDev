@@ -8,6 +8,7 @@ import DeleteOldExpressSessionsCronWorker from "./workers/DeleteOldExpressSessio
 
 export default class ExpressDBSessionsWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ExpressDBSessionsWorkersHandler.instance) {
             ExpressDBSessionsWorkersHandler.instance = new ExpressDBSessionsWorkersHandler();

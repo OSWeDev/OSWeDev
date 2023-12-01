@@ -1,13 +1,14 @@
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import ModuleContextFilter from "../../../../../../shared/modules/ContextFilter/ModuleContextFilter";
 import ContextFilterVO from "../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
 import ModuleTable from "../../../../../../shared/modules/ModuleTable";
 import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
-import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
+import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
-export default class FieldValueFilterWidgetController {
+export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {
 
     public static getInstance(): FieldValueFilterWidgetController {
         if (!this.instance) {
@@ -17,9 +18,11 @@ export default class FieldValueFilterWidgetController {
         return this.instance;
     }
 
-    private static instance = null;
+    protected static instance = null;
 
-    private constructor() { }
+    private constructor() {
+        super();
+    }
 
     public add_discarded_field_paths(q: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): ContextQueryVO {
 
@@ -35,7 +38,11 @@ export default class FieldValueFilterWidgetController {
         return q;
     }
 
-    public async check_segmented_dependencies(dashboard: DashboardVO, query_: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }, ignore_self_filter: boolean = true): Promise<ContextQueryVO> {
+    public async check_segmented_dependencies(
+        query_: ContextQueryVO,
+        api_type_ids: string[],
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        ignore_self_filter: boolean = true): Promise<ContextQueryVO> {
 
         /**
          * Si on est pas segmenté, mais qu'on a dans les active_api_type_ids un type segmenté, on check que le nombre d'option est faible pour la table segmentée,
@@ -45,8 +52,8 @@ export default class FieldValueFilterWidgetController {
         let has_segmented_too_much_options: boolean = false;
         let has_segmented_too_much_options_api_type_id: string = null;
 
-        for (let i in dashboard.api_type_ids) {
-            let api_type_id: string = dashboard.api_type_ids[i];
+        for (let i in api_type_ids) {
+            let api_type_id: string = api_type_ids[i];
             let module_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (module_table && module_table.is_segmented) {

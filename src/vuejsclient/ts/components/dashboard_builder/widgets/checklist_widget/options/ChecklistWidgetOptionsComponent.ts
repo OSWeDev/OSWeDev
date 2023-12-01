@@ -5,7 +5,7 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
@@ -37,7 +37,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: ChecklistWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private checklist_selected: CheckListVO = null;
     private delete_all_button: boolean = false;

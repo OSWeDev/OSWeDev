@@ -21,7 +21,7 @@ import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
@@ -106,6 +106,9 @@ export default class CRUDComponent extends VueComponentBase {
 
     @Prop({ default: false })
     private bootstrap_3_modal_fallback: boolean;
+
+    @Prop({ default: true })
+    private show_pagination_datatable: boolean;
 
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
@@ -303,9 +306,7 @@ export default class CRUDComponent extends VueComponentBase {
 
             res.push(
                 (async () => {
-                    let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
-                        IDistantVOBase
-                    >(datatable.API_TYPE_ID);
+                    let vos: IDistantVOBase[] = await query(datatable.API_TYPE_ID).select_vos();
                     self.storeDatas({
                         API_TYPE_ID: datatable.API_TYPE_ID,
                         vos: vos
@@ -490,7 +491,7 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type;
+                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
                 if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
 
@@ -576,7 +577,7 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type;
+                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
                 if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
                     if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {

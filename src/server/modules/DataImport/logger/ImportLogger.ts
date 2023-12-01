@@ -5,6 +5,7 @@ import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataIm
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
 export default class ImportLogger {
 
@@ -37,6 +38,6 @@ export default class ImportLogger {
         log.message = (format ? format.import_uid + '::' : '') + message;
         log.api_type_id = historique.api_type_id;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(log);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(log);
     }
 }

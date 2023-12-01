@@ -4,7 +4,7 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../../../VOsTypesManager';
+import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 
 export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -62,6 +62,10 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
     get translatable_title(): string {
         if (!this.vo_type_full_name) {
             return null;
+        }
+
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
         }
 
         let e = this.destField.field_id ? this.targetModuleTable.label.code_text + '_' + this.destField.field_id : this.targetModuleTable.label.code_text;

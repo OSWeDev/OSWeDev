@@ -6,6 +6,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
 import DatatableField from '../DAO/vos/datatable/DatatableField';
+import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
@@ -13,14 +14,16 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IExportableSheet from './interfaces/IExportableSheet';
+import IExportOptions from './interfaces/IExportOptions';
 import ExportContextQueryToXLSXParamVO, { ExportContextQueryToXLSXParamVOStatic } from './vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
 import ExportVarcolumnConf from './vos/ExportVarcolumnConf';
+import ExportVarIndicator from './vos/ExportVarIndicator';
 
 export default class ModuleDataExport extends Module {
 
@@ -51,7 +54,7 @@ export default class ModuleDataExport extends Module {
         columns?: TableColumnDescVO[],
         fields?: { [datatable_field_uid: string]: DatatableField<any, any> },
         varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
-        active_field_filters?: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_field_filters?: FieldFiltersVO,
         custom_filters?: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
         active_api_type_ids?: string[],
         discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },
@@ -59,7 +62,11 @@ export default class ModuleDataExport extends Module {
         is_secured?: boolean,
         file_access_policy_name?: string,
         target_user_id?: number,
-        do_not_user_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
+        do_not_use_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
+
+        export_options?: IExportOptions,
+
+        vars_indicator?: ExportVarIndicator,
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
 
     public exportDataToXLSX: (
@@ -71,6 +78,7 @@ export default class ModuleDataExport extends Module {
         is_secured?: boolean,
         file_access_policy_name?: string
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVO);
+
     public exportDataToXLSXFile: (
         filename: string,
         datas: any[],
@@ -79,12 +87,14 @@ export default class ModuleDataExport extends Module {
         api_type_id: string,
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
+
     public exportDataToMultiSheetsXLSX: (
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
+
     public exportDataToMultiSheetsXLSXFile: (
         filename: string,
         sheets: IExportableSheet[],
@@ -111,8 +121,7 @@ export default class ModuleDataExport extends Module {
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO,
             [FileVO.API_TYPE_ID],
-            ExportContextQueryToXLSXParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_FILE
+            ExportContextQueryToXLSXParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(

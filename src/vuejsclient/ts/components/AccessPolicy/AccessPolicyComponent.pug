@@ -20,7 +20,7 @@ include ../../../views/mixins/loading.pug
                 .filters
                     .filters-toggles
                         template(v-for="policy_group in ordered_policy_groups")
-                            template(v-if='display_policy_groups[policy_group.id]')
+                            template(v-if='access_matrix && display_policy_groups && policy_groups_segmentations && display_policy_groups[policy_group.id] && policy_groups_segmentations[policy_group.id]')
                                 template(v-for="(policy_group_segmentation, i) in policy_groups_segmentations[policy_group.id]")
                                     .filters-toggle-segment
                                         .segment-title {{ policy_group_segmentation.name }}
@@ -30,7 +30,7 @@ include ../../../views/mixins/loading.pug
                                             :sync="true"
                                             :width="100"
                                             :labels="{checked: label('access_policy.admin.filters.visible'), unchecked: label('access_policy.admin.filters.hidden')}")
-                
+
         .row
             .col-sm-12
                 .table_container
@@ -41,10 +41,10 @@ include ../../../views/mixins/loading.pug
                                 th(v-for="role in roles") {{ label(role.translatable_name) }}
                         template(slot="tbody")
                             template(v-for="policy_group in ordered_policy_groups")
-                                template(v-if='display_policy_groups[policy_group.id]')
+                                template(v-if='access_matrix && display_policy_groups && policy_groups_segmentations && display_policy_groups[policy_group.id] && policy_groups_segmentations[policy_group.id]')
                                     template(v-for="policy_group_segmentation in policy_groups_segmentations[policy_group.id]")
                                         template(v-if='!!display_policy_group_segmentations[policy_group_segmentation.id]')
-                                            tr.show.collapse.policy(v-for="policy in policy_group_segmentation.policies" :class="{'policy_hidden': !policy_visibility[policy.id]}")
+                                            tr.show.collapse.policy(v-for="policy in policy_group_segmentation.policies" :class="{'policy_hidden': !policy_visibility[policy.id]}" :id="policy.translatable_name")
                                                 td {{ label(policy.translatable_name) }}
                                                 td( v-for="role in roles" 
                                                     :class="{'bg-success': access_matrix[policy.id][role.id], 'bg-secondary': !access_matrix[policy.id][role.id]}"
@@ -56,7 +56,7 @@ include ../../../views/mixins/loading.pug
                                                         :sync="true"
                                                         :width="100"
                                                         :disabled="busy || !((!inherited_access_matrix[policy.id][role.id]) && (policies_visibility_by_role_id[role.id][policy.id]))"
-                                                        :labels="{checked: label('access_policy.admin.table.granted'), unchecked: label('access_policy.admin.table.denied')}"
+                                                        :labels="{checked: label('access_policy.admin.table.granted'), unchecked: label('access_policy.admin.table.denied')}" 
                                                         v-tooltip="label(policy.translatable_name)")
 
                                                 //- tr.policy_group(:class="{'group_hidden': !policy_groups_vibility[policy_group.id]}")
@@ -66,4 +66,3 @@ include ../../../views/mixins/loading.pug
                                                 //-             i.collapse.show.fa.fa-minus.fa-fw(aria-hidden="true" :class="'collapseGroup' + policy_group.id")
                                                 //-         | {{ label(policy_group.translatable_name) }}
                                                 //-     td(v-for="role in roles")
-                                            

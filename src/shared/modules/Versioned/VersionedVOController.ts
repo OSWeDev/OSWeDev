@@ -3,7 +3,7 @@ import IVOController from '../../interfaces/IVOController';
 import ModuleTable from '../../modules/ModuleTable';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 
 export default class VersionedVOController implements IVOController {
 

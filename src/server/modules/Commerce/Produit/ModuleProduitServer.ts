@@ -11,6 +11,7 @@ import ProduitControllersManager from './ProduitControllersManager';
 
 export default class ModuleProduitServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleProduitServer.instance) {
             ModuleProduitServer.instance = new ModuleProduitServer();
@@ -24,6 +25,7 @@ export default class ModuleProduitServer extends ModuleServerBase {
         super(ModuleProduit.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         // APIControllerWrapper.registerServerApiHandler(ModuleProduit.APINAME_getProduitAjoutPanier, this.getProduitAjoutPanier.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleProduit.APINAME_getFacturationProduitByIdProduit, this.getFacturationProduitByIdProduit.bind(this));

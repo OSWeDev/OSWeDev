@@ -1,4 +1,4 @@
-/* à creuser export class ServiceFactory {
+/* à creuser export default class ServiceFactory {
     private static instance = null;
 
     private constructor(){

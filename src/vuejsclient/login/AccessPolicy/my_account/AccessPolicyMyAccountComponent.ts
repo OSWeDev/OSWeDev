@@ -7,7 +7,7 @@ import './AccessPolicyMyAccountComponent.scss';
 import NFCUserTagListComponent from "../../../ts/components/NFCConnect/user_tag_list/NFCUserTagListComponent";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 import AccessPolicyMyAccountComponentController from "./AccessPolicyMyAccountComponentController";
-import VOsTypesManager from "../../../../shared/modules/VOsTypesManager";
+import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManager";
 import SimpleDatatableFieldVO from "../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 
 @Component({

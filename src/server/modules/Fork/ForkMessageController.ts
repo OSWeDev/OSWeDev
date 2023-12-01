@@ -5,90 +5,93 @@ import { performance } from 'perf_hooks';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import StatVO from '../../../shared/modules/Stats/vos/StatVO';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import StatsServerController from '../Stats/StatsServerController';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkMessageWrapper from './interfaces/IForkMessageWrapper';
+import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
+import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 
 export default class ForkMessageController {
-
-    public static getInstance() {
-        if (!ForkMessageController.instance) {
-            ForkMessageController.instance = new ForkMessageController();
-        }
-        return ForkMessageController.instance;
-    }
-
-    private static instance: ForkMessageController = null;
 
     /**
      * Local thread cache -----
      */
-    public stacked_msg_waiting: IForkMessageWrapper[] = [];
-    private registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean> } = {};
+    public static stacked_msg_waiting: IForkMessageWrapper[] = [];
     /**
      * ----- Local thread cache
      */
 
-    private last_log_msg_error: number = 0;
-
-    private throttled_retry = throttle(this.retry.bind(this), 1000);
-
-    private constructor() { }
-
-    public register_message_handler(message_type: string, handler: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean>) {
-        this.registered_messages_handlers[message_type] = handler;
+    public static register_message_handler(message_type: string, handler: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean>) {
+        ForkMessageController.registered_messages_handlers[message_type] = handler;
     }
 
-    public async message_handler(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess = null): Promise<boolean> {
-        if ((!msg) || (!this.registered_messages_handlers[msg.message_type])) {
+    public static async message_handler(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess = null): Promise<boolean> {
+        if ((!msg) || (!ForkMessageController.registered_messages_handlers[msg.message_type])) {
             return false;
         }
 
-        StatsServerController.register_stat('ForkMessageController.receive.' + msg.message_type + '.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_type);
+        if ((!!msg.message_content) && (
+            ((typeof msg.message_content == "string") && (!msg.message_content.startsWith('{'))) &&
+            (msg.message_type == MainProcessTaskForkMessage.FORK_MESSAGE_TYPE) ||
+            (msg.message_type == BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE) ||
+            (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE))) {
+            StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_content);
+        }
 
-        return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
+        try {
+
+            return await ForkMessageController.registered_messages_handlers[msg.message_type](msg, sendHandle);
+        } catch (error) {
+            ConsoleHandler.error('ForkMessageController.message_handler error: ' + error);
+            return false;
+        }
     }
 
     /**
      * On envoie le message à tous les process. Si on est dans un childprocess, on renvoi vers le parent qui enverra vers tout le monde, y compris nous
      *  Donc si on associe un comportement à ce message, il ne faut pas le faire manuellement, il sera exécuté par le message handler
      */
-    public async broadcast(msg: IForkMessage, ignore_uid: number = null): Promise<boolean> {
+    public static async broadcast(msg: IForkMessage, ignore_uid: number = null): Promise<boolean> {
 
-        if (!ForkServerController.getInstance().is_main_process) {
-            await this.send(new BroadcastWrapperForkMessage(msg));
+        if (!ForkServerController.is_main_process()) {
+            await ForkMessageController.send(new BroadcastWrapperForkMessage(msg));
             return true;
         } else {
 
-            for (let i in ForkServerController.getInstance().process_forks) {
-                let forked = ForkServerController.getInstance().process_forks[i];
+            for (let i in ForkServerController.forks) {
+                let forked = ForkServerController.forks[i];
 
                 if ((ignore_uid != null) && (ignore_uid == forked.uid)) {
                     continue;
                 }
-                await this.send(msg, forked.child_process, forked);
+                await ForkMessageController.send(msg, forked.child_process, forked);
             }
-            await this.message_handler(msg);
+            return await ForkMessageController.message_handler(msg);
         }
     }
 
-    public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
+    public static async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
-        StatsServerController.register_stat('ForkMessageController.send.' + msg.message_type + '.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_type);
+        if ((!!msg.message_content) &&
+            ((typeof msg.message_content == "string") && (!msg.message_content.startsWith('{'))) && (
+                (msg.message_type == MainProcessTaskForkMessage.FORK_MESSAGE_TYPE) ||
+                (msg.message_type == BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE) ||
+                (msg.message_type == BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE))) {
+            StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_content);
+        }
 
         return new Promise((resolve, reject) => {
 
             msg = APIControllerWrapper.try_translate_vo_to_api(msg);
             let res: boolean = false;
             let sendHandle = (!child_process) ? process : child_process;
-            let self = this;
+            let self = ForkMessageController;
 
             if ((!sendHandle) || (!sendHandle.send)) {
                 resolve(false);
@@ -107,22 +110,22 @@ export default class ForkMessageController {
                 resolve(!error);
             });
 
-            if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
-                this.throttled_retry();
+            if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
+                ForkMessageController.throttled_retry();
             }
         });
     }
 
-    public retry() {
-        if ((!this.stacked_msg_waiting) || (!this.stacked_msg_waiting.length)) {
+    public static retry() {
+        if ((!ForkMessageController.stacked_msg_waiting) || (!ForkMessageController.stacked_msg_waiting.length)) {
             return;
         }
 
-        ConsoleHandler.warn("Retry messages... :" + this.stacked_msg_waiting.length + ':');
+        ConsoleHandler.warn("Retry messages... :" + ForkMessageController.stacked_msg_waiting.length + ':');
 
-        let stacked_msg_waiting = this.stacked_msg_waiting;
-        this.stacked_msg_waiting = [];
-        let self = this;
+        let stacked_msg_waiting = ForkMessageController.stacked_msg_waiting;
+        ForkMessageController.stacked_msg_waiting = [];
+        let self = ForkMessageController;
 
         stacked_msg_waiting.forEach((msg_wrapper: IForkMessageWrapper) => {
             msg_wrapper.sendHandle.send(msg_wrapper.message, (error: Error) => {
@@ -130,20 +133,24 @@ export default class ForkMessageController {
             });
         });
 
-        if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
-            this.throttled_retry();
+        if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
+            ForkMessageController.throttled_retry();
         }
     }
 
-    private handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {
+    private static registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean> } = {};
+    private static last_log_msg_error: number = 0;
+    private static throttled_retry = throttle(ForkMessageController.retry.bind(ForkMessageController), 500);
+
+    private static handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {
         if (error) {
 
             /**
              * On log max 1 fois par minute
              */
             let log_msg_error = performance.now();
-            if (this.last_log_msg_error < (log_msg_error - 60)) {
-                this.last_log_msg_error = log_msg_error;
+            if (ForkMessageController.last_log_msg_error < (log_msg_error - 60)) {
+                ForkMessageController.last_log_msg_error = log_msg_error;
                 ConsoleHandler.error(error);
             }
 
@@ -154,31 +161,31 @@ export default class ForkMessageController {
                 ConsoleHandler.error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected');
             }
 
-            this.stacked_msg_waiting.push(msg_wrapper);
+            ForkMessageController.stacked_msg_waiting.push(msg_wrapper);
 
             /**
              * On informe qu'un thread est plus accessible
              */
             if (msg_wrapper.forked_target) {
 
-                if (ForkServerController.getInstance().forks_reload_asap[msg_wrapper.forked_target.uid]) {
+                if (ForkServerController.forks_reload_asap[msg_wrapper.forked_target.uid]) {
                     /**
                      * On doit restart ASAP
                      */
-                    ForkServerController.getInstance().forks_reload_asap[msg_wrapper.forked_target.uid] = false;
+                    ForkServerController.forks_reload_asap[msg_wrapper.forked_target.uid] = false;
                     ConsoleHandler.error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread le plus vite possible.');
-                    ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
-                    ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
-                    ForkServerController.getInstance().throttled_reload_unavailable_threads();
+                    ForkServerController.forks_availability[msg_wrapper.forked_target.uid] = null;
+                    ForkServerController.forks_alive[msg_wrapper.forked_target.uid] = false;
+                    ForkServerController.throttled_reload_unavailable_threads();
                     return;
                 }
 
-                if (ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] &&
-                    (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) > ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid])) {
+                if (ForkServerController.forks_availability[msg_wrapper.forked_target.uid] &&
+                    (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) > ForkServerController.forks_availability[msg_wrapper.forked_target.uid])) {
                     ConsoleHandler.error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
-                    ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
-                    ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
-                    ForkServerController.getInstance().throttled_reload_unavailable_threads();
+                    ForkServerController.forks_availability[msg_wrapper.forked_target.uid] = null;
+                    ForkServerController.forks_alive[msg_wrapper.forked_target.uid] = false;
+                    ForkServerController.throttled_reload_unavailable_threads();
                 }
             }
         }

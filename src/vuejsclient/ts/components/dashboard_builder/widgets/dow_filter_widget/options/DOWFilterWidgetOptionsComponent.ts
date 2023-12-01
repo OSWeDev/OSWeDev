@@ -4,7 +4,7 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
@@ -42,7 +42,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
     private custom_filter_name: string = null;
 
     private next_update_options: DOWFilterWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get has_existing_other_custom_filters(): boolean {
         if (!this.other_custom_filters) {

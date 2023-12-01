@@ -6,8 +6,10 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class InitUserLogPolicies implements IGeneratorWorker {
 
@@ -56,15 +58,15 @@ export default class InitUserLogPolicies implements IGeneratorWorker {
         role_id: number) {
 
         // UserLog
-        await this.activate_policy(policies_ids_by_name[ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, UserLogVO.API_TYPE_ID)], role_id, access_matrix);
-        await this.activate_policy(policies_ids_by_name[ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, UserLogVO.API_TYPE_ID)], role_id, access_matrix);
-        await this.activate_policy(policies_ids_by_name[ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, UserLogVO.API_TYPE_ID)], role_id, access_matrix);
+        await this.activate_policy(policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, UserLogVO.API_TYPE_ID)], role_id, access_matrix);
+        await this.activate_policy(policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, UserLogVO.API_TYPE_ID)], role_id, access_matrix);
+        await this.activate_policy(policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, UserLogVO.API_TYPE_ID)], role_id, access_matrix);
     }
 
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
         let roles_ids_by_name: { [role_name: string]: number } = {};
-        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
         for (let i in roles) {
             let role = roles[i];
@@ -77,7 +79,7 @@ export default class InitUserLogPolicies implements IGeneratorWorker {
 
     private async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
         let policies_ids_by_name: { [role_name: string]: number } = {};
-        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
 
         for (let i in policies) {
             let policy = policies[i];

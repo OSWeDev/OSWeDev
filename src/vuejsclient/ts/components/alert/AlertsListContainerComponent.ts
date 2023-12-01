@@ -9,7 +9,7 @@ import AlertsListContentComponent from './AlertsListContentComponent';
     template: require('./AlertsListContainerComponent.pug'),
     components: {
         Alertslistcontentcomponent: AlertsListContentComponent,
-        Draggablewindowcomponent: () => import(/* webpackChunkName: "DraggableWindowComponent" */ '../../components/draggable_window/DraggableWindowComponent'),
+        Draggablewindowcomponent: () => import('../../components/draggable_window/DraggableWindowComponent'),
     }
 })
 export default class AlertsListContainerComponent extends VueComponentBase {

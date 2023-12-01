@@ -14,7 +14,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -23,6 +23,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleVocusServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleVocusServer.instance) {
             ModuleVocusServer.instance = new ModuleVocusServer();
@@ -32,10 +33,12 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
     private static instance: ModuleVocusServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleVocus.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vocus'
@@ -66,6 +69,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVocus.POLICY_GROUP;
@@ -83,10 +87,11 @@ export default class ModuleVocusServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleVocus.APINAME_getVosRefsById, this.getVosRefsById.bind(this));
     }
@@ -99,7 +104,8 @@ export default class ModuleVocusServer extends ModuleServerBase {
         API_TYPE_ID: string,
         id: number,
         segmentation_ranges: IRange[] = null,
-        limit: number = 1000
+        limit: number = 1000,
+        limit_to_cascading_refs: boolean = false
     ): Promise<VocusInfoVO[]> {
 
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
@@ -143,6 +149,10 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 }
 
                 if ((!field.manyToOne_target_moduletable) || (field.manyToOne_target_moduletable.vo_type != moduleTable.vo_type)) {
+                    continue;
+                }
+
+                if (limit_to_cascading_refs && !field.cascade_on_delete) {
                     continue;
                 }
 

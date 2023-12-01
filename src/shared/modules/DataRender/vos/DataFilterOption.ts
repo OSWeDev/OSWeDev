@@ -1,5 +1,9 @@
+import AbstractVO from "../../VO/abstract/AbstractVO";
 
-export default class DataFilterOption {
+/**
+ * DataFilterOption
+ */
+export default class DataFilterOption extends AbstractVO {
     public static STATE_SELECTED: number = 1;
     public static STATE_SELECTABLE: number = 2;
     public static STATE_UNSELECTABLE: number = 3;
@@ -7,9 +11,9 @@ export default class DataFilterOption {
     public text_uid: string = null;
 
     public constructor(
-        public select_state: number,
-        public label: string,
-        public id: number,
+        public select_state?: number,
+        public label?: string,
+        public id?: number,
         public disabled_state_selected: boolean = false,
         public disabled_state_selectable: boolean = false,
         public disabled_state_unselectable: boolean = false,
@@ -19,10 +23,12 @@ export default class DataFilterOption {
         public numeric_value: number = null,
         public string_value: string = null,
         public tstz_value: number = null,
-        init: boolean = false,
+        public init: boolean = false,
         public options: DataFilterOption[] = [],
         public custom_name: string = null,
     ) {
+        super();
+
         if (!custom_name) {
             this.custom_name = label;
         }

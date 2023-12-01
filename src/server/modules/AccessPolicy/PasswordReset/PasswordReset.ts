@@ -1,17 +1,21 @@
-
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import AccessPolicyController from '../../../../shared/modules/AccessPolicy/AccessPolicyController';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import StackContext from '../../../StackContext';
+import DAOServerController from '../../DAO/DAOServerController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
+import ModuleTable from '../../../../shared/modules/ModuleTable';
 
 export default class PasswordReset {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PasswordReset.instance) {
             PasswordReset.instance = new PasswordReset();
@@ -136,7 +140,7 @@ export default class PasswordReset {
             return false;
         }
 
-        if (ModuleDAOServer.getInstance().global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             // On est en readonly partout, donc on informe sur impossibilité de se connecter
             await PushDataServerController.getInstance().notifySession(
                 'error.global_update_blocker.activated.___LABEL___',
@@ -145,12 +149,10 @@ export default class PasswordReset {
             return false;
         }
 
-        // On doit se comporter comme un server à ce stade
-        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-
-            AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
-            await ModuleDAO.getInstance().insertOrUpdateVO(user);
-        });
+        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
+        await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>(
+            ModuleTable.default_get_api_version(user, false)
+        );
 
         return true;
     }

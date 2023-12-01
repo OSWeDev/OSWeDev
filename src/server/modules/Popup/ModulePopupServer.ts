@@ -13,6 +13,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModulePopupServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModulePopupServer.instance) {
             ModulePopupServer.instance = new ModulePopupServer();
@@ -22,10 +23,12 @@ export default class ModulePopupServer extends ModuleServerBase {
 
     private static instance: ModulePopupServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModulePopup.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fermer' },
@@ -33,6 +36,7 @@ export default class ModulePopupServer extends ModuleServerBase {
         );
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModulePopup.POLICY_GROUP;
@@ -51,7 +55,7 @@ export default class ModulePopupServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 }

@@ -9,10 +9,22 @@
         line-height: 1em;
     }
 
-    // .has_opt_custom,
-    // .type_custom {
-    //     width: 50%;
-    //     display: inline-block;
-    //     vertical-align: top;
-    // }
+    .ts_range_input {
+        .vdp-datepicker.form-control {
+
+            padding: 0 !important;
+
+            input {
+                padding: 6px 12px;
+                vertical-align: middle;
+                width: -webkit-fill-available !important;
+                background: transparent;
+            }
+
+            .vdp-datepicker__clear-button {
+                padding: 6px 0px;
+                font-size: larger;
+            }
+        }
+    }
 }

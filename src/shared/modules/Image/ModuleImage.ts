@@ -32,7 +32,7 @@ export default class ModuleImage extends Module {
         this.fields = [];
         this.datatables = [];
 
-        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_image_field, 'Image', false);
+        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_image_field, 'Image', true).unique();
         let datatable_fields = [
             label_field,
         ];

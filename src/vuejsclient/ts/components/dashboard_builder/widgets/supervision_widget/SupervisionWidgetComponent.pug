@@ -24,33 +24,53 @@ include ../../../../../views/mixins/loading.pug
                             | {{ label('crud.actions.refresh') }}
 
         template(v-if="show_bulk_edit")
-            .show_bulk_edit.text-center.mb-2
-                .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(true)") {{ label('supervision_widget_component.select_all') }}
-                .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(false)") {{ label('supervision_widget_component.unselect_all') }}
-                .btn.btn-primary.display_inline_block.mr-2(@click="mark_as_read") {{ label('supervision_widget_component.mark_as_read') }}
-                .btn.btn-primary.display_inline_block(@click="mark_as_unread") {{ label('supervision_widget_component.mark_as_unread') }}
+            .bulk_action.show_bulk_edit.text-center.mb-2
+                .select_btn
+                    .btn.btn-primary.display_inline_block.mr-2(
+                        @click="select_all()"
+                    ) {{ label('supervision_widget_component.select_all') }}
+                    template(v-if="has_one_selected")
+                        .btn.btn-primary.display_inline_block.mr-2(
+                            @click="unselect_all()"
+                        ) {{ label('supervision_widget_component.unselect_all') }}
+
+                .update_action_btn(v-if="has_one_selected")
+                    .btn.btn-primary.display_inline_block.mr-2(
+                        @click="mark_as_read"
+                    ) {{ label('supervision_widget_component.mark_as_read') }}
+                    .btn.btn-primary.display_inline_block(
+                        @click="mark_as_unread"
+                    ) {{ label('supervision_widget_component.mark_as_unread') }}
 
         .table_wrapper
-            table.table-striped.table-hover
+            table.table-hover
                 thead
                     tr
+                        //- Checkboxes 
                         template(v-if="show_bulk_edit")
-                            th
+                            th 
+                        //- Popup actions
                         th
                         th {{ label('supervision_widget_component.table.name') }}
                         th {{ label('supervision_widget_component.table.last_update') }}
                         th {{ label('supervision_widget_component.table.last_value') }}
                 tbody
-                    template(v-for="item in items")
-                        tr(:class="'STATE_' + item.state")
+                    template(v-for="row in items")
+                        tr(:class="'STATE_' + row.state")
                             template(v-if="show_bulk_edit")
                                 td.text-center
-                                    input(type="checkbox", v-model="selected_items[get_identifier(item)]" :checked="selected_items[get_identifier(item)]")
+                                    input(
+                                        :checked="selected_items[get_identifier(row)]",
+                                        v-model="selected_items[get_identifier(row)]", 
+                                        type="checkbox", 
+                                    )
                             td.text-center
-                                .show_detail.clickable(@click="openModal(item)") 
+                                .show_detail.clickable(
+                                    @click="openModal(row)"
+                                ) 
                                     i.fa-duotone.fa-eye.mr-1
                                     span {{ label('supervision_widget_component.table.show_detail') }}
 
-                            td {{ item.name }}
-                            td {{ get_date(item) }}
-                            td {{ item.last_value }}
+                            td {{ row.name }}
+                            td {{ get_date(row) }}
+                            td {{ row.last_value }}

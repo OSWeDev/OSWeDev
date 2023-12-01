@@ -6,6 +6,7 @@ import StartMaintenanceCronWorker from './workers/StartMaintenance/StartMaintena
 
 export default class MaintenanceCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!MaintenanceCronWorkersHandler.instance) {
             MaintenanceCronWorkersHandler.instance = new MaintenanceCronWorkersHandler();

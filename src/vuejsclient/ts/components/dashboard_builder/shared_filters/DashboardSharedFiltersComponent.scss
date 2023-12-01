@@ -1,0 +1,55 @@
+.dashboard-shared-filters-component {
+    .menu_switch {
+        padding: 1em;
+
+        > .label {
+            display: inline-block;
+            font-weight: bold;
+            margin-left: 0.5em;
+            vertical-align: top;
+        }
+
+        .toggle_wrapper {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .menus_organizer_wrapper {
+            padding: 1em;
+        }
+    }
+
+    .body {
+        .dashboard-page-wrapper,
+        .shared-filters-name {
+            background: #f5f5f5;
+            padding: 1em;
+            margin: 5px;
+            box-shadow: 1px 1px 20px #e0e0e0;
+            border-radius: 4px;
+
+            &:hover {
+                box-shadow: 1px 1px 20px #888;
+            }
+        }
+
+        .shared-filters-name {
+            span {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+                line-height: 1.5;
+            }
+
+            a {
+                position: relative;
+                bottom: 5px;
+            }
+        }
+
+        .create-shared-filters {
+            a.option__create {
+                width: 100%;
+            }
+        }
+    }
+}

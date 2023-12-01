@@ -4,6 +4,8 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -11,7 +13,10 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -26,11 +31,13 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
 import TranslationsServerController from './TranslationsServerController';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleTranslationServer.instance) {
             ModuleTranslationServer.instance = new ModuleTranslationServer();
@@ -44,28 +51,31 @@ export default class ModuleTranslationServer extends ModuleServerBase {
      * Local thread cache -----
      */
     public policy_group: AccessPolicyGroupVO = null;
-    private flat_translations: { [code_lang: string]: { [code_text: string]: string } } = null;
+    public flat_translations: { [code_lang: string]: { [code_text: string]: string } } = null;
     /**
      * ----- Local thread cache
      */
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTranslation.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         TranslationCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
 
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
         postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
@@ -262,6 +272,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrer'
         }, 'crud.update.modal.save.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mettre à jour'
+        }, 'crud.update.modal.update.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Supprimer'
+        }, 'crud.update.modal.delete.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modifier'
         }, 'crud.update.modal.title.___LABEL___'));
@@ -463,12 +479,19 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'client.main-title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Admin'
-        }, 'client.menu-gauche.admin'));
+        }, 'client.menu-gauche.admin.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Menu principal'
         }, 'client.menu-gauche.navigationPrincipale'));
 
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année'
+        }, 'label.year.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'label.month.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Janvier'
         }, 'label.month.janvier.___LABEL___'));
@@ -507,6 +530,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'label.month.decembre.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour'
+        }, 'label.day.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Dimanche'
         }, 'label.day.dimanche.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -529,10 +555,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'label.day.samedi.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'tous'
+            'fr-fr': 'Tous'
         }, 'select_all.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'aucun'
+            'fr-fr': 'Aucun'
         }, 'select_none.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -572,11 +598,38 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Liste des alertes'
         }, 'alert.list.title.default.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Annuler'
+        }, 'on_page_translation.rollback_button.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sauvegarder'
+        }, 'on_page_translation.save_button.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'OK'
+        }, 'on_page_translation.save_translation.ok.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Proposer une traduction automatique'
+        }, 'on_page_translation.get_gpt_translation.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique en cours...'
+        }, 'get_gpt_translation.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la traduction automatique'
+        }, 'get_gpt_translation.failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique OK : {gpt_response}'
+        }, 'get_gpt_translation.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique KO : {error}'
+        }, 'get_gpt_translation.error.___LABEL___'));
     }
 
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleTranslation.POLICY_GROUP;
@@ -595,7 +648,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         // let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         // admin_access_dependency.src_pol_id = bo_translations_access.id;
-        // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+        // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
         // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let promises = [];
@@ -610,7 +663,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             // admin_access_dependency = new PolicyDependencyVO();
             // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             // admin_access_dependency.src_pol_id = bo_others_access.id;
-            // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+            // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
             // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
             let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
             access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -646,22 +699,18 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         await Promise.all(promises);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS, this.getALL_FLAT_LOCALE_TRANSLATIONS.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
-    }
-
-    public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
-        return await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
     }
 
     public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
@@ -701,7 +750,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async trigger_ondelete_lang(lang: LangVO): Promise<boolean> {
-        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
+        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
         if (!LANG_SELECTOR_PER_LANG_ACCESS) {
             return false;
         }
@@ -712,8 +761,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     private async getALL_FLAT_LOCALE_TRANSLATIONS(code_lang: string): Promise<{ [code_text: string]: string }> {
 
         if (this.flat_translations && this.flat_translations[code_lang]) {
+            StatsController.register_stat_COMPTEUR("ModuleTranslationServer", "getALL_FLAT_LOCALE_TRANSLATIONS", "USING_CACHE");
             return this.flat_translations[code_lang];
         }
+
+        let time_in_ms = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR("ModuleTranslationServer", "getALL_FLAT_LOCALE_TRANSLATIONS", "BUILDING");
+        ConsoleHandler.log('getALL_FLAT_LOCALE_TRANSLATIONS:BUILDING...');
 
         let res: { [code_text: string]: string } = {};
 
@@ -736,7 +790,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
         promises.push((async () => {
-            translatableTexts = await this.getTranslatableTexts();
+            translatableTexts = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             translatableTexts_by_id = VOsTypesManager.vosArray_to_vosByIds(translatableTexts);
         })());
 
@@ -750,6 +804,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             this.flat_translations = {};
         }
         this.flat_translations[code_lang] = res;
+
+        ConsoleHandler.log('getALL_FLAT_LOCALE_TRANSLATIONS:BUILT');
+        StatsController.register_stat_DUREE("ModuleTranslationServer", "getALL_FLAT_LOCALE_TRANSLATIONS", "BUILT", Dates.now_ms() - time_in_ms);
+
         return res;
     }
 
@@ -858,10 +916,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if ((!vo_update_handler.post_update_vo) || (!vo_update_handler.post_update_vo.code_text)) {
             return false;
         }
-        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text);
+        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text, vo_update_handler.post_update_vo.id);
     }
 
-    private async isCodeOk(code_text: string): Promise<boolean> {
+    private async isCodeOk(code_text: string, self_id: number = null): Promise<boolean> {
 
         // On vérifie qu'il existe pas en base un code conflictuel. Sinon on refuse l'insert
         let something_longer: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
@@ -869,27 +927,41 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             .select_vos<TranslatableTextVO>();
 
         if ((!!something_longer) && (something_longer.length > 0)) {
+
+            if ((something_longer.length == 1) && (something_longer[0].id == self_id)) {
+                return true;
+            }
+
+            ConsoleHandler.error('isCodeOk:' + code_text + ':Something longer already exists:' + something_longer[0].code_text + ': (total of ' + something_longer.length + ' existing conflicting codes)');
             return false;
         }
 
-        let shorter_code: string = code_text;
-        let segments: string[] = shorter_code.split('.');
+        let segments: string[] = code_text.split('.');
 
+        let res = true;
+
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleTranslationServer.isCodeOk');
         while ((!!segments) && (segments.length > 1)) {
 
             segments.pop();
-            shorter_code = segments.join('.');
 
-            let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
-                .filter_by_text_eq('code_text', shorter_code)
-                .select_vos<TranslatableTextVO>();
+            await promises_pipeline.push(async () => {
+                let shorter_code: string = segments.join('.');
+                let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, shorter_code)
+                    .filter_by_num_not_eq(field_names<TranslatableTextVO>().id, self_id)
+                    .select_vos<TranslatableTextVO>();
 
-            if ((!!something_shorter) && (something_shorter.length > 0)) {
-                return false;
-            }
+                if ((!!something_shorter) && (something_shorter.length > 0)) {
+                    ConsoleHandler.error('isCodeOk:' + code_text + ':Something shorter already exists:' + shorter_code);
+                    res = false;
+                }
+            });
         }
 
-        return true;
+        await promises_pipeline.end();
+
+        return res;
     }
 
     private async clear_flat_translations(any?) {

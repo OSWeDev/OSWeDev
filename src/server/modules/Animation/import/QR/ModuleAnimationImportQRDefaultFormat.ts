@@ -1,10 +1,10 @@
 import ModuleAnimationImportQR from "../../../../../shared/modules/Animation/import/QR/ModuleAnimationImportQR";
 import AnimationImportQRVO from "../../../../../shared/modules/Animation/import/QR/vos/AnimationImportQRVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportColumnVO from "../../../../../shared/modules/DataImport/vos/DataImportColumnVO";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import ModulesManagerServer from "../../../ModulesManagerServer";
 
 export default class ModuleAnimationImportQRDefaultFormats {
@@ -40,7 +40,7 @@ export default class ModuleAnimationImportQRDefaultFormats {
         import_base_data_import_file.type = DataImportFormatVO.TYPE_XLSX;
         import_base_data_import_file.type_column_position = DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL;
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs([import_base_data_import_file]);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server([import_base_data_import_file]);
         import_base_data_import_file = await ModuleDataImport.getInstance().getDataImportFile(default_import_format_name);
 
         if (!import_base_data_import_file) {
@@ -62,6 +62,6 @@ export default class ModuleAnimationImportQRDefaultFormats {
         import_base_data_import_columns.push(DataImportColumnVO.createNew('question_file_id', import_base_data_import_file.id));
         import_base_data_import_columns.push(DataImportColumnVO.createNew('reponse_file_id', import_base_data_import_file.id));
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs(import_base_data_import_columns);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(import_base_data_import_columns);
     }
 }

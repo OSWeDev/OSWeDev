@@ -18,6 +18,11 @@ import { ModuleOnPageTranslationGetter } from '../store/OnPageTranslationStore';
 import EditablePageTranslationItem from '../vos/EditablePageTranslationItem';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
 import './OnPageTranslation.scss';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
+import GPTConversationVO from '../../../../../shared/modules/GPT/vos/GPTConversationVO';
+import GPTMessageVO from '../../../../../shared/modules/GPT/vos/GPTMessageVO';
 
 @Component({
     template: require('./OnPageTranslation.pug')
@@ -52,6 +57,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
     // Pas idéal mais en attendant de gérer les trads en interne.
     private lang_id: number = null;
+    private missingTranslationsNumber: number = 0;
 
     private debounced_onChange_getPageTranslations = debounce(this.change_page_translations_wrapper.bind(this), 500);
 
@@ -90,16 +96,16 @@ export default class OnPageTranslation extends VueComponentBase {
         this.debounced_onChange_getPageTranslations();
     }
 
-    get missingTranslationsNumber(): number {
+    private set_missingTranslationsNumber() {
         let res: number = 0;
 
         for (let i in this.editable_translations) {
-            if (!this.editable_translations[i].translation) {
+            if (!this.editable_translations[i].translation || this.editable_translations[i].missing) {
                 res++;
             }
         }
 
-        return res;
+        this.missingTranslationsNumber = res;
     }
 
     get isActive(): boolean {
@@ -313,33 +319,50 @@ export default class OnPageTranslation extends VueComponentBase {
             return;
         }
 
-        let translations: Array<{
-            code_text: string,
-            translated: string,
-            id,
-            lang_id,
-            text_id
-        }> = await query(TranslationVO.API_TYPE_ID)
-            .field('code_text', null, TranslatableTextVO.API_TYPE_ID)
-            .field('id')
-            .field('lang_id')
-            .field('text_id')
-            .field('translated')
-            .filter_by_text_has('code_text', texts, TranslatableTextVO.API_TYPE_ID)
-            .filter_by_num_eq('lang_id', this.lang_id)
-            .select_all() as any;
+        let translation_by_code_text: {
+            [code_text: string]: {
+                code_text: string,
+                translated: string,
+                id,
+                lang_id,
+                text_id
+            }
+        } = ObjectHandler.mapByStringFieldFromArray(
+            await query(TranslationVO.API_TYPE_ID)
+                .field('code_text', null, TranslatableTextVO.API_TYPE_ID)
+                .field('id')
+                .field('lang_id')
+                .field('text_id')
+                .field('translated')
+                .filter_by_text_has('code_text', texts, TranslatableTextVO.API_TYPE_ID)
+                .filter_by_num_eq('lang_id', this.lang_id)
+                .set_max_age_ms(1000 * 60) // 1 minute de cache - on peut imaginer plus si on a une invalidation du cache via trigger. pour l'instant c'est pas le cas
+                .select_all() as any,
+            'code_text'
+        );
 
         let new_editable_translations: EditablePageTranslationItem[] = [];
-        for (let i in translations) {
-            let translation = new TranslationVO();
-            let t = translations[i];
-            translation.id = parseInt(t.id);
-            translation.lang_id = parseInt(t.lang_id);
-            translation.text_id = parseInt(t.text_id);
-            translation.translated = t.translated;
+        for (let i in texts) {
+            let translation = null;
+            let code_text: string = texts[i];
+            let t = translation_by_code_text[code_text];
 
-            this.translations_by_code[t.code_text] = translation as any as TranslationVO;
-            let editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(t.code_text, this.translations_by_code[t.code_text]);
+            if (t) {
+                translation = new TranslationVO();
+                translation.lang_id = this.lang_id;
+                translation.id = parseInt(t.id);
+                translation.lang_id = parseInt(t.lang_id);
+                translation.text_id = parseInt(t.text_id);
+                translation.translated = t.translated;
+            }
+
+            this.translations_by_code[code_text] = translation;
+            let editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(code_text, this.translations_by_code[code_text]);
+
+            if (!editable_translation.translation) {
+                editable_translation.missing = true;
+            }
+
             new_editable_translations.push(editable_translation);
         }
 
@@ -372,5 +395,130 @@ export default class OnPageTranslation extends VueComponentBase {
             }
         }
         this.editable_translations = new_editable_translations;
+        this.set_missingTranslationsNumber();
+    }
+
+    private async get_gpt_translation(editable_translation: EditablePageTranslationItem) {
+        if (!editable_translation) {
+            return;
+        }
+
+        if (!this.lang_id) {
+            return;
+        }
+
+        /**
+         * Pour le prompt, on demande de traduire le code_text, on fournit la trad actuelle si il y en a une (trad validée, pas en cours de saisie)
+         *  et la trad de ce code dans les autres langues, si on a l'info, et enfin on fourni aussi les autres codes de la page actuelle
+         */
+
+        let langs_by_id: { [id: number]: LangVO } = this.getStoredDatas[LangVO.API_TYPE_ID] as { [id: number]: LangVO };
+
+        let max_tokens = 8192;
+
+        let prompt: string = "Tu es traducteur, et tu es sur une page web dont le contenu peut être traduit dans différentes langues.\n" +
+            "Ton objectif est de remplir un input de type text avec la traduction la plus appropriée pour la langue dont le code est " + langs_by_id[this.lang_id].code_lang + ".\n" +
+            "Tu dois répondre uniquement la traduction, tu ne peux pas demander de complément d'information. Si tu ne sais pas traduire le code texte, tu ne dois rien répondre du tout.\n" +
+            "Pour cela, tu peux t'aider de la traduction actuelle, si il y en a une, et des traductions dans les autres langues, si il y en a.\n" +
+            "Tu peux aussi t'aider du contexte de la page, et des autres traductions de la page.\n" +
+            "Les traductions sont gérés par des codes qui servent à identifier le positionnement dans la page. Le code du texte que tu dois traduire maintenant est \"" + editable_translation.translation_code + "\".\n";
+
+        if (editable_translation.translation && !this.updated_translation(editable_translation)) {
+            prompt += "La traduction actuelle est \"" + editable_translation.translation.translated + "\".\n";
+        }
+
+        for (let i in this.other_langs) {
+            let other_lang: LangVO = this.other_langs[i];
+            if (this.translations[other_lang.code_lang] && this.translations[other_lang.code_lang][editable_translation.translation_code]) {
+                prompt += "La traduction en \"" + other_lang.code_lang + "\" est \"" + this.translations[other_lang.code_lang][editable_translation.translation_code].translated + "\".\n";
+            }
+        }
+
+        prompt += "Les autres codes de la page et leurs traductions en \"" + langs_by_id[this.lang_id].code_lang + "\" sont :\n";
+        let last_sentence = "Ta réponse doit se limiter à la traduction du code, sans rappeler le code, sans guillemets et sans retour à la ligne. Uniquement la traduction brute.\n";
+        max_tokens -= (prompt.split(' ').length * 2) + (last_sentence.split(' ').length * 2);
+
+        for (let i in this.editable_translations) {
+            let e: EditablePageTranslationItem = this.editable_translations[i];
+
+            if (e.translation_code == editable_translation.translation_code) {
+                continue;
+            }
+            let this_prompt = " - \"" + e.translation_code + "\" : \"" + (e.translation ? e.translation.translated : '') + "\"\n";
+            max_tokens -= (prompt.split(' ').length * 2);
+            if (max_tokens < 0) {
+                break;
+            }
+
+            prompt += this_prompt;
+        }
+
+        prompt += last_sentence;
+
+        ConsoleHandler.log(prompt);
+
+        let self = this;
+        self.snotify.async(self.label('get_gpt_translation.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+
+                    let gpt_response: GPTMessageVO = await ModuleGPT.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
+
+                    if (!gpt_response) {
+                        reject({
+                            body: self.label('get_gpt_translation.failed'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
+
+                    if (!gpt_response.content) {
+                        reject({
+                            body: self.label('get_gpt_translation.failed'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
+
+                    if (gpt_response.content.startsWith('"') && gpt_response.content.endsWith('"')) {
+                        gpt_response.content = gpt_response.content.substring(1, gpt_response.content.length - 1);
+                    }
+
+                    editable_translation.editable_translation = gpt_response.content;
+
+                    resolve({
+                        body: self.label('get_gpt_translation.ok', { gpt_response: gpt_response.content }),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+
+                } catch (error) {
+                    reject({
+                        body: self.label('get_gpt_translation.error', { error: (error && (typeof error == 'string')) ? error : error.message }),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 }

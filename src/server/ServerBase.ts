@@ -1,30 +1,25 @@
-import * as child_process from 'child_process';
-import * as compression from 'compression';
-import * as cookieParser from 'cookie-parser';
-import * as csrf from 'csurf';
-import * as express from 'express';
-import { NextFunction, Request, Response } from 'express';
-import * as createLocaleMiddleware from 'express-locale';
-import * as expressSession from 'express-session';
-import * as sharedsession from 'express-socket.io-session';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as pg from 'pg';
-import * as pg_promise from 'pg-promise';
-import { IDatabase } from 'pg-promise';
-import * as socketIO from 'socket.io';
-import * as winston from 'winston';
-import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
+import child_process from 'child_process';
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import csrf from 'csurf';
+import express, { NextFunction, Request, Response } from 'express';
+import createLocaleMiddleware from 'express-locale';
+import expressSession from 'express-session';
+import sharedsession from 'express-socket.io-session';
+import fs from 'fs';
+import path from 'path';
+import pg from 'pg';
+import pg_promise, { IDatabase } from 'pg-promise';
+import socketIO from 'socket.io';
+import winston from 'winston';
+import winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import IServerUserSession from '../shared/modules/AccessPolicy/vos/IServerUserSession';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserSessionVO from '../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
-import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
-import TimeSegment from '../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -35,7 +30,7 @@ import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleParams from '../shared/modules/Params/ModuleParams';
 import ModulePushData from '../shared/modules/PushData/ModulePushData';
-import StatVO from '../shared/modules/Stats/vos/StatVO';
+import StatsController from '../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -46,10 +41,12 @@ import EnvParam from './env/EnvParam';
 import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import MemoryUsageStat from './MemoryUsageStat';
+import AccessPolicyServerController from './modules/AccessPolicy/AccessPolicyServerController';
 import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
+import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
@@ -63,6 +60,7 @@ import DefaultTranslationsServerManager from './modules/Translation/DefaultTrans
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
+import { IClient } from 'pg-promise/typescript/pg-subset';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -78,6 +76,7 @@ export default abstract class ServerBase {
     protected static instance: ServerBase = null;
 
     public csrfProtection;
+    public version;
 
     protected db: IDatabase<any>;
     protected spawn;
@@ -85,7 +84,6 @@ export default abstract class ServerBase {
     protected port;
     protected uiDebug;
     protected envParam: EnvParam;
-    protected version;
     private connectionString: string;
     // private jwtSecret: string;
     private modulesService: ModuleServiceBase;
@@ -97,7 +95,15 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
-        ForkedTasksController.getInstance().assert_is_main_process();
+        ForkedTasksController.init();
+        ForkedTasksController.assert_is_main_process();
+
+        // INIT Stats Server side
+        StatsController.THREAD_NAME = 'main';
+        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
+        StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
+        StatsController.new_stats_handler = StatsServerController.new_stats_handler;
+        StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
 
         ServerBase.instance = this;
         this.modulesService = modulesService;
@@ -113,10 +119,11 @@ export default abstract class ServerBase {
         });
 
         // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
-        BGThreadServerController.getInstance().register_bgthreads = true;
+        BGThreadServerController.init();
+        BGThreadServerController.register_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
 
-        ModulesManager.getInstance().isServerSide = true;
+        ModulesManager.isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });
     }
 
@@ -154,22 +161,21 @@ export default abstract class ServerBase {
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         let pgp: pg_promise.IMain = pg_promise({
-            async connect(client, dc, useCount) {
-                StatsServerController.register_stat('ServerBase.PGP.connect',
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            async connect(e: { client: IClient, dc: any, useCount: number }) {
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
             },
-            async disconnect(client, dc) {
-                StatsServerController.register_stat('ServerBase.PGP.disconnect',
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            async disconnect(e: { client: IClient, dc: any }) {
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
             },
             async query(e) {
-                StatsServerController.register_stat('ServerBase.PGP.query',
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
             },
-            async error(e) {
-                StatsServerController.register_stat('ServerBase.PGP.error',
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-                ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
+            async error(err, e) {
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
+                ConsoleHandler.error(
+                    'ServerBase.PGP.error: ' + JSON.stringify(err) +
+                    ' query: ' + JSON.stringify({ query: e.query })
+                );
             },
         });
         this.db = pgp({
@@ -197,6 +203,7 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:END');
         }
 
+        await StatsController.init_params();
         this.spawn = child_process.spawn;
 
         /* A voir l'intéret des différents routers this.app.use(apiRouter());
@@ -224,41 +231,13 @@ export default abstract class ServerBase {
             return stringValue;
         });
 
-        // Une fois qu'on a créé les fichiers pour les modules côté client / admin, on lance les webpacks
-        // Il faut relancer une compilation si on change les datas ou si on active / désactive un module.
-        // WebpackInitializer.getInstance().compile();
-
-        // .init({
-        //     saveMissing: true,
-        //     sendMissingTo: 'fallback',
-        //     fallbackLng: envParam.DEFAULT_LOCALE,
-        //     preload: [envParam.DEFAULT_LOCALE],
-        //     debugger: false,
-        //     resGetPath: __dirname + '/../../src/client/locales/__lng__/__ns__.json',
-        //     resPostPath: __dirname + '/../../src/client/locales/__lng__/__ns__.missing.json',
-        //     backend: {
-        //         loadPath: path.join(__dirname, '/../../src/public/locales/{{lng}}/{{ns}}.json'),
-        //         // path to post missing resources
-        //         addPath: path.join(__dirname, '/../../src/public/locales/{{lng}}/{{ns}}.missing.json'),
-
-        //         // jsonIndent to use when storing json files
-        //         jsonIndent: 2
-        //     },
-        // }
-        // /*, function() {
-        //   i18nextMiddleware.addRoute(i18next, '/:lng/key-to-translate', ['fr-FR', 'de', 'es'], app, 'get',
-        //     function(req, res) {
-        //       // endpoint function
-        //     })
-        //   }*/
-        // );
-
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
 
         let responseTime = require('response-time');
+
         this.app.use(responseTime(async (req, res, time) => {
             let url = req.originalUrl;
             let method = req.method;
@@ -270,16 +249,12 @@ export default abstract class ServerBase {
             //     .replace(/[:.]/g, '')
             //     .replace(/\//g, '_');
 
-            StatsServerController.register_stats('express.' + method + '.' + status,
-                time, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_DUREE('express', method, status, time);
+            StatsController.register_stat_COMPTEUR('express', method, status);
 
             if (status >= 500) {
-                StatsServerController.register_stat('express.' + method + '.' + status,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(log);
             } else if (status >= 400) {
-                StatsServerController.register_stat('express.' + method + '.' + status,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.warn(log);
             } else {
 
@@ -290,11 +265,10 @@ export default abstract class ServerBase {
                  *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
                  */
                 let slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
-                    ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 60000
+                    ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
                 );
                 if (time > slow_queries_limit) {
-                    StatsServerController.register_stat('express.' + method + '.' + status + '.slow',
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('express', method, 'slow');
                 }
             }
         }));
@@ -365,17 +339,6 @@ export default abstract class ServerBase {
             default: this.envParam.DEFAULT_LOCALE
         }));
 
-        // Chargement des WebPack Client et Admin
-        // const webpack = require('webpack');
-
-        // let compiler_client = webpack(WebpackConfigClient);
-        // compiler_client.apply(new webpack.ProgressPlugin());
-        // compiler_client.run(function (err, stats) {
-        //     if (err) {
-        //         ConsoleHandler.error("[CLIENT]:" + err);
-        //     }
-        // });
-
         // JNE : Ajout du header no cache sur les requetes gérées par express
         this.app.use(
             (req, res, next) => {
@@ -384,6 +347,109 @@ export default abstract class ServerBase {
             });
 
         // !JNE : Ajout du header no cache sur les requetes gérées par express
+
+        /**
+         * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
+         * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
+         */
+        this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
+            var sessionid = req.query.sessionid;
+            if (!sessionid) {
+                next();
+                return;
+            }
+
+            // Trick the session middleware that you have the cookie;
+            // Make sure you configure the cookie name, and set 'secure' to false
+            // in https://github.com/expressjs/session#cookie-options
+            if (req.cookies) {
+                req.cookies['sid'] = req.query.sessionid;
+            }
+
+            if (req.rawHeaders) {
+                for (let i in req.rawHeaders) {
+                    let rawHeader = req.rawHeaders[i];
+                    if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
+
+                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
+                        req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+                    }
+                }
+            }
+
+            if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
+
+                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
+                req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+            } else {
+                if (!req.headers) {
+                    req.headers = {};
+                }
+                req.headers['cookie'] = 'sid=' + req.query.sessionid;
+            }
+            // res.setHeader('cookie', req.headers['cookie']);
+            res.cookie('sid', req.query.sessionid);
+
+            next();
+        });
+
+        this.session = expressSession({
+            secret: 'vk4s8dq2j4',
+            name: 'sid',
+            proxy: true,
+            resave: false,
+            saveUninitialized: false,
+            store: ExpressDBSessionsServerController.getInstance({
+                conString: this.connectionString,
+                schemaName: 'ref',
+                tableName: UserSessionVO.API_TYPE_ID,
+            }),
+            cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+        });
+        this.app.use(this.session);
+
+
+        /**
+         * On ajoute un contrôle de la version du client et si il se co avec une version trop ancienne on lui demande de reload
+         */
+        this.app.use(
+            async (req, res, next) => {
+
+                if (!!req.headers.version) {
+                    let client_version = req.headers.version;
+                    let server_version = this.getVersion();
+
+                    if (client_version != server_version) {
+
+                        const server_app_version_timestamp_str: string = server_version.split('-')[1];
+                        const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
+
+                        const local_app_version_timestamp_str: string = client_version.split('-')[1];
+                        const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
+
+                        if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
+                            return next();
+                        }
+
+                        ConsoleHandler.log("[CLIENT]:" + client_version + " != " + server_version);
+
+                        const uid = req.session ? req.session.uid : null;
+                        const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+
+                        if (uid && client_tab_id) {
+                            StatsController.register_stat_COMPTEUR('express', 'version', 'reload');
+                            ConsoleHandler.log("ServerExpressController:version:uid:" + uid + ":client_tab_id:" + client_tab_id + ": asking for reload");
+                            await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                        }
+
+                        res.setHeader("cache-control", "no-cache");
+                        res.status(426).send("Version mismatch, please reload your browser");
+                        return;
+                    }
+                }
+
+                return next();
+            });
 
 
         // Pour renvoyer les js en gzip directement quand ils sont appelés en .js.gz dans le html
@@ -449,14 +515,53 @@ export default abstract class ServerBase {
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
 
-        this.app.use('/client/public', express.static('dist/client/public'));
-        this.app.use('/admin/public', express.static('dist/admin/public'));
-        this.app.use('/login/public', express.static('dist/login/public'));
-        this.app.use('/vuejsclient/public', express.static('dist/vuejsclient/public'));
+        /**
+         * @depracated : DELETE When ok
+         */
+        this.app.use('/client/public', express.static('dist/public/client'));
+        this.app.use('/admin/public', express.static('dist/public/admin'));
+        this.app.use('/login/public', express.static('dist/public/login'));
+        this.app.use('/vuejsclient/public', express.static('dist/public/vuejsclient'));
+
+        /**
+         * Pour le DEBUG en local
+         */
+        if (ConfigurationService.node_configuration.ISDEV) {
+            this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
+        }
+
+
+        // Use this instead
+        // this.app.use('/public', express.static('dist/public'));
+        this.app.get('/public/*', async (req, res, next) => {
+
+            let url = decodeURIComponent(req.url);
+
+            // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
+            if (!fs.existsSync(path.resolve('./dist' + url))) {
+                StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
+
+                const uid = req.session ? req.session.uid : null;
+                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+
+                if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
+                    StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
+                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
+                    await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                } else {
+                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
+                }
+
+                res.status(404).send("Not found");
+                return;
+            }
+
+            res.sendFile(path.resolve('./dist' + url));
+        });
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
-            res.sendFile(path.resolve('./dist/vuejsclient/public/sw_push.js'));
+            res.sendFile(path.resolve('./dist/public/vuejsclient/sw_push.js'));
         });
 
         // this.app.use(
@@ -478,65 +583,6 @@ export default abstract class ServerBase {
             next();
         });
 
-        /**
-         * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
-         * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
-         */
-        this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
-            var sessionid = req.query.sessionid;
-            if (!sessionid) {
-                next();
-                return;
-            }
-
-            // Trick the session middleware that you have the cookie;
-            // Make sure you configure the cookie name, and set 'secure' to false
-            // in https://github.com/expressjs/session#cookie-options
-            if (req.cookies) {
-                req.cookies['sid'] = req.query.sessionid;
-            }
-
-            if (req.rawHeaders) {
-                for (let i in req.rawHeaders) {
-                    let rawHeader = req.rawHeaders[i];
-                    if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
-
-                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
-                        req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
-                    }
-                }
-            }
-
-            if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
-
-                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
-                req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
-            } else {
-                if (!req.headers) {
-                    req.headers = {};
-                }
-                req.headers['cookie'] = 'sid=' + req.query.sessionid;
-            }
-            // res.setHeader('cookie', req.headers['cookie']);
-            res.cookie('sid', req.query.sessionid);
-
-            next();
-        });
-
-        this.session = expressSession({
-            secret: 'vk4s8dq2j4',
-            name: 'sid',
-            proxy: true,
-            resave: false,
-            saveUninitialized: false,
-            store: ExpressDBSessionsServerController.getInstance({
-                conString: this.connectionString,
-                schemaName: 'ref',
-                tableName: UserSessionVO.API_TYPE_ID,
-            }),
-            cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-        });
-        this.app.use(this.session);
 
         this.app.use(function (req, res, next) {
             // TODO JNE - A DISCUTER
@@ -646,13 +692,9 @@ export default abstract class ServerBase {
                 if ((!session.last_check_blocked_or_expired) ||
                     (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
+                    session.last_check_blocked_or_expired = Dates.now();
                     // On doit vérifier que le compte est ni bloqué ni expiré
-                    let user = null;
-                    await StackContext.runPromise(
-                        { IS_CLIENT: false },
-                        async () => {
-                            user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).select_vo<UserVO>();
-                        });
+                    let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
 
                     if ((!user) || user.blocked || user.invalidated) {
 
@@ -669,7 +711,6 @@ export default abstract class ServerBase {
 
                         return;
                     }
-                    session.last_check_blocked_or_expired = Dates.now();
                 }
 
                 PushDataServerController.getInstance().registerSession(session);
@@ -700,7 +741,7 @@ export default abstract class ServerBase {
                 api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.url);
             }
 
-            await ForkedTasksController.getInstance().exec_self_on_bgthread(
+            await ForkedTasksController.exec_self_on_bgthread(
                 AccessPolicyDeleteSessionBGThread.getInstance().name,
                 AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
                 api_req
@@ -795,7 +836,7 @@ export default abstract class ServerBase {
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
                     file = await query(FileVO.API_TYPE_ID).filter_is_true('is_secured').filter_by_text_eq('path', ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
-                    has_access = (file && file.file_access_policy_name) ? ModuleAccessPolicyServer.getInstance().checkAccessSync(file.file_access_policy_name) : false;
+                    has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.checkAccessSync(file.file_access_policy_name) : false;
                 });
 
             if (!has_access) {
@@ -836,7 +877,7 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:START');
         }
-        await this.modulesService.late_server_modules_configurations();
+        await this.modulesService.late_server_modules_configurations(false);
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
@@ -878,14 +919,14 @@ export default abstract class ServerBase {
 
             let has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
+                async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
             if (!has_access) {
                 ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
             }
 
-            res.sendFile(path.resolve('./dist/client/public/generated/index.html'));
+            res.sendFile(path.resolve('./dist/public/index.html'));
         });
 
         this.app.get('/admin', async (req: Request, res) => {
@@ -902,14 +943,14 @@ export default abstract class ServerBase {
 
             let has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
+                async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
 
             if (!has_access) {
 
                 ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
-            res.sendFile(path.resolve('./dist/admin/public/generated/admin.html'));
+            res.sendFile(path.resolve('./dist/public/admin.html'));
         });
 
         // Accès aux logs iisnode
@@ -924,7 +965,7 @@ export default abstract class ServerBase {
                 await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => {
-                        has_access = ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
+                        has_access = AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
                     });
             }
 
@@ -955,12 +996,7 @@ export default abstract class ServerBase {
                 let uid: number = session.uid;
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                let user = null;
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).select_vo<UserVO>();
-                    });
+                let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
                 if ((!user) || user.blocked || user.invalidated) {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
@@ -992,18 +1028,14 @@ export default abstract class ServerBase {
                  */
                 user_log.handle_impersonation(session);
 
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                    });
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
             }
 
             return res.json({ csrfToken: req.csrfToken() });
         });
 
         this.app.get('/login', (req, res) => {
-            res.sendFile(path.resolve('./dist/login/public/generated/login.html'));
+            res.sendFile(path.resolve('./dist/public/login.html'));
         });
 
         this.app.get('/logout', async (req, res) => {
@@ -1037,7 +1069,7 @@ export default abstract class ServerBase {
 
             let user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+                async () => await ModuleAccessPolicyServer.getSelfUser());
 
             res.json(JSON.stringify(
                 {
@@ -1055,7 +1087,7 @@ export default abstract class ServerBase {
 
             let user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+                async () => await ModuleAccessPolicyServer.getSelfUser());
 
             res.json(JSON.stringify(
                 {
@@ -1090,19 +1122,20 @@ export default abstract class ServerBase {
              *  attendre la fin du démarrage du serveur et des childs threads pour lancer le broadcast
              */
             let timeout_sec: number = 30;
-            while ((!ForkServerController.getInstance().forks_are_initialized) && (timeout_sec > 0)) {
-                await ThreadHandler.sleep(1000);
+            while ((!ForkServerController.forks_are_initialized) && (timeout_sec > 0)) {
+                await ThreadHandler.sleep(1000, '/cron.!forks_are_initialized');
                 timeout_sec--;
             }
 
-            if (!ForkServerController.getInstance().forks_are_initialized) {
+            if (!ForkServerController.forks_are_initialized) {
                 ConsoleHandler.error('CRON non lancé car le thread enfant n\'est pas disponible en 30 secondes.');
                 res.send();
             } else {
 
                 try {
 
-                    await StackContext.runPromise({ IS_CLIENT: false }, async () => await CronServerController.getInstance().executeWorkers());
+                    // Retrait IS_CLIENT false puisque les crons sont sur des bgthreads, il n'y a pas de maintien du context client dans tous les cas
+                    await CronServerController.getInstance().executeWorkers();
                     res.json();
                 } catch (err) {
                     ConsoleHandler.error("error: " + (err.message || err));
@@ -1136,7 +1169,7 @@ export default abstract class ServerBase {
             ConsoleHandler.error("Node nearly failed: " + err.stack);
         });
 
-        await MemoryUsageStat.updateMemoryUsageStat();
+        setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
 
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
@@ -1186,20 +1219,10 @@ export default abstract class ServerBase {
                     ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
                 }
 
-                // //TODO DELETE TEST JNE
-                // let fake_file: FileVO = new FileVO();
-                // fake_file.file_access_policy_name = null;
-                // fake_file.path = 'test.txt';
-                // fake_file.is_secured = false;
-
-                // await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY([
-                //     fake_file
-                // ]);
-
                 if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:START');
                 }
-                await ForkServerController.getInstance().fork_threads();
+                await ForkServerController.fork_threads();
                 if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:END');
                 }
@@ -1225,10 +1248,17 @@ export default abstract class ServerBase {
     protected async hook_pwa_init() {
         let version = this.getVersion();
 
-        this.app.get('/vuejsclient/public/pwa/client-sw.' + version + '.js', (req, res, next) => {
+        // this.app.get('/public/client-sw.' + version + '.js', (req, res, next) => {
+        //     res.header('Service-Worker-Allowed', '/public/');
+
+        // });
+
+        this.app.get('/public/client-sw.*.js', (req, res, next) => {
             res.header('Service-Worker-Allowed', '/');
 
-            res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/client-sw.' + version + '.js'));
+            // si on tente de récupérer un service worker qui n'existe pas, on laisse passer l'erreur et on ne recharge pas.
+            // par contre si on est ailleurs dans le /public/, il faudra demander un reload de la page
+            res.sendFile(path.resolve('./dist' + req.url));
         });
     }
 
@@ -1284,18 +1314,11 @@ export default abstract class ServerBase {
         return true;
     }
 
-    // protected terminus() {
-    //     ConsoleHandler.log('Server is starting cleanup');
-    //     return all_promises([
-    //         VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
-    //     ]);
-    // }
-
     protected async exitHandler(options, exitCode, from) {
         ConsoleHandler.log('Server is starting cleanup: ' + from);
 
-        ConsoleHandler.log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
-        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        ConsoleHandler.log(JSON.stringify(VarsDatasVoUpdateHandler['ordered_vos_cud']));
+        await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
         if (options.cleanup) {
             console.log('clean');
         }

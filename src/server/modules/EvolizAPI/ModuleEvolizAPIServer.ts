@@ -1,4 +1,4 @@
-import moment = require('moment');
+import moment from 'moment';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -21,6 +21,7 @@ import EvolizAPIToken from './vos/EvolizAPIToken';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleEvolizAPIServer.instance) {
             ModuleEvolizAPIServer.instance = new ModuleEvolizAPIServer();
@@ -32,10 +33,12 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     private token: EvolizAPIToken = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleEvolizAPI.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleEvolizAPI.POLICY_GROUP;
@@ -53,7 +56,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
@@ -65,9 +68,11 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));

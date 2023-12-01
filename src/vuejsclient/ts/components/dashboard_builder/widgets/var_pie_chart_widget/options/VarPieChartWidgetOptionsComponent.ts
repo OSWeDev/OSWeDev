@@ -6,8 +6,6 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import TranslatableTextVO from '../../../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -18,7 +16,6 @@ import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
-import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
 import VarPieChartWidgetOptions from './VarPieChartWidgetOptions';
 import './VarPieChartWidgetOptionsComponent.scss';
 
@@ -42,9 +39,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private get_custom_filters: string[];
 
     private next_update_options: VarPieChartWidgetOptions = null;
-    private throttled_reload_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
+    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
 
     private tmp_selected_var_name_1: string = null;
     private tmp_selected_var_name_2: string = null;
@@ -215,8 +212,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             10,
 
             50, // 0-100 - exemples : donut 50, camembert 0
-            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
+            270, // 0-360 - exemples : donut 270, camembert 0
+            180, // 0-180 - exemples : donut 180, camembert 0
 
             false,
             10, // Permet de limiter le nombre de vars affichées (par défaut 10)
@@ -410,11 +407,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     get fields_that_could_get_custom_filter_1(): string[] {
         let res: string[] = [];
 
-        if (!this.widget_options || !this.widget_options.var_id_1) {
+        if (!this.widget_options || (!this.widget_options.var_id_1) || (!VarsController.var_conf_by_id[this.widget_options.var_id_1])) {
             return null;
         }
 
-        let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].var_data_vo_type;
+        let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id_1].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -446,7 +443,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_2].var_data_vo_type;
+        let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id_2].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -500,9 +497,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
         let res: string[] = [];
 
-        for (let i in VarsController.getInstance().var_conf_by_name) {
-            let var_conf = VarsController.getInstance().var_conf_by_name[i];
-            res.push(var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id)));
+        for (let i in VarsController.var_conf_by_name) {
+            let var_conf = VarsController.var_conf_by_name[i];
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
         res.sort((a, b) => {
@@ -534,8 +531,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         (this.widget_options.var_id_1 == options.var_id_1) &&
                         (this.widget_options.var_id_2 == options.var_id_2) &&
                         (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
-                        (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
-                        (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters_2, options.filter_custom_field_filters_2)) &&
+                        (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_1, options.filter_custom_field_filters_1)) &&
+                        (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_2, options.filter_custom_field_filters_2)) &&
 
                         (this.widget_options.legend_display == options.legend_display) &&
                         (this.widget_options.legend_position == options.legend_position) &&
@@ -562,7 +559,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         (this.widget_options.sort_dimension_by_asc == options.sort_dimension_by_asc) &&
 
                         (this.widget_options.dimension_is_vo_field_ref == options.dimension_is_vo_field_ref) &&
-                        ObjectHandler.getInstance().are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
+                        ObjectHandler.are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
                         (this.widget_options.dimension_custom_filter_name == options.dimension_custom_filter_name) &&
                         (this.widget_options.dimension_custom_filter_segment_type == options.dimension_custom_filter_segment_type) &&
                         (this.widget_options.border_width_1 == options.border_width_1) &&
@@ -618,7 +615,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             }
 
             if ((!!options) && (!!this.page_widget.json_options)) {
-                this.widget_options = options;
+                if (!ObjectHandler.are_equal(this.widget_options, options)) {
+                    this.widget_options = options;
+                }
             } else if ((!!this.widget_options) && !this.page_widget.json_options) {
                 this.widget_options = null;
             }
@@ -642,8 +641,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.title_font_size = '16';
             this.title_padding = '10';
             this.cutout_percentage = '50';
-            this.rotation = Math.PI.toString();
-            this.circumference = Math.PI.toString();
+            this.rotation = '270';
+            this.circumference = '180';
 
             this.has_dimension = false;
             this.max_dimension_values = '10';
@@ -735,11 +734,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[this.widget_options.dimension_custom_filter_segment_type];
         }
 
-        if (this.tmp_selected_var_name_1 != (this.widget_options.var_id_1 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_1)))) {
-            this.tmp_selected_var_name_1 = this.widget_options.var_id_1 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_1));
+        if (this.tmp_selected_var_name_1 != (this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1)))) {
+            this.tmp_selected_var_name_1 = this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1));
         }
-        if (this.tmp_selected_var_name_2 != (this.widget_options.var_id_2 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_2)))) {
-            this.tmp_selected_var_name_2 = this.widget_options.var_id_2 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_2));
+        if (this.tmp_selected_var_name_2 != (this.widget_options.var_id_2 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_2)))) {
+            this.tmp_selected_var_name_2 = this.widget_options.var_id_2 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_2));
         }
         if (this.custom_filter_names_1 != (this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {})) {
             this.custom_filter_names_1 = this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {};
@@ -908,6 +907,314 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             if (this.widget_options.legend_position != this.tmp_selected_legend_position) {
                 this.next_update_options = this.widget_options;
                 this.next_update_options.legend_position = this.tmp_selected_legend_position;
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('legend_font_size')
+    private async onchange_legend_font_size() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.legend_font_size) {
+
+            if (this.widget_options.legend_font_size) {
+                this.widget_options.legend_font_size = 12;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('legend_box_width')
+    private async onchange_legend_box_width() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.legend_box_width) {
+
+            if (this.widget_options.legend_box_width) {
+                this.widget_options.legend_box_width = 40;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.legend_box_width = parseInt(this.legend_box_width);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('legend_padding')
+    private async onchange_legend_padding() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.legend_padding) {
+
+            if (this.widget_options.legend_padding) {
+                this.widget_options.legend_padding = 10;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.legend_padding != parseInt(this.legend_padding)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.legend_padding = parseInt(this.legend_padding);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('title_font_size')
+    private async onchange_title_font_size() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.title_font_size) {
+
+            if (this.widget_options.title_font_size) {
+                this.widget_options.title_font_size = 16;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.title_font_size != parseInt(this.title_font_size)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.title_font_size = parseInt(this.title_font_size);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('title_padding')
+    private async onchange_title_padding() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.title_padding) {
+
+            if (this.widget_options.title_padding) {
+                this.widget_options.title_padding = 10;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.title_padding != parseInt(this.title_padding)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.title_padding = parseInt(this.title_padding);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('cutout_percentage')
+    private async onchange_cutout_percentage() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.cutout_percentage) {
+
+            if (this.widget_options.cutout_percentage) {
+                this.widget_options.cutout_percentage = 50;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.cutout_percentage != parseInt(this.cutout_percentage)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.cutout_percentage = parseInt(this.cutout_percentage);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('rotation')
+    private async onchange_rotation() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.rotation) {
+
+            if (this.widget_options.rotation) {
+                this.widget_options.rotation = 270;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.rotation != parseInt(this.rotation)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.rotation = parseInt(this.rotation);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('circumference')
+    private async onchange_circumference() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.circumference) {
+
+            if (this.widget_options.circumference) {
+                this.widget_options.circumference = 180;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.circumference != parseInt(this.circumference)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.circumference = parseInt(this.circumference);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('border_width_1')
+    private async onchange_border_width_1() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.border_width_1) {
+
+            if (this.widget_options.border_width_1) {
+                this.widget_options.border_width_1 = null;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.border_width_1 != parseInt(this.border_width_1)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.border_width_1 = parseInt(this.border_width_1);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('border_width_2')
+    private async onchange_border_width_2() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.border_width_2) {
+
+            if (this.widget_options.border_width_2) {
+                this.widget_options.border_width_2 = null;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.border_width_2 != parseInt(this.border_width_2)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.border_width_2 = parseInt(this.border_width_2);
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('max_dimension_values')
+    private async onchange_max_dimension_values() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.max_dimension_values) {
+
+            if (this.widget_options.max_dimension_values) {
+                this.widget_options.max_dimension_values = 10;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.max_dimension_values != parseInt(this.max_dimension_values)) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
 
                 await this.throttled_update_options();
             }

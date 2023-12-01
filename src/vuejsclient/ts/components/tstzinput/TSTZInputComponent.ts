@@ -1,7 +1,58 @@
 
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import * as lang from "vuejs-datepicker/src/locale";
+import {
+    af,
+    ar,
+    bg,
+    bs,
+    ca,
+    cs,
+    da,
+    de,
+    ee,
+    el,
+    en,
+    es,
+    fa,
+    fi,
+    fo,
+    fr,
+    ge,
+    gl,
+    he,
+    hr,
+    hu,
+    id,
+    is,
+    it,
+    ja,
+    kk,
+    ko,
+    lb,
+    lt,
+    lv,
+    mk,
+    mn,
+    nbNO,
+    nl,
+    pl,
+    ptBR,
+    ro,
+    ru,
+    sk,
+    slSI,
+    srCYRL,
+    sr,
+    sv,
+    th,
+    tr,
+    uk,
+    ur,
+    vi,
+    zh,
+    zhHK
+} from "vuejs-datepicker/src/locale";
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -43,7 +94,58 @@ export default class TSTZInputComponent extends VueComponentBase {
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
 
-    private languages = lang;
+    private languages = {
+        af,
+        ar,
+        bg,
+        bs,
+        ca,
+        cs,
+        da,
+        de,
+        ee,
+        el,
+        en,
+        es,
+        fa,
+        fi,
+        fo,
+        fr,
+        ge,
+        gl,
+        he,
+        hr,
+        hu,
+        id,
+        is,
+        it,
+        ja,
+        kk,
+        ko,
+        lb,
+        lt,
+        lv,
+        mk,
+        mn,
+        nbNO,
+        nl,
+        pl,
+        ptBR,
+        ro,
+        ru,
+        sk,
+        slSI,
+        srCYRL,
+        sr,
+        sv,
+        th,
+        tr,
+        uk,
+        ur,
+        vi,
+        zh,
+        zhHK
+    };
 
     get language(): string {
 
@@ -146,7 +248,7 @@ export default class TSTZInputComponent extends VueComponentBase {
 
     get segmentation_type(): number {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.segmentation_type;
+            return (this.field as SimpleDatatableFieldVO<any, any>).segmentation_type;
         }
 
         return null;
@@ -154,7 +256,7 @@ export default class TSTZInputComponent extends VueComponentBase {
 
     get format_localized_time(): boolean {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
+            return (this.field as SimpleDatatableFieldVO<any, any>).format_localized_time;
         }
 
         return null;

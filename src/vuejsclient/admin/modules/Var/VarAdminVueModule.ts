@@ -1,9 +1,6 @@
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
-import SlowVarVO from '../../../../shared/modules/Var/vos/SlowVarVO';
-import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
-import VarPerfVO from '../../../../shared/modules/Var/vos/VarPerfVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuController from '../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -52,21 +49,6 @@ export default class VarAdminVueModule extends VueModuleBase {
         if (this.policies_loaded[ModuleVar.POLICY_BO_VARCONF_ACCESS]) {
 
             await CRUDComponentManager.getInstance().registerCRUD(
-                SlowVarVO.API_TYPE_ID,
-                null,
-                MenuElementVO.create_new(
-                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
-                    VueAppController.getInstance().app_name,
-                    "SlowVarVO",
-                    "fa-clock",
-                    10 + 2,
-                    null,
-                    null,
-                    menuBranch.id
-                ),
-                this.routes);
-
-            await CRUDComponentManager.getInstance().registerCRUD(
                 VarConfVO.API_TYPE_ID,
                 null,
                 MenuElementVO.create_new(
@@ -75,36 +57,6 @@ export default class VarAdminVueModule extends VueModuleBase {
                     "SimpleVarConfVO",
                     "fa-calculator",
                     10,
-                    null,
-                    null,
-                    menuBranch.id
-                ),
-                this.routes);
-
-            await CRUDComponentManager.getInstance().registerCRUD(
-                VarCacheConfVO.API_TYPE_ID,
-                null,
-                MenuElementVO.create_new(
-                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
-                    VueAppController.getInstance().app_name,
-                    "VarCacheConfVO",
-                    "fa-calculator",
-                    10 + 1,
-                    null,
-                    null,
-                    menuBranch.id
-                ),
-                this.routes);
-
-            await CRUDComponentManager.getInstance().registerCRUD(
-                VarPerfVO.API_TYPE_ID,
-                null,
-                MenuElementVO.create_new(
-                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
-                    VueAppController.getInstance().app_name,
-                    "VarPerfVO",
-                    "fa-pie-chart",
-                    10 + 2,
                     null,
                     null,
                     menuBranch.id

@@ -6,21 +6,21 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
-import VarWidgetOptions from './options/VarWidgetOptions';
 import './VarWidgetComponent.scss';
+import VarWidgetOptions from './options/VarWidgetOptions';
 
 @Component({
     template: require('./VarWidgetComponent.pug'),
@@ -32,7 +32,8 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     public static get_var_custom_filters(
         var_custom_filters: { [var_param_field_name: string]: string },
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): { [var_param_field_name: string]: ContextFilterVO } {
+        get_active_field_filters: FieldFiltersVO
+    ): { [var_param_field_name: string]: ContextFilterVO } {
 
         /**
          * On crée le custom_filters
@@ -59,10 +60,13 @@ export default class VarWidgetComponent extends VueComponentBase {
     }
 
     @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
+    @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -88,6 +92,8 @@ export default class VarWidgetComponent extends VueComponentBase {
     private var_param: VarDataBaseVO = null;
     private last_calculation_cpt: number = 0;
 
+    private var_param_no_value_or_param_is_invalid: boolean = false;
+
     get var_id(): number {
         if (!this.widget_options) {
             return null;
@@ -106,7 +112,7 @@ export default class VarWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
+        return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
     }
 
     // @Watch('get_custom_filters', { deep: true })
@@ -154,8 +160,8 @@ export default class VarWidgetComponent extends VueComponentBase {
         return false;
     }
 
-    private mounted() {
-        ValidationFiltersWidgetController.getInstance().register_updater(
+    private async mounted() {
+        await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page.dashboard_id,
             this.dashboard_page.id,
             this.page_widget.id,
@@ -170,7 +176,9 @@ export default class VarWidgetComponent extends VueComponentBase {
         this.last_calculation_cpt = launch_cpt;
 
         if (!this.var_id) {
-            return this.var_param = null;
+            this.var_param = null;
+            this.var_param_no_value_or_param_is_invalid = false;
+            return;
         }
 
         /**
@@ -190,10 +198,10 @@ export default class VarWidgetComponent extends VueComponentBase {
          * Pour les dates il faut réfléchir....
          */
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
-            VarsController.getInstance().var_conf_by_id[this.var_id].name,
+            VarsController.var_conf_by_id[this.var_id].name,
             this.get_active_field_filters,
             custom_filters,
-            this.dashboard.api_type_ids,
+            this.get_dashboard_api_type_ids,
             this.get_discarded_field_paths);
 
         // Si je ne suis pas sur la dernière demande, je me casse
@@ -201,18 +209,25 @@ export default class VarWidgetComponent extends VueComponentBase {
             return;
         }
 
+        if (!this.var_param) {
+            this.var_param_no_value_or_param_is_invalid = true;
+        } else {
+            this.var_param_no_value_or_param_is_invalid = false;
+        }
+
+
         // let query = new ContextQueryVO();
         // query.base_api_type_id = this.vo_field_ref.api_type_id;
         // query.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-        // query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-        //     ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters));
+        // query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+        //     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters));
         // query.limit = this.widget_options.max_visible_options;
         // query.offset = 0;
-        // query.active_api_type_ids = this.dashboard.api_type_ids;
+        // query.active_api_type_ids = this.get_dashboard_api_type_ids;
         // let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
         //     this.vo_field_ref.api_type_id,
         //     this.vo_field_ref.field_id,
-        //     ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
+        //     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters),
         //     this.actual_query,
         //     this.widget_options.max_visible_options,
         //     0);
@@ -226,14 +241,15 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
         await this.throttled_update_visible_options();
     }
 
     get title_name_code_text() {
+
         if (!this.widget_options) {
             return null;
         }
+
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 

@@ -3,8 +3,7 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import WeightHandler from '../../../../tools/WeightHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
-import DefaultTranslation from '../../../Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../../../VOsTypesManager';
+import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
 
 /**
@@ -40,7 +39,22 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public _type: string;
 
     public _vo_type_id: string;
+
     public vo_type_full_name: string;
+
+
+    /**
+     * Surcharges du ModuleTableField
+     */
+    public field_type: string;
+    public enum_values: { [value: number]: string };
+    public segmentation_type: number;
+    public is_inclusive_data: boolean;
+    public is_inclusive_ihm: boolean;
+    public return_min_value: boolean;
+    public format_localized_time: boolean;
+    public return_max_value: boolean;
+    public max_range_offset: number;
 
     public tooltip: string = null;
 
@@ -78,6 +92,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * Used in the CREATE or UPDATE views
      */
     public translatable_place_holder: string = null;
+    public translatable_title_custom: string = null;
 
     public select_options_enabled: number[] = null;
 
@@ -90,8 +105,11 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     abstract get translatable_title(): string;
 
     public validate: (data: any) => string;
-    public onChange: (vo: IDistantVOBase) => void;
-    public onEndOfChange: (vo: IDistantVOBase) => void;
+    /**
+     * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
+     */
+    public onChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
+    public onEndOfChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
     public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
@@ -135,7 +153,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     }
 
     set vo_type_id(vo_type_id: string) {
+        if (!vo_type_id) {
+            return;
+        }
+
         this._vo_type_id = vo_type_id;
+
         this.update_moduleTableField();
     }
 
@@ -143,6 +166,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         if (!this.vo_type_id) {
             return null;
         }
+
         return VOsTypesManager.moduleTables_by_voType[this.vo_type_id];
     }
 
@@ -150,6 +174,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         if (!this.moduleTable) {
             return null;
         }
+
         return this.moduleTable.getFieldFromId(this.module_table_field_id);
     }
 
@@ -205,13 +230,13 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => void): this {
+    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onChange = onChange;
 
         return this;
     }
 
-    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => void): this {
+    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => boolean | Promise<boolean>): this {
         this.onEndOfChange = onEndOfChange;
 
         return this;
@@ -321,6 +346,14 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * @param code_text Code du translatable text associé
+     */
+    public setTranslatableTitle(code_text: string): this {
+        this.translatable_title_custom = code_text;
+        return this;
+    }
+
     get alert_path(): string {
         if (!this.vo_type_full_name) {
             return this.datatable_field_uid;
@@ -422,7 +455,16 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     private update_moduleTableField() {
         if (this.moduleTableField) {
             this.is_required = this.moduleTableField.field_required;
-            this.validate = this.validate ? this.validate : this.moduleTableField.validate;
+            this.validate = (this.validate != null) ? this.validate : this.moduleTableField.validate;
+            this.field_type = (this.field_type != null) ? this.field_type : this.moduleTableField.field_type;
+            this.enum_values = (this.enum_values != null) ? this.enum_values : this.moduleTableField.enum_values;
+            this.segmentation_type = (this.segmentation_type != null) ? this.segmentation_type : this.moduleTableField.segmentation_type;
+            this.is_inclusive_data = (this.is_inclusive_data != null) ? this.is_inclusive_data : this.moduleTableField.is_inclusive_data;
+            this.is_inclusive_ihm = (this.is_inclusive_ihm != null) ? this.is_inclusive_ihm : this.moduleTableField.is_inclusive_ihm;
+            this.return_min_value = (this.return_min_value != null) ? this.return_min_value : this.moduleTableField.return_min_value;
+            this.format_localized_time = (this.format_localized_time != null) ? this.format_localized_time : this.moduleTableField.format_localized_time;
+            this.return_max_value = (this.return_max_value != null) ? this.return_max_value : this.moduleTableField.return_max_value;
+            this.max_range_offset = (this.max_range_offset != null) ? this.max_range_offset : this.moduleTableField.max_range_offset;
         }
     }
 }

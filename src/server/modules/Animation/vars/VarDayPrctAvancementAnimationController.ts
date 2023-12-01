@@ -4,7 +4,7 @@ import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params
 import AnimationQRVO from '../../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationUserQRVO from '../../../../shared/modules/Animation/vos/AnimationUserQRVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';

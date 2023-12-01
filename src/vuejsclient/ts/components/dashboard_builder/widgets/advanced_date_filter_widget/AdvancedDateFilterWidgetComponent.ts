@@ -1,8 +1,9 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import AdvancedDateFilterOptDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -12,10 +13,9 @@ import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
@@ -23,6 +23,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
+import e from 'express';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetComponent.pug'),
@@ -33,7 +34,7 @@ import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetO
 export default class AdvancedDateFilterWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -58,7 +59,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private old_widget_options: AdvancedDateFilterWidgetOptions = null;
 
     private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_updater(
+        ResetFiltersWidgetController.getInstance().register_reseter(
             this.dashboard_page,
             this.page_widget,
             this.reset_visible_options.bind(this),
@@ -76,21 +77,38 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         this.old_widget_options = cloneDeep(this.widget_options);
 
         this.tmp_filter_active_opt = this.widget_options.default_value;
+
+        // Si on a qu'un seul choix possible, et que ce n'est pas le choix qui change la date (is_type_custom par exemple qui ne fait qu'afficher un input), on le sélectionne
+        if ((!this.widget_options.default_value) && this.is_auto_selectable_choice) {
+            this.tmp_filter_active_opt = this.opts[0];
+        } else if (this.widget_options.default_value) {
+            this.tmp_filter_active_opt = this.widget_options.default_value;
+        } else {
+            this.tmp_filter_active_opt = null;
+        }
+
         this.tmp_ts_range = null;
+    }
+
+    get is_auto_selectable_choice() {
+        return (this.opts && (this.opts.length == 1) && (this.opts[0].search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_CUSTOM));
     }
 
     @Watch('tmp_ts_range')
     @Watch('tmp_filter_active_opt')
     private onchange_selected_months() {
+
         // 1 on cherche le contextfilter correspondant à ce type de filtre
-        let root_context_filter: ContextFilterVO = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
+        let root_context_filter: ContextFilterVO = this.vo_field_ref ?
+            (this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null) :
+            (this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null);
 
         /**
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
         let ts_range: TSRange = null;
@@ -123,6 +141,24 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                         this.tmp_filter_active_opt.segmentation_type
                     );
                     break;
+                case AdvancedDateFilterOptDescVO.SEARCH_TYPE_YTD:
+                    if ((this.tmp_filter_active_opt.value == null) || (this.tmp_filter_active_opt.segmentation_type == null)) {
+                        break;
+                    }
+
+                    let now_ytd: number = Dates.now();
+                    let end_ytd_date: number = Dates.add(now_ytd, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
+                    let start_ytd_date: number = Dates.startOf(end_ytd_date, TimeSegment.TYPE_YEAR);
+
+                    ts_range = RangeHandler.createNew(
+                        TSRange.RANGE_TYPE,
+                        start_ytd_date,
+                        end_ytd_date,
+                        true,
+                        true,
+                        this.tmp_filter_active_opt.segmentation_type
+                    );
+                    break;
                 case AdvancedDateFilterOptDescVO.SEARCH_TYPE_CALENDAR:
                     ts_range = this.tmp_filter_active_opt.ts_range;
                     break;
@@ -146,20 +182,26 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
             context_filter = new ContextFilterVO();
             context_filter.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
             context_filter.param_tsranges = [ts_range];
-            context_filter.vo_type = this.vo_field_ref.api_type_id;
-            context_filter.field_id = this.vo_field_ref.field_id;
 
-            let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+            if (this.is_vo_field_ref) {
+                context_filter.vo_type = this.vo_field_ref.api_type_id;
+                context_filter.field_id = this.vo_field_ref.field_id;
+            } else {
+                context_filter.vo_type = ContextFilterVO.CUSTOM_FILTERS_TYPE;
+                context_filter.field_id = this.custom_filter_name;
+            }
+
+            let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
-                        field_id: this.vo_field_ref.field_id,
-                        vo_type: this.vo_field_ref.api_type_id,
+                        field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                        vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     });
                 } else {
                     this.set_active_field_filter({
-                        field_id: this.vo_field_ref.field_id,
-                        vo_type: this.vo_field_ref.api_type_id,
+                        field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                        vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                         active_field_filter: new_root,
                     });
                 }
@@ -171,17 +213,17 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!ts_range)) {
-            let new_root = ContextFilterHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
-                        field_id: this.vo_field_ref.field_id,
-                        vo_type: this.vo_field_ref.api_type_id,
+                        field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                        vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     });
                 } else {
                     this.set_active_field_filter({
-                        field_id: this.vo_field_ref.field_id,
-                        vo_type: this.vo_field_ref.api_type_id,
+                        field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                        vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                         active_field_filter: new_root,
                     });
                 }
@@ -195,9 +237,33 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         if (!!context_filter) {
             if (!RangeHandler.are_same(context_filter.param_tsranges, [ts_range])) {
                 context_filter.param_tsranges = [ts_range];
+
+                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
+
+                this.set_active_field_filter({
+                    field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                    vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                    active_field_filter: new_root,
+                });
             }
             return;
         }
+    }
+
+    get is_vo_field_ref(): boolean {
+        if (!this.widget_options) {
+            return true;
+        }
+
+        return this.widget_options.is_vo_field_ref;
+    }
+
+    get custom_filter_name(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.custom_filter_name;
     }
 
     private async reset_visible_options() {
@@ -263,7 +329,9 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
                 options = options ? new AdvancedDateFilterWidgetOptions(
+                    options.is_vo_field_ref == null ? true : options.is_vo_field_ref,
                     options.vo_field_ref,
+                    options.custom_filter_name,
                     options.opts,
                     options.is_checkbox,
                     options.default_value,
@@ -279,7 +347,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     get vo_field_ref(): VOFieldRefVO {
         let options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
-        if ((!options) || (!options.vo_field_ref)) {
+        if ((!options) || (!options.vo_field_ref) || (!options.is_vo_field_ref)) {
             return null;
         }
 
@@ -329,6 +397,9 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     get field_date(): SimpleDatatableFieldVO<any, any> {
+        if (!this.vo_field_ref) {
+            return null;
+        }
         return SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
     }
 

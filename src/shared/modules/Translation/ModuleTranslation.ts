@@ -24,7 +24,6 @@ export default class ModuleTranslation extends Module {
     public static POLICY_LANG_SELECTOR_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.LANG_SELECTOR_ACCESS';
     public static POLICY_LANG_SELECTOR_PER_LANG_ACCESS_PREFIX: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX';
 
-    public static APINAME_GET_TRANSLATABLE_TEXTS: string = "getTranslatableTexts";
     public static APINAME_GET_TRANSLATABLE_TEXT: string = "getTranslatableText";
     public static APINAME_GET_LANGS: string = "getLangs";
     public static APINAME_GET_LANG: string = "getLang";
@@ -47,7 +46,6 @@ export default class ModuleTranslation extends Module {
 
     public getALL_LOCALES: () => Promise<{ [code_lang: string]: { [code_text: string]: any } }> = APIControllerWrapper.sah(ModuleTranslation.APINAME_getALL_LOCALES);
     public getALL_FLAT_LOCALE_TRANSLATIONS: (code_lang: string) => Promise<{ [code_text: string]: string }> = APIControllerWrapper.sah(ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS);
-    public getTranslatableTexts: () => Promise<TranslatableTextVO[]> = APIControllerWrapper.sah(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS);
     public getTranslatableText: (code_text: string) => Promise<TranslatableTextVO> = APIControllerWrapper.sah(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT);
     public getLangs: () => Promise<LangVO[]> = APIControllerWrapper.sah(ModuleTranslation.APINAME_GET_LANGS);
     public getLang: (code_lang: string) => Promise<LangVO> = APIControllerWrapper.sah(ModuleTranslation.APINAME_GET_LANG);
@@ -95,11 +93,6 @@ export default class ModuleTranslation extends Module {
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT,
             [TranslatableTextVO.API_TYPE_ID],
             StringParamVOStatic
-        ));
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<void, TranslatableTextVO[]>(
-            null,
-            ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS,
-            [TranslatableTextVO.API_TYPE_ID]
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetTranslationParamVO, TranslationVO>(
             null,

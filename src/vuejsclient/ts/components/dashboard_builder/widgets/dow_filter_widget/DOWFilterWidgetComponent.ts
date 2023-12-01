@@ -1,7 +1,9 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -26,9 +28,11 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
     private get_flat_locale_translations: { [code_text: string]: string };
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
+
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -105,7 +109,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
         }
 
         /**
@@ -131,7 +135,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOManager.add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -153,7 +157,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && ((!dows_ranges) || (!dows_ranges.length))) {
-            let new_root = ContextFilterHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -204,7 +208,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
         }
 
         // si ya pas de root ou de context_filter, on a pas de filtre en cours

@@ -6,7 +6,7 @@ import IRange from '../../DataRender/interfaces/IRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import ModuleTableField from '../../ModuleTableField';
-import VOsTypesManager from '../../VOsTypesManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
 
@@ -52,7 +52,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: IRange[][]): T {
 
-        let varConf = VarsController.getInstance().var_conf_by_name[var_name];
+        let varConf = VarsController.var_conf_by_name[var_name];
         let moduletable = VOsTypesManager.moduleTables_by_voType[varConf.var_data_vo_type];
 
         let res: T = moduletable.voConstructor();
@@ -63,7 +63,7 @@ export default class VarDataBaseVO implements IMatroid {
             ConsoleHandler.error("VarDataBaseVO.createNew var_name :: " + var_name);
         }
 
-        let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
+        let fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
         let param_i: number = 0;
         for (let i in fields) {
             let field = fields[i];
@@ -120,7 +120,7 @@ export default class VarDataBaseVO implements IMatroid {
             return res;
         }
 
-        let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
+        let fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -199,7 +199,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public static cloneFieldsFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.getInstance().var_conf_by_name[var_name], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_name[var_name], clone_fields);
     }
 
     /**
@@ -210,7 +210,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public static cloneFieldsFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.getInstance().var_conf_by_id[var_id], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_id[var_id], clone_fields);
     }
 
     /**
@@ -226,9 +226,9 @@ export default class VarDataBaseVO implements IMatroid {
         }
 
         clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
-        varConf = varConf ? varConf : VarsController.getInstance().var_conf_by_id[param_to_clone.var_id];
+        varConf = varConf ? varConf : VarsController.var_conf_by_id[param_to_clone.var_id];
 
-        let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
+        let res: U = MatroidController.cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
         if (!res) {
             return null;
         }
@@ -262,9 +262,8 @@ export default class VarDataBaseVO implements IMatroid {
     public value_type: number;
     public value_ts: number;
 
-    public last_reads_ts: number[];
-
     private _index: string;
+    private _is_pixel: boolean;
 
     public constructor() { }
 
@@ -279,6 +278,7 @@ export default class VarDataBaseVO implements IMatroid {
     public rebuild_index() {
 
         this._index = null;
+        this._is_pixel = null;
     }
 
     /**
@@ -289,9 +289,24 @@ export default class VarDataBaseVO implements IMatroid {
         if (!this._index) {
             MatroidIndexHandler.normalize_vardata_fields(this);
             this._index = MatroidIndexHandler.get_normalized_vardata(this);
+            this._is_pixel = MatroidController.get_cardinal(this) == 1;
         }
 
         return this._index;
+    }
+
+    get is_pixel(): boolean {
+
+        if (this._is_pixel == null) {
+            let a = this.index;
+        }
+
+        return this._is_pixel;
+    }
+
+    get _bdd_only_is_pixel(): boolean {
+
+        return this.is_pixel;
     }
 
     /**
@@ -313,11 +328,11 @@ export default class VarDataBaseVO implements IMatroid {
             return false;
         }
 
-        if (!VarsController.getInstance().var_conf_by_id[this.var_id]) {
+        if (!VarsController.var_conf_by_id[this.var_id]) {
             return false;
         }
 
-        let fields = MatroidController.getInstance().getMatroidFields(this._type);
+        let fields = MatroidController.getMatroidFields(this._type);
 
         for (let i in fields) {
             let field = fields[i];

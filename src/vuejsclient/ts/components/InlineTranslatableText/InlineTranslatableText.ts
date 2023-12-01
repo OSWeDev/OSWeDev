@@ -53,7 +53,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     private parameterized_text: string = null;
     private semaphore: boolean = false;
 
-    private thottled_check_existing_bdd_translation = ThrottleHelper.getInstance().declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
+    private thottled_check_existing_bdd_translation = ThrottleHelper.declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
 
     @Watch("code_text", { immediate: true })
     @Watch("translation_params", { immediate: true })
@@ -104,7 +104,7 @@ export default class InlineTranslatableText extends VueComponentBase {
                         if (this.code_text == code_text) {
                             this.text = default_translation;
                         }
-                        await this.update_trad(code_lang, code_text, default_translation, true);
+                        await this.update_trad(default_translation, true, code_lang, code_text);
                     }
 
                     return;
@@ -123,7 +123,7 @@ export default class InlineTranslatableText extends VueComponentBase {
                     if (this.code_text == code_text) {
                         this.text = default_translation;
                     }
-                    await this.update_trad(code_lang, code_text, default_translation, true);
+                    await this.update_trad(default_translation, true, code_lang, code_text);
                 }
             }
         }
@@ -197,11 +197,11 @@ export default class InlineTranslatableText extends VueComponentBase {
         return res;
     }
 
-    private async update_trad(code_lang: string, code_text: string, translation: string, muted: boolean = false) {
-        await this.save_translation(code_lang, code_text, translation, muted);
+    private async update_trad(translation: string, muted: boolean = false, code_lang: string = null, code_text: string = null) {
+        await this.save_translation(translation, muted, code_lang, code_text);
     }
 
-    private async save_translation(code_lang: string, code_text: string, translation: string, muted: boolean = false) {
+    private async save_translation(translation: string, muted: boolean = false, code_lang: string = null, code_text: string = null) {
 
         let self = this;
 
@@ -209,6 +209,20 @@ export default class InlineTranslatableText extends VueComponentBase {
             return;
         }
         this.semaphore = false;
+
+        if (!code_lang) {
+            code_lang = this.code_lang;
+        }
+        if (!code_text) {
+            code_text = this.code_text;
+        }
+
+        if (!code_lang) {
+            return;
+        }
+        if (!code_text) {
+            return;
+        }
 
         if (!muted) {
             this.snotify.async(self.label('on_page_translation.save_translation.start'), () =>

@@ -5,6 +5,7 @@ import Dates from "../FormatDatesNombres/Dates/Dates";
 
 export default class ResetDateHelper {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ResetDateHelper.instance) {
             ResetDateHelper.instance = new ResetDateHelper();

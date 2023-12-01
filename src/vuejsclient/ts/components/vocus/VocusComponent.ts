@@ -6,7 +6,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleVocus from '../../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../../shared/modules/Vocus/vos/VocusInfoVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../VueComponentBase';
 import './VocusComponent.scss';
 

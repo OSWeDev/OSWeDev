@@ -1,0 +1,20 @@
+=== INSTALLER ARTILLERY ===
+
+    Artillery et artillery - engine - playwright doivent être installés sur le serveur qui réalise le test de charge directement et globalement(pas dans le package.json du projet)
+Pour le moment il faut pouvoir build node - gyp, or il y a un pb de compatibilité avec node 19 et node - gyp, donc on doit préparer une installation de node 16 dans un répertoire dédié.
+(exemple node_16) et on crée un fichier package.json contenant:
+{
+    "name": "node_16",
+        "version": "1.0.0",
+            "description": "",
+                "private": true,
+                    "main": "main.js",
+                        "dependencies": {
+        "node": "^16.0.0",
+            "npm": "^7.10.0"
+    }
+}
+
+npm i dans ce répertoire pour installer node 16 et npm 7.10.0
+et enfin on lance la commande suivante dans le répertoire node_16(ou équivalent choisi)
+    .\node_modules\.bin\node.cmd.\node_modules\npm\bin\npm - cli.js install - g artillery artillery - engine - playwright

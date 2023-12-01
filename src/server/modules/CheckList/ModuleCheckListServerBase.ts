@@ -20,6 +20,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         return this.shared_module as ModuleCheckListBase;
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -115,6 +116,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.checklist_shared_module.POLICY_GROUP;
@@ -132,7 +134,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let fo_access: AccessPolicyVO = new AccessPolicyVO();

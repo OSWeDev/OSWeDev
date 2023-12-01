@@ -1,7 +1,7 @@
-import * as fs from 'fs';
-import * as jimp from 'jimp';
+import fs from 'fs';
+import jimp from 'jimp';
 import { isEqual } from 'lodash';
-import * as path from 'path';
+import path from 'path';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -20,13 +20,17 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleImageFormatServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleImageFormatServer.instance) {
             ModuleImageFormatServer.instance = new ModuleImageFormatServer();
@@ -36,10 +40,12 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
     private static instance: ModuleImageFormatServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleImageFormat.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleImageFormat.POLICY_GROUP;
@@ -57,24 +63,26 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
         postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_formatted_image_path_from_file_changed);
         postUpdateTrigger.registerHandler(ImageFormatVO.API_TYPE_ID, this, this.handleTriggerPostUpdateImageFormat);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleImageFormat.APINAME_get_formatted_image, this.get_formatted_image.bind(this));
     }
 
     private async force_formatted_image_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>) {
-        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).select_vos<FormattedImageVO>();
+        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).exec_as_server().select_vos<FormattedImageVO>();
 
         if ((!fimgs) || (!fimgs.length)) {
             return;
@@ -84,8 +92,8 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let fimg = fimgs[i];
 
             fimg.formatted_src = vo_update_handler.post_update_vo.path;
-            await ModuleDAO.getInstance().insertOrUpdateVO(fimg);
         }
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(fimgs);
     }
 
     private async handleTriggerPostUpdateImageFormat(update: DAOUpdateVOHolder<ImageFormatVO>) {
@@ -248,9 +256,18 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 image.cover(param_width, param_height);
             }
 
-            let new_img_file: FileVO = new FileVO();
-            new_img_file.is_secured = false;
-            new_img_file.path = new_src;
+            // Si le file existe déjà, on le récupère
+            let new_img_file: FileVO = await query(FileVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<FileVO>().path, new_src)
+                .select_vo<FileVO>();
+
+            if (!new_img_file) {
+                new_img_file = new FileVO();
+                new_img_file.is_secured = false;
+                new_img_file.path = new_src;
+                let resnew_img_file: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_file);
+                new_img_file.id = resnew_img_file.id;
+            }
 
             let src_dirname: string = path.dirname(new_img_file.path);
             if (!fs.existsSync(src_dirname)) {
@@ -295,9 +312,6 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 await image.blit(fontCanvas, 0, 0).writeAsync(new_img_file.path);
             }
 
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_file);
-            new_img_file.id = res.id;
-
             let new_img_formattee: FormattedImageVO = new FormattedImageVO();
             new_img_formattee.align_haut = format.align_haut;
             new_img_formattee.align_larg = format.align_larg;
@@ -310,7 +324,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.remplir_haut = format.remplir_haut;
             new_img_formattee.remplir_larg = format.remplir_larg;
             new_img_formattee.formatted_src = new_img_file.path;
-            res = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_formattee);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_formattee);
             new_img_formattee.id = res.id;
             return new_img_formattee;
         } catch (error) {

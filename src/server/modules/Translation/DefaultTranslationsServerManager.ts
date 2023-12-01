@@ -30,7 +30,7 @@ export default class DefaultTranslationsServerManager {
         }
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max);
+        let promise_pipeline = new PromisePipeline(max, 'DefaultTranslationsServerManager.saveDefaultTranslations');
         let registered_default_translations = this.clean_registered_default_translations();
 
         let langs: LangVO[] = null;
@@ -64,8 +64,8 @@ export default class DefaultTranslationsServerManager {
         });
 
         await promise_pipeline.end();
+        promise_pipeline = new PromisePipeline(max, 'DefaultTranslationsServerManager.saveDefaultTranslations');
 
-        promise_pipeline = new PromisePipeline(max);
         for (let i in registered_default_translations) {
 
             await promise_pipeline.push(async () => {
@@ -128,9 +128,9 @@ export default class DefaultTranslationsServerManager {
         if (!translatable) {
             translatable = new TranslatableTextVO();
             translatable.code_text = default_translation.code_text;
-            await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translatable);
             ConsoleHandler.error("Ajout de translatable : " + JSON.stringify(translatable));
-            translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq('code_text', default_translation.code_text).select_vo<TranslatableTextVO>();
+            translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_id(translatable.id).exec_as_server().select_vo<TranslatableTextVO>();
         }
 
         if (!translatable) {
@@ -164,8 +164,8 @@ export default class DefaultTranslationsServerManager {
                 translation.lang_id = lang.id;
                 translation.text_id = translatable.id;
                 translation.translated = translation_str;
-                await ModuleDAO.getInstance().insertOrUpdateVO(translation);
-                translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang.id, LangVO.API_TYPE_ID).filter_by_id(translatable.id, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
+                translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(translation.id).exec_as_server().select_vo<TranslationVO>();
             }
 
             if (!translation) {

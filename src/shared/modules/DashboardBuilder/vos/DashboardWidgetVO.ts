@@ -4,6 +4,13 @@ import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import DashboardBuilderController from "../DashboardBuilderController";
 
+
+/**
+ * @class DashboardWidgetVO
+ *  - DashboardWidgetVO is the DashboardPageWidgetVO type actually
+ *
+ * May be renamed to DashboardWidgetTypeVO
+ */
 export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem, INamedVO {
     public static API_TYPE_ID: string = "dashboard_widget";
 
@@ -18,7 +25,10 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_monthfilter: string = 'monthfilter';
     public static WIDGET_NAME_advanceddatefilter: string = 'advanceddatefilter';
     public static WIDGET_NAME_yearfilter: string = 'yearfilter';
+    public static WIDGET_NAME_currentuserfilter: string = 'currentuserfilter';
     public static WIDGET_NAME_validationfilters: string = 'validationfilters';
+    public static WIDGET_NAME_savefavoritesfilters: string = 'savefavoritesfilters';
+    public static WIDGET_NAME_showfavoritesfilters: string = 'showfavoritesfilters';
     public static WIDGET_NAME_var: string = 'var';
     public static WIDGET_NAME_pageswitch: string = 'pageswitch';
     public static WIDGET_NAME_varpiechart: string = 'varpiechart';

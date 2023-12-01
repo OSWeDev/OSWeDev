@@ -12,7 +12,7 @@ export default class DefaultTranslationManager {
 
     public static registerDefaultTranslation(defaultTranslation: DefaultTranslation) {
         if ((!defaultTranslation) || (!defaultTranslation.code_text) ||
-            (!ObjectHandler.getInstance().hasAtLeastOneAttribute(defaultTranslation.default_translations))) {
+            (!ObjectHandler.hasAtLeastOneAttribute(defaultTranslation.default_translations))) {
             return;
         }
         DefaultTranslationManager.registered_default_translations[defaultTranslation.code_text] = defaultTranslation;

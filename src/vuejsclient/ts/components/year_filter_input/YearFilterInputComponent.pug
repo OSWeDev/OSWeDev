@@ -1,0 +1,22 @@
+.year_filter_input_component
+    template
+        template(v-if='is_vo_field_ref')
+            .vo_field_ref_label {{ input_label }}
+        template(v-else-id='!!custom_filter_name')
+            .custom_filter_name {{ custom_filter_name }}
+
+        .years
+            template(v-if='(!years) || !years.length')
+                .no_year {{ label('year_filter_input_component.no_year') }}
+
+            template(v-if='can_select_all')
+                .all_years(
+                    :class='{"selected": !!is_all_years_selected}' 
+                    @click='toggle_select_all()'
+                )  {{ label('year_filter_input_component.select_all') }}
+            
+            template(v-for='year in years')
+                .year(
+                    :class='{"selected": !!selected_years[year], "not_selectionnable": !is_years_selectionnable}'
+                     @click='toggle_selected_year(year)'
+                ) {{ year }}

@@ -5,7 +5,7 @@ import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/Anim
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';

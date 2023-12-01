@@ -17,6 +17,21 @@
         cursor: pointer;
     }
 
+    .var_desc_get_chatgpt_prompt {
+        margin-top: 1em;
+        padding: 5px 5px 5px 10px;
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.1em;
+        color: #fff;
+        border-radius: 6px;
+        user-select: none;
+        -ms-user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        background-color: #44a6ab;
+        cursor: pointer;
+    }
+
     .var_desc_explain_content {
         padding: 15px;
         font-size: 1em;

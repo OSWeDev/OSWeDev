@@ -2,12 +2,12 @@
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
 import CleanOldNotifsCronWorker from './workers/CleanOldNotifs/CleanOldNotifsCronWorker';
 
 export default class PushDataCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PushDataCronWorkersHandler.instance) {
             PushDataCronWorkersHandler.instance = new PushDataCronWorkersHandler();

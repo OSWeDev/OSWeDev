@@ -1,5 +1,5 @@
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import TriggerHook from '../../../../shared/modules/Trigger/TriggerHook';
+import TriggerHook from '../../Trigger/TriggerHook';
 
 export default class DAOPostDeleteTriggerHook extends TriggerHook<string, IDistantVOBase, void> {
 

@@ -5,6 +5,7 @@ import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDat
 import DataImportColumnVO from "../../../../../shared/modules/DataImport/vos/DataImportColumnVO";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import ModulesManagerServer from "../../../ModulesManagerServer";
 
 export default class ModuleAnimationImportModuleDefaultFormats {
@@ -40,7 +41,7 @@ export default class ModuleAnimationImportModuleDefaultFormats {
         import_base_data_import_file.type = DataImportFormatVO.TYPE_XLSX;
         import_base_data_import_file.type_column_position = DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL;
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs([import_base_data_import_file]);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server([import_base_data_import_file]);
         import_base_data_import_file = await ModuleDataImport.getInstance().getDataImportFile(default_import_format_name);
 
         if (!import_base_data_import_file) {
@@ -62,6 +63,6 @@ export default class ModuleAnimationImportModuleDefaultFormats {
         import_base_data_import_columns.push(DataImportColumnVO.createNew('role_id_ranges', import_base_data_import_file.id));
         import_base_data_import_columns.push(DataImportColumnVO.createNew('id_import', import_base_data_import_file.id).setMandatory());
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs(import_base_data_import_columns);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(import_base_data_import_columns);
     }
 }

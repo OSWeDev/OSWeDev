@@ -19,6 +19,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleSharepointServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSharepointServer.instance) {
             ModuleSharepointServer.instance = new ModuleSharepointServer();
@@ -30,10 +31,12 @@ export default class ModuleSharepointServer extends ModuleServerBase {
 
     private ps = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSharepoint.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSharepoint.POLICY_GROUP;
@@ -51,7 +54,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
@@ -63,9 +66,11 @@ export default class ModuleSharepointServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() { }
 
     /**

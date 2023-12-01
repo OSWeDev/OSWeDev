@@ -14,10 +14,12 @@ export default class ModuleFormatDatesNombresServer extends ModuleServerBase {
 
     private static instance: ModuleFormatDatesNombresServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFormatDatesNombres.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

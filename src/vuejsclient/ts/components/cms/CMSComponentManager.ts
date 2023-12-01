@@ -3,6 +3,7 @@ import ICMSComponentTemplateVue from './interfaces/ICMSComponentTemplateVue';
 
 export default class CMSComponentManager {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
 
         if (!CMSComponentManager.instance) {

@@ -83,7 +83,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: "/supervision/:dashboard_key?",
             name: SupervisionController.ROUTE_NAME_DASHBOARD,
-            component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
+            component: () => import('./dashboard/SupervisionDashboardComponent'),
             props: true
         });
 
@@ -104,7 +104,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: "/supervision/:dashboard_key/item/:supervised_item_vo_type/:supervised_item_vo_id",
             name: SupervisionController.ROUTE_NAME_DASHBOARD_ITEM,
-            component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
+            component: () => import('./dashboard/SupervisionDashboardComponent'),
             props: true
         });
 

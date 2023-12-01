@@ -22,6 +22,7 @@ import ICronWorker from './interfaces/ICronWorker';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleCronServer.instance) {
             ModuleCronServer.instance = new ModuleCronServer();
@@ -31,11 +32,13 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     private static instance: ModuleCronServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleCron.getInstance().name);
         CronServerController.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '{worker_uid}'
@@ -122,6 +125,7 @@ export default class ModuleCronServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleCron.POLICY_GROUP;
@@ -139,10 +143,11 @@ export default class ModuleCronServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
@@ -160,7 +165,14 @@ export default class ModuleCronServer extends ModuleServerBase {
         CronServerController.getInstance().cronWorkers_semaphores[cronWorker.worker_uid] = true;
     }
 
-    public async planCronWorker(cronWorkerPlan: CronWorkerPlanification) {
+    /**
+     * planCronWorker
+     *  - Create or load Plan Cron Worker
+     *
+     * @param {CronWorkerPlanification} [cronWorkerPlan]
+     * @returns {Promise<void>}
+     */
+    public async planCronWorker(cronWorkerPlan: CronWorkerPlanification): Promise<void> {
 
         if (!CronServerController.getInstance().register_crons) {
             return;
@@ -170,11 +182,13 @@ export default class ModuleCronServer extends ModuleServerBase {
             return;
         }
 
-        let vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID).filter_by_text_eq('planification_uid', cronWorkerPlan.planification_uid).select_vo<CronWorkerPlanification>();
+        // Create or load cron worker
+        let vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
+            .filter_by_text_eq('planification_uid', cronWorkerPlan.planification_uid)
+            .select_vo<CronWorkerPlanification>();
 
         if (!vo) {
-
-            await ModuleDAO.getInstance().insertOrUpdateVO(cronWorkerPlan);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cronWorkerPlan);
         }
     }
 

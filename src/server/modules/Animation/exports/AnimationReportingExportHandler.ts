@@ -14,7 +14,7 @@ import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { hourFilter, percentFilter } from '../../../../shared/tools/Filters';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -27,6 +27,7 @@ import ExportAnimationReportingLine from './ExportAnimationReportingLine';
 
 export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AnimationReportingExportHandler.instance) {
             AnimationReportingExportHandler.instance = new AnimationReportingExportHandler();
@@ -64,12 +65,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             return null;
         }
 
-        let user: UserVO = null;
-        await StackContext.runPromise(
-            { IS_CLIENT: false },
-            async () => {
-                user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
-            });
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
         let import_params: AnimationReportingParamVO = APIControllerWrapper.try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
         let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
@@ -210,7 +206,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.fin = this.filterValue('fin', percent_module_finished);
         let data = null;
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
+            data = await VarsServerCallBackSubsController.get_var_data(
+                this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges).index);
         } catch (error) {
             ConsoleHandler.error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
         }
@@ -221,7 +218,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.support = null;
 
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
+            data = await VarsServerCallBackSubsController.get_var_data(
+                this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges).index);
         } catch (error) {
             ConsoleHandler.error('endModule:get_var_data2:' + error + ':FIXME do we need to handle this ?');
         }
@@ -268,7 +266,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
         let data = null;
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
+            data = await VarsServerCallBackSubsController.get_var_data(
+                this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges).index);
         } catch (error) {
             ConsoleHandler.error('endModule:get_new_elem:' + error + ':FIXME do we need to handle this ?');
         }
@@ -279,7 +278,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.support = (aum.support != null) ? await ModuleTranslation.getInstance().t(AnimationUserModuleVO.SUPPORT_LABELS[aum.support], user.lang_id) : null;
 
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
+            data = await VarsServerCallBackSubsController.get_var_data(
+                this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges).index);
         } catch (error) {
             ConsoleHandler.error('endModule:get_new_elem2:' + error + ':FIXME do we need to handle this ?');
         }
@@ -320,12 +320,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
     }
 
     private async get_column_labels(exhi: ExportHistoricVO): Promise<{ [field_name: string]: string }> {
-        let user: UserVO = null;
-        await StackContext.runPromise(
-            { IS_CLIENT: false },
-            async () => {
-                user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
-            });
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
 
         if (!user) {
             return null;

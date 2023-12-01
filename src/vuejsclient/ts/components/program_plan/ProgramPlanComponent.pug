@@ -6,7 +6,11 @@ include ../../../views/mixins/loading.pug
 
         .row(v-if="!!custom_filter_component")
             .col-sm-12
-                .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed" @filter_ready="filter_ready")
+                .custom_filter_component(
+                    :is="custom_filter_component" 
+                    @filter_changed="filter_changed" 
+                    @filter_ready="filter_ready"
+                )
 
         .row(v-if="!!custom_overview_program_plan_component")
             .col-sm-12
@@ -51,7 +55,9 @@ include ../../../views/mixins/loading.pug
                         program-plan-component-modal(
                             :program_plan_shared_module='program_plan_shared_module'
                             :program_plan_controller='program_plan_controller'
-                            :key='selected_rdv.id')
+                            :key='selected_rdv.id'
+                            @reload_rdvs="reload_rdvs"
+                        )
 
                     .modal-footer
                         button.btn.btn-danger(type='button', @click="deleteSelectedEvent", v-if="can_edit_any") {{ label('programplan.rdv_modal.delete_rdv') }}

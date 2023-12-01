@@ -7,7 +7,7 @@ import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleT
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
 import MenuController from '../../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';

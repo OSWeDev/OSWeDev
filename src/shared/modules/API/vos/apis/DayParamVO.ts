@@ -1,6 +1,5 @@
+/* istanbul ignore file : nothing to test in ParamVOs */
 
-
-import DateHandler from '../../../../tools/DateHandler';
 import IAPIParamTranslator from '../../interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../interfaces/IAPIParamTranslatorStatic';
 

@@ -1,15 +1,16 @@
-import * as io from 'socket.io-client/dist/socket.io.slim.js';
+import { io } from "socket.io-client";
 import { SnotifyToast } from 'vue-snotify';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../../shared/tools/EnvHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
@@ -17,9 +18,8 @@ import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import EnvHandler from '../../../../shared/tools/EnvHandler';
+import APINotifTypeResultVO from "../../../../shared/modules/PushData/vos/APINotifTypeResultVO";
+import ClientAPIController from "../API/ClientAPIController";
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -33,7 +33,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private static instance: PushDataVueModule = null;
 
-    public throttled_notifications_handler = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+    public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
         this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
     protected socket;
 
@@ -47,7 +47,7 @@ export default class PushDataVueModule extends VueModuleBase {
         let first = true;
 
         // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
-        this.socket = io.connect({
+        this.socket = io({
             transportOptions: {
                 polling: {
                     extraHeaders: {
@@ -136,6 +136,10 @@ export default class PushDataVueModule extends VueModuleBase {
             self.throttled_notifications_handler([notification]);
         });
 
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_APIRESULT], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_TECH], async function (notification: NotificationVO) {
             self.throttled_notifications_handler([notification]);
         });
@@ -148,6 +152,9 @@ export default class PushDataVueModule extends VueModuleBase {
             self.throttled_notifications_handler([notification]);
         });
 
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
 
         // TODO: Handle other notif types
     }
@@ -160,10 +167,26 @@ export default class PushDataVueModule extends VueModuleBase {
         let server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
         if (server_app_version && (EnvHandler.VERSION != server_app_version)) {
-            VueAppBase.instance_.vueInstance.snotify.warning(
-                VueAppBase.instance_.vueInstance.label("app_version_changed"),
-                { timeout: 3000 }
-            );
+
+            /**
+             * Cas du dev local, on checke le timestamp server vs local, si le local est plus récent inutile de recharger
+             */
+            const server_app_version_timestamp_str: string = server_app_version.split('-')[1];
+            const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
+
+            const local_app_version_timestamp_str: string = EnvHandler.VERSION.split('-')[1];
+            const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
+
+            if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
+                return;
+            }
+
+            if (VueAppBase.instance_.vueInstance && VueAppBase.instance_.vueInstance.snotify) {
+                VueAppBase.instance_.vueInstance.snotify.warning(
+                    VueAppBase.instance_.vueInstance.label("app_version_changed"),
+                    { timeout: 3000 }
+                );
+            }
 
             setTimeout(() => {
                 window.location.reload();
@@ -187,6 +210,8 @@ export default class PushDataVueModule extends VueModuleBase {
         let TYPE_NOTIF_TECH: NotificationVO[] = [];
         let TYPE_NOTIF_PROMPT: NotificationVO[] = [];
         let TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
+        let TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
+        let TYPE_NOTIF_DOWNLOAD_FILE: NotificationVO[] = [];
 
         for (let i in notifications) {
             let notification = notifications[i];
@@ -201,6 +226,9 @@ export default class PushDataVueModule extends VueModuleBase {
                 case NotificationVO.TYPE_NOTIF_VARDATA:
                     TYPE_NOTIF_VARDATA.push(notification);
                     break;
+                case NotificationVO.TYPE_NOTIF_APIRESULT:
+                    TYPE_NOTIF_APIRESULT.push(notification);
+                    break;
                 case NotificationVO.TYPE_NOTIF_TECH:
                     TYPE_NOTIF_TECH.push(notification);
                     break;
@@ -209,6 +237,9 @@ export default class PushDataVueModule extends VueModuleBase {
                     break;
                 case NotificationVO.TYPE_NOTIF_REDIRECT:
                     TYPE_NOTIF_REDIRECT.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE:
+                    TYPE_NOTIF_DOWNLOAD_FILE.push(notification);
                     break;
             }
         }
@@ -235,6 +266,40 @@ export default class PushDataVueModule extends VueModuleBase {
 
         if (TYPE_NOTIF_REDIRECT && TYPE_NOTIF_REDIRECT.length) {
             await this.notifications_handler_TYPE_NOTIF_REDIRECT(TYPE_NOTIF_REDIRECT);
+        }
+
+        if (TYPE_NOTIF_DOWNLOAD_FILE && TYPE_NOTIF_DOWNLOAD_FILE.length) {
+            await this.notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(TYPE_NOTIF_DOWNLOAD_FILE);
+        }
+
+        if (TYPE_NOTIF_APIRESULT && TYPE_NOTIF_APIRESULT.length) {
+            await this.notifications_handler_TYPE_NOTIF_APIRESULT(TYPE_NOTIF_APIRESULT);
+        }
+    }
+
+    private async notifications_handler_TYPE_NOTIF_APIRESULT(notifications: NotificationVO[]) {
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            let api_result: APINotifTypeResultVO = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos))[0];
+
+            if (!api_result) {
+                ConsoleHandler.error("API result not found for notification:", notification);
+                continue;
+            }
+
+            if (!api_result.api_call_id) {
+                ConsoleHandler.error("API result not found for notification:", notification);
+                continue;
+            }
+
+            if (!ClientAPIController.api_waiting_for_result_notif_solvers) {
+                ClientAPIController.api_waiting_for_result_notif_waiting_for_solvers[api_result.api_call_id] = () => {
+                    ClientAPIController.api_waiting_for_result_notif_solvers[api_result.api_call_id](api_result.res);
+                };
+            } else {
+                ClientAPIController.api_waiting_for_result_notif_solvers[api_result.api_call_id](api_result.res);
+            }
         }
     }
 
@@ -303,6 +368,20 @@ export default class PushDataVueModule extends VueModuleBase {
             }
         }
         await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+    }
+
+    private async notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(notifications: NotificationVO[]) {
+
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            if (!notification.simple_downloadable_link) {
+                continue;
+            }
+
+            let iframe = $('<iframe style="display:none" src="' + notification.simple_downloadable_link + '"></iframe>');
+            $('body').append(iframe);
+        }
     }
 
     private async notifications_handler_TYPE_NOTIF_REDIRECT(notifications: NotificationVO[]) {
@@ -424,7 +503,7 @@ export default class PushDataVueModule extends VueModuleBase {
             }
         }
 
-        if (var_by_indexes && ObjectHandler.getInstance().hasAtLeastOneAttribute(var_by_indexes)) {
+        if (var_by_indexes && ObjectHandler.hasAtLeastOneAttribute(var_by_indexes)) {
 
             let vos = Object.values(var_by_indexes);
 
@@ -442,7 +521,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 // if varData is_computing, on veut écraser un seul champs
                 if (vo.is_computing) {
 
-                    let stored_var: VarDataValueResVO = VarsClientController.getInstance().cached_var_datas[vo.index];
+                    let stored_var: VarDataValueResVO = VarsClientController.cached_var_datas[vo.index];
 
                     // Si on a encore rien reçu, l'info de calcul en cours est inutile
                     if (!!stored_var) {
@@ -452,7 +531,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         vo.id = stored_var.id;
                     }
                 }
-                VarsClientController.getInstance().cached_var_datas[vo.index] = vo;
+                VarsClientController.cached_var_datas[vo.index] = vo;
 
                 if (!types[vo._type]) {
                     types[vo._type] = true;
@@ -482,25 +561,26 @@ export default class PushDataVueModule extends VueModuleBase {
 
                                 let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
 
-                                let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.warning(content, {
-                                    timeout: 3000
-                                });
+                                // let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
+                                // VueAppBase.instance_.vueInstance.snotify.warning(content, {
+                                //     timeout: 3000
+                                // });
 
-                                setTimeout(() => {
-                                    location.href = PARAM_TECH_DISCONNECT_URL;
-                                }, 3000);
+                                // setTimeout(() => {
+                                location.href = PARAM_TECH_DISCONNECT_URL;
+                                // }, 3000);
                                 break;
 
                             case NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME:
 
-                                let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
-                                    timeout: 3000
-                                });
-                                setTimeout(() => {
-                                    location.href = '/';
-                                }, 3000);
+                                // On teste de supprimer les délais pour éviter les appels à des méthodes qui ne sont plus accessibles typiquement lors d'un impersonate...
+                                // let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
+                                // VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
+                                //     timeout: 3000
+                                // });
+                                // setTimeout(() => {
+                                location.href = '/';
+                                // }, 3000);
                                 break;
 
                             case NotificationVO.TECH_RELOAD:

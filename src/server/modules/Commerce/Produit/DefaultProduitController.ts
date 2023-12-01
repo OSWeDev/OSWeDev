@@ -5,6 +5,7 @@ import ParamLigneCommandeVO from '../../../../shared/modules/Commerce/Commande/v
 
 export default class DefaultProduitController extends ProduitControllerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DefaultProduitController.instance) {
             DefaultProduitController.instance = new DefaultProduitController();

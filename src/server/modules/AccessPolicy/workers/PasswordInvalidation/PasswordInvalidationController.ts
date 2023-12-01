@@ -7,6 +7,7 @@ import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates'
 
 export default class PasswordInvalidationController {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PasswordInvalidationController.instance) {
             PasswordInvalidationController.instance = new PasswordInvalidationController();

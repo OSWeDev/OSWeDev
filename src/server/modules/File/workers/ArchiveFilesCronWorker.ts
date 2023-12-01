@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import fs from 'fs';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
@@ -7,10 +7,12 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ICronWorker from "../../Cron/interfaces/ICronWorker";
 import FileServerController from "../FileServerController";
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
 
 export default class ArchiveFilesCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ArchiveFilesCronWorker.instance) {
             ArchiveFilesCronWorker.instance = new ArchiveFilesCronWorker();
@@ -112,7 +114,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                                     file_vo.path = file_vo_updated;
                                 }
                             }
-                            await ModuleDAO.getInstance().insertOrUpdateVO(file_vo);
+                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file_vo);
                         }
                     });
                 }

@@ -1,10 +1,11 @@
 .advanced_date_filter_widget_component
-    template(v-if='vo_field_ref')
-        .vo_field_ref_label {{ vo_field_ref_label }}
-
+    template(v-if="((!!is_vo_field_ref) && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)")
+        .vo_field_ref_label(v-if='(!!is_vo_field_ref) && !!vo_field_ref') {{ vo_field_ref_label }}
+        .vo_field_ref_label(v-if='(!is_vo_field_ref) && !!custom_filter_name') {{ custom_filter_name }}
+        
         template(v-if="opts && (opts.length > 0)")
             .row
-                .opts(:class="{['col-sm-7']: is_type_custom, ['col-sm-12']: !is_type_custom}")
+                .opts(v-if="!is_auto_selectable_choice" :class="{['col-sm-7']: is_type_custom, ['col-sm-12']: !is_type_custom}")
                     template(v-if="is_checkbox")
                         template(v-for="opt in opts")
                             .filter_opt

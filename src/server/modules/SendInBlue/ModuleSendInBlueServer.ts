@@ -1,4 +1,4 @@
-import moment = require('moment');
+import moment from 'moment';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
@@ -15,6 +15,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import SendInBlueMailServerController from './SendInBlueMailServerController';
@@ -22,6 +23,7 @@ import SendInBlueServerController from './SendInBlueServerController';
 
 export default class ModuleSendInBlueServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSendInBlueServer.instance) {
             ModuleSendInBlueServer.instance = new ModuleSendInBlueServer();
@@ -31,15 +33,18 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
     private static instance: ModuleSendInBlueServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSendInBlue.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_event_webhook, this.sendinblue_event_webhook.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_refresh_mail_events, this.sendinblue_refresh_mail_events.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SendInBlue'
@@ -63,6 +68,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSendInBlue.POLICY_GROUP;
@@ -125,33 +131,30 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         }
 
         // Contexte serveur pour la suite
-        await StackContext.runPromise(
-            { IS_CLIENT: false },
-            async () => {
 
-                let mails: MailVO[] = await query(MailVO.API_TYPE_ID)
-                    .filter_by_text_eq('message_id', event.messageId)
-                    .filter_by_text_eq('email', event.email)
-                    .select_vos<MailVO>();
+        let mails: MailVO[] = await query(MailVO.API_TYPE_ID)
+            .filter_by_text_eq('message_id', event.messageId)
+            .filter_by_text_eq('email', event.email)
+            .exec_as_server()
+            .select_vos<MailVO>();
 
-                if ((!mails) || (!mails.length)) {
-                    // il s'avère que SendInBlue envoie en masse tous les projets on peut pas scinder au sein d'un compte, donc
-                    //  on log pas systématiquement quand on trouve pas le mail, c'est souvent normal
-                    // ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
-                    return;
-                }
+        if ((!mails) || (!mails.length)) {
+            // il s'avère que SendInBlue envoie en masse tous les projets on peut pas scinder au sein d'un compte, donc
+            //  on log pas systématiquement quand on trouve pas le mail, c'est souvent normal
+            // ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
+            return;
+        }
 
-                let mail = mails[0];
+        let mail = mails[0];
 
-                if (!mail) {
-                    ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
-                    return;
-                }
+        if (!mail) {
+            ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
+            return;
+        }
 
-                let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>()
+        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).exec_as_server().select_vos<MailEventVO>();
 
-                await this.update_mail_event(mail, event, bdd_events);
-            });
+        await this.update_mail_event(mail, event, bdd_events);
     }
 
     private async update_mail_event(mail: MailVO, event: SendInBlueMailEventVO, bdd_events: MailEventVO[]) {
@@ -230,7 +233,8 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
         if (!found) {
             ConsoleHandler.log('sendinblue:new event:' + JSON.stringify(event));
-            await ModuleDAO.getInstance().insertOrUpdateVO(new_event);
+
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_event);
         }
     }
 }

@@ -39,7 +39,8 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
     private file_name: string = null;
     private file_name_no_extension: string = null;
 
-    private throttled_load_file = ThrottleHelper.getInstance().declare_throttle_without_args(this.load_file.bind(this), 100);
+
+    private throttled_load_file = ThrottleHelper.declare_throttle_without_args(this.load_file.bind(this), 100);
 
     @Watch('file_id', { immediate: true })
     @Watch('file_path')

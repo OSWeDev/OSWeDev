@@ -1,32 +1,33 @@
+/* istanbul ignore file : nothing to test in ParamVOs */
+
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
+import IDistantVOBase from "../../IDistantVOBase";
 import ContextQueryVO from "./ContextQueryVO";
 
-export default class UpdateVosParamVO implements IAPIParamTranslator<UpdateVosParamVO> {
+export default class UpdateVosParamVO<T extends IDistantVOBase> implements IAPIParamTranslator<UpdateVosParamVO<T>> {
 
-    public static fromParams(
-        context_query: ContextQueryVO, update_field_id: string, new_api_translated_value: any
-    ): UpdateVosParamVO {
+    public static fromParams<U extends IDistantVOBase>(
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id: string]: any }
+    ): UpdateVosParamVO<U> {
 
         return new UpdateVosParamVO(
-            context_query, update_field_id, new_api_translated_value
+            context_query, new_api_translated_values
         );
     }
 
-    public static getAPIParams(param: UpdateVosParamVO): any[] {
+    public static getAPIParams<U extends IDistantVOBase>(param: UpdateVosParamVO<U>): any[] {
         return [
             param.context_query,
-            param.update_field_id,
-            param.new_api_translated_value
+            param.new_api_translated_values
         ];
     }
 
     public constructor(
         public context_query: ContextQueryVO,
-        public update_field_id: string,
-        public new_api_translated_value: any
+        public new_api_translated_values: { [update_field_id in keyof T]?: any }
     ) {
     }
 }
 
-export const UpdateVosParamVOStatic: IAPIParamTranslatorStatic<UpdateVosParamVO> = UpdateVosParamVO;
+export const UpdateVosParamVOStatic: IAPIParamTranslatorStatic<UpdateVosParamVO<any>> = UpdateVosParamVO<any>;

@@ -1,22 +1,23 @@
 import VueFlags from "@growthbunker/vueflags";
-import 'jquery';
+import $ from 'jquery';
 import 'bootstrap';
-import * as  moment from "moment";
+import moment from 'moment';
 
 import 'select2';
+import { quillEditor } from 'vue-quill-editor';
 import VCalendar from 'v-calendar';
+import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueCookies from 'vue-cookies-ts';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import VueI18n from 'vue-i18n';
-import Intersect from 'vue-intersect';
 import VModal from 'vue-js-modal';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
 import { ColorPicker, ColorPanel } from 'one-colorpicker';
-import * as VueResource from 'vue-resource';
+import VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
 import { RouteConfig } from 'vue-router/types/router';
 import vSelect from 'vue-select';
@@ -30,8 +31,7 @@ import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
-import LangVO from "../shared/modules/Translation/vos/LangVO";
-import VOsTypesManager from "../shared/modules/VOsTypesManager";
+import VOsTypesManager from "../shared/modules/VO/manager/VOsTypesManager";
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import PWAController from "./public/pwa/PWAController";
@@ -55,9 +55,20 @@ import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import { all_promises } from "../shared/tools/PromiseTools";
 import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
-import * as i18next from 'i18next';
+import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
+import StatsController from "../shared/modules/Stats/StatsController";
+import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 require('moment-json-parser').overrideDefault();
 
+// const loadComponent = async (component) => {
+//     try {
+//         return await import(`@/components/${component}.vue`);
+//     } catch (err) {
+//         if (err.message.includes("Failed to fetch dynamically imported module")) {
+//             window.location.reload(true); // force reload to bypass cache
+//         }
+//     }
+// };
 
 export default abstract class VueAppBase {
 
@@ -90,12 +101,11 @@ export default abstract class VueAppBase {
         let self = this;
         let promises = [];
 
-        promises.push((async () => {
-            Vue.config.devtools = false;
-            if (EnvHandler.IS_DEV) {
-                Vue.config.devtools = true;
-            }
-        })());
+        Vue.config.devtools = false;
+        if (EnvHandler.IS_DEV) {
+            Vue.config.devtools = true;
+        }
+
         promises.push((async () => {
             await this.appController.initialize();
         })());
@@ -103,6 +113,7 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         PushDataVueModule.getInstance();
+        StatsVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
 
@@ -115,25 +126,32 @@ export default abstract class VueAppBase {
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null
         );
 
+        const modules_by_name = ModulesManager.getInstance().modules_by_name;
+
         // On commence par demander tous les droits d'accès des modules
         promises = [];
-        for (let i in ModulesManager.getInstance().modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
+        for (let module_name in modules_by_name) {
+            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+                module_name,
+                VueModuleBase.IVueModuleRoleName
+            ) as VueModuleBase;
 
             /**
              * FIXME : peut-etre séparer les policies_tocheck et des policies_totest pour identifier les policies qui manqueraient de façon anormale
              */
-            if (module_ && module_.policies_needed && module_.policies_needed.length) {
+            if (module_?.policies_needed?.length > 0) {
                 promises.push((async () => {
 
                     let local_promises = [];
 
-                    for (let j in module_.policies_needed) {
-                        let policy_name = module_.policies_needed[j];
+                    for (const j in module_.policies_needed) {
+                        const policy_name = module_.policies_needed[j];
+
                         local_promises.push((async () => {
                             module_.policies_loaded[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
                         })());
                     }
+
                     await all_promises(local_promises);
                 })());
             }
@@ -141,8 +159,11 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         // On lance les initializeAsync des modules Vue
-        for (let i in ModulesManager.getInstance().modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
+        for (let module_name in modules_by_name) {
+            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+                module_name,
+                VueModuleBase.IVueModuleRoleName
+            ) as VueModuleBase;
 
             if (module_) {
                 await module_.initializeAsync();
@@ -159,6 +180,12 @@ export default abstract class VueAppBase {
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);
 
+        // Vue.config.errorHandler = function (err, vm, info) {
+        //     if (err.message.includes("Failed to fetch dynamically imported module")) {
+        //         window.location.reload(true); // force reload to bypass cache
+        //     }
+        // };
+
         Vue.use(ColorPanel);
         Vue.use(ColorPicker);
 
@@ -170,7 +197,7 @@ export default abstract class VueAppBase {
             messages: this.appController.ALL_LOCALES,
             fallbackLocale: this.appController.data_default_locale,
             missing: (locale, key, vm) => {
-                AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
+                VueAppController.getInstance().throttled_register_translation({
                     translation_code: key,
                     missing: true
                 });
@@ -272,28 +299,35 @@ export default abstract class VueAppBase {
             routerOptions.routes.push({
                 path: '/',
                 name: 'Home',
-                component: () => import(/* webpackChunkName: "DefaultHomeComponent" */ './ts/components/DefaultHome/component/DefaultHomeComponent')
+                component: () => import('./ts/components/DefaultHome/component/DefaultHomeComponent')
             });
         }
 
         routerOptions.routes.push({
             path: '/me',
             name: 'MyAccount',
-            component: () => import(/* webpackChunkName: "AccessPolicyMyAccountComponent" */ './login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
+            component: () => import('./login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
         });
 
         routerOptions.routes.push({
             path: '*',
             name: '404',
-            component: () => import(/* webpackChunkName: "Error404Component" */ './ts/components/Error404/component/Error404Component')
+            component: () => import('./ts/components/Error404/component/Error404Component')
         });
 
         this.vueRouter = new VueRouter(routerOptions);
 
         let nbTests = 20;
+        let time_in_router: number = 0;
 
         function afterEachTransitionHandler(transition) {
             let app: Vue = self.vueRouter.app;
+
+            if (!!time_in_router) {
+                let time = Dates.now_ms() - time_in_router;
+                time_in_router = 0;
+                StatsController.register_stat_DUREE('Vue_router', 'afterEachTransitionHandler', transition.name, time);
+            }
 
             // JNE : Le temps de charger l'app qui sinon ne l'est pas encore...
             if ((nbTests > 0) && ((!app) || (!app['setPerimeter']))) {
@@ -319,6 +353,12 @@ export default abstract class VueAppBase {
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
         this.vueRouter.beforeEach((route, redirect, next) => {
+
+            time_in_router = Dates.now_ms();
+            if (route.name) {
+                StatsController.register_stat_COMPTEUR('Vue_router', 'beforeEach', route.name);
+            }
+
             VueAppController.getInstance().sendToGoogleAnalytics(
                 route.name,
                 route.fullPath,
@@ -384,33 +424,32 @@ export default abstract class VueAppBase {
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
         Vue.use(VModal);
-        Vue.component('Vuequilleditor', async () => (await import(/* webpackChunkName: "quillEditor" */  'vue-quill-editor')).quillEditor);
+        Vue.component('Vuequilleditor', quillEditor);
         Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
-        Vue.component('v-slider', async () => (await import(/* webpackChunkName: "VueSlider" */  'vue-slider-component')));
-        Vue.component('vue-dropzone', async () => (await import(/* webpackChunkName: "Vue2Dropzone" */  'vue2-dropzone')));
-        Vue.component('var-data', () => import(/* webpackChunkName: "VarDataRefComponent" */ './ts/components/Var/components/dataref/VarDataRefComponent'));
-        Vue.component('vars-sum', () => import(/* webpackChunkName: "VarDataSumComponent" */ './ts/components/Var/components/datasum/VarDataSumComponent'));
-        Vue.component('vars-data', () => import(/* webpackChunkName: "VarDatasRefsComponent" */ './ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
-        Vue.component('var-desc', () => import(/* webpackChunkName: "VarDescComponent" */ './ts/components/Var/components/desc/VarDescComponent'));
-        Vue.component('var-if', () => import(/* webpackChunkName: "VarDataIfComponent" */ './ts/components/Var/components/varif/VarDataIfComponent'));
-        // Vue.component('var-bar-chart', () => import(/* webpackChunkName: "VarDataBarChartComponent" */ './ts/components/Var/components/databarchart/VarDataBarChartComponent'));
-        Vue.component('vars-bar-chart', () => import(/* webpackChunkName: "VarDatasBarChartComponent" */ './ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
-        Vue.component('var-pie-chart', () => import(/* webpackChunkName: "VarPieChartComponent" */ './ts/components/Var/components/piechart/VarPieChartComponent'));
-        Vue.component('Resizableimg', () => import(/* webpackChunkName: "ResizableImageComponent" */ './ts/components/resizable_img/ResizableImageComponent'));
-        Vue.component('Intersect', Intersect);
-        Vue.component('Crudcomponentfield', () => import(/* webpackChunkName: "CRUDComponentField" */ './ts/components/crud/component/field/CRUDComponentField'));
+        Vue.component('v-slider', async () => (await import('vue-slider-component')));
+        Vue.component('vue-dropzone', async () => (await import('vue2-dropzone')));
+        Vue.component('var-data', () => import('./ts/components/Var/components/dataref/VarDataRefComponent'));
+        Vue.component('vars-sum', () => import('./ts/components/Var/components/datasum/VarDataSumComponent'));
+        Vue.component('vars-data', () => import('./ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
+        Vue.component('var-desc', () => import('./ts/components/Var/components/desc/VarDescComponent'));
+        Vue.component('var-if', () => import('./ts/components/Var/components/varif/VarDataIfComponent'));
+        // Vue.component('var-bar-chart', () => import('./ts/components/Var/components/databarchart/VarDataBarChartComponent'));
+        Vue.component('vars-bar-chart', () => import('./ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
+        Vue.component('var-pie-chart', () => import('./ts/components/Var/components/piechart/VarPieChartComponent'));
+        Vue.component('Resizableimg', () => import('./ts/components/resizable_img/ResizableImageComponent'));
+        Vue.component('Crudcomponentfield', () => import('./ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
         Vue.component('Alertcomponent', AlertComponent);
         Vue.component('Alertslistcontainercomponent', AlertsListContainerComponent);
-        Vue.component('Numrangecomponent', () => import(/* webpackChunkName: "NumRangeComponent" */ './ts/components/ranges/numrange/NumRangeComponent'));
-        Vue.component('Numrangescomponent', () => import(/* webpackChunkName: "NumRangesComponent" */ './ts/components/ranges/numranges/NumRangesComponent'));
-        Vue.component('Tsrangecomponent', () => import(/* webpackChunkName: "TSRangeComponent" */ './ts/components/ranges/tsrange/TSRangeComponent'));
-        Vue.component('Tsrangescomponent', () => import(/* webpackChunkName: "TSRangesComponent" */ './ts/components/ranges/tsranges/TSRangesComponent'));
-        Vue.component('Hourrangecomponent', () => import(/* webpackChunkName: "HourRangeComponent" */ './ts/components/ranges/hourrange/HourRangeComponent'));
-        Vue.component('Hourrangescomponent', () => import(/* webpackChunkName: "HourRangesComponent" */ './ts/components/ranges/hourranges/HourRangesComponent'));
+        Vue.component('Numrangecomponent', () => import('./ts/components/ranges/numrange/NumRangeComponent'));
+        Vue.component('Numrangescomponent', () => import('./ts/components/ranges/numranges/NumRangesComponent'));
+        Vue.component('Tsrangecomponent', () => import('./ts/components/ranges/tsrange/TSRangeComponent'));
+        Vue.component('Tsrangescomponent', () => import('./ts/components/ranges/tsranges/TSRangesComponent'));
+        Vue.component('Hourrangecomponent', () => import('./ts/components/ranges/hourrange/HourRangeComponent'));
+        Vue.component('Hourrangescomponent', () => import('./ts/components/ranges/hourranges/HourRangesComponent'));
 
         Vue.directive('var-directive', VarDirective.getInstance());
         Vue.directive('vars-directive', VarsDirective.getInstance());
@@ -437,7 +476,7 @@ export default abstract class VueAppBase {
             await PWAController.getInstance().initialize_pwa(
                 $,
                 app_name,
-                '/vuejsclient/public/pwa/client-sw.' + EnvHandler.VERSION + '.js'
+                '/public/client-sw.' + EnvHandler.VERSION + '.js'
             );
         }
         // this.registerPushWorker();
@@ -480,10 +519,10 @@ export default abstract class VueAppBase {
     protected async postMountHook() { }
 
     protected async unregisterVarsBeforeUnload() {
-        if (VarsClientController.getInstance().registered_var_params) {
+        if (VarsClientController.registered_var_params) {
             let params: VarDataBaseVO[] = [];
-            for (let i in VarsClientController.getInstance().registered_var_params) {
-                let wrapper = VarsClientController.getInstance().registered_var_params[i];
+            for (let i in VarsClientController.registered_var_params) {
+                let wrapper = VarsClientController.registered_var_params[i];
                 params.push(wrapper.var_param);
             }
             if (params.length) {

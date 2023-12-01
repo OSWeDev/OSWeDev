@@ -1,4 +1,3 @@
-import IDistantVOBase from "../../../../../shared/modules/IDistantVOBase";
 
 export default class NumRangeEnumHandler {
 

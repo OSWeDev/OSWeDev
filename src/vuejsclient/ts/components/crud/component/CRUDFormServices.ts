@@ -25,6 +25,7 @@ import CRUDComponentManager from '../CRUDComponentManager';
 
 export default class CRUDFormServices {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!CRUDFormServices._instance) {
             CRUDFormServices._instance = new CRUDFormServices();
@@ -63,9 +64,7 @@ export default class CRUDFormServices {
 
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
-                            IDistantVOBase
-                        >(datatable.API_TYPE_ID);
+                        let vos: IDistantVOBase[] = await query(datatable.API_TYPE_ID).select_vos();
                         storeDatas({
                             API_TYPE_ID: datatable.API_TYPE_ID,
                             vos: vos
@@ -218,7 +217,7 @@ export default class CRUDFormServices {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type;
+                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
                 if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
 
@@ -304,7 +303,7 @@ export default class CRUDFormServices {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type;
+                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
                 if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
                     if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {

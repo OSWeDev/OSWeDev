@@ -1,4 +1,4 @@
-import * as TrelloNodeApi from 'oswedev-trello-node-api';
+import TrelloNodeApi from 'oswedev-trello-node-api';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleTrelloAPI from '../../../shared/modules/TrelloAPI/ModuleTrelloAPI';
 import ModuleServerBase from '../ModuleServerBase';
@@ -8,6 +8,7 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
     public static TRELLO_API_KEY_PARAM_NAME: string = 'TRELLO_API_KEY';
     public static TRELLO_TOKEN_PARAM_NAME: string = 'TRELLO_TOKEN';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleTrelloAPIServer.instance) {
             ModuleTrelloAPIServer.instance = new ModuleTrelloAPIServer();
@@ -25,10 +26,12 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
      * ----- Local thread cache
      */
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTrelloAPI.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 

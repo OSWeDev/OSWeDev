@@ -2,6 +2,9 @@
     .col-sm-12
         template(v-if='(!!selected_rdv_historics) && selected_rdv_historics.length')
             .historic_rdv(v-for='rdv_historic in selected_rdv_historics')
+                .row(v-if='can_archive_rdv')
+                    .col-sm-12
+                        i.fa-solid.fa-trash(aria-hidden="true", @click="confirm_archive(rdv_historic)" v-if='can_archive_rdv')
                 .row
                     .col-sm-6
                         Vuefieldcomponent(isreadonly="true", :name="label('programplan.rdv_modal.rdv_date')", :value="formatDate_FullyearMonthDay(rdv_historic.start_time)")

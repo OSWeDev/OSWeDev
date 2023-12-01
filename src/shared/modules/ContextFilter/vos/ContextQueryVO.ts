@@ -1,8 +1,10 @@
-import { isArray } from "lodash";
+import { cloneDeep, isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
+import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
+import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
@@ -10,21 +12,38 @@ import IMatroid from "../../Matroid/interfaces/IMatroid";
 import MatroidController from "../../Matroid/MatroidController";
 import ModuleTableField from "../../ModuleTableField";
 import VarConfVO from "../../Var/vos/VarConfVO";
-import VOsTypesManager from "../../VOsTypesManager";
+import AbstractVO from "../../VO/abstract/AbstractVO";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
 import ParameterizedQueryWrapper from "./ParameterizedQueryWrapper";
 import SortByVO from "./SortByVO";
+import ContextQueryJoinVO from "./ContextQueryJoinVO";
+import ContextQueryJoinOnFieldVO from "./ContextQueryJoinOnFieldVO";
 
 /**
  * Encapsuler la définition d'une requête ou d'une sous-requête (qu'on liera à la requête principale par un filtre)
  */
-export default class ContextQueryVO implements IDistantVOBase {
+export default class ContextQueryVO extends AbstractVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_query";
 
     public id: number;
     public _type: string = ContextQueryVO.API_TYPE_ID;
+
+    /**
+     * Durée de rétention (et donc de faîcheur) max de la requête en cache
+     *  - > 0 : cache de la durée indiquée
+     * On utilise le cache de la requête pour les requêtes de type select passées par le throttled query
+     *  et on active le cache requete par requete avec pour paramètre cette durée de rétention
+     *  et si on en voit plusieurs, on garde la valeur de rétention max
+     * Si on a dans le cache un résultat plus récent que la durée de rétention, on charge depuis le cache
+     *  sinon on relance la requête et on écrase le cache
+     * Le cache est vidé régulièremetn par le throttled query qui lance de temps à autres un clean_cache
+     *  qui vide le cache suivant les durées de rétention
+     */
+    public max_age_ms: number;
+
 
     /**
      * Indicateur de select count()
@@ -51,6 +70,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      * Les filtres à appliquer à la requête
      */
     public filters: ContextFilterVO[];
+
+    /**
+     * Les jointures manuelles entre 2 context query
+     */
+    public joined_context_queries: ContextQueryJoinVO[];
 
     /**
      * Les types utilisables dans la requete pour faire les jointures
@@ -85,15 +109,25 @@ export default class ContextQueryVO implements IDistantVOBase {
     public query_tables_prefix: string;
 
     /**
-     * Pas fan de cette solution : le but est d'identifier qu'on est en train de définir un accesshook
-     *  pour éviter de tourner en boucle sur l'ajout de conditions where sur le base_type_id.
-     *  si on identifie pas ce cas correctement on définit le access hook en renvoyer un contextquery,
-     *  qui par définition va déclencher l'appel au contexte accesshook et ajouter une condition sur subquery... en boucle
-     *  donc quand on définit un access_hook on met ce paramètre à true dans le contextquery pour éviter ce problème
-     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
-     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
+     * On renomme / remplace is_access_hook_def par is_admin => on indique qu'on ignore tout type de
+     *  filtrage des types de données et des données (les droits, et les content access hooks)
+     * Ce paramètre est forcé à false quand on arrive par l'API, seul le serveur peut décider de le mettre à true
      */
-    public is_access_hook_def: boolean;
+    public is_server: boolean;
+
+    /**
+     * @deprecated use is_admin
+     */
+    get is_access_hook_def(): boolean {
+        return this.is_server;
+    }
+
+    /**
+     * @deprecated use is_admin
+     */
+    set is_access_hook_def(is_admin: boolean) {
+        this.is_server = is_admin;
+    }
 
     /**
      * Pour exclure les champs techniques de type versioning du path autorisé (false pour exclure)
@@ -105,6 +139,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      * distinct est un nom réservé, renommage en query_distinct
      */
     public query_distinct: boolean;
+
+    /**
+     * Union queries collection
+     */
+    public union_queries: ContextQueryVO[];
 
     /**
      * Propose de throttle la requête de type select pour faire des packs (dans la même logique que le requestwrapper)
@@ -120,15 +159,61 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
+    public set_base_api_type_id(base_api_type_id: string): ContextQueryVO {
+        this.base_api_type_id = base_api_type_id;
+
+        return this;
+    }
+
+    public join_context_query(
+        joined_context_query: ContextQueryVO,
+        joined_table_alias: string,
+        join_type: number,
+        join_on_fields: ContextQueryJoinOnFieldVO[],
+    ): ContextQueryVO {
+
+        let context_query_join: ContextQueryJoinVO = ContextQueryJoinVO.createNew(joined_context_query, joined_table_alias, join_on_fields, join_type);
+        if (!this.joined_context_queries) {
+            this.joined_context_queries = [];
+        }
+
+        this.joined_context_queries.push(context_query_join);
+
+        return this;
+    }
+
     public set_query_distinct() {
         this.query_distinct = true;
         return this;
     }
 
+    /**
+     * @deprecated use set_discarded_field_path instead
+     */
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+        return this.set_discarded_field_path(vo_type, field_id);
+    }
+
+    /**
+     * @deprecated use set_discarded_field_path instead
+     */
+    public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+        return this.set_discarded_field_path(vo_type, field_id);
+    }
+
+    /**
+     * set_discarded_field_path
+     *
+     * @param {string} vo_type
+     * @param {string} field_id
+     * @returns {ContextQueryVO}
+     */
+    public set_discarded_field_path(vo_type: string, field_id: string): ContextQueryVO {
+
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
         }
+
         if (!this.discarded_field_paths[vo_type]) {
             this.discarded_field_paths[vo_type] = {};
         }
@@ -183,6 +268,32 @@ export default class ContextQueryVO implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * Create an union of queries
+     *
+     * @param context_query
+     * @returns {ContextQueryVO}
+     */
+    public union(context_query: ContextQueryVO | ContextQueryVO[]): ContextQueryVO {
+
+        if (!context_query) {
+            return this;
+        }
+
+        if (!Array.isArray(context_query)) {
+            context_query = [context_query];
+        }
+
+        // Set union_queries if not exists
+        if (!(this.union_queries?.length > 0)) {
+            this.union_queries = [];
+        }
+
+        this.union_queries = this.union_queries.concat(context_query);
+
+        return this;
+    }
+
     public set_request_id(request_id: number): ContextQueryVO {
         this.request_id = request_id;
         return this;
@@ -192,18 +303,115 @@ export default class ContextQueryVO implements IDistantVOBase {
      * Ajouter un field attendu en résultat de la requête par le field_id, et optionnellement un alias spécifique
      *  on utilise base_api_type_id de la requete si on en fournit pas un explicitement ici
      *  Si on veut un vo complet il ne faut pas demander les fields
+     *
      * @param field_id l'id du field à ajouter.
      */
     public field(
-        field_id: string, alias: string = null, api_type_id: string = null,
-        aggregator: number = VarConfVO.NO_AGGREGATOR, modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE): ContextQueryVO {
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
+        return this.add_field(field_id, alias, api_type_id, aggregator, modifier, cast_with);
+    }
 
-        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator, modifier);
+    public remove_field(
+        field_id_in_array: number
+    ): ContextQueryVO {
+
+        if (!this.fields) {
+            return;
+        }
+
+        this.fields.splice(field_id_in_array, 1);
+        return this;
+    }
+
+    /**
+     * Ajouter un field attendu en résultat de la requête par le field_id, et optionnellement un alias spécifique
+     *  on utilise base_api_type_id de la requete si on en fournit pas un explicitement ici
+     *  Si on veut un vo complet il ne faut pas demander les fields
+     *
+     * @param field_id l'id du field à ajouter.
+     */
+    public add_field(
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
+
+        const field = new ContextQueryFieldVO(
+            api_type_id ? api_type_id : this.base_api_type_id,
+            field_id,
+            alias,
+            aggregator,
+            modifier,
+            cast_with,
+        );
 
         if (!this.fields) {
             this.fields = [];
         }
+
         this.fields.push(field);
+
+        this.update_active_api_type_ids_from_fields([field]);
+
+        return this;
+    }
+
+    /**
+     * has_field
+     *  - Check if the given field_id is in the fields
+     */
+    public has_field(field_id: string): boolean {
+        if (!this.fields) {
+            return false;
+        }
+
+        return this.fields?.find((f) => f.field_id == field_id) != null;
+    }
+
+    /**
+     * replace_field
+     *  - Replace field from this fields by the given field
+     *
+     * @param field_id l'id du field à ajouter.
+     */
+    public replace_field(
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
+
+        const field = new ContextQueryFieldVO(
+            api_type_id ? api_type_id : this.base_api_type_id,
+            field_id,
+            alias,
+            aggregator,
+            modifier,
+            cast_with,
+        );
+
+        if (!this.fields) {
+            this.fields = [];
+        }
+
+        this.fields = this.fields.map((f) => {
+            if (f.field_id == field_id) {
+                return field;
+            }
+            return f;
+        });
+
         this.update_active_api_type_ids_from_fields([field]);
 
         return this;
@@ -219,6 +427,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (!this.fields) {
             this.fields = [];
         }
+
         this.fields = this.fields.concat(fields);
         this.update_active_api_type_ids_from_fields(fields);
 
@@ -551,7 +760,7 @@ export default class ContextQueryVO implements IDistantVOBase {
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];
@@ -630,7 +839,7 @@ export default class ContextQueryVO implements IDistantVOBase {
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];
@@ -785,7 +994,9 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (!this.filters) {
             this.filters = [];
         }
+
         this.filters = this.filters.concat(filters);
+
         this.update_active_api_type_ids_from_filters(filters);
 
         return this;
@@ -819,9 +1030,14 @@ export default class ContextQueryVO implements IDistantVOBase {
         }
 
         this.sort_by = [sort];
+
         this.update_active_api_type_ids_from_sorts([sort]);
 
         return this;
+    }
+
+    public clone(): ContextQueryVO {
+        return Object.assign(new ContextQueryVO(), cloneDeep(this));
     }
 
     /**
@@ -839,12 +1055,35 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Ignorer les context access hooks => à utiliser si l'on est en train de déclarer un context access hook pour
      *  éviter une récursivité du hook
-     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
-     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
+     * ATTENTION : on ignore aussi tout type de filtrage de droit => on devient ADMIN. Equivalent de l'ancien IS_CLIENT: false
+     * @deprecated use query_as_admin
      */
     public ignore_access_hooks(): ContextQueryVO {
 
         this.is_access_hook_def = true;
+
+        return this;
+    }
+
+    /**
+     * Ignorer les content access hooks et les droits d'accès aux API_TYPE_IDS => on devient SERVER. Equivalent de l'ancien IS_CLIENT: false
+     *  => à utiliser par exemple si l'on est en train de déclarer un context access hook pour éviter une récursivité du hook
+     */
+    public exec_as_server(is_server = true): ContextQueryVO {
+
+        this.is_server = is_server;
+
+        return this;
+    }
+
+    /**
+     * Paramétrer le max_age de la query (cf. commentaire max_age_ms pour le fonctionnement du cache)
+     * On accepte de charger de la data ancienne issue d'un cache, sans invalidation auto lors d'un update pour le moment
+     *  et donc potentiellement fausse vs bdd
+     */
+    public set_max_age_ms(max_age_ms: number): ContextQueryVO {
+
+        this.max_age_ms = max_age_ms;
 
         return this;
     }
@@ -861,8 +1100,8 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Faire la requête en mode select
      */
-    public async get_select_query_str<T extends IDistantVOBase>(): Promise<ParameterizedQueryWrapper> {
-        return await ModuleContextFilter.getInstance().build_select_query(this);
+    public async get_select_query_str<T extends IDistantVOBase>(): Promise<string> {
+        return await ModuleContextFilter.getInstance().build_select_query_str(this);
     }
 
     /**
@@ -872,6 +1111,27 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
         return await ModuleContextFilter.getInstance().select_vos(this);
+    }
+
+    /**
+     * Faire la requête en mode delete_vos
+     * ATTENTION : les access_hooks sont ignorés, il faut passer par un trigger pre-delete pour refuser le delete
+     *  ou modifier le comportement comme expliqué sur "context_access_hooks" dans le ModuleDAOServer
+     * @returns les vos issus de la requête
+     */
+    public async delete_vos(): Promise<InsertOrDeleteQueryResult[]> {
+        return await ModuleContextFilter.getInstance().delete_vos(this);
+    }
+
+    /**
+     * Faire la requête en mode update_vos
+     * ATTENTION : les access_hooks sont ignorés, il faut passer par un trigger pre-delete pour refuser le delete
+     *  ou modifier le comportement comme expliqué sur "context_access_hooks" dans le ModuleDAOServer
+     * @param new_api_translated_values les valeurs à mettre à jour => les champs (field_id) doivent être les champs de l'objet et non les champs API, mais par contre la valeur du champs doit être la valeur API
+     * @returns les vos issus de la requête
+     */
+    public async update_vos<T extends IDistantVOBase>(new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
+        return await ModuleContextFilter.getInstance().update_vos<T>(this, new_api_translated_values);
     }
 
     /**
@@ -1005,10 +1265,10 @@ export default class ContextQueryVO implements IDistantVOBase {
         for (let i in filters) {
             let filter_ = filters[i];
 
-            if (!!filter_.left_hook) {
+            if (!!filter_?.left_hook) {
                 this.update_active_api_type_ids_from_filters([filter_.left_hook]);
             }
-            if (!!filter_.right_hook) {
+            if (!!filter_?.right_hook) {
                 this.update_active_api_type_ids_from_filters([filter_.right_hook]);
             }
         }
@@ -1043,6 +1303,7 @@ export default class ContextQueryVO implements IDistantVOBase {
  */
 export const query = (API_TYPE_ID: string) => {
     let res = new ContextQueryVO();
+
     res.base_api_type_id = API_TYPE_ID;
     res.active_api_type_ids = [API_TYPE_ID];
     res.query_limit = 0;
@@ -1055,5 +1316,6 @@ export const query = (API_TYPE_ID: string) => {
     res.use_technical_field_versioning = false;
     res.query_distinct = false;
     res.do_count_results = false;
+
     return res;
 };

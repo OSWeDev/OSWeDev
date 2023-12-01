@@ -59,10 +59,10 @@ export default class DatatableRowController {
 
             // Si c'est un custom :
             if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers && field_as_simple && field_as_simple.moduleTableField &&
-                TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.moduleTableField.field_type] &&
-                TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.moduleTableField.field_type].getIHMToExportString) {
+                TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.field_type] &&
+                TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.field_type].getIHMToExportString) {
                 cloned_data[column] = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[
-                    field_as_simple.moduleTableField.field_type].getIHMToExportString(cloned_data, field_as_simple, datatable);
+                    field_as_simple.field_type].getIHMToExportString(cloned_data, field_as_simple, datatable);
                 continue;
             }
 
@@ -137,7 +137,7 @@ export default class DatatableRowController {
 
                     let value = field.dataToReadIHM(raw_data[simpleField.moduleTableField.field_id], raw_data);
                     // Limite à 300 cars si c'est du html et strip html
-                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
 
                         if (value) {
                             try {
@@ -160,7 +160,7 @@ export default class DatatableRowController {
                         }
                     }
 
-                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
 
                         for (let vi in value) {
                             let v = value[vi];

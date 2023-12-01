@@ -7,7 +7,7 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MailCategoryVO from './vos/MailCategoryVO';
 import MailEventVO from './vos/MailEventVO';
 import MailVO from './vos/MailVO';
@@ -50,7 +50,7 @@ export default class ModuleMailer extends Module {
 
     private constructor() {
 
-        super("mailer", "MAILER");
+        super("mailer", "Mailer");
         this.forceActivationOnInstallation();
     }
 
@@ -100,9 +100,9 @@ export default class ModuleMailer extends Module {
             sent_by_id,
             sent_to_id,
 
-            new ModuleTableField('last_state', ModuleTableField.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES),
+            new ModuleTableField('last_state', ModuleTableField.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
 
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true),
+            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true).index(),
             label,
             new ModuleTableField('send_date', ModuleTableField.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
@@ -130,7 +130,7 @@ export default class ModuleMailer extends Module {
         let datatable_fields = [
             mail_id,
             label,
-            new ModuleTableField('event', ModuleTableField.FIELD_TYPE_enum, 'Evènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES),
+            new ModuleTableField('event', ModuleTableField.FIELD_TYPE_enum, 'Evènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
             new ModuleTableField('reason', ModuleTableField.FIELD_TYPE_string, 'Raison', false),
         ];
         let datatable = new ModuleTable(this, MailEventVO.API_TYPE_ID, () => new MailEventVO(), datatable_fields, label, "Evènements de mail");

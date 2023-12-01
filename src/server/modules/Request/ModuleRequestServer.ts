@@ -1,5 +1,5 @@
-import * as http from 'http';
-import * as https from 'https';
+import http from 'http';
+import https from 'https';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -10,6 +10,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
     public static METHOD_GET: string = "GET";
     public static METHOD_POST: string = "POST";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleRequestServer.instance) {
             ModuleRequestServer.instance = new ModuleRequestServer();
@@ -23,6 +24,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
         super(ModuleRequest.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
     }
@@ -79,6 +81,13 @@ export default class ModuleRequestServer extends ModuleServerBase {
             }
 
             function callback(res: http.IncomingMessage) {
+
+                if (res.statusCode >= 400) {
+                    reject({ message: 'Request failed with status code ' + res.statusCode, headers: res.headers });
+                    ConsoleHandler.error('Request failed with status code ' + res.statusCode + ' : ' + path + ' : ' + JSON.stringify(res.headers));
+                    return;
+                }
+
                 let result: Buffer[] = [];
 
                 res.on('data', (chunk: Buffer[]) => {
@@ -116,6 +125,10 @@ export default class ModuleRequestServer extends ModuleServerBase {
             }
 
             let request: http.ClientRequest = (sendHttps) ? https.request(options, callback) : http.request(options, callback);
+            request.on('error', (e) => {
+                ConsoleHandler.error('Request failed with error ' + e.message);
+                reject(new Error('Network error: ' + e.message));
+            });
 
             if (dataPosts) {
                 request.write(dataPosts);

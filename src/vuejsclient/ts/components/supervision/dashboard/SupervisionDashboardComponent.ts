@@ -19,6 +19,7 @@ import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWi
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import { findIndex } from 'lodash';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import DAOController from '../../../../../shared/modules/DAO/DAOController';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -244,7 +245,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             //récupération des sondes
             promises.push((async () => {
 
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                if (!await ModuleAccessPolicy.getInstance().testAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
                     return;
                 }
 
@@ -485,9 +486,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      * ajoute les items selectionnés à la liste des items à lus en changeant son state
      * @param item correspond à l'item que l'on souhaite ajouter à la liste des items lu
      */
-    private add_item_to_read(item: ISupervisedItem) {
+    private async add_item_to_read(item: ISupervisedItem) {
         item.state = SupervisionController.STATE_ERROR_READ;
-        ModuleDAO.getInstance().insertOrUpdateVO(item);
+        await ModuleDAO.getInstance().insertOrUpdateVO(item);
         this.debounced_on_change_show();
         console.log(item);
     }
@@ -495,9 +496,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      *  ajoute l'item selectionné à la liste des items à non lus en changeant son state
      * @param item correspond à l'item que l'on souhaite ajouter à la liste des items à lire
      */
-    private add_item_to_unread(item: ISupervisedItem) {
+    private async add_item_to_unread(item: ISupervisedItem) {
         item.state = SupervisionController.STATE_ERROR;
-        ModuleDAO.getInstance().insertOrUpdateVO(item);
+        await ModuleDAO.getInstance().insertOrUpdateVO(item);
         this.debounced_on_change_show();
         console.log(item);
     }
@@ -505,13 +506,13 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     /**
      * parcours la map des items selectionnés et les ajoute à la liste des items lus en passant chaque item la fonction add_item_to_read
      */
-    private add_items_to_read() {
+    private async add_items_to_read() {
         if (Object.keys(this.supervised_item_selected).length == 0) {
             return;
         }
         for (const e in this.supervised_item_selected) {
             let item_selected_for_delete = this.supervised_item_selected[e];
-            this.add_item_to_read(item_selected_for_delete);
+            await this.add_item_to_read(item_selected_for_delete);
         }
         this.supervised_item_selected = {};
         this.valide = false;
@@ -519,14 +520,16 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     /**
      * parcours la map des items selectionnés et les ajoute à la liste des items à lire en passant chaque item la fonction add_item_to_unread
      */
-    private add_items_to_unread() {
+    private async add_items_to_unread() {
         if (Object.keys(this.supervised_item_selected).length == 0) {
             return;
         }
+        let promises = [];
         for (const e in this.supervised_item_selected) {
             let item_selected_for_delete = this.supervised_item_selected[e];
-            this.add_item_to_unread(item_selected_for_delete);
+            promises.push(this.add_item_to_unread(item_selected_for_delete));
         }
+        await all_promises(promises);
         this.supervised_item_selected = {};
         this.valide = false;
     }

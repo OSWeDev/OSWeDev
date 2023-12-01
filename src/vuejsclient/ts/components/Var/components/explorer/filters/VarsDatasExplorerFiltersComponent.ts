@@ -14,13 +14,15 @@ import NumRangeComponentController from '../../../../ranges/numrange/NumRangeCom
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarsDatasExplorerVuexAction } from '../VarsDatasExplorerVuexStore';
 import './VarsDatasExplorerFiltersComponent.scss';
+import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./VarsDatasExplorerFiltersComponent.pug'),
     components: {
-        Tsrangeinputcomponent: () => import(/* webpackChunkName: "TSRangeInputComponent" */ '../../../../tsrangeinput/TSRangeInputComponent'),
-        Hourrangeinputcomponent: () => import(/* webpackChunkName: "HourrangeInputComponent" */ '../../../../hourrangeinput/HourrangeInputComponent'),
-        Numrangeinputcomponent: () => import(/* webpackChunkName: "TSRangeInputComponent" */ '../../../../numrangeinput/NumRangeInputComponent'),
+        Tsrangeinputcomponent: () => import('../../../../tsrangeinput/TSRangeInputComponent'),
+        Hourrangeinputcomponent: () => import('../../../../hourrangeinput/HourrangeInputComponent'),
+        Numrangeinputcomponent: () => import('../../../../numrangeinput/NumRangeInputComponent'),
     }
 })
 export default class VarsDatasExplorerFiltersComponent extends VueComponentBase {
@@ -53,11 +55,13 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     private vars_confs: VarConfVO[] = [];
 
     private params: VarDataBaseVO[] = [];
+    private filterable_vars_confs: VarConfVO[] = [];
+    private real_filtered_vars_confs: VarConfVO[] = [];
 
     private async mounted() {
 
         VarsDatasExplorerFiltersComponent.instance = this;
-        let vars_confs = Object.values(VarsController.getInstance().var_conf_by_id);
+        let vars_confs = Object.values(VarsController.var_conf_by_id);
 
         // On en profite pour mettre à jour le fields_filters_is_valid
         // si on a 1 label_handler sur une var on considère que c'est un enum partout
@@ -69,6 +73,9 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         let fields: { [field_id: string]: ModuleTableField<IRange> } = {};
         let empty_fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
 
+        let enum_initial_options_promises: { [field_id: string]: Promise<void> } = {};
+        let self = this;
+
         for (let i in vars_confs) {
             let var_conf = vars_confs[i];
 
@@ -77,7 +84,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             }
             filtered_vo_types[var_conf.var_data_vo_type] = true;
 
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];
@@ -94,7 +101,11 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
                 if (enum_handler) {
 
                     if (enum_handler.enum_initial_options_handler) {
-                        this.enum_initial_options[matroid_field.field_id] = await enum_handler.enum_initial_options_handler();
+                        if (!enum_initial_options_promises[matroid_field.field_id]) {
+                            enum_initial_options_promises[matroid_field.field_id] = (async () => {
+                                self.enum_initial_options[matroid_field.field_id] = await enum_handler.enum_initial_options_handler();
+                            })();
+                        }
                     }
                     this.has_enum_search[matroid_field.field_id] = !!enum_handler.enum_query_options_handler;
                 }
@@ -105,6 +116,8 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             }
         }
 
+        await all_promises(Object.values(enum_initial_options_promises));
+
         this.fields_filters_list = empty_fields_filters_list;
         this.fields = fields;
         this.fields_filters_is_enum = fields_filters_is_enum;
@@ -114,9 +127,11 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         this.valid_vars_ids_by_field_id = valid_vars_ids_by_field_id;
 
         this.vars_confs = vars_confs;
+        this.set_filterable_vars_confs();
+        this.set_real_filtered_vars_confs();
     }
 
-    get has_no_filter(): boolean {
+    private has_no_filter(): boolean {
         if (this.fitered_vars_confs && this.fitered_vars_confs.length && (this.fitered_vars_confs.length != this.vars_confs.length)) {
             return false;
         }
@@ -145,20 +160,22 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             return '';
         }
 
-        return var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id));
+        return var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id));
     }
 
-    get filterable_vars_confs() {
+    private set_filterable_vars_confs() {
 
         if (!this.vars_confs) {
-            return [];
+            this.safe_set_filterable_vars_confs([]);
+            return;
         }
 
         /**
          * Si on a fait aucun filtrage, on peut tout choisir
          */
-        if (this.has_no_filter) {
-            return this.vars_confs;
+        if (this.has_no_filter()) {
+            this.safe_set_filterable_vars_confs(this.vars_confs);
+            return;
         }
 
         let filterable_vars_confs = this.vars_confs;
@@ -191,13 +208,91 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             return true;
         });
 
-        return filterable_vars_confs;
+        this.safe_set_filterable_vars_confs(filterable_vars_confs);
     }
 
-    get real_filtered_vars_confs() {
+    @Watch('vars_confs')
+    private onchange_vars_confs() {
+        this.set_filterable_vars_confs();
+        this.set_real_filtered_vars_confs();
+    }
+
+    @Watch('fitered_vars_confs')
+    private onchange_fitered_vars_confs() {
+        this.set_real_filtered_vars_confs();
+        this.set_filterable_vars_confs();
+    }
+
+    private safe_set_real_filtered_vars_confs(new_real_filtered_vars_confs: VarConfVO[]) {
+
+        if (this.real_filtered_vars_confs == new_real_filtered_vars_confs) {
+            return;
+        }
+
+        if ((!new_real_filtered_vars_confs) || (!new_real_filtered_vars_confs.length)) {
+
+            if ((!this.real_filtered_vars_confs) || (this.real_filtered_vars_confs.length)) {
+                return;
+            }
+            this.real_filtered_vars_confs = [];
+            return;
+        }
+
+        if ((!this.real_filtered_vars_confs) || (!this.real_filtered_vars_confs.length)) {
+            this.real_filtered_vars_confs = new_real_filtered_vars_confs;
+            return;
+        }
+
+        if (this.real_filtered_vars_confs.length != new_real_filtered_vars_confs.length) {
+            this.real_filtered_vars_confs = new_real_filtered_vars_confs;
+            return;
+        }
+
+        if (ObjectHandler.are_equal(this.real_filtered_vars_confs, new_real_filtered_vars_confs)) {
+            return;
+        }
+
+        this.real_filtered_vars_confs = new_real_filtered_vars_confs;
+    }
+
+    private safe_set_filterable_vars_confs(new_filterable_vars_confs: VarConfVO[]) {
+
+        if (this.filterable_vars_confs == new_filterable_vars_confs) {
+            return;
+        }
+
+        if ((!new_filterable_vars_confs) || (!new_filterable_vars_confs.length)) {
+
+            if ((!this.filterable_vars_confs) || (this.filterable_vars_confs.length)) {
+                return;
+            }
+            this.filterable_vars_confs = [];
+            return;
+        }
+
+        if ((!this.filterable_vars_confs) || (!this.filterable_vars_confs.length)) {
+            this.filterable_vars_confs = new_filterable_vars_confs;
+            return;
+        }
+
+        if (this.filterable_vars_confs.length != new_filterable_vars_confs.length) {
+            this.filterable_vars_confs = new_filterable_vars_confs;
+            return;
+        }
+
+        if (ObjectHandler.are_equal(this.filterable_vars_confs, new_filterable_vars_confs)) {
+            return;
+        }
+
+        this.filterable_vars_confs = new_filterable_vars_confs;
+    }
+
+    private set_real_filtered_vars_confs() {
 
         if (!this.vars_confs) {
-            return [];
+
+            this.safe_set_real_filtered_vars_confs([]);
+            return;
         }
 
         let filtered_vars_confs = this.fitered_vars_confs;
@@ -233,7 +328,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             return true;
         });
 
-        return filtered_vars_confs;
+        this.safe_set_real_filtered_vars_confs(filtered_vars_confs);
     }
 
 
@@ -241,6 +336,10 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     @Watch('fields_filters_range', { deep: true })
     @Watch('fields_filters_list', { deep: true })
     private on_change_filters() {
+
+        this.set_real_filtered_vars_confs();
+        this.set_filterable_vars_confs();
+
         // On met à jours les champs valides
         // on doit déduire les vo_types valides et on en déduit ensuite les fields valides
         let fields_filters_is_valid: { [field_id: string]: boolean } = {};
@@ -256,7 +355,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
          */
         let first: boolean = true;
         for (let vo_type in filtered_vo_types) {
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(vo_type);
 
             if (first) {
                 for (let j in matroid_fields) {
@@ -328,7 +427,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             let var_conf = this.real_filtered_vars_confs[i];
 
             let param = VarDataBaseVO.createNew(var_conf.name);
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];

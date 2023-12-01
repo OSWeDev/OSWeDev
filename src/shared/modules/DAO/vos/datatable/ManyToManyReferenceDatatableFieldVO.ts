@@ -3,7 +3,7 @@ import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datat
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../../../VOsTypesManager';
+import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 
 export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistantVOBase, Inter extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -45,6 +45,10 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
     get translatable_title(): string {
         if ((!this.vo_type_full_name) || (!this.targetModuleTable)) {
             return null;
+        }
+
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
         }
 
         let e = this.targetModuleTable.label.code_text;

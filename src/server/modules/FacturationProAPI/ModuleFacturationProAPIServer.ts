@@ -10,7 +10,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import * as fs from 'fs';
+import fs from 'fs';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -20,6 +20,7 @@ import FactuProInvoiceVO from '../../../shared/modules/FacturationProAPI/vos/inv
 
 export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleFacturationProAPIServer.instance) {
             ModuleFacturationProAPIServer.instance = new ModuleFacturationProAPIServer();
@@ -29,10 +30,12 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
     private static instance: ModuleFacturationProAPIServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFacturationProAPI.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFacturationProAPI.POLICY_GROUP;
@@ -50,7 +53,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
@@ -62,9 +65,11 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleFacturationProAPI.APINAME_download_invoice, this.download_invoice.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleFacturationProAPI.APINAME_send_email_facture, this.send_email_facture.bind(this));

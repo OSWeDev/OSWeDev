@@ -1,14 +1,20 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSASSSkinConfiguratorServer.instance) {
             ModuleSASSSkinConfiguratorServer.instance = new ModuleSASSSkinConfiguratorServer();
@@ -18,10 +24,22 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private static instance: ModuleSASSSkinConfiguratorServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSASSSkinConfigurator.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
+    public async configure() {
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUpdateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handlePostUpdateParam);
+
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handlePostCreateParam);
+
+    }
+
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSASSSkinConfigurator.APINAME_get_sass_param_value, this.get_sass_param_value.bind(this));
     }
@@ -37,7 +55,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
             try {
 
                 let max = ConfigurationService.node_configuration.MAX_POOL / 2;
-                let promise_pipeline = new PromisePipeline(max);
+                let promise_pipeline = new PromisePipeline(max, 'ModuleSASSSkinConfiguratorServer.generate');
                 for (let param_name in ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES) {
                     let default_value: string = ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name];
 
@@ -88,5 +106,19 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private getSassVariableDefinition(name: string, value: string): string {
         return "$" + name + ": " + (((value == '') || (typeof value == 'undefined')) ? 'null' : value) + ";";
+    }
+
+    private async handlePostUpdateParam(update: DAOUpdateVOHolder<ParamVO>) {
+        await this.handlePostCreateParam(update.post_update_vo);
+    }
+
+    private async handlePostCreateParam(vo: ParamVO) {
+        let name: string = vo.name.replace(ModuleSASSSkinConfigurator.MODULE_NAME + '.', '');
+
+        if (!ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[name]) {
+            return;
+        }
+
+        await this.generate();
     }
 }

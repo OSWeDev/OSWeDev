@@ -1,19 +1,21 @@
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import MaintenanceServerController from '../MaintenanceServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 
 export default class MaintenanceBGThread implements IBGThread {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!MaintenanceBGThread.instance) {
             MaintenanceBGThread.instance = new MaintenanceBGThread();
@@ -27,6 +29,9 @@ export default class MaintenanceBGThread implements IBGThread {
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 1000;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
     private constructor() {
     }
 
@@ -36,7 +41,11 @@ export default class MaintenanceBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
+        let time_in = Dates.now_ms();
+
         try {
+
+            StatsController.register_stat_COMPTEUR('MaintenanceBGThread', 'work', 'IN');
 
             // On veut voir si une maintenance est en base et inconnue pour le moment du système
             //  ou si la maintenance que l'on croit devoir préparer est toujours d'actualité
@@ -54,7 +63,8 @@ export default class MaintenanceBGThread implements IBGThread {
             }
 
             if (!maintenance) {
-                return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+                this.stats_out('inactive', time_in);
+                return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
             let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
@@ -95,12 +105,23 @@ export default class MaintenanceBGThread implements IBGThread {
             }
 
             if (changed) {
-                await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
             }
+            this.stats_out('ok', time_in);
+            return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+    }
+
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('MaintenanceBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('MaintenanceBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

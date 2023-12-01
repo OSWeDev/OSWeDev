@@ -1,6 +1,6 @@
 .db_var_datatable_field
     .var_data
-        template(v-if='is_loading || !var_param')
+        template(v-if='is_loading')
             i.fa-duotone.fa-refresh.fa-spin
         template(v-else)
             var-data(
@@ -9,4 +9,9 @@
                 :filter_additional_params='var_filter_additional_params'
                 :can_inline_edit='editable'
                 :show_import='editable'
+                :var_value_callback="handle_var_value_callback",
+                :show_tooltip='true'
+                :show_tooltip_import='true'
+                :show_tooltip_maj='false'
+                :show_tooltip_prefix='false'
             )

@@ -1,6 +1,6 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 
 export default class Datatable<T extends IDistantVOBase> {
@@ -20,7 +20,7 @@ export default class Datatable<T extends IDistantVOBase> {
      * Fonction qui permet de rajouter ou filtrer des datas dans le set loadé de la base
      */
     public data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => IDistantVOBase[] = (datas_by_ids: { [id: number]: IDistantVOBase }) => {
-        return ObjectHandler.getInstance().arrayFromMap(datas_by_ids);
+        return datas_by_ids ? Object.values(datas_by_ids) : [];
     }
 
     public getFieldByDatatableFieldUID(datatable_field_uid: string): DatatableField<any, any> {

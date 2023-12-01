@@ -1,7 +1,7 @@
 import ModuleAnimationImportTheme from "../../../../../shared/modules/Animation/import/Theme/ModuleAnimationImportTheme";
 import AnimationImportThemeVO from "../../../../../shared/modules/Animation/import/Theme/vos/AnimationImportThemeVO";
 import AnimationThemeVO from "../../../../../shared/modules/Animation/vos/AnimationThemeVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
+import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
@@ -9,6 +9,7 @@ import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataIm
 import LangVO from "../../../../../shared/modules/Translation/vos/LangVO";
 import TranslatableTextVO from "../../../../../shared/modules/Translation/vos/TranslatableTextVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import DataImportModuleBase from "../../../DataImport/DataImportModuleBase/DataImportModuleBase";
 import ImportLogger from "../../../DataImport/logger/ImportLogger";
 import ModuleAnimationImportThemeDefaultFormats from "./ModuleAnimationImportThemeDefaultFormat";
@@ -26,6 +27,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
     private static instance: ModuleAnimationImportThemeServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnimationImportTheme.getInstance().name);
     }
@@ -33,8 +35,9 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     // /**
     //  * On définit les droits d'accès du module
     //  */
+    // // istanbul ignore next: cannot test registerAccessPolicies
     // public async registerAccessPolicies(): Promise<void> {
-    //     let group: AccessPolicyGroupVO = AccessPolicyServerController.getInstance().get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
+    //     let group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
 
 
     //     //access sinon ca bug (C:\Sources\YR\appli\node_modules\oswedev\dist\server\modules\DAO\ModuleDAOServer.js:318:178) comprendre comment ca marche si ca resoud
@@ -49,7 +52,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     //     let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
     //     access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
     //     access_dependency.src_pol_id = access.id;
-    //     access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
+    //     access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
     //     access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     // }
 
@@ -59,7 +62,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
     public async validate_formatted_data(themes_data: AnimationImportThemeVO[]): Promise<AnimationImportThemeVO[]> {
 
-        let themes_db: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let themes_db: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
         for (let theme_data of themes_data) {
 
@@ -97,7 +100,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             return false;
         }
 
-        let themesInDB: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let themesInDB: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
         let succeeded = true;
         for (let i in themeDatas) {
@@ -106,7 +109,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             if (!this.alreadyPresent(themeData, themesInDB)) {
                 let theme: AnimationThemeVO = this.createThemeBase(themeData);
 
-                let queryRes = await ModuleDAO.getInstance().insertOrUpdateVO(theme);
+                let queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(theme);
 
                 if (!queryRes) {
                     succeeded = false;

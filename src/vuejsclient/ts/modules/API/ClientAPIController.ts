@@ -4,15 +4,30 @@ import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWr
 import IAPIController from '../../../../shared/modules/API/interfaces/IAPIController';
 import IAPIParamTranslator from '../../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
+import APINotifTypeResultVO from '../../../../shared/modules/PushData/vos/APINotifTypeResultVO';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 
 export default class ClientAPIController implements IAPIController {
 
+    /**
+     * Les promises à attendre pour avoir le résultat de la notif sur une API de type res notif
+     */
+    public static api_waiting_for_result_notif_promises: { [api_call_id: number]: Promise<any> } = {};
+    /**
+     * Les solvers des promises qui sont stockées dans api_waiting_for_result_notif_promises, appelées par PushDataVueModule
+     */
+    public static api_waiting_for_result_notif_solvers: { [api_call_id: number]: (value: unknown) => void } = {};
+    /**
+     * Les fonctions en attente de promises - Si la notif de résultat arrive avant la première réponse de l'api avec le call_id
+     */
+    public static api_waiting_for_result_notif_waiting_for_solvers: { [api_call_id: number]: () => void } = {};
+
     public static getInstance(): ClientAPIController {
         if (!ClientAPIController.instance) {
             ClientAPIController.instance = new ClientAPIController();
         }
+
         return ClientAPIController.instance;
     }
 
@@ -24,7 +39,8 @@ export default class ClientAPIController implements IAPIController {
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
         registered_apis: { [api_name: string]: APIDefinition<any, any> } = {},
-        sanitize_result: (res: any, ...params) => any = null): (...params) => Promise<U> {
+        sanitize_result: (res: any, ...params) => any = null
+    ): (...params) => Promise<U> {
 
         return async (...params) => {
 
@@ -108,10 +124,12 @@ export default class ClientAPIController implements IAPIController {
                         null,
                         'application/json; charset=utf-8') as string;
 
-                    // const { default: $ } = await import(/* webpackChunkName: "jquery" */ 'jquery');
+                    // const { default: $ } = await import('jquery');
 
-                    let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
-                    $('body').append(iframe);
+                    if (!!filePath) {
+                        let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
+                        $('body').append(iframe);
+                    }
                     return;
                 } else {
                     api_res = await AjaxCacheClientController.getInstance().post(
@@ -126,6 +144,33 @@ export default class ClientAPIController implements IAPIController {
 
         // On tente de traduire si on reconnait un type de vo
         api_res = APIControllerWrapper.try_translate_vo_from_api(api_res);
+
+        // Si on a une api de type result notif, on vient de récupérer un ID normalement, qu'on stocke en attendant la notif
+        if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) {
+            // 2 options, soit le serveur répond en notif et renvoie dans un premier temps le call_id, soit il répond directement avec le résultat
+            let api_res_typed: APINotifTypeResultVO = api_res as APINotifTypeResultVO;
+
+            if (!api_res_typed.api_call_id) {
+                return api_res_typed.res as U;
+            }
+
+            let promise = new Promise((resolve, reject) => {
+                ClientAPIController.api_waiting_for_result_notif_solvers[api_res_typed.api_call_id] = resolve;
+            });
+            ClientAPIController.api_waiting_for_result_notif_promises[api_res_typed.api_call_id] = promise;
+
+            if (ClientAPIController.api_waiting_for_result_notif_waiting_for_solvers[api_res_typed.api_call_id]) {
+                ClientAPIController.api_waiting_for_result_notif_waiting_for_solvers[api_res_typed.api_call_id]();
+            }
+
+            // On stocke la promesse de résultat
+            api_res = await ClientAPIController.api_waiting_for_result_notif_promises[api_res_typed.api_call_id];
+            delete ClientAPIController.api_waiting_for_result_notif_promises[api_res_typed.api_call_id];
+            delete ClientAPIController.api_waiting_for_result_notif_solvers[api_res_typed.api_call_id];
+            delete ClientAPIController.api_waiting_for_result_notif_waiting_for_solvers[api_res_typed.api_call_id];
+
+            return APIControllerWrapper.try_translate_vo_from_api(api_res) as U;
+        }
 
         return api_res;
     }

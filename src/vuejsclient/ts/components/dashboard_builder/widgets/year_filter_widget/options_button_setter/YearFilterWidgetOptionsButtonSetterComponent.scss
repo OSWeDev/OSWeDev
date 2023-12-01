@@ -1,0 +1,31 @@
+.year_filter_widget_options_button_setter_component {
+    padding: 0.5em;
+
+    .widget_title {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+
+        .custom_filter_name,
+        .label {
+            display: inline;
+        }
+    }
+
+    .toggle_input_group {
+        .input_wrapper,
+        .input_label {
+            margin-right: 10px;
+            display: inline;
+        }
+    }
+
+    .year_filter_input_wrapper {
+        background: rgb(245, 245, 245);
+    }
+
+    .year_filter_summary_wrapper,
+    .year_filter_input_wrapper {
+        padding: 0.5em;
+    }
+}

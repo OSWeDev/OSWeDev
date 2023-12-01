@@ -9,6 +9,9 @@ import DefaultTranslation from './Translation/vos/DefaultTranslation';
 
 export default class ModulesManager {
 
+    public static isGenerator: boolean = false;
+    public static isServerSide: boolean = false;
+
     public static MODULE_PARAM_TABLE_PREFIX: string = "module_";
 
     public static getInstance(): ModulesManager {
@@ -24,7 +27,6 @@ export default class ModulesManager {
      * Local thread cache -----
      */
 
-    public isServerSide: boolean = false;
     public modules_by_name: { [key: string]: ModuleWrapper } = {};
 
     /**
@@ -71,7 +73,9 @@ export default class ModulesManager {
         }
     }
     public getModuleByNameAndRole(name: string, role: string) {
-        return this.modules_by_name[name] ? this.modules_by_name[name].getModuleComponentByRole(role) : null;
+        const module = this.modules_by_name[name];
+
+        return module?.getModuleComponentByRole(role) ?? null;
     }
     public getModuleWrapperByName(name: string) {
         return this.modules_by_name[name];

@@ -10,7 +10,7 @@ import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import NFCTagUserVO from './vos/NFCTagUserVO';
 import NFCTagVO from './vos/NFCTagVO';
 
@@ -51,6 +51,9 @@ export default class ModuleNFCConnect extends Module {
 
     public registerApis() {
 
+        /**
+         * Cas particulier d'une API GET qui réalise une action et devrait être un POST, mais qui est utilisé par les tags NFC.
+         */
         APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect,
@@ -58,6 +61,9 @@ export default class ModuleNFCConnect extends Module {
             StringParamVOStatic
         ));
 
+        /**
+         * Cas particulier d'une API GET qui réalise une action et devrait être un POST, mais qui est utilisé par les tags NFC.
+         */
         APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect_and_redirect,

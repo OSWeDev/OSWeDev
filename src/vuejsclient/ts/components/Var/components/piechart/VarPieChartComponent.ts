@@ -1,6 +1,7 @@
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { Pie } from 'vue-chartjs';
-import 'chartjs-plugin-labels';
+import Chart from "chart.js/auto";
+import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
@@ -15,7 +16,10 @@ import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 
 @Component({
-    extends: Pie
+    template: require('./VarPieChartComponent.pug'),
+    components: {
+        piechart: Pie,
+    }
 })
 export default class VarPieChartComponent extends VueComponentBase {
     @ModuleVarGetter
@@ -45,15 +49,84 @@ export default class VarPieChartComponent extends VueComponentBase {
     @Prop({ default: false })
     public reload_on_mount: boolean;
 
+    private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
-    private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
+
+    private current_chart_data: any = null;
+    private current_chart_options: any = null;
+
+    private throttled_update_chart_js = ThrottleHelper.declare_throttle_without_args(this.update_chart_js, 500, { leading: false, trailing: true });
+    private debounced_render_or_update_chart_js = debounce(this.render_or_update_chart_js, 100);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
-    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 100, { leading: false, trailing: true });
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    public async created() {
+        window['Chart'] = Chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
+
+    @Watch('chart_data')
+    @Watch('chart_options')
+    private async onChartDataChanged() {
+        if (!this.chart_data || !this.chart_options) {
+            return;
+        }
+
+        this.current_chart_data = this.chart_data;
+        this.current_chart_options = this.chart_options;
+    }
+
+    /**
+     * Si on a pas encore rendered le chart, on checke les datas. Dès que les datas sont là, on render.
+     *  Pendant ce temps on bloque le sémaphore
+     * Si on a déjà rendered le chart, on checke les datas. Dès que les datas sont là, on update.
+     *  Pendant ce temps on bloque le sémaphore
+     */
+    private async render_or_update_chart_js() {
+
+        if (this.singleton_waiting_to_be_rendered) {
+            return;
+        }
+        this.singleton_waiting_to_be_rendered = true;
+
+        if (!this.rendered) {
+
+            await this.wait_for_datas();
+            await this.render_chart_js();
+        } else {
+
+            await this.wait_for_datas();
+            await this.throttled_update_chart_js();
+        }
+
+        this.singleton_waiting_to_be_rendered = false;
+    }
+
+    /**
+     * Waiting for all_data_loaded
+     */
+    private async wait_for_datas(): Promise<string> {
+
+        if (this.all_data_loaded) {
+            return 'wait_for_datas';
+        }
+
+        return new Promise((resolve) => {
+            let interval = setInterval(() => {
+                if (this.all_data_loaded) {
+                    clearInterval(interval);
+                    resolve('wait_for_datas');
+                }
+            }, 100);
+        });
+    }
 
     private var_datas_updater() {
 
@@ -66,15 +139,15 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
 
-            res[var_param.index] = VarsClientController.getInstance().cached_var_datas[var_param.index];
+            res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
         }
         this.var_datas = res;
     }
 
-    private mounted() {
+    private async mounted() {
 
         if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
+            await this.debounced_render_or_update_chart_js();
         }
     }
 
@@ -127,7 +200,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
             return;
         }
 
@@ -171,12 +244,10 @@ export default class VarPieChartComponent extends VueComponentBase {
         // this.onchange_all_data_loaded();
     }
 
-    get chartData() {
+    get chart_data() {
         if (!this.all_data_loaded) {
             return null;
         }
-
-        this.debounced_render_chart_js();
 
         return {
             labels: this.labels,
@@ -184,7 +255,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         };
     }
 
-    get chartOptions() {
+    get chart_options() {
         let self = this;
         return Object.assign(
             {
@@ -258,7 +329,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         let dataset = {
             label: (!!this.var_dataset_descriptor.label_translatable_code) ?
                 this.t(this.var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsController.getInstance().get_translatable_name_code(this.var_dataset_descriptor.var_name)),
+                this.t(VarsController.get_translatable_name_code(this.var_dataset_descriptor.var_name)),
             data: dataset_datas,
             backgroundColor: backgrounds,
             borderColor: bordercolors,
@@ -272,43 +343,58 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     private render_chart_js() {
 
-        if (!this.chartData) {
+        if (!this.chart_data) {
             return;
         }
 
         if (!!this.rendered) {
-            // Issu de Bar
-            this.$data._chart.destroy();
+            ConsoleHandler.error('PB:render Pie Chart déjà rendu');
+            return;
         }
+
+        // if (!!this.rendered) {
+        //     // Issu de Bar
+        //     this.$data._chart.destroy();
+        // }
         this.rendered = true;
 
         try {
 
             // Issu de Pie
             (this as any).renderChart(
-                this.chartData,
-                this.chartOptions
+                this.chart_data,
+                this.chart_options
             );
         } catch (error) {
-            ConsoleHandler.warn('PB:render Pie Chart probablement trop tôt:' + error);
+            // ConsoleHandler.warn('PB:render Pie Chart probablement trop tôt:' + error);
+            ConsoleHandler.error('PB:render Pie Chart probablement trop tôt:' + error + ':');
             this.rendered = false;
-            setTimeout(this.render_chart_js, 500);
+            // setTimeout(this.render_chart_js, 500);
         }
     }
 
-    @Watch('datasets')
-    private onchange_datasets() {
+    private update_chart_js() {
 
-        if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
+        if (!this.chart_data) {
+            return;
         }
+
+        if (!!this.rendered) {
+            // Issu de Bar
+            this.$data._chart.update();
+        }
+    }
+
+    @Watch('data')
+    private async onchange_datasets() {
+        await this.debounced_render_or_update_chart_js();
     }
 
     get labels(): string[] {
         let res = [];
 
         for (let i in this.var_params) {
-            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
         }
 
         return res;

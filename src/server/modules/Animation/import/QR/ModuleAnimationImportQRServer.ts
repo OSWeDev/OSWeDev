@@ -2,13 +2,14 @@ import ModuleAnimationImportQR from "../../../../../shared/modules/Animation/imp
 import AnimationImportQRVO from "../../../../../shared/modules/Animation/import/QR/vos/AnimationImportQRVO";
 import AnimationModuleVO from "../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationQRVO from "../../../../../shared/modules/Animation/vos/AnimationQRVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
+import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
 import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataImportLogVO";
 import FileVO from "../../../../../shared/modules/File/vos/FileVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import DataImportModuleBase from "../../../DataImport/DataImportModuleBase/DataImportModuleBase";
 import ImportLogger from "../../../DataImport/logger/ImportLogger";
 import ModuleAnimationImportQRDefaultFormats from "./ModuleAnimationImportQRDefaultFormat";
@@ -26,6 +27,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
     private static instance: ModuleAnimationImportQRServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnimationImportQR.getInstance().name);
     }
@@ -33,8 +35,9 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
     // /**
     //  * On définit les droits d'accès du module
     //  */
+    // // istanbul ignore next: cannot test registerAccessPolicies
     // public async registerAccessPolicies(): Promise<void> {
-    //     let group: AccessPolicyGroupVO = AccessPolicyServerController.getInstance().get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
+    //     let group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
 
     //     let access: AccessPolicyVO = new AccessPolicyVO();
     //     access.group_id = group.id;
@@ -46,7 +49,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
     //     let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
     //     access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
     //     access_dependency.src_pol_id = access.id;
-    //     access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
+    //     access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAnimation.POLICY_BO_OTHERS_ACCESS).id;
     //     access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     // }
 
@@ -56,8 +59,8 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
     public async validate_formatted_data(qr_datas: AnimationImportQRVO[]): Promise<AnimationImportQRVO[]> {
 
-        let modules_db: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
-        let qr_db: AnimationQRVO[] = await ModuleDAO.getInstance().getVos(AnimationQRVO.API_TYPE_ID);
+        let modules_db: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+        let qr_db: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
 
         for (let qr_data of qr_datas) {
 
@@ -104,10 +107,10 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
             return false;
         }
 
-        let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+        let modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
 
-        let QRsInDB: AnimationQRVO[] = await ModuleDAO.getInstance().getVos(AnimationQRVO.API_TYPE_ID);
-        let filesInDB: FileVO[] = await ModuleDAO.getInstance().getVos(FileVO.API_TYPE_ID);
+        let QRsInDB: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
+        let filesInDB: FileVO[] = await query(FileVO.API_TYPE_ID).select_vos<FileVO>();
 
         let succeeded = true;
         for (let i in QRDatas) {
@@ -115,7 +118,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
             if (!this.alreadyPresent(QRData, QRsInDB, modules)) {
                 let QR = this.createQRBase(QRData, modules);
-                let queryRes = await ModuleDAO.getInstance().insertOrUpdateVO(QR);
+                let queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(QR);
 
                 if (!queryRes) {
                     succeeded = false;

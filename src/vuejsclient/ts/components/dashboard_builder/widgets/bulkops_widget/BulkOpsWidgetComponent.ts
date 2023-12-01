@@ -3,31 +3,34 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import DatatableRowController from '../../../datatable/component/DatatableRowController';
-import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
+import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
@@ -44,7 +47,7 @@ import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
 export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -61,6 +64,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private all_page_widget: DashboardPageWidgetVO[];
 
+    @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
     private data_rows: any[] = [];
 
     private pagination_count: number = 0;
@@ -70,7 +79,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private field_id_selected: string = null;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private throttled_update_visible_options = ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private loaded_once: boolean = false;
     private is_busy: boolean = false;
@@ -179,7 +188,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         }
 
         this.has_access = await ModuleAccessPolicy.getInstance().testAccess(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
     }
 
     get api_type_id(): string {
@@ -283,7 +292,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let cloned_raw = cloneDeep(row);
             let cloned_res = cloneDeep(row);
             cloned_raw[this.field_id_selected] = this.new_value;
-            await ContextFilterHandler.getInstance().get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field);
+            await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field);
             res.push(cloned_res);
         }
 
@@ -313,28 +322,15 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         this.is_busy = true;
 
-        if (!this.widget_options) {
-            this.data_rows = [];
-            this.loaded_once = true;
-            this.is_busy = false;
-            return;
-        }
-
-        if ((!this.widget_options.api_type_id) || (!this.field_id_selected)) {
-            this.data_rows = [];
-            this.loaded_once = true;
-            this.is_busy = false;
-            return;
-        }
-
-        if ((!this.fields) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.fields))) {
-            this.data_rows = [];
-            this.loaded_once = true;
-            this.is_busy = false;
-            return;
-        }
-
-        if (!this.dashboard.api_type_ids) {
+        if (
+            (!this.widget_options) ||
+            (!this.widget_options.api_type_id) ||
+            (!this.field_id_selected) ||
+            (!this.fields) ||
+            (!ObjectHandler.hasAtLeastOneAttribute(this.fields)) ||
+            (!this.get_dashboard_api_type_ids) ||
+            (!this.get_dashboard_api_type_ids.length)
+        ) {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
@@ -343,10 +339,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         let query_: ContextQueryVO = query(this.widget_options.api_type_id)
             .set_limit(this.widget_options.limit, this.pagination_offset)
-            .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+            .using(this.get_dashboard_api_type_ids)
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
+
+        FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
         for (let i in this.fields) {
             let field = this.fields[i];
@@ -357,7 +355,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                 continue;
             }
 
-            if (this.dashboard.api_type_ids.indexOf(field.vo_type_id) < 0) {
+            if (this.get_dashboard_api_type_ids.indexOf(field.vo_type_id) < 0) {
                 ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.vo_type_id);
                 this.data_rows = [];
@@ -398,7 +396,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             for (let j in this.fields) {
                 let field = this.fields[j];
 
-                promises.push(ContextFilterHandler.getInstance().get_datatable_row_field_data_async(row, resData, field));
+                promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field));
             }
             data_rows.push(resData);
         }
@@ -414,7 +412,9 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         let context_query = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+
+        this.pagination_count = await ModuleContextFilter.getInstance()
+            .select_count(context_query);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -459,7 +459,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private async confirm_bulkops() {
         let self = this;
-        if ((!self.field_id_selected) || (!self.dashboard.api_type_ids) || (!self.api_type_id) || (!self.moduletable)) {
+        if ((!self.field_id_selected) || (!self.get_dashboard_api_type_ids) || (!self.api_type_id) || (!self.moduletable)) {
             self.snotify.error(self.label('BulkOpsWidgetComponent.bulkops.failed'));
             return;
         }
@@ -479,15 +479,15 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                 try {
 
-                                    let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected));
+                                    let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected), false);
 
-                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(self.get_active_field_filters));
+                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.get_dashboard_api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
+                                    FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
                                     await ModuleContextFilter.getInstance().update_vos(
-                                        context_query,
-                                        self.field_id_selected,
-                                        new_value
-                                    );
+                                        context_query, {
+                                        [self.field_id_selected]: new_value
+                                    });
 
                                     ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
 

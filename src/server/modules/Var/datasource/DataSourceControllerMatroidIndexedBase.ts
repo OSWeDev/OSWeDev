@@ -1,10 +1,9 @@
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
-import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
-import StatsServerController from '../../Stats/StatsServerController';
-import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './DataSourceControllerBase';
+import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 
 export default abstract class DataSourceControllerMatroidIndexedBase extends DataSourceControllerBase {
 
@@ -25,30 +24,26 @@ export default abstract class DataSourceControllerMatroidIndexedBase extends Dat
      */
     public async load_node_data(node: VarDAGNode) {
 
-        StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stat('DataSourceControllerMatroidIndexedBase.' + node.var_data.var_id + '.load_node_data.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
+        let time_load_node_data_in = Dates.now_ms();
 
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
 
-        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
-        }
+        StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
+        let time_in = Dates.now_ms();
 
-        let data_index: string = this.get_data_index(node.var_data) as string;
-        if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index] === 'undefined') {
+        let data = await this.get_data(node.var_data);
 
-            StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
-                1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-            StatsServerController.register_stat('DataSourceControllerMatroidIndexedBase.' + node.var_data.var_id + '.get_data.nb',
-                1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        let time_out = Dates.now_ms();
+        // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
+        StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
-            let data = await this.get_data(node.var_data);
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index] = ((typeof data === 'undefined') ? null : data);
-        }
-        node.datasources[this.name] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index];
+        node.datasources[this.name] = ((typeof data === 'undefined') ? null : data);
+
+        let time_load_node_data_out = Dates.now_ms();
+        // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
+        StatsController.register_stat_DUREE('DataSources', this.name, 'load_node_data', time_load_node_data_out - time_load_node_data_in);
     }
 }

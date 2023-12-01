@@ -30,7 +30,7 @@ $circle-width-hover: 0.07em;
 
                 &.fa-trophy {
                     font-size: 17px;
-                    padding-top: 3px;
+                    padding-top: 5px;
                     color: $animation_orange;
                     text-align: center;
                     padding-left: 1px;
@@ -47,11 +47,22 @@ $circle-width-hover: 0.07em;
 
                 &.fa-check {
                     font-size: 17px;
-                    padding-top: 3px;
-                    color: $animation_orange;
+                    padding-top: 4px;
                     text-align: center;
                     padding-left: 1px;
                     color: $animation_vert;
+
+                    &:before {
+                        margin-right: 0;
+                    }
+                }
+
+                &.fa-times {
+                    font-size: 17px;
+                    padding-top: 4px;
+                    text-align: center;
+                    padding-left: 1px;
+                    color: $animation_rouge;
 
                     &:before {
                         margin-right: 0;
@@ -466,7 +477,7 @@ $circle-width-hover: 0.07em;
         // loop to rotate all 100 circles
         @for $j from 1 through 100 {
             &.p#{$j} .bar {
-                transform: rotate((360/100*$j) + deg);
+                transform: rotate(calc((360/100*$j) + deg));
             }
         }
 

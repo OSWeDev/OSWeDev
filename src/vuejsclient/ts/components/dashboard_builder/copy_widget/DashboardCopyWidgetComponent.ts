@@ -9,10 +9,11 @@ import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilde
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextAction } from '../../InlineTranslatableText/TranslatableTextStore';
-import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import VueComponentBase from '../../VueComponentBase';
+import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import './DashboardCopyWidgetComponent.scss';
 
 @Component({
@@ -57,7 +58,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async delete_widget() {
+    private delete_widget() {
         //Supprime le widget qui sera déplaçé.
         this.$emit('delete_widget', this.page_widget);
     }
@@ -116,8 +117,9 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
             //Changement des identifiants widget de ces trads.
             let code = page_widget_trad.code_text;
             // Text
-            let translations: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<TranslationVO>(
-                TranslationVO.API_TYPE_ID, 'text_id', [page_widget_trad.id]);
+            let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<TranslationVO>().text_id, page_widget_trad.id)
+                .select_vos<TranslationVO>();
 
             delete page_widget_trad.id; //On supprime l'identifiant pour éviter les confusions
 
@@ -180,31 +182,31 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
 
         // Transfert des traductions
         if (this.page_widget._type == 'dashboard_pwidget') {
-            this.transfert_trad(page_widget_to_copy_id);
+            await this.transfert_trad(page_widget_to_copy_id);
         }
 
         // Suppression du widget (recharge la page par la même occasion)
         if (copy_it) {
             this.$emit('reload_widgets');
         } else {
-            this.delete_widget();
+            await this.delete_widget();
         }
 
         // Fermeture de la modale
-        this.cancel();
+        await this.cancel();
     }
 
     private async do_copy_widget() {
         /*Copie un widget d'un onglet vers un autre onglet*/
 
-        this.do_transfert_widget(true);
+        await this.do_transfert_widget(true);
     }
 
     private select_page_to_copy_in(page: DashboardPageVO) {
         this.copy_to_page = page;
     }
 
-    private async cancel() {
+    private cancel() {
         $('#modal_copy_widget').modal('hide');
         this.$emit('cancel');
         this.show_modal = false;

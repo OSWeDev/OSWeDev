@@ -1,6 +1,7 @@
 import debounce from 'lodash/debounce';
 import { Bar } from 'vue-chartjs';
-import 'chartjs-plugin-labels';
+import Chart from "chart.js/auto";
+import * as helpers from "chart.js/helpers";
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsBarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarsBarDataSetDescriptor';
 import MainAggregateOperatorsHandlers from '../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
@@ -8,7 +9,6 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
@@ -16,7 +16,10 @@ import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 
 @Component({
-    extends: Bar
+    template: require('./VarDatasBarChartComponent.pug'),
+    components: {
+        barchart: Bar
+    },
 })
 export default class VarDatasBarChartComponent extends VueComponentBase {
 
@@ -36,11 +39,14 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     private options: any;
 
     private rendered = false;
-    private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
+    // private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
-    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
     private debounced_var_datas_updater = debounce(this.var_datas_updater.bind(this), 500);
+
+    private current_chart_data: any = null;
+    private current_chart_options: any = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery((() => {
@@ -51,6 +57,13 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             }
         }).bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    public async created() {
+        window['Chart'] = Chart;
+        Chart['helpers'] = helpers;
+
+        await import("chart.js-plugin-labels-dv");
+    }
 
     private var_datas_updater() {
         let res: { [index: string]: VarDataValueResVO } = {};
@@ -68,7 +81,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
                 for (let i in var_params) {
                     let var_param = var_params[i];
-                    res[var_param.index] = VarsClientController.getInstance().cached_var_datas[var_param.index];
+                    res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
                 }
             }
         }
@@ -76,17 +89,17 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         this.var_datas = res;
     }
 
-    private mounted() {
-        if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
-        }
-    }
+    // private mounted() {
+    //     if (this.all_data_loaded) {
+    //         this.debounced_render_chart_js();
+    //     }
+    // }
 
     private async beforeDestroy() {
         await VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors), this.varUpdateCallbacks);
         if (!!this.rendered) {
-            // Issu de Bar
-            this.$data._chart.destroy();
+            // // Issu de Bar
+            // this.$data._chart.destroy();
         }
     }
 
@@ -171,7 +184,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         let old_var_params = this.get_all_datas(old_datasets);
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
             return;
         }
 
@@ -183,26 +196,26 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
-        this.onchange_all_data_loaded();
+        // this.onchange_all_data_loaded();
     }
 
-    @Watch("all_data_loaded")
-    @Watch('get_all_values', { deep: true })
-    private onchange_all_data_loaded() {
-        if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
-        }
-    }
+    // @Watch("all_data_loaded")
+    // @Watch('get_all_values', { deep: true })
+    // private onchange_all_data_loaded() {
+    //     if (this.all_data_loaded) {
+    //         this.debounced_render_chart_js();
+    //     }
+    // }
 
     @Watch('var_datas', { deep: true })
     private onchange_var_datas() {
         if (this.all_data_loaded) {
             this.$emit('all_data_loaded', this.var_datas);
-            this.debounced_render_chart_js();
+            // this.debounced_render_chart_js();
         }
     }
 
-    get chartData() {
+    get chart_data() {
         if (!this.all_data_loaded) {
             return null;
         }
@@ -213,7 +226,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         };
     }
 
-    get chartOptions() {
+    get chart_options() {
         let self = this;
         return Object.assign(
             {
@@ -288,7 +301,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             if (!!var_dataset_descriptor.label_translatable_code) {
                 dataset['label'] = this.t(var_dataset_descriptor.label_translatable_code);
             } else {
-                dataset['label'] = this.t(VarsController.getInstance().get_translatable_name_code(var_dataset_descriptor.var_name));
+                dataset['label'] = this.t(VarsController.get_translatable_name_code(var_dataset_descriptor.var_name));
             }
 
             if (!!var_dataset_descriptor.bg_color) {
@@ -317,27 +330,14 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         return res;
     }
 
-    private render_chart_js() {
-
-        if (!!this.rendered) {
-            // Issu de Bar
-            this.$data._chart.destroy();
+    @Watch('chart_data')
+    @Watch('chart_options')
+    private prepare_current_data_and_options() {
+        if (!this.chart_data || !this.chart_options) {
+            return;
         }
 
-        try {
-
-            // Issu de Bar
-            (this as any).renderChart(
-                this.chartData,
-                this.chartOptions
-            );
-            this.rendered = true;
-        } catch (error) {
-            ConsoleHandler.warn('PB:render Bar Chart probablement trop tôt:' + error);
-            this.rendered = false;
-            if (!this['_isDestroyed']) {
-                this.debounced_render_chart_js();
-            }
-        }
+        this.current_chart_data = this.chart_data;
+        this.current_chart_options = this.chart_options;
     }
 }

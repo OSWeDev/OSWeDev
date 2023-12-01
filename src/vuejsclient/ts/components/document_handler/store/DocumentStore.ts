@@ -1,7 +1,7 @@
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors } from "vuex-typescript";
 import IStoreModule from '../../../store/IStoreModule';
+import { store_mutations_names } from "../../../store/StoreModuleBase";
 
 export type DocumentContext = ActionContext<IDocumentState, any>;
 
@@ -25,7 +25,12 @@ export default class DocumentStore implements IStoreModule<IDocumentState, Docum
     public module_name: string;
     public state: any;
     public getters: GetterTree<IDocumentState, DocumentContext>;
-    public mutations: MutationTree<IDocumentState>;
+    public mutations = {
+        set_hidden(state: IDocumentState, hidden: boolean) { state.hidden = hidden; },
+        set_only_routename(state: IDocumentState, only_routename: boolean) { state.only_routename = only_routename; },
+        set_has_docs_route_name(state: IDocumentState, has_docs_route_name: { [route_name: string]: boolean }) { state.has_docs_route_name = has_docs_route_name; },
+    };
+
     public actions: ActionTree<IDocumentState, DocumentContext>;
     public namespaced: boolean = true;
 
@@ -47,28 +52,13 @@ export default class DocumentStore implements IStoreModule<IDocumentState, Docum
             get_has_docs_route_name(state: IDocumentState): { [route_name: string]: boolean } { return state.has_docs_route_name; },
         };
 
-        this.mutations = {
-
-            set_hidden(state: IDocumentState, hidden: boolean) { state.hidden = hidden; },
-            set_only_routename(state: IDocumentState, only_routename: boolean) { state.only_routename = only_routename; },
-            set_has_docs_route_name(state: IDocumentState, has_docs_route_name: { [route_name: string]: boolean }) { state.has_docs_route_name = has_docs_route_name; },
-        };
-
-
-
         this.actions = {
-            set_hidden(context: DocumentContext, hidden: boolean) { commit_set_hidden(context, hidden); },
-            set_only_routename(context: DocumentContext, only_routename: boolean) { commit_set_only_routename(context, only_routename); },
-            set_has_docs_route_name(context: DocumentContext, has_docs_route_name: { [route_name: string]: boolean }) { commit_set_has_docs_route_name(context, has_docs_route_name); },
+            set_hidden: (context: DocumentContext, hidden: boolean) => context.commit(store_mutations_names(this).set_hidden, hidden),
+            set_only_routename: (context: DocumentContext, only_routename: boolean) => context.commit(store_mutations_names(this).set_only_routename, only_routename),
+            set_has_docs_route_name: (context: DocumentContext, has_docs_route_name: { [route_name: string]: boolean }) => context.commit(store_mutations_names(this).set_has_docs_route_name, has_docs_route_name),
         };
     }
 }
 
-const { commit, read, dispatch } =
-    getStoreAccessors<IDocumentState, any>("DocumentStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleDocumentGetter = namespace('DocumentStore', Getter);
 export const ModuleDocumentAction = namespace('DocumentStore', Action);
-
-export const commit_set_hidden = commit(DocumentStore.getInstance().mutations.set_hidden);
-export const commit_set_only_routename = commit(DocumentStore.getInstance().mutations.set_only_routename);
-export const commit_set_has_docs_route_name = commit(DocumentStore.getInstance().mutations.set_has_docs_route_name);

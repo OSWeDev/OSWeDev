@@ -1,4 +1,4 @@
-import moment = require("moment");
+import moment from 'moment';
 import Dates from "../modules/FormatDatesNombres/Dates/Dates";
 
 

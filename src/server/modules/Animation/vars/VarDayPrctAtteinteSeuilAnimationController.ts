@@ -1,18 +1,17 @@
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import AnimationController from "../../../../shared/modules/Animation/AnimationController";
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
 import AnimationParametersVO from "../../../../shared/modules/Animation/vos/AnimationParametersVO";
 import AnimationQRVO from "../../../../shared/modules/Animation/vos/AnimationQRVO";
 import AnimationUserModuleVO from "../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import AnimationUserQRVO from "../../../../shared/modules/Animation/vos/AnimationUserQRVO";
-import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
-import VarDAGNode from "../../../../shared/modules/Var/graph/VarDAGNode";
 import VarConfVO from "../../../../shared/modules/Var/vos/VarConfVO";
 import ObjectHandler from "../../../../shared/tools/ObjectHandler";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DAOUpdateVOHolder from "../../DAO/vos/DAOUpdateVOHolder";
-import DataSourceControllerBase from "../../Var/datasource/DataSourceControllerBase";
 import VarServerControllerBase from "../../Var/VarServerControllerBase";
+import DataSourceControllerBase from "../../Var/datasource/DataSourceControllerBase";
 import AnimationParamsRangesDatasourceController from "../datasources/AnimationParamsRangesDatasourceController";
 import QRsRangesDatasourceController from "../datasources/QRsRangesDatasourceController";
 import UMsRangesDatasourceController from "../datasources/UMsRangesDatasourceController";
@@ -126,7 +125,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
                 cpt_modules++;
 
                 let users_answered_module = uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id];
-                let module_has_qr = ObjectHandler.getInstance().hasAtLeastOneAttribute(qrs_by_theme_module[theme_id][module_id]);
+                let module_has_qr = ObjectHandler.hasAtLeastOneAttribute(qrs_by_theme_module[theme_id][module_id]);
                 // si on a pas de qr ou aucune réponse des utilisateur pour le module on passe au suivant
                 if (!module_has_qr || !users_answered_module) {
                     continue;

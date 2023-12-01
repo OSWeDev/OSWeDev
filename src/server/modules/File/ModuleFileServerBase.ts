@@ -1,6 +1,6 @@
 import { Express, Request, Response } from 'express';
-import * as fileUpload from 'express-fileupload';
-import * as fs from 'fs';
+import fileUpload from 'express-fileupload';
+import fs from 'fs';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -13,7 +13,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
 import FileServerController from './FileServerController';
-import path = require('path');
+import { field_names } from '../../../shared/tools/ObjectHandler';
+import ImageVO from '../../../shared/modules/Image/vos/ImageVO';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -27,10 +28,12 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         app.post(this.api_upload_uri, ServerBase.getInstance().csrfProtection, fileUpload(), this.uploadFile.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         ArchiveFilesWorkersHandler.getInstance();
     }
@@ -103,6 +106,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     }
 
     protected abstract getNewVo(): T;
+    protected abstract get_vo_type(): string;
 
     private async uploadFile(req: Request, res: Response) {
 
@@ -124,8 +128,14 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
         await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'file.upload.success');
 
-        let name: string = import_file.name;
-        let filepath: string = ModuleFile.FILES_ROOT + 'upload/' + name;
+        let file_name: string = import_file.name;
+        let folder_name: string = ModuleFile.FILES_ROOT + 'upload/';
+        let filepath: string = folder_name + file_name;
+
+        while (fs.existsSync(filepath)) {
+            file_name = '_' + file_name;
+            filepath = folder_name + file_name;
+        }
 
         return import_file.mv(filepath, async (err) => {
             if (err) {
@@ -135,17 +145,24 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
                 return;
             }
 
-            let filevo: T = this.getNewVo();
-            filevo.path = filepath;
+            // On tente de le retrouver en base dans un premier temps
+            let filevo: FileVO | ImageVO = await query(this.get_vo_type())
+                .filter_by_text_eq(field_names<FileVO | ImageVO>().path, filepath)
+                .select_vo<FileVO | ImageVO>();
 
-            let insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
-            if ((!insertres) || (!insertres.id)) {
-                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
-                res.json(JSON.stringify(null));
-                return;
+            if (!filevo) {
+                filevo = this.getNewVo();
+                filevo.path = filepath;
+
+                let insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
+                if ((!insertres) || (!insertres.id)) {
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
+                    res.json(JSON.stringify(null));
+                    return;
+                }
+
+                filevo.id = insertres.id;
             }
-
-            filevo.id = insertres.id;
             res.json(JSON.stringify(filevo));
         });
     }

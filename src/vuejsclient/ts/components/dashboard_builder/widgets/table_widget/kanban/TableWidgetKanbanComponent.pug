@@ -55,6 +55,7 @@ include ../../../../../../views/mixins/loading.pug
                                     template(v-else)
                                         template(v-if='kanban_column.is_enum')
                                             Datatablecomponentfield.is_enum(
+                                                :column="kanban_column"
                                                 :field="fields[kanban_column.id]"
                                                 :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
                                                 :columns="table_columns"
@@ -66,6 +67,7 @@ include ../../../../../../views/mixins/loading.pug
                                         template(v-else)
                                             template(v-if="kanban_column.type != 5")
                                                 Datatablecomponentfield(
+                                                    :column="kanban_column"
                                                     :filter_custom_field_filters="kanban_column.filter_custom_field_filters"
                                                     :field="fields[kanban_column.id]"
                                                     :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
@@ -92,7 +94,11 @@ include ../../../../../../views/mixins/loading.pug
                                     :get_elt_id="get_elt_id")
 
                                     template(slot-scope="slot_props")
-                                        .card.kanban_row
+                                        .card.kanban_row(
+                                            :item_id="slot_props.sortable_list_item.__crud_actions?parseInt(slot_props.sortable_list_item.__crud_actions):slot_props.sortable_list_item.id"
+                                            :kanban_api_type_id="kanban_column.api_type_id"
+                                            :use_kanban_card_archive_if_exists="widget_options.use_kanban_card_archive_if_exists"
+                                            )
                                             Tablewidgetkanbancardheadercollagecomponent.card-img-top(
                                                 :image_ids="get_images_ids(slot_props.sortable_list_item)" 
                                                 v-if='sorted_image_datatable_field_uids && sorted_image_datatable_field_uids.length'
@@ -116,6 +122,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                             .kanban_row_column_field_value
                                                                                 template(v-if='column.is_enum')
                                                                                     Datatablecomponentfield.is_enum(
+                                                                                        :column="column"
                                                                                         :field="fields[column.id]"
                                                                                         :vo="slot_props.sortable_list_item"
                                                                                         :columns="table_columns"
@@ -127,6 +134,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                                 template(v-else)
                                                                                     template(v-if="column.type != 5")
                                                                                         Datatablecomponentfield(
+                                                                                            :column="column"
                                                                                             :filter_custom_field_filters="column.filter_custom_field_filters"
                                                                                             :field="fields[column.id]"
                                                                                             :vo="slot_props.sortable_list_item"

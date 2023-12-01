@@ -1,8 +1,8 @@
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors } from "vuex-typescript";
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import IStoreModule from '../../../store/IStoreModule';
+import { store_mutations_names } from "../../../store/StoreModuleBase";
 
 export type VarContext = ActionContext<IVarState, any>;
 
@@ -18,8 +18,6 @@ export interface IVarState {
     show_public_tooltip: boolean;
 }
 
-
-
 export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
     public static getInstance(): VarStore {
@@ -34,7 +32,56 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
     public module_name: string;
     public state: any;
     public getters: GetterTree<IVarState, VarContext>;
-    public mutations: MutationTree<IVarState>;
+    public mutations = {
+
+        set_show_public_tooltip(state: IVarState, show_public_tooltip: boolean) {
+            state.show_public_tooltip = show_public_tooltip;
+        },
+
+        setDescDepsOpened(state: IVarState, desc_deps_opened: boolean) {
+            state.desc_deps_opened = desc_deps_opened;
+        },
+
+        setDescRegistrationsOpened(state: IVarState, desc_registrations_opened: boolean) {
+            state.desc_registrations_opened = desc_registrations_opened;
+        },
+
+        setDescFuncStatsOpened(state: IVarState, desc_funcstats_opened: boolean) {
+            state.desc_funcstats_opened = desc_funcstats_opened;
+        },
+
+        setDescMode(state: IVarState, desc_mode: boolean) {
+            state.desc_mode = desc_mode;
+        },
+
+        set_desc_selected_var_param_historic_i(state: IVarState, desc_selected_var_param_historic_i: number) {
+            state.desc_selected_var_param_historic_i = desc_selected_var_param_historic_i;
+        },
+
+        setDescSelectedVarParam(state: IVarState, desc_selected_var_param: VarDataBaseVO) {
+            state.desc_selected_var_param = desc_selected_var_param;
+            state.desc_deps_opened = false;
+
+            /**
+             * Si on ajoute un élément déjà cohérent avec l'historique, on déplace juste le i
+             * sinon on tronque l'historique et on push la nouvelle var
+             */
+            if (state.desc_selected_var_param_historic_i < state.desc_selected_var_param_historic.length - 1) {
+
+                state.desc_selected_var_param_historic_i++;
+                if (desc_selected_var_param.index == state.desc_selected_var_param_historic[state.desc_selected_var_param_historic_i].index) {
+                    return;
+                }
+
+                state.desc_selected_var_param_historic.splice(
+                    state.desc_selected_var_param_historic_i, state.desc_selected_var_param_historic.length - state.desc_selected_var_param_historic_i);
+                state.desc_selected_var_param_historic.push(state.desc_selected_var_param);
+            } else {
+                state.desc_selected_var_param_historic.push(state.desc_selected_var_param);
+                state.desc_selected_var_param_historic_i++;
+            }
+        },
+    };
     public actions: ActionTree<IVarState, VarContext>;
     public namespaced: boolean = true;
 
@@ -81,97 +128,20 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
         };
 
-        this.mutations = {
-
-            set_show_public_tooltip(state: IVarState, show_public_tooltip: boolean) {
-                state.show_public_tooltip = show_public_tooltip;
-            },
-
-            setDescDepsOpened(state: IVarState, desc_deps_opened: boolean) {
-                state.desc_deps_opened = desc_deps_opened;
-            },
-
-            setDescRegistrationsOpened(state: IVarState, desc_registrations_opened: boolean) {
-                state.desc_registrations_opened = desc_registrations_opened;
-            },
-
-            setDescFuncStatsOpened(state: IVarState, desc_funcstats_opened: boolean) {
-                state.desc_funcstats_opened = desc_funcstats_opened;
-            },
-
-            setDescMode(state: IVarState, desc_mode: boolean) {
-                state.desc_mode = desc_mode;
-            },
-
-            set_desc_selected_var_param_historic_i(state: IVarState, desc_selected_var_param_historic_i: number) {
-                state.desc_selected_var_param_historic_i = desc_selected_var_param_historic_i;
-            },
-
-            setDescSelectedVarParam(state: IVarState, desc_selected_var_param: VarDataBaseVO) {
-                state.desc_selected_var_param = desc_selected_var_param;
-                state.desc_deps_opened = false;
-
-                /**
-                 * Si on ajoute un élément déjà cohérent avec l'historique, on déplace juste le i
-                 * sinon on tronque l'historique et on push la nouvelle var
-                 */
-                if (state.desc_selected_var_param_historic_i < state.desc_selected_var_param_historic.length - 1) {
-
-                    state.desc_selected_var_param_historic_i++;
-                    if (desc_selected_var_param.index == state.desc_selected_var_param_historic[state.desc_selected_var_param_historic_i].index) {
-                        return;
-                    }
-
-                    state.desc_selected_var_param_historic.splice(
-                        state.desc_selected_var_param_historic_i, state.desc_selected_var_param_historic.length - state.desc_selected_var_param_historic_i);
-                    state.desc_selected_var_param_historic.push(state.desc_selected_var_param);
-                } else {
-                    state.desc_selected_var_param_historic.push(state.desc_selected_var_param);
-                    state.desc_selected_var_param_historic_i++;
-                }
-            },
-        };
-
-
-
         this.actions = {
 
-            set_show_public_tooltip(context: VarContext, show_public_tooltip: boolean) {
-                commit_set_show_public_tooltip(context, show_public_tooltip);
-            },
+            set_show_public_tooltip: (context: VarContext, show_public_tooltip: boolean) => context.commit(store_mutations_names(this).set_show_public_tooltip, show_public_tooltip),
 
-            setDescMode(context: VarContext, desc_mode: boolean) {
-                commitSetDescMode(context, desc_mode);
-            },
+            setDescMode: (context: VarContext, desc_mode: boolean) => context.commit(store_mutations_names(this).setDescMode, desc_mode),
 
-            setDescDepsOpened(context: VarContext, desc_deps_opened: boolean) {
-                commitSetDescDepsOpened(context, desc_deps_opened);
-            },
-            setDescRegistrationsOpened(context: VarContext, desc_registrations_opened: boolean) {
-                commitSetDescRegistrationsOpened(context, desc_registrations_opened);
-            },
-            set_desc_selected_var_param_historic_i(context: VarContext, desc_selected_var_param_historic_i: number) {
-                commit_set_desc_selected_var_param_historic_i(context, desc_selected_var_param_historic_i);
-            },
-            setDescFuncStatsOpened(context: VarContext, desc_funcstats_opened: boolean) {
-                commitsetDescFuncStatsOpened(context, desc_funcstats_opened);
-            },
-            setDescSelectedVarParam(context: VarContext, desc_selected_var_param: string) {
-                commitSetDescSelectedVarParam(context, desc_selected_var_param);
-            },
+            setDescDepsOpened: (context: VarContext, desc_deps_opened: boolean) => context.commit(store_mutations_names(this).setDescDepsOpened, desc_deps_opened),
+            setDescRegistrationsOpened: (context: VarContext, desc_registrations_opened: boolean) => context.commit(store_mutations_names(this).setDescRegistrationsOpened, desc_registrations_opened),
+            set_desc_selected_var_param_historic_i: (context: VarContext, desc_selected_var_param_historic_i: number) => context.commit(store_mutations_names(this).set_desc_selected_var_param_historic_i, desc_selected_var_param_historic_i),
+            setDescFuncStatsOpened: (context: VarContext, desc_funcstats_opened: boolean) => context.commit(store_mutations_names(this).setDescFuncStatsOpened, desc_funcstats_opened),
+            setDescSelectedVarParam: (context: VarContext, desc_selected_var_param: string) => context.commit(store_mutations_names(this).setDescSelectedVarParam, desc_selected_var_param),
         };
     }
 }
 
-const { commit, read, dispatch } =
-    getStoreAccessors<IVarState, any>("VarStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleVarGetter = namespace('VarStore', Getter);
 export const ModuleVarAction = namespace('VarStore', Action);
-
-export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
-export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
-export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutations.setDescFuncStatsOpened);
-export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
-export const commitSetDescSelectedVarParam = commit(VarStore.getInstance().mutations.setDescSelectedVarParam);
-export const commit_set_desc_selected_var_param_historic_i = commit(VarStore.getInstance().mutations.set_desc_selected_var_param_historic_i);
-export const commit_set_show_public_tooltip = commit(VarStore.getInstance().mutations.set_show_public_tooltip);

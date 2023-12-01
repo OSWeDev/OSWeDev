@@ -6,3 +6,9 @@ coverage
 .nyc_output
 .vscode/settings.json
 test-reports.xml
+
+.trash/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+playwright-report/

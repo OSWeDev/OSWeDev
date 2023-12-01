@@ -6,9 +6,8 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -22,9 +21,8 @@ import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRD
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import { all_promises } from '../../../shared/tools/PromiseTools';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -35,6 +33,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
@@ -46,6 +45,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return this.shared_module as ModuleProgramPlanBase;
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         // On ajoute les triggers pour le statut des RDVs en fonction des Preps / CRs et confirmation
@@ -54,14 +54,14 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         //  Création de RDV on a un statut created ou confirmed si il est créé confirmed
         //  Mise à jour du RDV : On demande à recalculer le statut du RDV
         //  Ajout / Suppression de CR ou Prep : On demande à recalculer le statut du RDV
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this, this.handleTriggerSetStateRDV);
 
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this, this.handleTriggerSetStateRDVUpdate);
 
         preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this, this.handleTriggerPreCreateCr);
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this, this.handleTriggerPreDeleteCr);
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
@@ -129,8 +129,25 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Date'
         }, 'programplan.rdv_modal.rdv_date.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Archiver ce RDV ?'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer l\'archivage'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Archivage en cours...'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de l\'archivage'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.ko.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Archivage terminé'
+        }, 'ProgramPlanComponentModalHistoric.confirm_archive.ok.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
         APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
@@ -141,6 +158,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
     }
 
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
         // IPlanManager
@@ -178,6 +196,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.programplan_shared_module.POLICY_GROUP;
@@ -197,7 +216,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
             admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             admin_access_dependency.src_pol_id = bo_access.id;
-            admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+            admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
             await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
         })());
 
@@ -300,12 +319,14 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         if (!this.programplan_shared_module.program_type_id) {
 
             return await query(this.programplan_shared_module.rdv_type_id)
+                .filter_is_false(field_names<IPlanRDV>().archived)
                 .filter_by_date_before('start_time', end_time)
                 .filter_by_date_same_or_after('end_time', start_time)
                 .select_vos<IPlanRDV>();
         }
 
         return await query(this.programplan_shared_module.rdv_type_id)
+            .filter_is_false(field_names<IPlanRDV>().archived)
             .filter_by_date_before('start_time', end_time)
             .filter_by_date_same_or_after('end_time', start_time)
             .filter_by_num_eq('program_id', program_id)
@@ -347,6 +368,19 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
     private async registerFrontEditionAccessPolicies(group: AccessPolicyGroupVO, fo_edit: AccessPolicyVO) {
 
+        let archive_rdvs: AccessPolicyVO = new AccessPolicyVO();
+        archive_rdvs.group_id = group.id;
+        archive_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        archive_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_CAN_ARCHIVE_RDV;
+        archive_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(archive_rdvs, new DefaultTranslation({
+            'fr-fr': 'Archiver les RDVs - ' + this.programplan_shared_module.name
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        front_access_dependency.src_pol_id = archive_rdvs.id;
+        front_access_dependency.depends_on_pol_id = fo_edit.id;
+        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
+
         let edit_own_rdvs: AccessPolicyVO = new AccessPolicyVO();
         edit_own_rdvs.group_id = group.id;
         edit_own_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
@@ -354,7 +388,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_rdvs, new DefaultTranslation({
             'fr-fr': 'Modifier ses propres RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         front_access_dependency.src_pol_id = edit_own_rdvs.id;
         front_access_dependency.depends_on_pol_id = fo_edit.id;
@@ -408,21 +442,21 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterIPlanFacilitatorByManagerByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         if (!this.programplan_shared_module.manager_type_id) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
@@ -442,17 +476,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_facilitator_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        return query(moduletable.vo_type).using(this.programplan_shared_module.manager_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).ignore_access_hooks();
+        return query(moduletable.vo_type).using(this.programplan_shared_module.manager_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
     }
 
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -469,21 +503,21 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterManagerByIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         if (!this.programplan_shared_module.manager_type_id) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
@@ -503,17 +537,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_manager_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        return query(moduletable.vo_type).using(this.programplan_shared_module.facilitator_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).ignore_access_hooks();
+        return query(moduletable.vo_type).using(this.programplan_shared_module.facilitator_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
     }
 
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterManagerByIdByAccess(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterManagerByIdByAccess_own_team(datatable, vos, uid);
         }
         return null;
@@ -525,7 +559,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
             return null;
         }
@@ -607,7 +641,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
             return null;
         }
@@ -691,17 +725,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterRDVsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
-        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!loggedUserId) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         let is_own_facilitators_rdv_filter: ContextFilterVO = new ContextFilterVO();
@@ -710,17 +744,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_rdv_filter.param_numeric = loggedUserId;
 
-        return query(moduletable.vo_type).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([is_own_facilitators_rdv_filter]).ignore_access_hooks();
+        return query(moduletable.vo_type).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([is_own_facilitators_rdv_filter]).exec_as_server();
     }
 
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -752,12 +786,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterRDVCRPrepsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
-            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
         /**
@@ -767,8 +801,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res: ContextQueryVO = query(moduletable.vo_type)
             .field('id', 'filter_' + moduletable.vo_type + '_id')
             .filter_by_num_in('rdv_id',
-                query(this.programplan_shared_module.rdv_type_id).field('id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
-            .ignore_access_hooks();
+                query(this.programplan_shared_module.rdv_type_id)
+                    .filter_is_false(field_names<IPlanRDV>().archived)
+                    .field('id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
+            .exec_as_server();
 
         res.is_access_hook_def = true;
         return res;
@@ -778,10 +814,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -791,7 +827,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res = [];
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(
-            await query(this.programplan_shared_module.rdv_type_id).select_vos<IPlanRDV>()
+            await query(this.programplan_shared_module.rdv_type_id).filter_is_false(field_names<IPlanRDV>().archived).select_vos<IPlanRDV>()
         );
         for (let i in vos) {
             let vo = vos[i];
@@ -823,13 +859,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
         if ((rdv.state == this.programplan_shared_module.RDV_STATE_CREATED) && (rdv.target_validation)) {
 
-            let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
+            let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
             let cr = crs ? crs[0] : null;
 
             let prep = null;
             if (!!this.programplan_shared_module.rdv_prep_type_id) {
-                let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
+                let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
                 prep = preps ? preps[0] : null;
             }
 
@@ -837,7 +873,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
             if (rdv.state != state) {
                 rdv.state = state;
-                await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
             }
         }
 
@@ -850,7 +886,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
@@ -858,7 +894,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let prep = null;
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
+            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -867,7 +903,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -882,13 +918,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return false;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
+        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
         let cr = crs ? crs[0] : null;
 
@@ -896,7 +932,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -907,7 +943,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
@@ -916,7 +952,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let prep = null;
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
+            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -925,7 +961,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -940,13 +976,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return false;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
+        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
         let cr = crs ? crs[0] : null;
 
@@ -954,7 +990,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;

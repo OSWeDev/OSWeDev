@@ -1,3 +1,4 @@
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -42,6 +43,6 @@ export default class InitLoggedOnce implements IGeneratorWorker {
             }
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs(update_users);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(update_users);
     }
 }

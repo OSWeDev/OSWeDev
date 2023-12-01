@@ -1,6 +1,7 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 
-export default class SortByVO implements IDistantVOBase {
+export default class SortByVO extends AbstractVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "sort_by";
 
     public static MODIFIER_NONE: number = 0;
@@ -23,11 +24,14 @@ export default class SortByVO implements IDistantVOBase {
         vo_type: string = null,
         field_id: string = null,
         sort_asc: boolean = true,
+        alias: string = null,
     ) {
+        super();
+
         this.vo_type = vo_type;
         this.field_id = field_id;
         this.sort_asc = sort_asc;
-        this.alias = null;
+        this.alias = alias;
         this.modifier = SortByVO.MODIFIER_NONE;
     }
 

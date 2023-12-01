@@ -30,6 +30,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
     public static MAILCATEGORY_PasswordInvalidation_RMD2 = 'MAILCATEGORY.PasswordInvalidation_RMD2';
     public static MAILCATEGORY_PasswordInvalidation_INVALIDATE = 'MAILCATEGORY.PasswordInvalidation_INVALIDATE';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PasswordInvalidationCronWorker.instance) {
             PasswordInvalidationCronWorker.instance = new PasswordInvalidationCronWorker();

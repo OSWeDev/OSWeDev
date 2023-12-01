@@ -2,6 +2,7 @@ import DefaultTranslation from '../modules/Translation/vos/DefaultTranslation';
 
 export default class LocaleManager {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!LocaleManager.instance) {
             LocaleManager.instance = new LocaleManager();
@@ -23,7 +24,8 @@ export default class LocaleManager {
             txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
             params
         );
-        return res ? res.toString() : null;
+
+        return (res != null) ? res.toString() : null;
     }
 
     public t(txt: string, params = {}): string {
@@ -31,8 +33,9 @@ export default class LocaleManager {
             return txt;
         }
 
-        let res = LocaleManager.getInstance().i18n.t(txt, params);
-        return res ? res.toString() : null;
+        const res = LocaleManager.getInstance().i18n.t(txt, params);
+
+        return (res != null) ? res.toString() : null;
     }
 
     public setDefaultLocale(defaultLocale: string) {

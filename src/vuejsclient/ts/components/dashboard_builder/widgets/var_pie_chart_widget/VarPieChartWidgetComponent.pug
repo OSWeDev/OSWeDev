@@ -1,13 +1,14 @@
 .var_pie_chart_widget_component(:style='widget_options ? {background: widget_options.bg_color ? widget_options.bg_color : "inherit"} : {}')
 
-    template(v-if='var_params && var_dataset_descriptor && options')
+    template(v-if='current_var_params && current_var_dataset_descriptor && current_options')
         .chart_wrapper
             .chart_frame
                 var-pie-chart(
-                    :var_params="var_params"
+                    :var_params="current_var_params"
                     :getlabel="getlabel"
-                    :var_dataset_descriptor="var_dataset_descriptor"
-                    :options="options"
+                    :var_dataset_descriptor="current_var_dataset_descriptor"
+                    :options="current_options"
                     :filter='var_filter'
                     :filter_additional_params='var_filter_additional_params'
+                    :key="'var_pie_chart_widget_' + page_widget.id"
                 )

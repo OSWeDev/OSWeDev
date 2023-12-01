@@ -5,6 +5,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGeneratorWorker {
 
@@ -28,7 +29,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
         if (BulkOps) {
             BulkOps.default_height = 35;
             BulkOps.default_width = 12;
-            await ModuleDAO.getInstance().insertOrUpdateVO(BulkOps);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(BulkOps);
         }
 
         let Checklist = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'checklist').select_vo<DashboardWidgetVO>();
@@ -36,7 +37,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             Checklist.default_height = 35;
             Checklist.default_width = 12;
             Checklist.name = 'checklist';
-            await ModuleDAO.getInstance().insertOrUpdateVO(Checklist);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(Checklist);
         }
 
         let DataTable = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'datatable').select_vo<DashboardWidgetVO>();
@@ -44,7 +45,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             DataTable.default_height = 35;
             DataTable.default_width = 12;
             DataTable.name = 'datatable';
-            await ModuleDAO.getInstance().insertOrUpdateVO(DataTable);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(DataTable);
         }
 
         let ValueTable = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'valuetable').select_vo<DashboardWidgetVO>();
@@ -52,7 +53,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             ValueTable.default_height = 35;
             ValueTable.default_width = 12;
             ValueTable.name = 'valuetable';
-            await ModuleDAO.getInstance().insertOrUpdateVO(ValueTable);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ValueTable);
         }
 
         let fieldValueFilter = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'fieldvaluefilter').select_vo<DashboardWidgetVO>();
@@ -60,7 +61,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             fieldValueFilter.default_height = 5;
             fieldValueFilter.default_width = 3;
             fieldValueFilter.name = 'fieldvaluefilter';
-            await ModuleDAO.getInstance().insertOrUpdateVO(fieldValueFilter);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(fieldValueFilter);
         }
 
         let DOWFilter = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'dowfilter').select_vo<DashboardWidgetVO>();
@@ -68,7 +69,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             DOWFilter.default_height = 5;
             DOWFilter.default_width = 3;
             DOWFilter.name = 'dowfilter';
-            await ModuleDAO.getInstance().insertOrUpdateVO(DOWFilter);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(DOWFilter);
         }
 
         let MonthFilter = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'monthfilter').select_vo<DashboardWidgetVO>();
@@ -76,7 +77,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             MonthFilter.default_height = 5;
             MonthFilter.default_width = 4;
             MonthFilter.name = 'monthfilter';
-            await ModuleDAO.getInstance().insertOrUpdateVO(MonthFilter);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(MonthFilter);
         }
 
         let YearFilter = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'yearfilter').select_vo<DashboardWidgetVO>();
@@ -84,7 +85,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             YearFilter.default_height = 5;
             YearFilter.default_width = 2;
             YearFilter.name = 'yearfilter';
-            await ModuleDAO.getInstance().insertOrUpdateVO(YearFilter);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(YearFilter);
         }
 
         let var_widget = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'var').select_vo<DashboardWidgetVO>();
@@ -92,7 +93,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             var_widget.default_height = 10;
             var_widget.default_width = 1;
             var_widget.name = 'var';
-            await ModuleDAO.getInstance().insertOrUpdateVO(var_widget);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(var_widget);
         }
 
         let pageswitch_widget = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_text_eq('name', 'pageswitch').select_vo<DashboardWidgetVO>();
@@ -100,7 +101,7 @@ export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGenera
             pageswitch_widget.default_height = 5;
             pageswitch_widget.default_width = 2;
             pageswitch_widget.name = 'pageswitch';
-            await ModuleDAO.getInstance().insertOrUpdateVO(pageswitch_widget);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(pageswitch_widget);
         }
     }
 }

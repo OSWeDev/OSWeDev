@@ -1,22 +1,24 @@
 import { throttle } from 'lodash';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
+import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
-import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
-import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import ISupervisedItemServerController from '../interfaces/ISupervisedItemServerController';
+import IBGThread from '../../BGThread/interfaces/IBGThread';
 import SupervisionServerController from '../SupervisionServerController';
+import ISupervisedItemServerController from '../interfaces/ISupervisedItemServerController';
 
 export default class SupervisionBGThread implements IBGThread {
 
     public static MAX_timeout_PARAM_NAME: string = 'SupervisionBGThread.MAX_timeout';
     public static MIN_timeout_PARAM_NAME: string = 'SupervisionBGThread.MIN_timeout';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!SupervisionBGThread.instance) {
             SupervisionBGThread.instance = new SupervisionBGThread();
@@ -29,6 +31,10 @@ export default class SupervisionBGThread implements IBGThread {
     public current_timeout: number = 1000;
     public MAX_timeout: number = 5000;
     public MIN_timeout: number = 100;
+
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
 
     private loaded_param: boolean = false;
 
@@ -47,7 +53,11 @@ export default class SupervisionBGThread implements IBGThread {
      */
     public async work(): Promise<number> {
 
+        let time_in = Dates.now_ms();
+
         try {
+
+            StatsController.register_stat_COMPTEUR('SupervisionBGThread', 'work', 'IN');
 
             if (!this.loaded_param) {
                 this.loaded_param = true;
@@ -65,7 +75,7 @@ export default class SupervisionBGThread implements IBGThread {
                 let server_controller: ISupervisedItemServerController<any> = SupervisionServerController.getInstance().registered_controllers[api_type_id];
 
                 // Si pas actif ou pas de time ms saisie, on passe au suivant
-                if (!shared_controller.is_actif() || !server_controller.get_execute_time_ms()) {
+                if ((!shared_controller) || (!shared_controller.is_actif()) || (!server_controller) || (!server_controller.get_execute_time_ms())) {
                     continue;
                 }
 
@@ -79,6 +89,9 @@ export default class SupervisionBGThread implements IBGThread {
 
                     // Si j'ai des items invalid, je vais throttle le controller
                     if (items && items.length) {
+
+                        StatsController.register_stat_QUANTITE('SupervisionBGThread', 'work', 'invalid_items', items.length);
+
                         if (!this.throttle_by_api_type_id[api_type_id]) {
                             this.throttle_by_api_type_id[api_type_id] = throttle(
                                 server_controller.work_invalid.bind(server_controller),
@@ -92,11 +105,20 @@ export default class SupervisionBGThread implements IBGThread {
             }
 
             await all_promises(promises);
-
+            this.stats_out('ok', time_in);
+            return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+    }
+
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('SupervisionBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('SupervisionBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

@@ -1,8 +1,59 @@
 import cloneDeep from 'lodash/cloneDeep';
-import * as moment from 'moment';
+import moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import * as lang from "vuejs-datepicker/src/locale";
+import {
+    af,
+    ar,
+    bg,
+    bs,
+    ca,
+    cs,
+    da,
+    de,
+    ee,
+    el,
+    en,
+    es,
+    fa,
+    fi,
+    fo,
+    fr,
+    ge,
+    gl,
+    he,
+    hr,
+    hu,
+    id,
+    is,
+    it,
+    ja,
+    kk,
+    ko,
+    lb,
+    lt,
+    lv,
+    mk,
+    mn,
+    nbNO,
+    nl,
+    pl,
+    ptBR,
+    ro,
+    ru,
+    sk,
+    slSI,
+    srCYRL,
+    sr,
+    sv,
+    th,
+    tr,
+    uk,
+    ur,
+    vi,
+    zh,
+    zhHK
+} from "vuejs-datepicker/src/locale";
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
@@ -42,6 +93,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private segmentation_type: number;
 
     @Prop({ default: null })
+    private format_localized_time: boolean;
+
+    @Prop({ default: null })
     private vo: IDistantVOBase;
 
     /**
@@ -64,7 +118,58 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
 
-    private languages = lang;
+    private languages = {
+        af,
+        ar,
+        bg,
+        bs,
+        ca,
+        cs,
+        da,
+        de,
+        ee,
+        el,
+        en,
+        es,
+        fa,
+        fi,
+        fo,
+        fr,
+        ge,
+        gl,
+        he,
+        hr,
+        hu,
+        id,
+        is,
+        it,
+        ja,
+        kk,
+        ko,
+        lb,
+        lt,
+        lv,
+        mk,
+        mn,
+        nbNO,
+        nl,
+        pl,
+        ptBR,
+        ro,
+        ru,
+        sk,
+        slSI,
+        srCYRL,
+        sr,
+        sv,
+        th,
+        tr,
+        uk,
+        ur,
+        vi,
+        zh,
+        zhHK
+    };
 
     get language(): string {
 
@@ -93,7 +198,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (!!this.field) {
             if (this.segmentation_type == null) {
                 if (this.field.moduleTableField) {
-                    this.segmentation_type_ = this.field.moduleTableField.segmentation_type;
+                    this.segmentation_type_ = this.field.segmentation_type;
                 }
                 return;
             }
@@ -117,12 +222,12 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
-        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_);
+        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_, this.field.max_range_offset);
 
         if (min) {
             this.tsrange_start = new Date(min * 1000);
             if (this.tsrange_start) {
-                this.tsrange_start_time = (this.value && this.value.min) ? Dates.format(this.value.min, this.format_time, this.format_localized_time) : null;
+                this.tsrange_start_time = (this.value && this.value.min) ? Dates.format(this.value.min, this.format_time, this.format_localized_time_) : null;
             }
         } else {
             this.tsrange_start = null;
@@ -132,7 +237,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (max) {
             this.tsrange_end = new Date(max * 1000);
             if (this.tsrange_end) {
-                this.tsrange_end_time = (this.value && this.value.max) ? Dates.format(this.value.max, this.format_time, this.format_localized_time) : null;
+                this.tsrange_end_time = (this.value && this.value.max) ? Dates.format(this.value.max, this.format_time, this.format_localized_time_) : null;
             }
         } else {
             this.tsrange_end = null;
@@ -149,7 +254,10 @@ export default class TSRangeInputComponent extends VueComponentBase {
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
-            true, this.ts_end ? true : false, this.segmentation_type_);
+            true,
+            this.ts_end ? true : false,
+            this.segmentation_type_
+        );
 
         /**
          * On check que c'est bien une nouvelle value
@@ -243,7 +351,18 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return null;
         }
 
-        return Dates.startOf(moment(this.tsrange_end).utc(true).unix(), this.segmentation_type_);
+        let start_date_unix: number = moment(this.tsrange_start).utc(true).unix();
+        let end_date_unix: number = moment(this.tsrange_end).utc(true).unix();
+
+        if (start_date_unix == end_date_unix) {
+            return Dates.startOf(end_date_unix, this.segmentation_type_);
+        }
+
+        if (this.field && !!this.field.max_range_offset) {
+            end_date_unix = Dates.add(end_date_unix, -this.field.max_range_offset, this.segmentation_type_);
+        }
+
+        return Dates.startOf(end_date_unix, this.segmentation_type_);
     }
 
     /**
@@ -263,9 +382,14 @@ export default class TSRangeInputComponent extends VueComponentBase {
         return option_arr[2];
     }
 
-    get format_localized_time(): boolean {
+    get format_localized_time_(): boolean {
+
+        if (this.format_localized_time !== null) {
+            return this.format_localized_time;
+        }
+
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
+            return (this.field as SimpleDatatableFieldVO<any, any>).format_localized_time;
         }
 
         return null;

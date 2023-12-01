@@ -4,6 +4,7 @@ import { IDatabase } from 'pg-promise';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class Patch20220217ChangeLoginTrad implements IGeneratorWorker {
 
@@ -38,6 +39,6 @@ export default class Patch20220217ChangeLoginTrad implements IGeneratorWorker {
         }
 
         translation.translated = "Login";
-        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
     }
 }

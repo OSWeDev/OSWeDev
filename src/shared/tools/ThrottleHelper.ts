@@ -2,116 +2,104 @@ import { Cancelable, isArray, throttle, ThrottleSettings } from 'lodash';
 
 export default class ThrottleHelper {
 
-    public static getInstance(): ThrottleHelper {
-        if (!ThrottleHelper.instance) {
-            ThrottleHelper.instance = new ThrottleHelper();
-        }
-
-        return ThrottleHelper.instance;
-    }
-
-    private static instance: ThrottleHelper = null;
-
-    protected UID: number = 0;
-    protected throttles: { [throttle_id: number]: ((...args: any) => any) & Cancelable } = {};
-    protected throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
-    protected throttles_stackable_args: { [throttle_id: number]: any[] } = {};
-    protected throttles_semaphore: { [throttle_id: number]: boolean } = {};
-
-    private constructor() { }
-
-    public declare_throttle_without_args(
-        func: () => any,
+    public static declare_throttle_without_args(
+        func: () => void | Promise<void>,
         wait_ms: number,
         options?: ThrottleSettings) {
 
-        let UID = this.UID++;
-        let self = this;
-        this.throttles[UID] = throttle(() => {
-            self.throttles_semaphore[UID] = false;
-            func();
+        let UID = ThrottleHelper.UID++;
+        ThrottleHelper.throttles[UID] = throttle(async () => {
+            ThrottleHelper.throttles_semaphore[UID] = false;
+            await func();
         }, wait_ms, options);
 
-        return () => ThrottleHelper.getInstance().throttle_without_args(UID);
+        return () => ThrottleHelper.throttle_without_args(UID);
     }
 
 
-    public declare_throttle_with_mappable_args(
-        func: (mappable_args: { [map_elt_id: string]: any }) => any,
+    public static declare_throttle_with_mappable_args(
+        func: (mappable_args: { [map_elt_id: string]: any }) => void | Promise<void>,
         wait_ms: number,
         options?: ThrottleSettings) {
 
-        let UID = this.UID++;
-        let self = this;
-        this.throttles[UID] = throttle(() => {
+        let UID = ThrottleHelper.UID++;
+        ThrottleHelper.throttles[UID] = throttle(async () => {
 
-            let params = self.throttles_mappable_args[UID];
-            self.throttles_mappable_args[UID] = {};
-            self.throttles_semaphore[UID] = false;
-            func(params);
+            let params = ThrottleHelper.throttles_mappable_args[UID];
+            ThrottleHelper.throttles_mappable_args[UID] = {};
+            ThrottleHelper.throttles_semaphore[UID] = false;
+            await func(params);
         }, wait_ms, options);
 
-        return (mappable_args: { [map_elt_id: string]: any }) => ThrottleHelper.getInstance().throttle_with_mappable_args(UID, mappable_args);
+        return (mappable_args: { [map_elt_id: string]: any }) => ThrottleHelper.throttle_with_mappable_args(UID, mappable_args);
     }
 
-    public declare_throttle_with_stackable_args(
-        func: (stackable_args: any[]) => any,
+    public static declare_throttle_with_stackable_args(
+        func: (stackable_args: any[]) => void | Promise<void>,
         wait_ms: number,
-        options?: ThrottleSettings) {
+        options?: ThrottleSettings
+    ) {
 
-        let UID = this.UID++;
-        this.throttles[UID] = throttle(() => {
+        let UID = ThrottleHelper.UID++;
+        ThrottleHelper.throttles[UID] = throttle(async () => {
 
-            let params = this.throttles_stackable_args[UID];
-            this.throttles_stackable_args[UID] = [];
-            func(params);
+            let params = ThrottleHelper.throttles_stackable_args[UID];
+            ThrottleHelper.throttles_stackable_args[UID] = [];
+
+            await func(params);
         }, wait_ms, options);
 
-        return (stackable_args: any | any[]) => {
+        return (stackable_args?: any | any[]) => {
             let stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
-            ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stack);
+            return ThrottleHelper.throttle_with_stackable_args(UID, stack);
         };
     }
 
-    private throttle_without_args(throttle_id: number) {
-        if (!this.throttles[throttle_id]) {
+    protected static UID: number = 0;
+    protected static throttles: { [throttle_id: number]: ((...args: any) => any) & Cancelable } = {};
+    protected static throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
+    protected static throttles_stackable_args: { [throttle_id: number]: any[] } = {};
+    protected static throttles_semaphore: { [throttle_id: number]: boolean } = {};
+
+    private static throttle_without_args(throttle_id: number) {
+        if (!ThrottleHelper.throttles[throttle_id]) {
             return;
         }
 
-        if (!this.throttles_semaphore[throttle_id]) {
-            this.throttles_semaphore[throttle_id] = true;
-            this.throttles[throttle_id]();
+        if (!ThrottleHelper.throttles_semaphore[throttle_id]) {
+            ThrottleHelper.throttles_semaphore[throttle_id] = true;
+            ThrottleHelper.throttles[throttle_id]();
         }
     }
 
-    private throttle_with_mappable_args(throttle_id: number, mappable_args: { [map_elt_id: string]: any }) {
-        if (!this.throttles[throttle_id]) {
+    private static throttle_with_mappable_args(throttle_id: number, mappable_args: { [map_elt_id: string]: any }) {
+        if (!ThrottleHelper.throttles[throttle_id]) {
             return;
         }
 
-        if (!this.throttles_mappable_args[throttle_id]) {
-            this.throttles_mappable_args[throttle_id] = mappable_args;
+        if (!ThrottleHelper.throttles_mappable_args[throttle_id]) {
+            ThrottleHelper.throttles_mappable_args[throttle_id] = mappable_args;
         } else {
-            this.throttles_mappable_args[throttle_id] = Object.assign(this.throttles_mappable_args[throttle_id], mappable_args);
+            ThrottleHelper.throttles_mappable_args[throttle_id] = Object.assign(ThrottleHelper.throttles_mappable_args[throttle_id], mappable_args);
         }
 
-        if (!this.throttles_semaphore[throttle_id]) {
-            this.throttles_semaphore[throttle_id] = true;
-            this.throttles[throttle_id]();
+        if (!ThrottleHelper.throttles_semaphore[throttle_id]) {
+            ThrottleHelper.throttles_semaphore[throttle_id] = true;
+            ThrottleHelper.throttles[throttle_id]();
         }
     }
 
-    private throttle_with_stackable_args(throttle_id: number, stackable_args: any[]) {
-        if (!this.throttles[throttle_id]) {
+    private static throttle_with_stackable_args(throttle_id: number, stackable_args: any[]) {
+        if (!ThrottleHelper.throttles[throttle_id]) {
             return;
         }
 
-        if (!this.throttles_stackable_args[throttle_id]) {
-            this.throttles_stackable_args[throttle_id] = stackable_args;
+        if (!ThrottleHelper.throttles_stackable_args[throttle_id]) {
+            ThrottleHelper.throttles_stackable_args[throttle_id] = stackable_args;
         } else {
-            this.throttles_stackable_args[throttle_id] = this.throttles_stackable_args[throttle_id].concat(stackable_args);
+            ThrottleHelper.throttles_stackable_args[throttle_id] = ThrottleHelper.throttles_stackable_args[throttle_id].concat(stackable_args);
         }
 
-        this.throttles[throttle_id]();
+        return ThrottleHelper.throttles[throttle_id]();
     }
 }

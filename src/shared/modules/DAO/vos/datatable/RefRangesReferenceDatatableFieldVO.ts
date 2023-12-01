@@ -5,7 +5,6 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
-import VOsTypesManager from '../../../VOsTypesManager';
 
 export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -14,11 +13,21 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
     public static createNew(
         datatable_field_uid: string,
         targetModuleTable: ModuleTable<any>,
-        sortedTargetFields: Array<DatatableField<any, any>>): RefRangesReferenceDatatableFieldVO<any> {
+        sortedTargetFields: Array<DatatableField<any, any>>
+    ): RefRangesReferenceDatatableFieldVO<any> {
 
         let res = new RefRangesReferenceDatatableFieldVO();
-        res.init_ref_dtf(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.REF_RANGES_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
+
+        res.init_ref_dtf(
+            RefRangesReferenceDatatableFieldVO.API_TYPE_ID,
+            DatatableField.REF_RANGES_FIELD_TYPE,
+            datatable_field_uid,
+            targetModuleTable,
+            sortedTargetFields
+        );
+
         res.src_field_id = datatable_field_uid;
+
         return res;
     }
 
@@ -95,12 +104,15 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
 
         let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let destvos = vos[this.targetModuleTable.vo_type];
+
         if (!destvos) {
             return dest_ids;
         }
+
         RangeHandler.foreach_ranges_sync(vo[this.datatable_field_uid], (id: number) => {
             dest_ids.push(id);
         });
+
         return dest_ids;
     }
 

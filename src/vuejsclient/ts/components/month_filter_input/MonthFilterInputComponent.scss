@@ -1,0 +1,36 @@
+.month_filter_input_component {
+
+    .label,
+    .custom_filter_name {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
+    .months {
+        text-align: center;
+
+        .month.not_selectionnable {
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
+        .use_month_cumulable,
+        .all_months,
+        .ytd,
+        .month {
+            padding: 0.5em;
+            background: white;
+            margin: 0.2em;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.5s ease-out;
+
+            &:hover,
+            &.selected {
+                background: #555;
+                color: white;
+            }
+        }
+    }
+}

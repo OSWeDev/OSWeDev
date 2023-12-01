@@ -3,15 +3,16 @@ import IServerUserSession from '../../../../shared/modules/AccessPolicy/vos/ISer
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import TeamsWebhookContentSectionVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
-import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
-import ModuleTeamsAPIServer from '../../TeamsAPI/ModuleTeamsAPIServer';
+import TeamsAPIServerController from '../../TeamsAPI/TeamsAPIServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
 
 export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
@@ -20,6 +21,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public static TASK_NAME_set_session_to_delete_by_sids: string = 'AccessPolicyDeleteSessionBGThread.set_session_to_delete_by_sids';
     public static TASK_NAME_add_api_reqs: string = 'AccessPolicyDeleteSessionBGThread.add_api_reqs';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AccessPolicyDeleteSessionBGThread.instance) {
             AccessPolicyDeleteSessionBGThread.instance = new AccessPolicyDeleteSessionBGThread();
@@ -37,9 +39,15 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
     private constructor() {
-        ForkedTasksController.getInstance().register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
     }
 
     get name(): string {
@@ -48,11 +56,14 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
+        let time_in = Dates.now_ms();
+
         try {
 
-            let invalidate_sessions: IServerUserSession[] = ObjectHandler.getInstance().arrayFromMap(this.session_to_delete_by_sids);
+            StatsController.register_stat_COMPTEUR('AccessPolicyDeleteSessionBGThread', 'work', 'IN');
 
-            if (!invalidate_sessions || !invalidate_sessions.length) {
+            if (!this.session_to_delete_by_sids || !ObjectHandler.hasAtLeastOneAttribute(this.session_to_delete_by_sids)) {
+                this.stats_out('inactive', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
@@ -96,33 +107,25 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
             if (to_invalidate.length > 0) {
                 // On ne met pas de message sur Teams si on est en DEV
                 if (!ConfigurationService.node_configuration.ISDEV) {
-                    let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK_PARAM_NAME);
 
-                    let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
-
-                    message.title = "AccessPolicyDeleteSessionBGThread - " + ConfigurationService.node_configuration.APP_TITLE + " - " + ConfigurationService.node_configuration.BASE_URL;
-                    message.summary = "Suppression de sessions suite invalidation";
-                    message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>SID</div><ul>' + to_invalidate.map((m) => "<li>" + m.id + "</li>").join("") + '</ul></blockquote>'));
-
-                    if (api_reqs && (api_reqs.length > 0)) {
-                        message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>Requêtes</div><ul>' + api_reqs.map((m) => "<li>" + m + "</li>").join("") + '</ul></blockquote>'));
-                    }
-
-                    await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(
-                        TEAMS_WEBHOOK_PARAM_NAME,
-                        message
+                    await TeamsAPIServerController.send_teams_info(
+                        'Suppression de sessions suite invalidation - ' + ConfigurationService.node_configuration.APP_TITLE + " - " + ConfigurationService.node_configuration.BASE_URL,
+                        'SID : <ul><li>' + to_invalidate.map((m) => m.id).join('</li><li>') + '</li></ul>' +
+                        'Requêtes : <ul><li>' + api_reqs.join('</li><li>') + '</li></ul>'
                     );
                 }
 
                 // On supprime la session
-                await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, to_invalidate);
+                await ForkedTasksController.exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, to_invalidate);
             }
 
+            this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
     }
 
@@ -145,5 +148,12 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
         this.api_reqs = this.api_reqs.splice(0, 20);
 
         return true;
+    }
+
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

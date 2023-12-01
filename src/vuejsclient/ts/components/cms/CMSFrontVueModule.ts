@@ -8,7 +8,7 @@ import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
 import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CMSComponentManager from './CMSComponentManager';
 import HtmlComponentTemplate from './component_templates/Html/HtmlComponentTemplate';
@@ -85,7 +85,7 @@ export default class CMSFrontVueModule extends VueModuleBase {
             if (cms_route == cleaned_route) {
                 this.routes.push({
                     path: cleaned_route,
-                    component: () => import(/* webpackChunkName: "CMSPageComponent" */ './component/CMSPageComponent'),
+                    component: () => import('./component/CMSPageComponent'),
                     props: () => ({
                         page_id: page.id,
                         preloaded_page: page

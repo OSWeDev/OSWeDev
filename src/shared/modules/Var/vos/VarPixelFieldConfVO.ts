@@ -1,3 +1,5 @@
+/* istanbul ignore file : nothing to test in this VO */
+
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class VarPixelFieldConfVO implements IDistantVOBase {
@@ -23,4 +25,29 @@ export default class VarPixelFieldConfVO implements IDistantVOBase {
      */
     public pixel_range_type: number;
     public pixel_segmentation_type: number;
+
+    public set_vo_api_type_id(vo_api_type_id: string): VarPixelFieldConfVO {
+        this.pixel_vo_api_type_id = vo_api_type_id;
+        return this;
+    }
+
+    public set_vo_field_id(vo_field_id: string): VarPixelFieldConfVO {
+        this.pixel_vo_field_id = vo_field_id;
+        return this;
+    }
+
+    public set_param_field_id(param_field_id: string): VarPixelFieldConfVO {
+        this.pixel_param_field_id = param_field_id;
+        return this;
+    }
+
+    public set_range_type(range_type: number): VarPixelFieldConfVO {
+        this.pixel_range_type = range_type;
+        return this;
+    }
+
+    public set_segmentation_type(segmentation_type: number): VarPixelFieldConfVO {
+        this.pixel_segmentation_type = segmentation_type;
+        return this;
+    }
 }

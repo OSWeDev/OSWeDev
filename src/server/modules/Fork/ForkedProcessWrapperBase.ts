@@ -1,7 +1,8 @@
-import * as pg_promise from 'pg-promise';
+import pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../shared/tools/LocaleManager';
@@ -15,6 +16,7 @@ import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
 import ModuleServiceBase from '../ModuleServiceBase';
+import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
@@ -54,11 +56,12 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.log("Forked Process starting");
         }).catch((error) => ConsoleHandler.error(error));
 
-        ModulesManager.getInstance().isServerSide = true;
+        ModulesManager.isServerSide = true;
 
         // Les bgthreads peuvent être register et run - reste à définir lesquels
-        BGThreadServerController.getInstance().register_bgthreads = true;
-        BGThreadServerController.getInstance().run_bgthreads = true;
+        BGThreadServerController.init();
+        BGThreadServerController.register_bgthreads = true;
+        BGThreadServerController.run_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
         CronServerController.getInstance().run_crons = true;
 
@@ -75,7 +78,7 @@ export default abstract class ForkedProcessWrapperBase {
 
                 switch (type) {
                     case BGThreadServerController.ForkedProcessType:
-                        BGThreadServerController.getInstance().valid_bgthreads_names[name] = true;
+                        BGThreadServerController.valid_bgthreads_names[name] = true;
                         break;
                     case CronServerController.ForkedProcessType:
                         CronServerController.getInstance().valid_crons_names[name] = true;
@@ -86,6 +89,14 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.error("Failed loading argv on forked process+" + error);
             process.exit(1);
         }
+
+        let thread_name = 'fork_';
+        thread_name += Object.keys(BGThreadServerController.valid_bgthreads_names).join('_').replace(/ \./g, '_');
+        StatsController.THREAD_NAME = thread_name;
+        StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
+        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
+        StatsController.new_stats_handler = StatsServerController.new_stats_handler;
+        StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
     }
 
     get process_UID(): number {
@@ -126,8 +137,10 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:END');
         }
 
+        await StatsController.init_params();
+
         // Derniers chargements
-        await this.modulesService.late_server_modules_configurations();
+        await this.modulesService.late_server_modules_configurations(false);
 
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
@@ -154,12 +167,12 @@ export default abstract class ForkedProcessWrapperBase {
 
         process.on('message', async (msg: IForkMessage) => {
             msg = APIControllerWrapper.try_translate_vo_from_api(msg);
-            await ForkMessageController.getInstance().message_handler(msg, process);
+            await ForkMessageController.message_handler(msg, process);
         });
 
         // On prévient le process parent qu'on est ready
-        await ForkMessageController.getInstance().send(new AliveForkMessage());
+        await ForkMessageController.send(new AliveForkMessage());
 
-        await MemoryUsageStat.updateMemoryUsageStat();
+        setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
     }
 }

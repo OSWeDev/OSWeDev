@@ -4,13 +4,13 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
@@ -32,18 +32,21 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
+
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: BulkOpsWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private api_type_id_selected: string = null;
 
     private editable_columns: TableColumnDescVO[] = null;
 
     get api_type_id_select_options(): string[] {
-        return this.dashboard.api_type_ids;
+        return this.get_dashboard_api_type_ids;
     }
 
     private api_type_id_select_label(api_type_id: string): string {

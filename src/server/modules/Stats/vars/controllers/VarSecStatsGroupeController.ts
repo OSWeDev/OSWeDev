@@ -5,8 +5,7 @@ import StatsVarsNamesHolder from '../../../../../shared/modules/Stats/vars/Stats
 import StatsGroupSecDataRangesVO from '../../../../../shared/modules/Stats/vars/vos/StatsGroupDayDataRangesVO';
 import StatsGroupVO from '../../../../../shared/modules/Stats/vos/StatsGroupVO';
 import StatVO from '../../../../../shared/modules/Stats/vos/StatVO';
-import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
@@ -40,13 +39,6 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
             {});
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.var_id = this.varConf.id;
-        res.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS;
-        return res;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {
@@ -112,6 +104,12 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
         return this.get_intersecteurs(groupe_date_to_u_vo_holders);
     }
 
+    /**
+     * Pour faire le calcul, on charge les groupes, et on ne garde que les groupes qui ont des stats avec un aggrégateur compatible
+     *  donc si on a que des MAX on fait le MAX global mais si on a MAX et MIN on refuse de répondre
+     * @param varDAGNode
+     * @returns
+     */
     protected getValue(varDAGNode: VarDAGNode): number {
 
         let stats: StatVO[] = varDAGNode.datasources[StatDatasourceController.getInstance().name];
@@ -119,56 +117,62 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
         let groupes_by_id: { [id: number]: StatsGroupVO } = VOsTypesManager.vosArray_to_vosByIds(groupes);
 
         let stats_by_groupe: { [stat_group_id: number]: StatVO[] } = {};
+        let stats_aggregator: number = null;
         for (let i in stats) {
             let stat = stats[i];
             if (!stats_by_groupe[stat.stat_group_id]) {
                 stats_by_groupe[stat.stat_group_id] = [];
             }
             stats_by_groupe[stat.stat_group_id].push(stat);
+
+            let groupe = groupes_by_id[stat.stat_group_id];
+            if (stats_aggregator == null) {
+                stats_aggregator = groupe.stats_aggregator;
+            } else {
+                if (stats_aggregator != groupe.stats_aggregator) {
+                    return null;
+                }
+            }
         }
 
-        let res = 0;
+        let res = null;
+        let nb_stats_for_mean = 0;
         for (let group_id_str in stats_by_groupe) {
             let group_id = parseInt(group_id_str);
             let groupe = groupes_by_id[group_id];
             stats = stats_by_groupe[group_id];
 
-            let groupe_res = 0;
             switch (groupe.stats_aggregator) {
                 case StatVO.AGGREGATOR_SUM:
+                case StatVO.AGGREGATOR_MEAN:
                     stats.forEach((stat) => {
-                        groupe_res += stat.value;
+                        res = ((res == null) ? stat.value : res + stat.value);
                     });
+                    nb_stats_for_mean += stats.length;
                     break;
 
                 case StatVO.AGGREGATOR_MAX:
                     stats.forEach((stat) => {
-                        groupe_res = Math.max(groupe_res, stat.value);
+                        res = ((res == null) ? stat.value : Math.max(res, stat.value));
                     });
                     break;
 
                 case StatVO.AGGREGATOR_MIN:
                     stats.forEach((stat) => {
-                        groupe_res = Math.min(groupe_res, stat.value);
+                        res = ((res == null) ? stat.value : Math.min(res, stat.value));
                     });
-                    break;
-
-                case StatVO.AGGREGATOR_MEAN:
-                    stats.forEach((stat) => {
-                        groupe_res += stat.value;
-                    });
-                    groupe_res /= stats.length;
                     break;
 
                 default:
                     throw new Error('Unknown stats aggregator: ' + groupe.stats_aggregator);
             }
-
-            res += groupe_res;
         }
 
         // Si on a plusieurs groupes, on fait une moyenne
-        return res / groupes.length;
+        if (stats_aggregator == StatVO.AGGREGATOR_MEAN) {
+            return res / nb_stats_for_mean;
+        }
+        return res;
     }
 
     private get_intersecteurs(groupe_date_to_u_vo_holders: { [stat_group_id: number]: { [timestamp_s: number]: true } }): StatsGroupSecDataRangesVO[] {

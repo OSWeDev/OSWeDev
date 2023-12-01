@@ -1,5 +1,4 @@
 import INamedVO from '../../../interfaces/INamedVO';
-import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import VarConfAutoDepVO from './VarConfAutoDepVO';
 import VarConfAutoParamFieldVO from './VarConfAutoParamFieldVO';
 import VarPixelFieldConfVO from './VarPixelFieldConfVO';
@@ -144,6 +143,8 @@ export default class VarConfVO implements INamedVO {
     public static IS_NULLABLE_AGGREGATOR: number = 9;
     public static COUNT_AGGREGATOR: number = 10;
     public static ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR: number = 11;
+    public static ARRAY_AGG_AGGREGATOR_DISTINCT: number = 12; // ARRAY AGRÉGATOR DISTINCT qui permet d'aggréger et de ne pas avoir de doublons
+    public static ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT: number = 13;
 
     public static AGGREGATOR_LABELS: { [id: number]: string } = {
         [VarConfVO.NO_AGGREGATOR]: 'var_conf.aggregator.no',
@@ -158,6 +159,8 @@ export default class VarConfVO implements INamedVO {
         [VarConfVO.IS_NULLABLE_AGGREGATOR]: 'var_conf.aggregator.is_nullable',
         [VarConfVO.COUNT_AGGREGATOR]: 'var_conf.aggregator.count_agg',
         [VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR]: 'var_conf.aggregator.array_agg_and_is_nullable',
+        [VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT]: 'var_conf.aggregator.array_agg_distinct',
+        [VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT]: 'var_conf.aggregator.array_agg_and_is_nullable_distinct',
     };
 
     public static API_TYPE_ID: string = "var_conf";
@@ -242,6 +245,13 @@ export default class VarConfVO implements INamedVO {
     public pixel_never_delete: boolean;
 
     /**
+     * Ce paramètre permet d'indiquer qu'on doit mettre en cache uniquement les vars subs client ou server, et pas leurs deps
+     *  (sauf à ce qu'elles soient également subs client ou server)
+     * @default true
+     */
+    public cache_only_exact_sub: boolean;
+
+    /**
      * @param id Pour les tests unitaires en priorité, on a juste à set l'id pour éviter de chercher en bdd
      */
     public constructor(
@@ -253,5 +263,29 @@ export default class VarConfVO implements INamedVO {
         if (id) {
             this.id = id;
         }
+    }
+
+    /* istanbul ignore next : nothing to test */
+    public set_pixel_activated(pixel_activated: boolean): VarConfVO {
+        this.pixel_activated = pixel_activated;
+        return this;
+    }
+
+    /* istanbul ignore next : nothing to test */
+    public set_pixel_fields(pixel_fields: VarPixelFieldConfVO[]): VarConfVO {
+        this.pixel_fields = pixel_fields;
+        return this;
+    }
+
+    /* istanbul ignore next : nothing to test */
+    public set_pixel_never_delete(pixel_never_delete: boolean): VarConfVO {
+        this.pixel_never_delete = pixel_never_delete;
+        return this;
+    }
+
+    /* istanbul ignore next : nothing to test */
+    public set_aggregator(aggregator: number): VarConfVO {
+        this.aggregator = aggregator;
+        return this;
     }
 }

@@ -1,12 +1,13 @@
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../VueComponentBase';
-import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
+import { ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DroppableVoFieldsComponent.scss';
 import DroppableVoFieldsController from './DroppableVoFieldsController';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';
-import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
 
 @Component({
     template: require('./DroppableVoFieldsComponent.pug'),
@@ -21,6 +22,9 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
 
     @ModuleDroppableVoFieldsAction
     private set_filter_by_field_id_or_api_type_id: (filter_by_field_id_or_api_type_id: string) => void;
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     private filter_value: string = null;
     private closed_api_type_id: { [api_type_id: string]: boolean } = {};
@@ -47,8 +51,8 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     get api_type_ids(): string[] {
         let res: string[] = [];
 
-        for (let i in this.dashboard.api_type_ids) {
-            let vo_type = this.dashboard.api_type_ids[i];
+        for (let i in this.get_dashboard_api_type_ids) {
+            let vo_type = this.get_dashboard_api_type_ids[i];
 
             if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
                 (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) {

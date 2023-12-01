@@ -7,7 +7,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import SurveyParamVO from './vos/SurveyParamVO';
 import SurveyVO from './vos/SurveyVO';
 

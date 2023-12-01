@@ -7,7 +7,7 @@ import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNomb
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import TimeHandler from '../../../../shared/tools/TimeHandler';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';

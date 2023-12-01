@@ -1,10 +1,13 @@
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import ISupervisedItemController from './interfaces/ISupervisedItemController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 
+/**
+ * @class SupervisionController
+ */
 export default class SupervisionController {
 
     public static SUPERVISION_DASHBOARD_KEY: string = 'dashboard';
@@ -16,7 +19,16 @@ export default class SupervisionController {
     public static SUP_HIST_TABLE_PREFIX: string = '_sh_';
 
     public static STATE_COLORS: string[] = ['red', 'orangered', 'orange', '#ffd400', 'green', 'blue', 'grey'];
-    public static STATE_LABELS: string[] = ['supervision.STATE_ERROR', 'supervision.STATE_ERROR_READ', 'supervision.STATE_WARN', 'supervision.STATE_WARN_READ', 'supervision.STATE_OK', 'supervision.STATE_PAUSED', 'supervision.STATE_UNKOWN'];
+    public static STATE_LABELS: string[] = [
+        'supervision.STATE_ERROR',
+        'supervision.STATE_ERROR_READ',
+        'supervision.STATE_WARN',
+        'supervision.STATE_WARN_READ',
+        'supervision.STATE_OK',
+        'supervision.STATE_PAUSED',
+        'supervision.STATE_UNKOWN'
+    ];
+
     public static STATE_ERROR = 0;
     public static STATE_ERROR_READ = 1;
     public static STATE_WARN = 2;
@@ -24,6 +36,17 @@ export default class SupervisionController {
     public static STATE_OK = 4;
     public static STATE_PAUSED = 5;
     public static STATE_UNKOWN = 6;
+
+    // Add labels for each state
+    public static STATE_LABELS_BY_STATE: { [state: number]: string } = {
+        [SupervisionController.STATE_ERROR]: 'supervision.STATE_ERROR',
+        [SupervisionController.STATE_ERROR_READ]: 'supervision.STATE_ERROR_READ',
+        [SupervisionController.STATE_WARN]: 'supervision.STATE_WARN',
+        [SupervisionController.STATE_WARN_READ]: 'supervision.STATE_WARN_READ',
+        [SupervisionController.STATE_OK]: 'supervision.STATE_OK',
+        [SupervisionController.STATE_PAUSED]: 'supervision.STATE_PAUSED',
+        [SupervisionController.STATE_UNKOWN]: 'supervision.STATE_UNKOWN',
+    };
 
     public static getInstance(): SupervisionController {
         if (!SupervisionController.instance) {
@@ -69,7 +92,10 @@ export default class SupervisionController {
         moduleTable.push_field(new ModuleTableField('last_value', ModuleTableField.FIELD_TYPE_float, 'Dernière valeur', false).setModuleTable(moduleTable));
         moduleTable.push_field(new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
         moduleTable.push_field(new ModuleTableField('first_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
-        moduleTable.push_field(new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Etat', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS).setEnumColorValues(SupervisionController.STATE_COLORS).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Etat', true, true, SupervisionController.STATE_UNKOWN)
+            .setEnumValues(SupervisionController.STATE_LABELS)
+            .setEnumColorValues(SupervisionController.STATE_COLORS)
+            .setModuleTable(moduleTable));
         moduleTable.push_field(new ModuleTableField('state_before_pause', ModuleTableField.FIELD_TYPE_enum, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS).setEnumColorValues(SupervisionController.STATE_COLORS).setModuleTable(moduleTable));
         moduleTable.push_field(new ModuleTableField('invalid', ModuleTableField.FIELD_TYPE_boolean, 'Invalide', false, true, false).setModuleTable(moduleTable));
         moduleTable.push_field(category_id_field.setModuleTable(moduleTable));

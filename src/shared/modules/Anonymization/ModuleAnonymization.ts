@@ -3,7 +3,7 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import AnonymizationFieldConfVO from './vos/AnonymizationFieldConfVO';
 import AnonymizationUserConfVO from './vos/AnonymizationUserConfVO';
 

@@ -94,7 +94,7 @@ export default class DocumentAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: '/documents',
             name: 'documents',
-            component: () => import(/* webpackChunkName: "DocumentHandlerComponent" */ './DocumentHandlerComponent')
+            component: () => import('./DocumentHandlerComponent')
         });
     }
 }

@@ -1,4 +1,4 @@
-import cloneDeep = require('lodash/cloneDeep');
+import cloneDeep from 'lodash/cloneDeep';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import ISegment from '../modules/DataRender/interfaces/ISegment';
 import HourRange from '../modules/DataRender/vos/HourRange';
@@ -16,6 +16,7 @@ import ConsoleHandler from './ConsoleHandler';
 import HourSegmentHandler from './HourSegmentHandler';
 import MatroidIndexHandler from './MatroidIndexHandler';
 import NumSegmentHandler from './NumSegmentHandler';
+import PromisePipeline from './PromisePipeline/PromisePipeline';
 import { all_promises } from './PromiseTools';
 import TimeSegmentHandler from './TimeSegmentHandler';
 
@@ -70,6 +71,13 @@ export default class RangeHandler {
         return null;
     }
 
+    /**
+     * get_ids_ranges_from_list
+     *   - Create NumRanges from ids list
+     *
+     * @param {number[]} [ids]
+     * @returns {NumRange[]}
+     */
     public static get_ids_ranges_from_list(ids: number[]): NumRange[] {
 
         if ((!ids) || (!ids.length)) {
@@ -95,7 +103,16 @@ export default class RangeHandler {
             }
 
             if (current_range_max != e) {
-                res.push(RangeHandler.createNew(NumRange.RANGE_TYPE, current_range_min, current_range_max, true, false, NumSegment.TYPE_INT));
+                res.push(
+                    RangeHandler.createNew(
+                        NumRange.RANGE_TYPE,
+                        current_range_min,
+                        current_range_max,
+                        true,
+                        false,
+                        NumSegment.TYPE_INT
+                    )
+                );
 
                 current_range_min = e;
                 current_range_max = e + 1;
@@ -106,7 +123,16 @@ export default class RangeHandler {
         }
 
         if (current_range_min != null) {
-            res.push(RangeHandler.createNew(NumRange.RANGE_TYPE, current_range_min, current_range_max, true, false, NumSegment.TYPE_INT));
+            res.push(
+                RangeHandler.createNew(
+                    NumRange.RANGE_TYPE,
+                    current_range_min,
+                    current_range_max,
+                    true,
+                    false,
+                    NumSegment.TYPE_INT
+                )
+            );
         }
 
         return res;
@@ -909,35 +935,49 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: string = "";
+        let prefer_inclusive_max: boolean = (range.range_type != HourRange.RANGE_TYPE);
+        let min = this.getSegmentedMin(range);
+        let max = prefer_inclusive_max ? this.getSegmentedMax(range) : range.max;
 
-        res += (range.min_inclusiv ? '[' : '(');
+        let min_str: string = null;
         switch (range.range_type) {
             case NumRange.RANGE_TYPE:
-                res += range.min;
+                min_str = ((min != null) && !!min.toString) ? min.toString() : null;
                 break;
             case HourRange.RANGE_TYPE:
-                res += Durations.hours(range.min) + ':' + Durations.minutes(range.min);
+                min_str = Durations.hours(min) + ':' + Durations.minutes(min);
                 break;
             case TSRange.RANGE_TYPE:
-                res += Dates.format(range.min, 'DD/MM/Y');
+                min_str = Dates.format(min, 'DD/MM/Y');
                 break;
         }
-        res += ',';
+
+        if (!min_str) {
+            return null;
+        }
+
+        if (min == max) {
+            return min_str;
+        }
+
+        let max_str: string = null;
         switch (range.range_type) {
             case NumRange.RANGE_TYPE:
-                res += range.max;
+                max_str = ((max != null) && !!max.toString) ? max.toString() : null;
                 break;
             case HourRange.RANGE_TYPE:
-                res += Durations.hours(range.max) + ':' + Durations.minutes(range.max);
+                max_str = Durations.hours(max) + ':' + Durations.minutes(max);
                 break;
             case TSRange.RANGE_TYPE:
-                res += Dates.format(range.max, 'DD/MM/Y');
+                max_str = Dates.format(max, 'DD/MM/Y');
                 break;
         }
-        res += (range.max_inclusiv ? ']' : ')');
 
-        return res;
+        if (this.getCardinal(range) == 2) {
+            return min_str + ', ' + max_str;
+        }
+
+        return '[' + min_str + ', ' + max_str + (prefer_inclusive_max ? ']' : ')');
     }
 
     public static rangesFromIndex(index: string, range_type: number): IRange[] {
@@ -980,7 +1020,8 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: string = "[";
+        // let res: string = "[";
+        let res: string = "";
 
         for (let i in ranges) {
             let range = ranges[i];
@@ -991,10 +1032,10 @@ export default class RangeHandler {
                 return null;
             }
 
-            res += (res == '[' ? '' : ',');
+            res += (res == '' ? '' : ', ');
             res += range_index;
         }
-        res += ']';
+        // res += ']';
 
         return res;
     }
@@ -1045,26 +1086,28 @@ export default class RangeHandler {
         min_inclusiv: number = null,
         max_inclusiv: number = null,
         batch_size: number = 50,
-        reverse: boolean = false) {
+        reverse: boolean = false
+    ) {
 
         if (reverse && ranges && ranges.length) {
             ranges = ranges.slice().reverse();
         }
 
-        let promises = [];
+        let promises_pipeline = new PromisePipeline(batch_size, 'RangeHandler.foreach_ranges_batch_await');
         for (let i in ranges) {
 
-            if (promises && (promises.length >= batch_size)) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push(RangeHandler.foreach_batch_await(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv));
+            await promises_pipeline.push(async () => {
+                await RangeHandler.foreach_batch_await(
+                    ranges[i],
+                    callback,
+                    segment_type,
+                    min_inclusiv,
+                    max_inclusiv
+                );
+            });
         }
 
-        if (promises.length) {
-            await all_promises(promises);
-        }
+        await promises_pipeline.end();
     }
 
     public static foreach_ranges_sync(
@@ -1073,14 +1116,22 @@ export default class RangeHandler {
         segment_type?: number,
         min_inclusiv: number = null,
         max_inclusiv: number = null,
-        reverse: boolean = false) {
+        reverse: boolean = false
+    ) {
 
         if (reverse && ranges && ranges.length) {
             ranges = ranges.slice().reverse();
         }
 
         for (let i in ranges) {
-            const callback_sync_res: void | boolean = RangeHandler.foreach_sync(ranges[i], callback_sync, segment_type, min_inclusiv, max_inclusiv, reverse);
+            const callback_sync_res: void | boolean = RangeHandler.foreach_sync(
+                ranges[i],
+                callback_sync,
+                segment_type,
+                min_inclusiv,
+                max_inclusiv,
+                reverse
+            );
 
             // On ajoute un comportement de break si le callback_sync retourne false
             if ((typeof callback_sync_res === 'boolean') && (callback_sync_res === false)) {
@@ -1598,84 +1649,82 @@ export default class RangeHandler {
         return null;
     }
 
+
     /**
-     * @param range
-     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     * Returns the minimum value of a given range, based on the segment type and optional offset.
+     *
+     * @param range - The range to get the minimum value from.
+     * @param segment_type - The segment type to use.
+     * @param offset - The offset to apply to the minimum value.
+     * @param return_min_value - Whether to return null if the range is left open.
+     *
+     * @returns The minimum value of the range, or null if the range is invalid or left open.
      */
     public static getSegmentedMin(range: IRange, segment_type: number = null, offset: number = 0, return_min_value: boolean = true): number {
-
         if (!range) {
             return null;
         }
-
+        // Set the segment type to the range's segment type if it's not provided
         segment_type = (segment_type == null) ? range.segment_type : segment_type;
-
         switch (range.range_type) {
-
             case NumRange.RANGE_TYPE:
                 let range_min_num: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(range.min, segment_type);
-
+                // Return null if the min value is greater than the max value
                 if (RangeHandler.is_elt_sup_elt(range.range_type, range_min_num.index, range.max)) {
                     return null;
                 }
-
+                // Return null if the max value is exclusive and the min value is equal to or greater than it
                 if ((!range.max_inclusiv) && RangeHandler.is_elt_equals_or_sup_elt(range.range_type, range_min_num.index, range.max)) {
                     return null;
                 }
-
+                // Apply the offset if it's provided
                 if (!!offset) {
                     NumSegmentHandler.incNumSegment(range_min_num, segment_type, offset);
                 }
-
+                // Return null if the range is left open and return_min_value is false
                 if (!return_min_value && RangeHandler.is_left_open(range)) {
                     return null;
                 }
-
                 return range_min_num.index;
-
             case HourRange.RANGE_TYPE:
                 let range_min_h: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
                 let range_max_h: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
-
+                // Return null if range is invalid
                 if (Durations.as(range_min_h.index, HourSegment.TYPE_SECOND) > Durations.as(range_max_h.index, HourSegment.TYPE_SECOND)) {
                     return null;
                 }
-
+                // Return null if the max value is exclusive and the min value is greater than or equal to it
                 if ((!range.max_inclusiv) && (Durations.as(range_min_h.index, HourSegment.TYPE_SECOND) >= Durations.as(range.max, HourSegment.TYPE_SECOND))) {
                     return null;
                 }
-
+                // Apply the offset if it's provided
                 if (!!offset) {
                     range_min_h.index = Dates.add(range_min_h.index, offset, segment_type);
                 }
-
+                // Return null if the range is left open and return_min_value is false
                 if (!return_min_value && RangeHandler.is_left_open(range)) {
                     return null;
                 }
-
                 return range_min_h.index;
-
             case TSRange.RANGE_TYPE:
                 let range_min_ts: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
                 let range_max_ts: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
-
+                // Return null if range is invalid
                 if (range_min_ts.index > range_max_ts.index) {
                     return null;
                 }
-
+                // Return null if the max value is exclusive and the min value is greater than or equal to it
                 if ((!range.max_inclusiv) && (range_min_ts.index >= range.max)) {
                     return null;
                 }
-
+                // Apply the offset if it's provided
                 if (!!offset) {
                     (range_min_ts.index) = Dates.add(range_min_ts.index, offset, segment_type);
                 }
-
-                // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
+                // Return null if the range is left open and return_min_value is false
                 if (!return_min_value && RangeHandler.is_left_open(range)) {
                     return null;
                 }
-
                 return range_min_ts.index;
         }
     }
@@ -1905,7 +1954,8 @@ export default class RangeHandler {
         segment_type: number = null,
         min_inclusiv: number = null,
         max_inclusiv: number = null,
-        reverse: boolean = false): void | boolean {
+        reverse: boolean = false
+    ): void | boolean {
 
         if (!range) {
             return false;

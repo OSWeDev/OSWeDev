@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import AnimationImportThemeVO from '../../../../../../../shared/modules/Animation/import/Theme/vos/AnimationImportThemeVO';
@@ -9,10 +9,10 @@ import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/Time
 import TimeSegmentHandler from '../../../../../../../shared/tools/TimeSegmentHandler';
 import DataImportComponent from '../../../../data_import/component/DataImportComponent';
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 
 @Component({
@@ -27,10 +27,13 @@ export default class AnimationImportThemeAdminVue extends VueComponentBase {
 
     @ModuleDataImportAction
     public setsegment_type: (segment_type: number) => void;
+
     @ModuleDataImportAction
     public setsegment_offset: (segment_offset: number) => void;
+
     @ModuleDataImportAction
     public setlower_segment: (lower_segment: TimeSegment) => void;
+
     @ModuleDataImportAction
     public setsegment_number: (segment_number: number) => void;
 
@@ -92,7 +95,7 @@ export default class AnimationImportThemeAdminVue extends VueComponentBase {
     //--- partie export
     private async setExport() {
         this.startLoading();
-        this.themes = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        this.themes = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
         this.set_themes_for_export();
 
         AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);

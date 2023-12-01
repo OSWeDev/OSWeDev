@@ -1,17 +1,22 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import DatatableField from '../DAO/vos/datatable/DatatableField';
+import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import StatsController from '../Stats/StatsController';
 import VarConfVO from '../Var/vos/VarConfVO';
 import BuildSelectQueryParamVO, { BuildSelectQueryParamVOStatic } from './vos/BuildSelectQueryParamVO';
 import ContextFilterVO from './vos/ContextFilterVO';
 import ContextQueryFieldVO from './vos/ContextQueryFieldVO';
+import ContextQueryJoinOnFieldVO from './vos/ContextQueryJoinOnFieldVO';
+import ContextQueryJoinVO from './vos/ContextQueryJoinVO';
 import ContextQueryVO from './vos/ContextQueryVO';
 import CountValidSegmentationsParamVO, { CountValidSegmentationsParamVOStatic } from './vos/CountValidSegmentationsParamVO';
 import DeleteVosParamVO, { DeleteVosParamVOStatic } from './vos/DeleteVosParamVO';
@@ -41,11 +46,13 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_select_vo_from_unique_field: string = "select_vo_from_unique_field";
     public static APINAME_count_valid_segmentations: string = "count_valid_segmentations";
     public static APINAME_build_select_query: string = "build_select_query";
+    public static APINAME_build_select_query_str: string = "build_select_query_str";
 
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
             ModuleContextFilter.instance = new ModuleContextFilter();
         }
+
         return ModuleContextFilter.instance;
     }
 
@@ -102,6 +109,12 @@ export default class ModuleContextFilter extends Module {
     public build_select_query: (context_query: ContextQueryVO) => Promise<ParameterizedQueryWrapper> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query);
 
     /**
+     * Créer la requête sur la base des filtres => renvoie que la query en mode texte
+     * @param context_query
+     */
+    public build_select_query_str: (context_query: ContextQueryVO) => Promise<string> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query_str);
+
+    /**
      * Filtrer des vos avec les context filters
      * @param context_query le champs fields doit être null pour demander des vos complets
      */
@@ -113,20 +126,18 @@ export default class ModuleContextFilter extends Module {
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
      */
-    public delete_vos: (context_query: ContextQueryVO) => Promise<void> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_delete_vos);
+    public delete_vos: (context_query: ContextQueryVO) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_delete_vos);
 
     /**
      * Update des vos en appliquant les filtres
      *  1 à un (enfin en paquet de 100) pour appeler les triggers => rien de comparable à un update qui serait faire directement
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
-     * @param update_field_id En cas d'update, le nom du champs cible (sur le base_api_type_id)
-     * @param new_api_translated_value En cas d'update, la valeur api_translated (par exemple issue de moduletable.default_get_field_api_version)
-     *  qu'on va mettre en remplacement de la valeur actuelle
+     * @param new_api_translated_values Map, avec en KEY Le nom du champs cible (sur le base_api_type_id), et en valeur la nouvelle valeur du champ. ATTENTION à la passer en format api_translated (par exemple issue de moduletable.default_get_field_api_version)
      */
-    public update_vos: (
-        context_query: ContextQueryVO, update_field_id: string, new_api_translated_value: any
-    ) => Promise<void> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_update_vos);
+    public update_vos: <T extends IDistantVOBase>(
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }
+    ) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_update_vos);
 
     /**
      * Filtrer des datafilteroption (pour les filtrages type multiselect) avec les context filters, en indiquant obligatoirement le champs ciblé
@@ -151,6 +162,8 @@ export default class ModuleContextFilter extends Module {
         this.init_SortByVO();
         this.init_ContextQueryFieldVO();
         this.init_ContextQueryVO();
+        this.init_ContextQueryJoinOnFieldVO();
+        this.init_ContextQueryJoinVO();
     }
 
     public registerApis() {
@@ -203,6 +216,12 @@ export default class ModuleContextFilter extends Module {
             null,
             BuildSelectQueryParamVOStatic
         ));
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, string>(
+            null,
+            ModuleContextFilter.APINAME_build_select_query_str,
+            null,
+            BuildSelectQueryParamVOStatic
+        ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
             null,
@@ -211,17 +230,21 @@ export default class ModuleContextFilter extends Module {
             SelectVosParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<DeleteVosParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
             null,
             ModuleContextFilter.APINAME_delete_vos,
-            null,
+            (params: DeleteVosParamVO) => {
+                return params.context_query ? [params.context_query.base_api_type_id] : null;
+            },
             DeleteVosParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<UpdateVosParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
             null,
             ModuleContextFilter.APINAME_update_vos,
-            null,
+            (params: UpdateVosParamVO<any>) => {
+                return params.context_query ? [params.context_query.base_api_type_id] : null;
+            },
             UpdateVosParamVOStatic
         ));
     }
@@ -262,13 +285,39 @@ export default class ModuleContextFilter extends Module {
         this.datatables.push(datatable);
     }
 
+    private init_ContextQueryJoinOnFieldVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('joined_table_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_alias', true),
+            new ModuleTableField('joined_table_field_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_field_alias', true),
+            new ModuleTableField('initial_context_query_api_type_id', ModuleTableField.FIELD_TYPE_string, 'initial_context_query_api_type_id', true),
+            new ModuleTableField('initial_context_query_field_id_or_alias', ModuleTableField.FIELD_TYPE_string, 'initial_context_query_field_id_or_alias', true),
+        ];
+
+        let datatable = new ModuleTable(this, ContextQueryJoinOnFieldVO.API_TYPE_ID, () => new ContextQueryJoinOnFieldVO(), datatable_fields, null, "Champs pour join de requêtes");
+        this.datatables.push(datatable);
+    }
+
+    private init_ContextQueryJoinVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('joined_context_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_query', true),
+            new ModuleTableField('joined_table_alias', ModuleTableField.FIELD_TYPE_string, 'joined_table_alias', true),
+            new ModuleTableField('join_on_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'join_on_fields', true),
+            new ModuleTableField('join_type', ModuleTableField.FIELD_TYPE_enum, 'join_type', true, true, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN).setEnumValues(ContextQueryJoinVO.JOIN_TYPE_LABELS),
+        ];
+
+        let datatable = new ModuleTable(this, ContextQueryJoinVO.API_TYPE_ID, () => new ContextQueryJoinVO(), datatable_fields, null, "Join de requête");
+        this.datatables.push(datatable);
+    }
+
     private init_ContextQueryFieldVO() {
 
         let datatable_fields = [
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'Api_type_id', true),
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID du champs', true),
             new ModuleTableField('alias', ModuleTableField.FIELD_TYPE_string, 'Alias', false),
-            new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'param_text', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+            new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
@@ -286,13 +335,40 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('query_offset', ModuleTableField.FIELD_TYPE_int, 'query_offset', true, true, 0),
             new ModuleTableField('sort_by', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sort_by', false),
             new ModuleTableField('query_tables_prefix', ModuleTableField.FIELD_TYPE_string, 'query_tables_prefix', false),
-            new ModuleTableField('is_access_hook_def', ModuleTableField.FIELD_TYPE_boolean, 'is_access_hook_def', true, true, false),
+            new ModuleTableField('is_admin', ModuleTableField.FIELD_TYPE_boolean, 'is_admin', true, true, false).set_custom_translate_to_api(this.is_admin_custom_translate_to_api).set_custom_translate_from_api(this.is_admin_custom_translate_from_api),
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
             new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
+            new ModuleTableField('union_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
+            new ModuleTableField('joined_context_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_queries', false),
+            new ModuleTableField('do_count_results', ModuleTableField.FIELD_TYPE_boolean, 'do_count_results', true, true, false),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
         this.datatables.push(datatable);
+    }
+
+    /**
+     * On ne veut pas que le is_access_hook_def/is_admin soit envoyé par le client
+     *  Si on tente un envoi depuis le client en true, on stat et on modifie en false
+     */
+    private is_admin_custom_translate_to_api(e: boolean): boolean {
+        if (!!e) {
+            StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_to_api", "query.is_admin");
+            return false;
+        }
+        return e;
+    }
+
+    /**
+     * On ne veut pas que le is_access_hook_def/is_admin soit envoyé par le client
+     *  Si on reçoit une api depuis le client en true, on stat et on modifie en false
+     */
+    private is_admin_custom_translate_from_api(e: boolean): boolean {
+        if (!!e) {
+            StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_from_api", "query.is_admin");
+            return false;
+        }
+        return e;
     }
 }

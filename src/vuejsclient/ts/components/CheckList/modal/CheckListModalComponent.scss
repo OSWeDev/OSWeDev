@@ -1,7 +1,6 @@
-@import 'skin-variables.scss';
+@import "skin-variables.scss";
 
 .checklist_item_modal {
-
     .field .inline_input_show_clear,
     .field .inline_input_hide_clear,
     .field .inline_input_is_editing,
@@ -23,14 +22,14 @@
     .field .inline_input_show_clear,
     .field .inline_input_hide_clear,
     .field .inline_input_cancel_input {
-        margin-right: .5em;
+        margin-right: 0.5em;
     }
 
     .field .inline_input_is_editing,
     .field .inline_input_is_not_editing,
     .field .inline_input_is_editing,
     .field .inline_input_is_not_editing {
-        margin-left: .5em;
+        margin-left: 0.5em;
     }
 
     .inline_input_mode {
@@ -38,15 +37,15 @@
     }
 
     .ts_range_input,
-    .has_value+input {
+    .has_value + input {
         border: 1px solid lightgrey;
         padding: 0 5px;
     }
 
-    .has_value+input,
-    .inline_input_mode .has_value+input,
-    .field_label+div,
-    .inline_input_mode .field_label+div,
+    .has_value + input,
+    .inline_input_mode .has_value + input,
+    .field_label + div,
+    .inline_input_mode .field_label + div,
     .ts_range_input,
     .inline_input_mode .ts_range_input,
     .multiselect,
@@ -57,20 +56,20 @@
         vertical-align: top;
     }
 
-    label[role~=checkbox] {
+    label[role~="checkbox"] {
         margin-left: 1em;
     }
 
-    .form-group>label:not([role=checkbox]) {
+    .form-group > label:not([role="checkbox"]) {
         width: 20em;
     }
 
-    input[type~=text]:not([readonly=readonly]),
+    input[type~="text"]:not([readonly="readonly"]),
     .tstz_input {
         width: 30em;
         margin-left: 1em;
         background: white;
-        border: solid 1px #E8E8E8;
+        border: solid 1px #e8e8e8;
         padding: 7px 13px;
         text-align: left;
         vertical-align: middle;
@@ -78,13 +77,31 @@
 
     .inline_input_mode,
     .inline_input_mode.auto_validate_inline_input {
-
         input[type~="number"],
         input[type~="text"],
         input[type~="password"],
+        input[type~="email"],
         .bool_field_inline_readonly_value,
         .html_field_inline_readonly_value {
-            width: 30em;
+            padding: 8px 8px 8px 8px;
+            margin-left: 1em;
+            background: white;
+            border: solid 1px #e8e8e8;
+            text-align: left;
+            vertical-align: middle;
+            width: 26em;
+        }
+    }
+
+    .inline_input_mode,
+    .inline_input_mode.auto_validate_inline_input {
+        .tstz_input {
+            input[type~="text"] {
+                margin-left: 0px;
+                padding: 0px;
+                border: none;
+                width: 100%;
+            }
         }
     }
 }
@@ -230,8 +247,6 @@
                     border-left: 6px solid $success_color !important;
                 }
             }
-
         }
-
     }
 }

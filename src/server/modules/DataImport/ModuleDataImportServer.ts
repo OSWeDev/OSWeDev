@@ -4,14 +4,14 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../shared/modules/DataImport/vos/DataImportColumnVO';
+import DataImportErrorLogVO from '../../../shared/modules/DataImport/vos/DataImportErrorLogVO';
 import DataImportFormatVO from '../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../shared/modules/DataImport/vos/DataImportLogVO';
@@ -24,39 +24,38 @@ import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DataImportBGThread from './bgthreads/DataImportBGThread';
 import DataImportCronWorkersHandler from './DataImportCronWorkersHandler';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
 import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeCSVHandler from './ImportTypeHandlers/ImportTypeCSVHandler';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
-import ImportLogger from './logger/ImportLogger';
-import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ImportTypeXMLHandler from './ImportTypeHandlers/ImportTypeXMLHandler';
-import DataImportErrorLogVO from '../../../shared/modules/DataImport/vos/DataImportErrorLogVO';
-import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import ImportLogger from './logger/ImportLogger';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDataImportServer.instance) {
             ModuleDataImportServer.instance = new ModuleDataImportServer();
@@ -69,6 +68,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private has_preloaded_difs_by_uid: boolean = false;
     private preloaded_difs_by_uid: { [uid: string]: DataImportFormatVO } = {};
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDataImport.getInstance().name);
     }
@@ -76,6 +76,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDataImport.POLICY_GROUP;
@@ -94,7 +95,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = logs_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let bo_full_menu_access: AccessPolicyVO = new AccessPolicyVO();
@@ -107,7 +108,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         admin_access_dependency = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_full_menu_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -125,32 +126,42 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         admin_access_dependency = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         DataImportCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         // On enregistre le bgthread qui gère les imports
         ModuleBGThreadServer.getInstance().registerBGThread(DataImportBGThread.getInstance());
 
         // Triggers pour mettre à jour les dates
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.handleImportHistoricDateUpdate);
         preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.handleImportHistoricDateCreation);
 
         // Triggers pour faire avancer l'import
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.setImportHistoricUID);
         postCreateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatCreate);
 
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUpdateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatUpdate);
+
+        // On force l'exec asap du bgthread des imports à la créa et/ou update des DIH
+        let force_run_asap = BGThreadServerController.force_run_asap_by_bgthread_name[DataImportBGThread.getInstance().name];
+        // Dans le cas du générateur on a pas cette fonctionnalité
+        if (force_run_asap) {
+            postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, force_run_asap);
+            postUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, force_run_asap);
+        }
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Annuler les imports en cours'
@@ -372,6 +383,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
@@ -421,7 +433,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 is_update = true;
-                updated_item = vos_by_type_and_initial_id[import_on_vo._type][ObjectHandler.getInstance().getFirstAttributeName(vos_by_type_and_initial_id[import_on_vo._type])];
+                updated_item = vos_by_type_and_initial_id[import_on_vo._type][ObjectHandler.getFirstAttributeName(vos_by_type_and_initial_id[import_on_vo._type])];
             }
 
             /**
@@ -640,7 +652,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (error_logs.length > 0) {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(error_logs);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(error_logs);
                 }
             }
 
@@ -703,12 +715,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let format_ = formats_by_ids[importHistoric.data_import_format_id];
         if ((!format_.batch_import) && (!importHistoric.use_fast_track)) {
             if (format_.use_multiple_connections) {
-                await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(all_formats_datas[importHistoric.data_import_format_id]);
+                await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(all_formats_datas[importHistoric.data_import_format_id], null, true);
                 // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
                 //     all_formats_datas[importHistoric.data_import_format_id]);
                 // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
             } else {
-                await ModuleDAO.getInstance().insertOrUpdateVOs(all_formats_datas[importHistoric.data_import_format_id]);
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(all_formats_datas[importHistoric.data_import_format_id]);
             }
         }
 
@@ -885,12 +897,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
                     // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
 
                 return false;
@@ -902,12 +914,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
                     // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
             }
         }
@@ -951,12 +963,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
                     // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
 
                 return true;
@@ -967,12 +979,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (format.use_multiple_connections) {
-                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
                     // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
             }
 
@@ -983,7 +995,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async posttreat_batch(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, validated_imported_datas: IImportedData[]): Promise<boolean> {
-        let postTreatementModuleVO: ModuleVO = await query(ModuleVO.API_TYPE_ID).filter_by_id(format.post_exec_module_id).select_vo<ModuleVO>();
+        let postTreatementModuleVO: ModuleVO = await query(ModuleVO.API_TYPE_ID).filter_by_id(format.post_exec_module_id).exec_as_server().select_vo<ModuleVO>();
 
         if ((!validated_imported_datas) || (!validated_imported_datas.length)) {
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data importée", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
@@ -1011,7 +1023,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
         await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, null, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
     }
 
@@ -1079,7 +1091,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
         importHistoric.historic_uid = importHistoric.id.toString();
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
     }
 
     private async handleImportFormatCreate(format: DataImportFormatVO): Promise<void> {
@@ -1111,7 +1123,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (!!importHistoric.reimport_of_dih_id) {
             let reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1124,7 +1136,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (!!importHistoric.reimport_of_dih_id) {
             let reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1174,7 +1186,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private async reimportdih(dih: DataImportHistoricVO): Promise<void> {
         dih.status_before_reimport = dih.state;
         dih.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(dih);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dih);
 
     }
 
@@ -1196,33 +1208,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                         insertable_datas.push(insertable_data);
                     }
 
-                    let inserteds: InsertOrDeleteQueryResult[] = null;
                     if (format.use_multiple_connections) {
-                        // inserteds = ???? await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(insertable_datas);
-                        inserteds = await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
-                            insertable_datas);
-                        // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
+                        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(insertable_datas, null, true);
                     } else {
-                        inserteds = await ModuleDAO.getInstance().insertOrUpdateVOs(insertable_datas);
-                    }
-
-                    if ((!inserteds) || (inserteds.length != insertable_datas.length)) {
-
-                        for (let i in validated_imported_datas) {
-                            validated_imported_datas[i].importation_state = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
-                        }
-
-                        if (format.use_multiple_connections) {
-                            await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas);
-                            //    await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
-                            //         validated_imported_datas);
-                            // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
-                        } else {
-                            await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
-                        }
-
-                        await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Le nombre d'éléments importés ne correspond pas au nombre d'éléments validés", "import.errors.failed_importation_numbers_not_matching", DataImportLogVO.LOG_LEVEL_FATAL);
-                        return;
+                        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(insertable_datas);
                     }
 
                     break;
@@ -1238,12 +1227,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         if (!importHistoric.use_fast_track) {
             if (format.use_multiple_connections) {
-                await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas);
-                // await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
-                //     validated_imported_datas);
-                // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
+                await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
             } else {
-                await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
             }
         }
     }
@@ -1391,7 +1377,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
              */
             this.check_text_fields(ordered_vo, ordered_vos_by_type_and_initial_id);
             ordered_vo.id = new_id;
-            let insert_res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ordered_vo);
+            let insert_res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ordered_vo);
             if ((!insert_res) || (!insert_res.id) || (new_id && (new_id != insert_res.id))) {
                 throw new Error('Failed insert');
             }

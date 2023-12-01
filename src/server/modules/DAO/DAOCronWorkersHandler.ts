@@ -5,6 +5,7 @@ import CheckSegmentedIdsCronWorker from './checksegmentedids/CheckSegmentedIdsCr
 
 export default class DAOCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DAOCronWorkersHandler.instance) {
             DAOCronWorkersHandler.instance = new DAOCronWorkersHandler();

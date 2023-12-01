@@ -46,9 +46,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -75,9 +75,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -104,9 +104,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -133,9 +133,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -162,9 +162,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -191,9 +191,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -220,9 +220,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -249,9 +249,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -280,9 +280,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -309,9 +309,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -338,9 +338,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -367,9 +367,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -396,9 +396,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -425,9 +425,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -454,9 +454,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 
@@ -483,9 +483,9 @@ describe('TestPasswordInvalidationController', () => {
             parent_id: null,
             trashed: false,
             version_num: 1,
-            version_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_timestamp: Dates.now(),
-            version_edit_author_id: ModuleAccessPolicyServer.getInstance().getLoggedUserId(),
+            version_edit_author_id: ModuleAccessPolicyServer.getLoggedUserId(),
             version_edit_timestamp: Dates.now(),
         };
 

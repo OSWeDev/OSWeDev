@@ -24,6 +24,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleMenuServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleMenuServer.instance) {
             ModuleMenuServer.instance = new ModuleMenuServer();
@@ -33,10 +34,12 @@ export default class ModuleMenuServer extends ModuleServerBase {
 
     private static instance: ModuleMenuServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleMenu.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -111,6 +114,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleMenu.POLICY_GROUP;
@@ -128,10 +132,11 @@ export default class ModuleMenuServer extends ModuleServerBase {
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleMenu.APINAME_get_menu, this.get_menu.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleMenu.APINAME_add_menu, this.add_menu.bind(this));
@@ -165,7 +170,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         }
         code.id = res.id;
 
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         let lang = (user && user.lang_id) ?
             await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>() :
             await ModuleTranslation.getInstance().getLang(ConfigurationService.node_configuration.DEFAULT_LOCALE);

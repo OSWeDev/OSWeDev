@@ -16,7 +16,7 @@ import ExportLogVO from '../../../../shared/modules/DataExport/vos/apis/ExportLo
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import TextHandler from '../../../../shared/tools/TextHandler';
 import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
@@ -52,7 +52,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
     public initialize() {
 
-        Vue.component('Impersonatecomponent', async () => (await import(/* webpackChunkName: "ImpersonateComponent" */  './user/impersonate/ImpersonateComponent')));
+        Vue.component('Impersonatecomponent', async () => (await import('./user/impersonate/ImpersonateComponent')));
         TableWidgetController.getInstance().register_component(
             ComponentDatatableFieldVO.createNew(
                 'impersonate',
@@ -60,7 +60,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 'id'
             ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
-        Vue.component('Sendinitpwdcomponent', async () => (await import(/* webpackChunkName: "SendInitPwdComponent" */  './user/sendinitpwd/SendInitPwdComponent')));
+        Vue.component('Sendinitpwdcomponent', async () => (await import('./user/sendinitpwd/SendInitPwdComponent')));
         TableWidgetController.getInstance().register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
@@ -68,7 +68,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 'id'
             ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
-        Vue.component('Sendrecapturecomponent', async () => (await import(/* webpackChunkName: "SendRecaptureComponent" */  './user/sendrecapture/SendRecaptureComponent')));
+        Vue.component('Sendrecapturecomponent', async () => (await import('./user/sendrecapture/SendRecaptureComponent')));
         TableWidgetController.getInstance().register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
@@ -142,7 +142,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             this.routes.push({
                 path: url,
                 name: main_route_name,
-                component: () => import(/* webpackChunkName: "AccessPolicyComponent" */ './AccessPolicyComponent')
+                component: () => import('./AccessPolicyComponent')
             });
             let menuelt =
                 MenuElementVO.create_new(
@@ -229,7 +229,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("phone"));
 
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_IMPERSONATE]) {
-            Vue.component('Impersonatecomponent', async () => (await import(/* webpackChunkName: "ImpersonateComponent" */  './user/impersonate/ImpersonateComponent')));
+            Vue.component('Impersonatecomponent', async () => (await import('./user/impersonate/ImpersonateComponent')));
             crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
                 'impersonate',
                 'Impersonatecomponent',
@@ -239,7 +239,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("password"));
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_SENDINITPWD]) {
-            Vue.component('Sendinitpwdcomponent', async () => (await import(/* webpackChunkName: "SendInitPwdComponent" */  './user/sendinitpwd/SendInitPwdComponent')));
+            Vue.component('Sendinitpwdcomponent', async () => (await import('./user/sendinitpwd/SendInitPwdComponent')));
             crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
                 'Sendinitpwdcomponent',
@@ -247,7 +247,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ));
         }
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_SENDRECAPTURE]) {
-            Vue.component('Sendrecapturecomponent', async () => (await import(/* webpackChunkName: "SendRecaptureComponent" */  './user/sendrecapture/SendRecaptureComponent')));
+            Vue.component('Sendrecapturecomponent', async () => (await import('./user/sendrecapture/SendRecaptureComponent')));
             crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
                 'Sendrecapturecomponent',

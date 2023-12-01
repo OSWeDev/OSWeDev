@@ -55,7 +55,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     private this_uid: number = VarDatasRefsComponent.UID++;
 
     private var_datas: VarDataValueResVO[] = [];
-    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
@@ -65,7 +65,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         let var_datas: VarDataValueResVO[] = [];
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
-            var_datas.push(VarsClientController.getInstance().cached_var_datas[var_param.index]);
+            var_datas.push(VarsClientController.cached_var_datas[var_param.index]);
         }
         this.var_datas = var_datas;
     }
@@ -173,7 +173,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         }
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
             return;
         }
 

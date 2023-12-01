@@ -16,6 +16,7 @@ export default class MaintenanceServerController {
     public static TASK_NAME_start_maintenance = 'ModuleMaintenanceServer.start_maintenance';
     public static TASK_NAME_end_planned_maintenance = 'ModuleMaintenanceServer.end_planned_maintenance';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!MaintenanceServerController.instance) {
             MaintenanceServerController.instance = new MaintenanceServerController();
@@ -44,7 +45,8 @@ export default class MaintenanceServerController {
      */
 
     protected constructor() {
-        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
     }
 
     public async get_planned_maintenance_vo(): Promise<MaintenanceVO> {
@@ -59,7 +61,7 @@ export default class MaintenanceServerController {
 
     public async set_planned_maintenance_vo(maintenance: MaintenanceVO): Promise<void> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, maintenance)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, maintenance)) {
             return;
         }
 
@@ -70,7 +72,7 @@ export default class MaintenanceServerController {
      * WARN : Should only be used on the main process (express)
      */
     get has_planned_maintenance() {
-        ForkedTasksController.getInstance().assert_is_main_process();
+        ForkedTasksController.assert_is_main_process();
 
         return !!this.planned_maintenance;
     }
@@ -81,7 +83,7 @@ export default class MaintenanceServerController {
      */
     public async inform_user_on_request(user_id: number): Promise<void> {
 
-        ForkedTasksController.getInstance().assert_is_main_process();
+        ForkedTasksController.assert_is_main_process();
 
         let planned_maintenance = await this.get_planned_maintenance_vo();
 

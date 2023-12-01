@@ -1,8 +1,8 @@
 import { Component, Watch } from "vue-property-decorator";
 import ModuleAccessPolicy from "../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import AnimationController from "../../../../../../shared/modules/Animation/AnimationController";
-import AnimationMessageModuleVO from "../../../../../../shared/modules/Animation/fields/message_module/vos/AnimationMessageModuleVO";
 import ModuleAnimation from "../../../../../../shared/modules/Animation/ModuleAnimation";
+import AnimationMessageModuleVO from "../../../../../../shared/modules/Animation/fields/message_module/vos/AnimationMessageModuleVO";
 import ThemeModuleDataRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationParametersVO from "../../../../../../shared/modules/Animation/vos/AnimationParametersVO";
@@ -18,17 +18,17 @@ import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegme
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
 import IDistantVOBase from "../../../../../../shared/modules/IDistantVOBase";
+import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
-import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
 import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import AjaxCacheClientController from "../../../../modules/AjaxCache/AjaxCacheClientController";
-import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
 import VarsClientController from "../../../Var/VarsClientController";
+import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
 import VueComponentBase from '../../../VueComponentBase';
-import VueAnimationQrComponent from "../qr/qr";
 import '../_base/animation.scss';
+import VueAnimationQrComponent from "../qr/qr";
 
 @Component({
     template: require("./module.pug"),
@@ -121,7 +121,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         })());
 
         promises.push((async () =>
-            this.prct_atteinte_seuil_module = VarsController.getInstance().getValueOrDefault(
+            this.prct_atteinte_seuil_module = VarsController.getValueOrDefault(
                 await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(
                     this.prct_atteinte_seuil_module_param
                 ) as ThemeModuleDataRangesVO,
@@ -174,13 +174,10 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     private async reloadUqrs() {
-        let user_qrs: AnimationUserQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserQRVO>(
-            AnimationUserQRVO.API_TYPE_ID,
-            'qr_id',
-            this.qrs.map((m) => m.id),
-            'user_id',
-            [this.logged_user_id],
-        );
+        let user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
+            .filter_by_num_has('qr_id', this.qrs.map((m) => m.id))
+            .filter_by_num_eq('user_id', this.logged_user_id)
+            .select_vos<AnimationUserQRVO>();
 
         for (let i in user_qrs) {
             this.uqr_by_qr_ids[user_qrs[i].qr_id] = user_qrs[i];
@@ -202,13 +199,10 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private async closeModal(restart: boolean) {
         if (restart) {
             if (this.um) {
-                let user_qrs: AnimationUserQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserQRVO>(
-                    AnimationUserQRVO.API_TYPE_ID,
-                    'qr_id',
-                    this.qrs.map((m) => m.id),
-                    'user_id',
-                    [this.logged_user_id],
-                );
+                let user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
+                    .filter_by_num_has('qr_id', this.qrs.map((m) => m.id))
+                    .filter_by_num_eq('user_id', this.logged_user_id)
+                    .select_vos<AnimationUserQRVO>();
 
                 let toDelete: IDistantVOBase[] = [this.um];
                 toDelete = toDelete.concat(user_qrs);

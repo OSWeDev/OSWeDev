@@ -1,16 +1,19 @@
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
+import NumRange from '../../shared/modules/DataRender/vos/NumRange';
 import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../shared/modules/ModuleTable';
 import ModuleTableField from '../../shared/modules/ModuleTableField';
+import StatsController from '../../shared/modules/Stats/StatsController';
+import StatsTypeVO from '../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
 import ConfigurationService from '../env/ConfigurationService';
+import DAOServerController from './DAO/DAOServerController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ForkedTasksController from './Fork/ForkedTasksController';
-import StatsServerController from './Stats/StatsServerController';
 import TableColumnDescriptor from './TableColumnDescriptor';
 import TableDescriptor from './TableDescriptor';
 
@@ -45,7 +48,7 @@ export default class ModuleTableDBService {
      */
     public async get_existing_segmentations_tables_of_moduletable(moduleTable: ModuleTable<any>): Promise<{ [segmented_value: number]: string }> {
 
-        StatsServerController.register_stat('ModuleTableDBService.get_existing_segmentations_tables_of_moduletable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'get_existing_segmentations_tables_of_moduletable', '-');
 
         let database_name = moduleTable.database;
         let tables: TableDescriptor[] = await this.db.query("SELECT * FROM pg_catalog.pg_tables WHERE schemaname = '" + database_name + "';");
@@ -68,7 +71,7 @@ export default class ModuleTableDBService {
 
     public async create_or_update_datatable(moduleTable: ModuleTable<any>, segments: IRange[] = null) {
 
-        StatsServerController.register_stat('ModuleTableDBService.create_or_update_datatable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_or_update_datatable', '-');
 
         let self = this;
 
@@ -81,7 +84,7 @@ export default class ModuleTableDBService {
 
             let migration_todo: boolean = false;
 
-            if (!segments) {
+            if ((!segments) || (!segments.length)) {
 
                 // Si on est sur du segmenté on doit vérifier 2 choses :
                 //  1- le format de toutes les tables existantes
@@ -91,7 +94,7 @@ export default class ModuleTableDBService {
 
                 let segments_by_segmented_value: { [segmented_value: number]: string } = await this.get_existing_segmentations_tables_of_moduletable(moduleTable);
 
-                if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(segments_by_segmented_value)) {
+                if (!ObjectHandler.hasAtLeastOneAttribute(segments_by_segmented_value)) {
                     // Aucune table => on tente une migration des datas
 
                     // On récupère les datas de la colonne de segmentation pour construire par la suite les requetes de migration des datas
@@ -136,6 +139,15 @@ export default class ModuleTableDBService {
 
                         segments.push(RangeHandler.create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
                     }
+                }
+            }
+
+            // On check que les segments sont bien des numranges
+            for (let i in segments) {
+                let segment = segments[i];
+
+                if ((!segment) || (segment.range_type != NumRange.RANGE_TYPE)) {
+                    throw new Error('create_or_update_datatable: segment is not a NumRange:' + JSON.stringify(segment) + ':' + JSON.stringify(segments));
                 }
             }
 
@@ -187,7 +199,7 @@ export default class ModuleTableDBService {
                     let table_name = moduleTable.get_segmented_name(segmented_value);
 
                     // Une fois la création de la table terminée, on peut faire la migration des datas si on attendait de le faire.
-                    let field_where_clause = ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
+                    let field_where_clause = DAOServerController.getClauseWhereRangeIntersectsField(
                         moduleTable.table_segmented_field.field_type, moduleTable.table_segmented_field.field_id,
                         RangeHandler.create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
 
@@ -227,7 +239,7 @@ export default class ModuleTableDBService {
 
     private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.handle_check_segment', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'handle_check_segment', '-');
 
         let res: boolean = false;
 
@@ -258,7 +270,7 @@ export default class ModuleTableDBService {
      */
     private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.do_check_or_update_moduletable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'do_check_or_update_moduletable', '-');
 
         // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
         //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
@@ -274,7 +286,7 @@ export default class ModuleTableDBService {
             await this.chec_indexes(moduleTable, database_name, table_name);
 
             if (segmented_value != null) {
-                await ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
+                await ForkedTasksController.broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
             }
         } else {
             res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
@@ -291,7 +303,7 @@ export default class ModuleTableDBService {
      */
     private async check_datatable_structure(moduleTable: ModuleTable<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.check_datatable_structure', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_datatable_structure', '-');
 
         let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
         for (let i in moduleTable.get_fields()) {
@@ -334,7 +346,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.checkConstraintsOnForeignKey', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkConstraintsOnForeignKey', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -424,7 +436,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.checkMissingInTS', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkMissingInTS', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -479,7 +491,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.checkMissingInDB', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkMissingInDB', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -550,7 +562,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.checkColumnsStrutInDB', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkColumnsStrutInDB', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -629,7 +641,7 @@ export default class ModuleTableDBService {
      */
     private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string): Promise<boolean> {
 
-        StatsServerController.register_stat('ModuleTableDBService.chec_indexes', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'chec_indexes', '-');
 
         let res_: boolean = false;
         for (let i = 0; i < moduleTable.get_fields().length; i++) {
@@ -655,7 +667,7 @@ export default class ModuleTableDBService {
 
     private async create_new_datatable(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
 
-        StatsServerController.register_stat('ModuleTableDBService.create_new_datatable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_new_datatable', '-');
 
         let full_name = database_name + '.' + table_name;
 
@@ -695,16 +707,16 @@ export default class ModuleTableDBService {
         }
 
         /**
-         * Ajout des clés d'unicité sur plusieurs colonnes
+         * Ajout des clés d'unicité
          */
         let uniq_constraints = '';
         if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
             for (let i in moduleTable.uniq_indexes) {
                 let uniq_index = moduleTable.uniq_indexes[i];
 
-                if (uniq_index.length <= 1) {
-                    continue;
-                }
+                // if (uniq_index.length <= 1) {
+                //     continue;
+                // }
 
                 uniq_constraints += ', UNIQUE (' + uniq_index.map((f) => f.field_id).join(', ') + ')';
             }

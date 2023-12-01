@@ -1,7 +1,7 @@
-import * as nodemailer from 'nodemailer';
+import nodemailer from 'nodemailer';
 import { SendMailOptions } from 'nodemailer';
 import { Address } from 'nodemailer/lib/mailer';
-import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -14,6 +14,7 @@ import TemplateHandlerServer from './TemplateHandlerServer';
 
 export default class ModuleMailerServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleMailerServer.instance) {
             ModuleMailerServer.instance = new ModuleMailerServer();
@@ -23,10 +24,12 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     private static instance: ModuleMailerServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleMailer.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Initié'
@@ -98,6 +101,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
         }, 'MAILCATEGORY.DailyReportCronWorker.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTML.bind(this));

@@ -1,7 +1,6 @@
-@import '../../../scss/base/skin.scss';
+@import "../../../scss/base/skin.scss";
 
 .dashboard_builder {
-
     margin-bottom: 500px;
 
     .is_loading,
@@ -12,8 +11,7 @@
         padding: 10%;
     }
 
-    >.row>.col-sm-12>.header {
-
+    > .row > .col-sm-12 > .header {
         margin-bottom: 1em;
 
         .title {
@@ -25,13 +23,12 @@
                 border: none;
                 padding: 0.5em;
                 width: 100%;
-                background: #F5F5F5;
+                background: #f5f5f5;
                 font-size: 1.5em;
             }
         }
 
         .delete_dashboard {
-
             text-align: center;
             vertical-align: middle;
             height: 2em;
@@ -46,7 +43,6 @@
 
         .create_dashboard,
         .create_dashboard_from {
-
             text-align: center;
             vertical-align: middle;
             height: 2em;
@@ -61,7 +57,6 @@
 
         .copy_dashboard,
         .replace_dashboard {
-
             text-align: center;
             vertical-align: middle;
             height: 2em;
@@ -98,9 +93,8 @@
         }
 
         .page {
-
             display: inline-block;
-            background: #F5F5F5;
+            background: #f5f5f5;
             padding: 1em;
             margin: 5px;
             box-shadow: 1px 1px 20px #e0e0e0;
@@ -115,7 +109,6 @@
             .hide_navigation,
             .back,
             .move_page {
-
                 text-align: center;
                 vertical-align: middle;
                 height: 2em;
@@ -148,7 +141,7 @@
             .hide_navigation.disabled {
                 background: #555;
                 cursor: not-allowed;
-                color: #AAA;
+                color: #aaa;
             }
 
             .selected {
@@ -185,7 +178,6 @@
             }
 
             .delete {
-
                 text-align: center;
                 vertical-align: middle;
                 height: 2em;
@@ -242,7 +234,7 @@
         margin: 0em;
         position: fixed;
         right: 0;
-        background: #F5F5F5;
+        background: #f5f5f5;
         font-size: 2em;
         cursor: pointer;
         color: #555;
@@ -251,18 +243,17 @@
     }
 
     .steps {
-
         margin: 1em 0em;
 
         .step {
-            background: #F5F5F5;
+            background: #f5f5f5;
             border-radius: 2px;
             padding: 0.5em;
             text-align: center;
             font-size: 1.2em;
             text-transform: uppercase;
             cursor: pointer;
-            margin-right: 0.5em;
+            // margin-right: 0.5em;
 
             &.selected {
                 background: dodgerblue;
@@ -273,7 +264,6 @@
 
     .grid_item_wrapper.hide {
         opacity: 0.4 !important;
-
     }
 
     .grid_item_wrapper.shaded {

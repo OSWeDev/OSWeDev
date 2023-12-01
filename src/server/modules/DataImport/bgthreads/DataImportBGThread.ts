@@ -1,29 +1,28 @@
-import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
-import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import RangeHandler from '../../../../shared/tools/RangeHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import VarsDatasProxy from '../../Var/VarsDatasProxy';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import ModuleDataImportServer from '../ModuleDataImportServer';
 
 export default class DataImportBGThread implements IBGThread {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DataImportBGThread.instance) {
             DataImportBGThread.instance = new DataImportBGThread();
@@ -43,6 +42,10 @@ export default class DataImportBGThread implements IBGThread {
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 100;
 
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
+
     private waiting_for_empty_vars_vos_cud: boolean = false;
     private waiting_for_empty_cache_vars_waiting_for_compute: boolean = false;
 
@@ -55,7 +58,11 @@ export default class DataImportBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
+        let time_in = Dates.now_ms();
+
         try {
+
+            StatsController.register_stat_COMPTEUR('DataImportBGThread', 'work', 'IN');
 
             /**
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
@@ -63,9 +70,10 @@ export default class DataImportBGThread implements IBGThread {
             let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true, 180000);
             try {
                 if (wait_for_empty_vars_vos_cud) {
-                    if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
+                    if (await VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors()) {
                         ConsoleHandler.log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
                         this.waiting_for_empty_vars_vos_cud = true;
+                        this.stats_out('waiting_for_empty_vars_vos_cud', time_in);
                         return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
                     }
 
@@ -77,6 +85,7 @@ export default class DataImportBGThread implements IBGThread {
             } catch (error) {
                 ConsoleHandler.error('DataImportBGThread:wait_for_empty_vars_vos_cud varbgthread did not answer. waiting for it to get back up');
                 this.waiting_for_empty_vars_vos_cud = true;
+                this.stats_out('waiting_for_empty_vars_vos_cud_failed', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
 
@@ -110,18 +119,14 @@ export default class DataImportBGThread implements IBGThread {
                  */
                 dih = await query(DataImportHistoricVO.API_TYPE_ID)
                     .add_filters([
-                        filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
-                            [
-                                RangeHandler.create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_IMPORTED, NumSegment.TYPE_INT),
-                                RangeHandler.create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, NumSegment.TYPE_INT)
-                            ]
-                        ).or(
-                            filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
-                                ModuleDataImport.IMPORTATION_STATE_FORMATTED
-                            ).and(
-                                filter(DataImportHistoricVO.API_TYPE_ID, 'autovalidate').is_true()
+                        filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_has([ModuleDataImport.IMPORTATION_STATE_IMPORTED, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT])
+                            .or(
+                                filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
+                                    ModuleDataImport.IMPORTATION_STATE_FORMATTED
+                                ).and(
+                                    filter(DataImportHistoricVO.API_TYPE_ID, 'autovalidate').is_true()
+                                )
                             )
-                        )
                     ])
                     .set_limit(1)
                     .select_vo();
@@ -158,6 +163,7 @@ export default class DataImportBGThread implements IBGThread {
             }
 
             if (!dih) {
+                this.stats_out('inactive', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
 
@@ -172,21 +178,36 @@ export default class DataImportBGThread implements IBGThread {
                 ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
                 ModuleDataImport.IMPORTATION_STATE_IMPORTED
             ].indexOf(dih.state) >= 0) {
+                this.stats_out('ok', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
             }
 
             // Si on est pas dans un état de continuation, on arrête cet import
             //  Tant qu'on gère des imports, on run
             await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
+            this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
     }
 
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('DataImportBGThread', 'work', activity + '_OUT', time_out - time_in);
+    }
+
     private async prepare_reimports() {
+
+        let time_in = Dates.now_ms();
+
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'IN');
+
         let dihs = await query(DataImportHistoricVO.API_TYPE_ID)
             .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
             .set_sorts([
@@ -200,6 +221,10 @@ export default class DataImportBGThread implements IBGThread {
             await this.handleImportHistoricProgression(dih);
             ConsoleHandler.log('DataImportBGThread REIMPORT DIH[' + dih.id + '] state:' + dih.state + ':');
         }
+
+        let time_out = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'OUT');
+        StatsController.register_stat_DUREE('DataImportBGThread', 'prepare_reimports', 'OUT', time_out - time_in);
     }
 
     private async handleImportHistoricProgression(importHistoric: DataImportHistoricVO): Promise<boolean> {
@@ -223,7 +248,7 @@ export default class DataImportBGThread implements IBGThread {
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
     }
 
     /**
@@ -290,7 +315,7 @@ export default class DataImportBGThread implements IBGThread {
             return false;
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
 
         return true;
     }
@@ -324,28 +349,28 @@ export default class DataImportBGThread implements IBGThread {
 
             case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
 
-                /**
-                 * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
-                 */
-                let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true, 180000);
-                try {
-                    if (wait_for_empty_cache_vars_waiting_for_compute) {
-                        if (await VarsDatasProxy.getInstance().has_cached_vars_waiting_for_compute()) {
-                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
-                            this.waiting_for_empty_cache_vars_waiting_for_compute = true;
-                            return false;
-                        }
+                // /**
+                //  * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
+                //  */
+                // let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true, 180000);
+                // try {
+                //     if (wait_for_empty_cache_vars_waiting_for_compute) {
+                //         if (await VarsDatasProxy.has_cached_vars_waiting_for_compute()) {
+                //             ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
+                //             this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                //             return false;
+                //         }
 
-                        if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
-                            this.waiting_for_empty_cache_vars_waiting_for_compute = false;
-                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
-                        }
-                    }
-                } catch (error) {
-                    ConsoleHandler.error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
-                    this.waiting_for_empty_cache_vars_waiting_for_compute = true;
-                    return false;
-                }
+                //         if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
+                //             this.waiting_for_empty_cache_vars_waiting_for_compute = false;
+                //             ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
+                //         }
+                //     }
+                // } catch (error) {
+                //     ConsoleHandler.error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
+                //     this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                //     return false;
+                // }
 
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATING;
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
@@ -355,7 +380,7 @@ export default class DataImportBGThread implements IBGThread {
             case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
 
                 importHistoric.state = (((importHistoric.status_before_reimport != null) && (typeof importHistoric.status_before_reimport != 'undefined')) ? importHistoric.status_before_reimport : ModuleDataImport.IMPORTATION_STATE_POSTTREATED);
-                await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
 
                 let new_importHistoric = new DataImportHistoricVO();
                 new_importHistoric.api_type_id = importHistoric.api_type_id;
@@ -370,7 +395,7 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.reimport_of_dih_id = importHistoric.id;
                 new_importHistoric.use_fast_track = importHistoric.use_fast_track;
 
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
+                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     ConsoleHandler.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
@@ -398,36 +423,14 @@ export default class DataImportBGThread implements IBGThread {
          *  - status_before_reimport is null
          *  - last_up_date is older than 5 mninutes
          */
-        let filter_state = new ContextFilterVO();
-        filter_state.field_id = 'state';
-        filter_state.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_state.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-        filter_state.param_numeric = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
 
-        let filter_reimport_of_dih_id = new ContextFilterVO();
-        filter_reimport_of_dih_id.field_id = 'reimport_of_dih_id';
-        filter_reimport_of_dih_id.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_reimport_of_dih_id.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-
-        let filter_status_before_reimport = new ContextFilterVO();
-        filter_status_before_reimport.field_id = 'status_before_reimport';
-        filter_status_before_reimport.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_status_before_reimport.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-
-        let filter_status_of_last_reimport = new ContextFilterVO();
-        filter_status_of_last_reimport.field_id = 'status_of_last_reimport';
-        filter_status_of_last_reimport.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_status_of_last_reimport.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-
-        let filter_last_up_date = new ContextFilterVO();
-        filter_last_up_date.field_id = 'last_up_date';
-        filter_last_up_date.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_last_up_date.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ALL;
-        filter_last_up_date.param_numeric = Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE);
-
-        let query_context: ContextQueryVO = query(DataImportHistoricVO.API_TYPE_ID).add_filters([filter_state, filter_reimport_of_dih_id, filter_status_of_last_reimport, filter_last_up_date, filter_status_before_reimport]);
-
-        let dihs: DataImportHistoricVO[] = await ModuleContextFilter.getInstance().select_vos<DataImportHistoricVO>(query_context);
+        let dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DataImportHistoricVO>().state, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION)
+            .filter_is_null_or_empty(field_names<DataImportHistoricVO>().reimport_of_dih_id)
+            .filter_is_null_or_empty(field_names<DataImportHistoricVO>().status_before_reimport)
+            .filter_is_null_or_empty(field_names<DataImportHistoricVO>().status_of_last_reimport)
+            .filter_by_num_inf(field_names<DataImportHistoricVO>().last_up_date, Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE))
+            .select_vos<DataImportHistoricVO>();
 
         if ((!dihs) || (!dihs.length)) {
             return null;

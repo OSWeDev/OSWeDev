@@ -1,12 +1,12 @@
 
-import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
+import { ActionContext, ActionTree, GetterTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors } from "vuex-typescript";
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from "../../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import IStoreModule from '../../../store/IStoreModule';
+import { store_mutations_names } from "../../../store/StoreModuleBase";
 
 export type DataImportContext = ActionContext<IDataImportState, any>;
 
@@ -20,7 +20,6 @@ export interface IDataImportState {
     lower_segment: TimeSegment;
     segment_number: number;
 }
-
 
 export default class DataImportStore implements IStoreModule<IDataImportState, DataImportContext> {
 
@@ -36,7 +35,59 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
     public module_name: string;
     public state: any;
     public getters: GetterTree<IDataImportState, DataImportContext>;
-    public mutations: MutationTree<IDataImportState>;
+    public mutations = {
+
+        reinitStoreValues(state: IDataImportState) {
+            state.options = {};
+            state.options_validator = (options: any) => true;
+            state.historic_options_tester = (historic: DataImportHistoricVO, options: any) => true;
+            state.api_type_id_tester = (api_type_id: string) => true;
+            state.segment_type = TimeSegment.TYPE_MONTH;
+            state.segment_offset = 9;
+            state.lower_segment = TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH);
+            state.segment_number = 12;
+        },
+
+        previous_segments(state: IDataImportState) {
+            state.lower_segment = TimeSegmentHandler.getPreviousTimeSegment(state.lower_segment, state.segment_type, state.segment_offset);
+        },
+
+        next_segments(state: IDataImportState) {
+            state.lower_segment = TimeSegmentHandler.getPreviousTimeSegment(state.lower_segment, state.segment_type, -state.segment_offset);
+        },
+
+        setApiTypeIdTester(state: IDataImportState, api_type_id_tester: (api_type_id: string) => boolean) {
+            state.api_type_id_tester = api_type_id_tester;
+        },
+
+        setsegment_type(state: IDataImportState, segment_type: number) {
+            state.segment_type = segment_type;
+        },
+
+        setsegment_offset(state: IDataImportState, segment_offset: number) {
+            state.segment_offset = segment_offset;
+        },
+
+        setlower_segment(state: IDataImportState, lower_segment: TimeSegment) {
+            state.lower_segment = lower_segment;
+        },
+
+        setsegment_number(state: IDataImportState, segment_number: number) {
+            state.segment_number = segment_number;
+        },
+
+        setOptions(state: IDataImportState, options: any) {
+            state.options = options;
+        },
+
+        setHistoricOptionsTester(state: IDataImportState, historic_options_tester: (historic: DataImportHistoricVO, options: any) => boolean) {
+            state.historic_options_tester = historic_options_tester;
+        },
+
+        setOptionsValidator(state: IDataImportState, options_validator: (options: any) => boolean) {
+            state.options_validator = options_validator;
+        },
+    };
     public actions: ActionTree<IDataImportState, DataImportContext>;
     public namespaced: boolean = true;
 
@@ -119,129 +170,23 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
             },
         };
 
-
-
-        this.mutations = {
-
-            reinitStoreValues(state: IDataImportState) {
-                state.options = {};
-                state.options_validator = (options: any) => true;
-                state.historic_options_tester = (historic: DataImportHistoricVO, options: any) => true;
-                state.api_type_id_tester = (api_type_id: string) => true;
-                state.segment_type = TimeSegment.TYPE_MONTH;
-                state.segment_offset = 9;
-                state.lower_segment = TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH);
-                state.segment_number = 12;
-            },
-
-            previous_segments(state: IDataImportState) {
-                state.lower_segment = TimeSegmentHandler.getPreviousTimeSegment(state.lower_segment, state.segment_type, state.segment_offset);
-            },
-
-            next_segments(state: IDataImportState) {
-                state.lower_segment = TimeSegmentHandler.getPreviousTimeSegment(state.lower_segment, state.segment_type, -state.segment_offset);
-            },
-
-            setApiTypeIdTester(state: IDataImportState, api_type_id_tester: (api_type_id: string) => boolean) {
-                state.api_type_id_tester = api_type_id_tester;
-            },
-
-            setsegment_type(state: IDataImportState, segment_type: number) {
-                state.segment_type = segment_type;
-            },
-
-            setsegment_offset(state: IDataImportState, segment_offset: number) {
-                state.segment_offset = segment_offset;
-            },
-
-            setlower_segment(state: IDataImportState, lower_segment: TimeSegment) {
-                state.lower_segment = lower_segment;
-            },
-
-            setsegment_number(state: IDataImportState, segment_number: number) {
-                state.segment_number = segment_number;
-            },
-
-            setOptions(state: IDataImportState, options: any) {
-                state.options = options;
-            },
-
-            setHistoricOptionsTester(state: IDataImportState, historic_options_tester: (historic: DataImportHistoricVO, options: any) => boolean) {
-                state.historic_options_tester = historic_options_tester;
-            },
-
-            setOptionsValidator(state: IDataImportState, options_validator: (options: any) => boolean) {
-                state.options_validator = options_validator;
-            },
-        };
-
-
-
         this.actions = {
-
-            reinitStoreValues(context: DataImportContext) {
-                commitreinitStoreValues(context, null);
-            },
-
-            previous_segments(context: DataImportContext) {
-                commitprevious_segments(context, null);
-            },
-
-            next_segments(context: DataImportContext) {
-                commitnext_segments(context, null);
-            },
-
-            setApiTypeIdTester(context: DataImportContext, api_type_id_tester: (api_type_id: string) => boolean) {
-                commitSetApiTypeIdTester(context, api_type_id_tester);
-            },
-
-            setsegment_type(context: DataImportContext, segment_type: number) {
-                commitSetsegment_type(context, segment_type);
-            },
-
-            setsegment_offset(context: DataImportContext, segment_offset: number) {
-                commitSetsegment_offset(context, segment_offset);
-            },
-
-            setlower_segment(context: DataImportContext, lower_segment: number) {
-                commitSetlower_segment(context, lower_segment);
-            },
-
-            setsegment_number(context: DataImportContext, segment_number: number) {
-                commitSetsegment_number(context, segment_number);
-            },
-
-            setOptions(context: DataImportContext, options: any) {
-                commitSetOptions(context, options);
-            },
-
-            setHistoricOptionsTester(context: DataImportContext, historic_options_tester: (historic: DataImportHistoricVO, options: any) => boolean) {
-                commitSetHistoricOptionsTester(context, historic_options_tester);
-            },
-
-            setOptionsValidator(context: DataImportContext, options_validator: (options: any) => boolean) {
-                commitSetOptionsValidator(context, options_validator);
-            },
+            reinitStoreValues: (context: DataImportContext) => context.commit(store_mutations_names(this).reinitStoreValues, null),
+            previous_segments: (context: DataImportContext) => context.commit(store_mutations_names(this).previous_segments, null),
+            next_segments: (context: DataImportContext) => context.commit(store_mutations_names(this).next_segments, null),
+            setApiTypeIdTester: (context: DataImportContext, api_type_id_tester: (api_type_id: string) => boolean) => context.commit(store_mutations_names(this).setApiTypeIdTester, api_type_id_tester),
+            setsegment_type: (context: DataImportContext, segment_type: number) => context.commit(store_mutations_names(this).setsegment_type, segment_type),
+            setsegment_offset: (context: DataImportContext, segment_offset: number) => context.commit(store_mutations_names(this).setsegment_offset, segment_offset),
+            setlower_segment: (context: DataImportContext, lower_segment: number) => context.commit(store_mutations_names(this).setlower_segment, lower_segment),
+            setsegment_number: (context: DataImportContext, segment_number: number) => context.commit(store_mutations_names(this).setsegment_number, segment_number),
+            setOptions: (context: DataImportContext, options: any) => context.commit(store_mutations_names(this).setOptions, options),
+            setHistoricOptionsTester: (context: DataImportContext, historic_options_tester: (historic: DataImportHistoricVO, options: any) => boolean) => context.commit(store_mutations_names(this).setHistoricOptionsTester, historic_options_tester),
+            setOptionsValidator: (context: DataImportContext, options_validator: (options: any) => boolean) => context.commit(store_mutations_names(this).setOptionsValidator, options_validator),
         };
     }
 }
 
 export const DataImportStoreInstance = DataImportStore.getInstance();
 
-
-const { commit, read, dispatch } =
-    getStoreAccessors<IDataImportState, any>("DataImportStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleDataImportGetter = namespace('DataImportStore', Getter);
 export const ModuleDataImportAction = namespace('DataImportStore', Action);
-
-export const commitSetOptions = commit(DataImportStoreInstance.mutations.setOptions);
-export const commitSetHistoricOptionsTester = commit(DataImportStoreInstance.mutations.setHistoricOptionsTester);
-export const commitSetOptionsValidator = commit(DataImportStoreInstance.mutations.setOptionsValidator);
-export const commitSetApiTypeIdTester = commit(DataImportStoreInstance.mutations.setApiTypeIdTester);
-export const commitSetsegment_type = commit(DataImportStoreInstance.mutations.setsegment_type);
-export const commitSetsegment_offset = commit(DataImportStoreInstance.mutations.setsegment_offset);
-export const commitSetlower_segment = commit(DataImportStoreInstance.mutations.setlower_segment);
-export const commitSetsegment_number = commit(DataImportStoreInstance.mutations.setsegment_number);
-export const commitprevious_segments = commit(DataImportStoreInstance.mutations.previous_segments);
-export const commitnext_segments = commit(DataImportStoreInstance.mutations.next_segments);
-export const commitreinitStoreValues = commit(DataImportStoreInstance.mutations.reinitStoreValues);

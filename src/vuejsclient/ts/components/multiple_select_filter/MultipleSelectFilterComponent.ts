@@ -6,7 +6,7 @@ import DataFilterOption from '../../../../shared/modules/DataRender/vos/DataFilt
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
 import ArrayHandler from '../../../../shared/tools/ArrayHandler';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
@@ -102,7 +102,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    private function_group: (selectables_by_ids: { [id: number]: IDistantVOBase }, actual_query: string) => DataFilterOption[];
+    private function_group: (selectable_options_by_ids: { [id: number]: IDistantVOBase }, actual_query: string) => DataFilterOption[];
 
     @Prop({
         default: false
@@ -117,7 +117,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({ default: true })
     private preselect_first_if_one_element: boolean;
 
-    private tmp_filter_active_options: DataFilterOption[] = [];
+    private tmp_active_filter_options: DataFilterOption[] = [];
 
     private filter_state_selected: number = DataFilterOption.STATE_SELECTED;
     private filter_state_selectable: number = DataFilterOption.STATE_SELECTABLE;
@@ -129,75 +129,87 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
      * Utilisable pour forcer les options actives depuis le composant parent en utilisant une $refs
      */
     public force_active_options(active_options: DataFilterOption[]) {
-        this.tmp_filter_active_options = active_options;
+        this.tmp_active_filter_options = active_options;
     }
 
-    @Watch('tmp_filter_active_options')
-    public onchange_tmp_filter_active_options() {
+    @Watch('tmp_active_filter_options')
+    public onchange_tmp_active_filter_options() {
 
         /**
          * On check avant le commit si il y a une modification de la sélection
          */
-        let old_value = this.filter_active_options;
-        let new_value = this.tmp_filter_active_options;
+        let old_value = this.active_filter_options;
+        let new_value = this.tmp_active_filter_options;
 
         if (ArrayHandler.is_same(old_value, new_value)) {
             return;
         }
 
         if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
-            this.$store.commit(this.internal_store_filter_commit_uid, this.tmp_filter_active_options);
+            this.$store.commit(this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
         } else {
-            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_uid, this.tmp_filter_active_options);
+            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
         }
     }
 
     @Watch('$route', { immediate: true })
     public async onRouteChange() {
         try {
-            this.tmp_filter_active_options = this.filter_active_options;
+            this.tmp_active_filter_options = this.active_filter_options;
             this.actual_query = null;
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
-    @Watch('filter_active_options')
-    public async onchange_filter_active_options() {
+    @Watch('active_filter_options')
+    public async onchange_active_filter_options() {
         this.actual_query = null;
-        if (!isEqual(this.tmp_filter_active_options, this.filter_active_options)) {
-            if (!this.filter_active_options || !this.filter_active_options.length) {
+
+        if (!isEqual(this.tmp_active_filter_options, this.active_filter_options)) {
+
+            if (!(this.active_filter_options?.length > 0)) {
                 let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
-                if (ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(res)) {
-                    let selected = res[ObjectHandler.getInstance().getFirstAttributeName(res)];
-                    this.tmp_filter_active_options = [new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(selected), selected.id)];
+
+                if (ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
+                    let selected = res[ObjectHandler.getFirstAttributeName(res)];
+
+                    const option = new DataFilterOption(
+                        DataFilterOption.STATE_SELECTABLE,
+                        this.get_label(selected),
+                        selected.id
+                    );
+
+                    this.tmp_active_filter_options = [option];
                 } else {
-                    this.tmp_filter_active_options = this.filter_active_options;
+                    this.tmp_active_filter_options = this.active_filter_options;
                 }
             } else {
-                this.tmp_filter_active_options = this.filter_active_options;
+                this.tmp_active_filter_options = this.active_filter_options;
             }
         }
     }
 
-    @Watch('selectables_by_ids', { immediate: true })
-    private onchange_selectables_by_ids() {
+    @Watch('selectable_options_by_ids', { immediate: true })
+    private onchange_selectable_options_by_ids() {
 
         if (!this.update_selectable_options_in_store) {
             return;
         }
 
-        let selectable_options_by_ids: { [id: number]: IDistantVOBase } = this.$store.state[this.store_module_uid]['filter_' + this.api_type_id + '_selectable_options_by_ids'];
+        let selectable_options_by_ids: {
+            [id: number]: IDistantVOBase
+        } = this.$store.state[this.store_module_uid]['filter_' + this.api_type_id + '_selectable_options_by_ids'];
 
         // Avant de commit, on check si il y a une modification pour éviter de boucler
-        if (isEqual(selectable_options_by_ids, this.selectables_by_ids)) {
+        if (isEqual(selectable_options_by_ids, this.selectable_options_by_ids)) {
             return;
         }
 
         if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
-            this.$store.commit(this.internal_store_filter_commit_selectables_by_ids_uid, this.selectables_by_ids);
+            this.$store.commit(this.internal_store_filter_commit_selectable_options_by_ids_uid, this.selectable_options_by_ids);
         } else {
-            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_selectables_by_ids_uid, this.selectables_by_ids);
+            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_selectable_options_by_ids_uid, this.selectable_options_by_ids);
         }
     }
 
@@ -240,19 +252,25 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     }
 
     private select_none() {
-        this.tmp_filter_active_options = [];
+        this.tmp_active_filter_options = [];
     }
 
     private async select_all() {
         let res: DataFilterOption[] = [];
 
-        for (let i in this.selectables_by_ids) {
-            let vo: IDistantVOBase = this.selectables_by_ids[i];
+        for (let i in this.selectable_options_by_ids) {
+            let vo: IDistantVOBase = this.selectable_options_by_ids[i];
 
-            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(vo), vo.id));
+            const option = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.get_label(vo),
+                vo.id
+            );
+
+            res.push(option);
         }
 
-        this.tmp_filter_active_options = res;
+        this.tmp_active_filter_options = res;
     }
 
     private mounted() {
@@ -264,16 +282,23 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         let res: DataFilterOption[] = [];
         let id_marker: number[] = [];
 
-        for (let i in this.filter_active_options) {
-            let filter_zone_active_option: DataFilterOption = this.filter_active_options[i];
+        for (let i in this.active_filter_options) {
+            let filter_zone_active_option: DataFilterOption = this.active_filter_options[i];
 
-            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTED, filter_zone_active_option.label, filter_zone_active_option.id));
+            const option = new DataFilterOption(
+                DataFilterOption.STATE_SELECTED,
+                filter_zone_active_option.label,
+                filter_zone_active_option.id
+            );
+
+            res.push(option);
+
             id_marker.push(filter_zone_active_option.id);
         }
-        if (!this.have_options) {
 
-            for (let i in this.selectables_by_ids) {
-                let vo: IDistantVOBase = this.selectables_by_ids[i];
+        if (!this.have_options) {
+            for (let i in this.selectable_options_by_ids) {
+                let vo: IDistantVOBase = this.selectable_options_by_ids[i];
 
                 if (id_marker.indexOf(vo.id) > -1) {
                     continue;
@@ -285,9 +310,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 }
             }
         }
+
         if (this.have_options && this.function_group) {
-            res = this.function_group(this.selectables_by_ids, this.actual_query);
+            res = this.function_group(this.selectable_options_by_ids, this.actual_query);
         }
+
         if (this.sort_options_func) {
             this.sort_options_func(res);
         } else {
@@ -297,7 +324,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return res;
     }
 
-    get filter_active_options(): DataFilterOption[] {
+    get active_filter_options(): DataFilterOption[] {
         try {
 
             return this.$store.state[this.store_module_uid][this.internal_store_filter_state_uid];
@@ -307,12 +334,12 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return [];
     }
 
-    get selectables_by_ids(): { [id: number]: IDistantVOBase } {
+    get selectable_options_by_ids(): { [id: number]: IDistantVOBase } {
         let res: { [id: number]: IDistantVOBase } = {};
 
         try {
 
-            if ((!this.all_by_ids) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.all_by_ids))) {
+            if ((!this.all_by_ids) || (!ObjectHandler.hasAtLeastOneAttribute(this.all_by_ids))) {
                 return res;
             }
 
@@ -320,8 +347,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 let vo = this.all_by_ids[id];
 
                 let vo_res: boolean = true;
-                for (let j in this.depends_on_api_type_ids) {
-                    let depends_on_api_type_id = this.depends_on_api_type_ids[j];
+                for (const j in this.depends_on_api_type_ids) {
+                    const depends_on_api_type_id = this.depends_on_api_type_ids[j];
 
                     /**
                      * Si !depends_on_api_type_id_active_options => ! depends_on_mandatory[depends_on_api_type_id]
@@ -330,7 +357,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                     let depends_on_api_type_id_active_options: DataFilterOption[] = this.$store.state[this.store_module_uid]['filter_' + depends_on_api_type_id + '_active_options'];
                     let depends_on_api_type_id_all_by_ids: { [id: number]: IDistantVOBase } = this.$store.state[this.store_module_uid]['all_' + depends_on_api_type_id + '_by_ids'];
 
-                    if ((!depends_on_api_type_id_active_options) || (!depends_on_api_type_id_active_options.length)) {
+                    if (!(depends_on_api_type_id_active_options?.length > 0)) {
                         if (this.depends_on_mandatory[depends_on_api_type_id]) {
                             vo_res = false;
                             break;
@@ -353,7 +380,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                     res[id] = vo;
                 }
             }
-            // return this.$store.state[this.store_module_uid][this.internal_store_selectables_by_ids_state_uid];
+            // return this.$store.state[this.store_module_uid][this.internal_store_selectable_options_by_ids_state_uid];
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -364,14 +391,25 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         try {
 
             let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
-            if (this.preselect_first_if_one_element && ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(res)) {
-                let selected = res[ObjectHandler.getInstance().getFirstAttributeName(res)];
-                this.tmp_filter_active_options = [new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(selected), selected.id)];
+
+            if (this.preselect_first_if_one_element && ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
+                const selected = res[ObjectHandler.getFirstAttributeName(res)];
+
+                const option = new DataFilterOption(
+                    DataFilterOption.STATE_SELECTABLE,
+                    this.get_label(selected),
+                    selected.id
+                );
+
+                this.tmp_active_filter_options = [option];
             }
+
             return res;
+
         } catch (error) {
             ConsoleHandler.error(error);
         }
+
         return {};
     }
 
@@ -387,7 +425,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return 'set_filter_' + this.api_type_id + '_active_options';
     }
 
-    get internal_store_filter_commit_selectables_by_ids_uid(): string {
+    get internal_store_filter_commit_selectable_options_by_ids_uid(): string {
         return 'set_filter_' + this.api_type_id + '_selectable_options_by_ids';
     }
 
