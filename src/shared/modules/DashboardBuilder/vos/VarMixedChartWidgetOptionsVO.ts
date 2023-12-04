@@ -3,21 +3,21 @@ import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VarConfVO from "../../Var/vos/VarConfVO";
 import VOFieldRefVO from "./VOFieldRefVO";
-import { Scale } from "chart.js";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
+import VarChartOptionsVO from "./VarChartOptionsVO";
 
 /**
  * Line chart widget options
  *  - To be able to configure a line chart widget
  *  - We may configure 2 vars with the same dimension
  */
-export default class VarLineChartWidgetOptionsVO extends AbstractVO {
+export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
-    public static TITLE_CODE_PREFIX: string = "VarLineChartWidgetOptions.title.";
+    public static TITLE_CODE_PREFIX: string = "VarMixedChartWidgetOptions.title.";
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
-            let options = JSON.parse(page_widget.json_options) as VarLineChartWidgetOptionsVO;
+            let options = JSON.parse(page_widget.json_options) as VarMixedChartWidgetOptionsVO;
 
             if (options && options.has_dimension && options.dimension_is_vo_field_ref && options.dimension_vo_field_ref) {
                 return {
@@ -31,7 +31,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
     }
 
     public static createDefault() {
-        return new VarLineChartWidgetOptionsVO(
+        return new VarMixedChartWidgetOptionsVO(
 
             /**
              * Paramètres du widget
@@ -79,33 +79,9 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             null,
 
             /**
-             * Var 1
+             * VarChartOptionsVO
              */
-            null,
-
-            {},
-
-            null,
-            null,
-            null,
-
-            // Scale options
-            null,
-            null,
-            null,
-
-            /**
-             * Var 2 si pas de dimension
-             */
-            null,
-
-            {},
-
-            null,
-            null,
-            null,
-
-            false,
+            [],
         );
     }
 
@@ -155,32 +131,8 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
         public filter_type?: string,
         public filter_additional_params?: string,
 
-        /**
-         * Var 1
-         */
-        public var_id_1?: number,
-
-        public filter_custom_field_filters_1?: { [field_id: string]: string },
-
-        public bg_color_1?: string,
-        public border_color_1?: string,
-        public border_width_1?: number,
-        public scale_options_x_1?: Partial<Scale>,
-        public scale_options_y_1?: Partial<Scale>,
-        public scale_options_r_1?: Partial<Scale>,
-
-        /**
-         * Var 2 si pas de dimension
-         */
-        public var_id_2?: number,
-
-        public filter_custom_field_filters_2?: { [field_id: string]: string },
-
-        public bg_color_2?: string,
-        public border_color_2?: string,
-        public border_width_2?: number,
-
-        public max_is_sum_of_var_1_and_2?: boolean, // Si on a pas de dimension, on peut choisir de comparer la part de la var 1 dans le max == var 2 (ou max = var 1 + var 2)
+        // --- Var Options We should be able to add as many vars as we can ---
+        public var_charts_options?: VarChartOptionsVO[],
     ) {
         super();
     }
@@ -191,7 +143,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_var_name_code_text(page_widget_id: number, var_id: number): string {
@@ -200,7 +152,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
@@ -210,33 +162,23 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =
-                VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX +
+                VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
                 DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
 
-        if (this.var_id_1) {
+        for (const key in this.var_charts_options) {
+            const var_chart_options = this.var_charts_options[key];
 
-            let placeholder_name_code_text_var_id_1: string = this.get_var_name_code_text(page_widget_id, this.var_id_1);
-            if (placeholder_name_code_text_var_id_1) {
+            const placeholder_name_code_text_var_id: string = this.get_var_name_code_text(
+                page_widget_id,
+                var_chart_options.var_id
+            );
 
-                res[placeholder_name_code_text_var_id_1] =
-                    VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX +
-                    '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_1 + '}}' +
-                    '.' +
-                    '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-            }
-        }
-
-        if (this.var_id_2) {
-
-            let placeholder_name_code_text_var_id_2: string = this.get_var_name_code_text(page_widget_id, this.var_id_2);
-            if (placeholder_name_code_text_var_id_2) {
-
-                res[placeholder_name_code_text_var_id_2] =
-                    VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX +
-                    '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_2 + '}}' +
+            if (placeholder_name_code_text_var_id) {
+                res[placeholder_name_code_text_var_id] =
+                    VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX +
+                    '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + var_chart_options.var_id + '}}' +
                     '.' +
                     '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
                     DefaultTranslation.DEFAULT_LABEL_EXTENSION;

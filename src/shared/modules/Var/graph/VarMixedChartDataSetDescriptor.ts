@@ -1,7 +1,6 @@
 import { LinearScale } from 'chart.js';
 import VarDataSetDescriptor from './VarDataSetDescriptor';
 
-
 interface IPlotScale extends LinearScale { }
 
 /**
@@ -12,9 +11,9 @@ interface IPlotScale extends LinearScale { }
 export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor {
 
     public scales: { y?: Partial<IPlotScale>, x?: Partial<IPlotScale>, r?: Partial<IPlotScale> } = { y: {}, x: {}, r: {} };
-    public backgrounds: string[] = [];
-    public bordercolors: string[] = [];
-    public borderwidths: number[] = [];
+    public backgroundColor: string[] = [];
+    public borderColor: string[] = [];
+    public borderWidth: number[] = [];
 
     public constructor(
         public var_name: string,
@@ -23,20 +22,20 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
         super(var_name, label_translatable_code);
     }
 
-    public set_backgrounds(backgrounds: string[]): VarMixedChartDataSetDescriptor {
-        this.backgrounds = backgrounds;
+    public set_backgrounds(backgroundColor: string[]): VarMixedChartDataSetDescriptor {
+        this.backgroundColor = backgroundColor;
 
         return this;
     }
 
-    public set_bordercolors(bordercolors: string[]): VarMixedChartDataSetDescriptor {
-        this.bordercolors = bordercolors;
+    public set_bordercolors(borderColor: string[]): VarMixedChartDataSetDescriptor {
+        this.borderColor = borderColor;
 
         return this;
     }
 
-    public set_borderwidths(borderwidths: number[]): VarMixedChartDataSetDescriptor {
-        this.borderwidths = borderwidths;
+    public set_borderwidths(borderWidth: number[]): VarMixedChartDataSetDescriptor {
+        this.borderWidth = borderWidth;
 
         return this;
     }

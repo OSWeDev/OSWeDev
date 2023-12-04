@@ -7,8 +7,8 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
 import VarMixedChartDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarMixedChartDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
@@ -16,6 +16,15 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
+
+interface IChartDataset {
+    label: string;
+    data: number[] | string[];
+    backgroundColor: string[];
+    borderColor: string[];
+    borderWidth: number[];
+    fill?: number;
+}
 
 const date_adapter = DatesChartJsAdapters.get_adapters();
 _adapters._date.override(date_adapter);
@@ -31,6 +40,7 @@ _adapters._date.override(date_adapter);
     }
 })
 export default class VarMixedChartComponent extends VueComponentBase {
+
     @ModuleVarGetter
     public isDescMode: boolean;
 
@@ -38,13 +48,13 @@ export default class VarMixedChartComponent extends VueComponentBase {
      * TODO FIXME DIRTY : cas particulier des vars_params où l'on ne veut pas trimballer le var_id, on veut juste identifier les segments sur axis
      */
     @Prop({ default: null })
-    public charts_var_params: { [chart_index: string]: VarDataBaseVO[] }; // TODO: get var_params by chart_index
+    public charts_var_params: { [chart_index: string]: VarDataBaseVO[] };
 
     @Prop({ default: null })
     public getlabel: (var_param: VarDataBaseVO) => string;
 
     @Prop({ default: null })
-    public var_dataset_descriptor: VarMixedChartDataSetDescriptor;
+    public charts_var_dataset_descriptor: { [chart_index: string]: VarMixedChartDataSetDescriptor };
 
     @Prop({ default: null })
     public options: any;
@@ -88,8 +98,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return;
         }
 
-        this.current_chart_data = this.chart_data;
-        this.current_chart_options = this.chart_options;
+        this.current_mixed_charts_data = this.chart_data;
+        this.current_mixed_charts_options = this.chart_options;
     }
 
     /**
@@ -139,25 +149,110 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private var_datas_updater() {
 
-        if ((!this.charts_var_datas) || (!this.var_dataset_descriptor)) {
+        if ((!this.charts_var_datas) || (!this.charts_var_dataset_descriptor)) {
             this.charts_var_datas = null;
             return;
         }
 
         // get all charts_var_datas (we may have many charts in one mixed chart component)
-        let res: { [chart_index: string]: { [index: string]: VarDataValueResVO } } = {};
+        const res: { [chart_index: string]: { [index: string]: VarDataValueResVO } } = {};
 
         for (const key in this.charts_var_datas) {
             const chart_var_datas = this.charts_var_datas[key];
 
             for (const i in chart_var_datas) {
-                let var_param = chart_var_datas[i];
+                const var_param = chart_var_datas[i];
 
                 res[key][var_param.index] = VarsClientController.cached_var_datas[var_param.index];
             }
         }
 
         this.charts_var_datas = res;
+    }
+
+    /**
+     * get all charts_var_datas (we may have many charts in one mixed chart component)
+     *
+     * @returns {{ [chart_index: string]: IChartDataset }}
+     */
+    private get_charts_datasets(): { [chart_index: string]: IChartDataset } {
+        const datasets: { [chart_index: string]: IChartDataset } = {};
+
+        for (const chart_index in this.charts_var_params) {
+
+            const data: {
+                data: string[] | number[];
+                backgroundColor: string[];
+                borderColor: string[];
+                borderWidth: number[];
+                label: string;
+            } = this.get_chart_dataset_by_chart_index(chart_index);
+
+            datasets[chart_index] = data;
+        }
+
+        return datasets;
+    }
+
+    /**
+     * Get chart data by the given chart_index
+     *
+     * @param {string} chart_index
+     * @returns {(number[] | string[])}
+     */
+    private get_chart_dataset_by_chart_index(chart_index: string): IChartDataset {
+        const chart_var_dataset_descriptor = this.charts_var_dataset_descriptor[chart_index];
+        const chart_var_params = this.charts_var_params[chart_index];
+        const chart_var_datas = this.charts_var_datas[chart_index];
+
+        const data: number[] = [];
+        const backgroundColor = [];
+        const borderColor = [];
+        const borderWidth = [];
+
+        if (!chart_var_params || !chart_var_datas) {
+            return null;
+        }
+
+        for (const var_key in chart_var_params) {
+            const var_param: VarDataBaseVO = chart_var_params[var_key];
+
+            data.push(chart_var_datas[var_param.index].value);
+
+            if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[var_key]) {
+                backgroundColor.push(chart_var_dataset_descriptor.backgroundColor[var_key]);
+            } else if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[0]) {
+                backgroundColor.push(chart_var_dataset_descriptor.backgroundColor[0]);
+            } else {
+                backgroundColor.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
+            }
+
+            if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.borderColor[var_key]) {
+                borderColor.push(chart_var_dataset_descriptor.borderColor[var_key]);
+            } else if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.borderColor[0]) {
+                borderColor.push(chart_var_dataset_descriptor.borderColor[0]);
+            } else {
+                borderColor.push('#fff');
+            }
+
+            if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.borderWidth[var_key]) {
+                borderWidth.push(chart_var_dataset_descriptor.borderWidth[var_key]);
+            } else if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.borderWidth[0]) {
+                borderWidth.push(chart_var_dataset_descriptor.borderWidth[0]);
+            } else {
+                borderWidth.push(2);
+            }
+        }
+
+        return {
+            label: (!!chart_var_dataset_descriptor.label_translatable_code) ?
+                this.t(chart_var_dataset_descriptor.label_translatable_code) :
+                this.t(VarsController.get_translatable_name_code(chart_var_dataset_descriptor.var_name)),
+            backgroundColor: backgroundColor,
+            borderColor: borderColor,
+            borderWidth: borderWidth,
+            data: data,
+        };
     }
 
     private async mounted() {
@@ -169,20 +264,32 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private async destroyed() {
 
-        await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
+        for (let chart_key in this.charts_var_params) {
+            let chart_var_params = this.charts_var_params[chart_key];
+
+            await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
+        }
     }
 
     get all_data_loaded(): boolean {
 
-        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
+        if ((!this.charts_var_params) || (!this.charts_var_params.length) || (!this.charts_var_dataset_descriptor)) {
             return false;
         }
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+        for (let chart_key in this.charts_var_params) {
+            let chart_var_params = this.charts_var_params[chart_key];
 
-            if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
-                return false;
+            for (let i in chart_var_params) {
+                let var_param: VarDataBaseVO = chart_var_params[i];
+
+                if (
+                    (!this.charts_var_datas[chart_key]) ||
+                    (!this.charts_var_datas[chart_key][var_param.index]) ||
+                    (typeof this.charts_var_datas[chart_key][var_param.index].value === 'undefined')
+                ) {
+                    return false;
+                }
             }
         }
         return true;
@@ -252,12 +359,17 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return;
         }
 
-        // sur chaque dimension
-        if ((!!old_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
-        }
-        if ((!!new_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            await VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
+        for (let chart_key in this.charts_var_params) {
+            let chart_var_params = this.charts_var_params[chart_key];
+
+            // sur chaque dimension
+            if ((!!old_var_dataset_descriptor) && (chart_var_params) && chart_var_params.length) {
+                await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
+            }
+
+            if ((!!new_var_dataset_descriptor) && (chart_var_params) && chart_var_params.length) {
+                await VarsClientController.getInstance().registerParams(chart_var_params, this.varUpdateCallbacks);
+            }
         }
 
         // this.onchange_all_data_loaded();
@@ -290,7 +402,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
                     self.$modal.show(
                         VarDatasRefsParamSelectComponent,
-                        { var_params: this.var_params },
+                        { var_params: this.charts_var_params },
                         {
                             width: 465,
                             height: 'auto',
@@ -304,64 +416,18 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     /**
-     * TODO: Build datasets by chart_index
+     * Build datasets by chart_index @see https://www.chartjs.org/docs/latest/charts/mixed.html#mixed-chart-types
+     *
+     * @returns {IChartDataset[]}
      */
-    get datasets(): any[] {
-
-        let res: any[] = [];
-
+    get datasets(): IChartDataset[] {
         if (!this.all_data_loaded) {
             return null;
         }
 
-        let dataset_datas: number[] = [];
-        let backgrounds: string[] = [];
-        let bordercolors: string[] = [];
-        let borderwidths: number[] = [];
-        for (let j in this.var_params) {
-            let var_param: VarDataBaseVO = this.var_params[j];
+        const datasets = this.get_charts_datasets();
 
-            // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
-            dataset_datas.push(this.var_datas[var_param.index].value);
-
-            if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
-                backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
-            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[0]) {
-                backgrounds.push(this.var_dataset_descriptor.backgrounds[0]);
-            } else {
-                backgrounds.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
-            }
-
-            if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[j]) {
-                bordercolors.push(this.var_dataset_descriptor.bordercolors[j]);
-            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[0]) {
-                bordercolors.push(this.var_dataset_descriptor.bordercolors[0]);
-            } else {
-                bordercolors.push('#fff');
-            }
-
-            if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[j]) {
-                borderwidths.push(this.var_dataset_descriptor.borderwidths[j]);
-            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[0]) {
-                borderwidths.push(this.var_dataset_descriptor.borderwidths[0]);
-            } else {
-                borderwidths.push(2);
-            }
-        }
-
-        let dataset = {
-            label: (!!this.var_dataset_descriptor.label_translatable_code) ?
-                this.t(this.var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsController.get_translatable_name_code(this.var_dataset_descriptor.var_name)),
-            data: dataset_datas,
-            backgroundColor: backgrounds,
-            borderColor: bordercolors,
-            borderWidth: borderwidths,
-        };
-
-        res.push(dataset);
-
-        return res;
+        return Object.values(datasets);
     }
 
     private render_chart_js() {
@@ -414,10 +480,19 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     get labels(): string[] {
-        let res = [];
+        const res = [];
 
-        for (let i in this.var_params) {
-            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+        for (const chart_key in this.charts_var_params) {
+            const chart_var_params = this.charts_var_params[chart_key];
+
+            for (const i in chart_var_params) {
+                const var_param: VarDataBaseVO = chart_var_params[i];
+
+                res.push(this.getlabel ?
+                    this.getlabel(var_param) :
+                    this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id))
+                );
+            }
         }
 
         return res;

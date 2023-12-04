@@ -1,0 +1,75 @@
+.var_chart_options_item_component 
+    .var_chart_options_item_component_wrapper
+        .options_separator_lvl2 {{ label('var_chart_options_item_component.separator.var_options') }}
+        .var_name 
+            .input_label {{ label('var_chart_options_item_component.var_name') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="selected_var_name"
+                    :options="var_names"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+                    
+                    name="var_name_selector"
+                )
+                    .lang_selector_option(slot="noOptions") -
+
+        .bg_color
+            .explication {{ label("var_chart_options_item_component.bg_color") }}
+            color-picker(v-model="bg_color" @change='handle_bg_color_change')
+
+        .border_color
+            .explication {{ label("var_chart_options_item_component.border_color") }}
+            color-picker(v-model="border_color" @change='handle_border_color_change')
+
+        .border_width
+            .input_label {{ label('var_chart_options_item_component.border_width') }}
+            .input_wrapper
+                input(
+                    v-model="border_width"
+                    type="number"
+                )
+        
+        .scale_options_x 
+            .input_label {{ label('var_chart_options_item_component.scale_options_x') }}
+            .input_wrapper
+                Chartjsscaleoptionscomponent(
+                    @on_change="handle_scale_options_x_change"
+                    :options="scale_options_x"
+                )
+                
+        .scale_options_y 
+            .input_label {{ label('var_chart_options_item_component.scale_options_y') }}
+            .input_wrapper
+                Chartjsscaleoptionscomponent(
+                    @on_change="handle_scale_options_y_change"
+                    :options="scale_options_y"
+                )
+
+        template(v-if='fie_could_get_custom_filter && fields_that_could_get_custom_filter.length')
+            .fields_that_could_get_custom_filter
+                template(v-for='fieldlds_that_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                    .field_that_could_get_custom_filter
+                        .field_id {{ field_that_could_get_custom_filter }}
+                        .custom_filter 
+                            input(
+                                type="text"
+                                v-model="custom_filter_names[field_that_could_get_custom_filter]"
+                                :disabled="true"
+                            )
+                        .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                            template(v-for='custom_filter in get_custom_filters')
+                                .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+

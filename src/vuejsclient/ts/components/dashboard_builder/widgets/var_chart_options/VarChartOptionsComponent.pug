@@ -1,24 +1,24 @@
-.var_line_chart_widget_options_component
+.var_chart_options_component
 
     template(v-if='widget_options')
 
-        .options_separator_lvl1 {{ label('var_line_chart_widget_options_component.separator.widget_options') }}
+        .options_separator_lvl1 {{ label('var_chart_options_component.separator.widget_options') }}
         .widget_title(v-if='title_name_code_text')
-            .widget_title_label {{ label('var_line_chart_widget_options_component.widget_title.title_name_code_text') }}
+            .widget_title_label {{ label('var_chart_options_component.widget_title.title_name_code_text') }}
             .widget_title_wrapper
                 Inlinetranslatabletext(
                     :code_text="title_name_code_text" 
                     :is_editable="true")
         .bg_color
-            .explication {{ label("var_line_chart_widget_options_component.bg_color") }}
+            .explication {{ label("var_chart_options_component.bg_color") }}
             color-picker(v-model="bg_color" @change='throttled_update_colors')
 
 
-        .options_separator_lvl1 {{ label('var_line_chart_widget_options_component.separator.chart_options') }}
+        .options_separator_lvl1 {{ label('var_chart_options_component.separator.chart_options') }}
 
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.chart_title_options') }}
+        .options_separator_lvl2 {{ label('var_chart_options_component.separator.chart_title_options') }}
         .field_title_display
-            .input_label {{ label('var_line_chart_widget_options_component.title_display') }}
+            .input_label {{ label('var_chart_options_component.title_display') }}
             .input_wrapper
                 toggle-button(
                     @change="switch_title_display" 
@@ -29,26 +29,26 @@
                 )
         template(v-if='title_display')
             .title_font_color
-                .explication {{ label("var_line_chart_widget_options_component.title_font_color") }}
+                .explication {{ label("var_chart_options_component.title_font_color") }}
                 color-picker(v-model="title_font_color" @change='throttled_update_colors')
             .title_font_size
-                .input_label {{ label('var_line_chart_widget_options_component.title_font_size') }}
+                .input_label {{ label('var_chart_options_component.title_font_size') }}
                 .input_wrapper
                     input(
                         type="number"
                         v-model="title_font_size"
                     )
             .title_padding
-                .input_label {{ label('var_line_chart_widget_options_component.title_padding') }}
+                .input_label {{ label('var_chart_options_component.title_padding') }}
                 .input_wrapper
                     input(
                         type="number"
                         v-model="title_padding"
                     )
         
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.chart_legend_options') }}
+        .options_separator_lvl2 {{ label('var_chart_options_component.separator.chart_legend_options') }}
         .field_legend_display
-            .input_label {{ label('var_line_chart_widget_options_component.legend_display') }}
+            .input_label {{ label('var_chart_options_component.legend_display') }}
             .input_wrapper
                 toggle-button(
                     @change="switch_legend_display" 
@@ -59,7 +59,7 @@
                 )
         template(v-if='legend_display')
             .legend_position 
-                .input_label {{ label('var_line_chart_widget_options_component.legend_position') }}
+                .input_label {{ label('var_chart_options_component.legend_position') }}
                 .input_wrapper
                     multiselect.var_name_selector(
                         :preselect-first="false"
@@ -82,31 +82,31 @@
                         name="legend_position_selector_1"
                     )
             .legend_font_color
-                .explication {{ label("var_line_chart_widget_options_component.legend_font_color") }}
+                .explication {{ label("var_chart_options_component.legend_font_color") }}
                 color-picker(v-model="legend_font_color" @change='throttled_update_colors')
             .legend_font_size
-                .input_label {{ label('var_line_chart_widget_options_component.legend_font_size') }}
+                .input_label {{ label('var_chart_options_component.legend_font_size') }}
                 .input_wrapper
                     input(
                         type="number"
                         v-model="legend_font_size"
                     )
             .legend_box_width
-                .input_label {{ label('var_line_chart_widget_options_component.legend_box_width') }}
+                .input_label {{ label('var_chart_options_component.legend_box_width') }}
                 .input_wrapper
                     input(
                         type="number"
                         v-model="legend_box_width"
                     )
             .legend_padding
-                .input_label {{ label('var_line_chart_widget_options_component.legend_padding') }}
+                .input_label {{ label('var_chart_options_component.legend_padding') }}
                 .input_wrapper
                     input(
                         type="number"
                         v-model="legend_padding"
                     )
             .field_legend_use_point_style
-                .input_label {{ label('var_line_chart_widget_options_component.legend_use_point_style') }}
+                .input_label {{ label('var_chart_options_component.legend_use_point_style') }}
                 .input_wrapper
                     toggle-button(
                         @change="switch_legend_use_point_style" 
@@ -116,37 +116,37 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.chart_render_options') }}
+        .options_separator_lvl2 {{ label('var_chart_options_component.separator.chart_render_options') }}
         .cutout_percentage
-            .input_label {{ label('var_line_chart_widget_options_component.cutout_percentage') }}
+            .input_label {{ label('var_chart_options_component.cutout_percentage') }}
             .input_wrapper
                 input(
                     type="number"
                     v-model="cutout_percentage"
-                    v-tooltip="label('var_line_chart_widget_options_component.cutout_percentage.tooltip')"
+                    v-tooltip="label('var_chart_options_component.cutout_percentage.tooltip')"
                 )
         .rotation
-            .input_label {{ label('var_line_chart_widget_options_component.rotation') }}
+            .input_label {{ label('var_chart_options_component.rotation') }}
             .input_wrapper
                 input(
                     type="number"
                     v-model="rotation"
-                    v-tooltip="label('var_line_chart_widget_options_component.rotation.tooltip')"
+                    v-tooltip="label('var_chart_options_component.rotation.tooltip')"
                 )
         .circumference
-            .input_label {{ label('var_line_chart_widget_options_component.circumference') }}
+            .input_label {{ label('var_chart_options_component.circumference') }}
             .input_wrapper
                 input(
                     type="number"
                     v-model="circumference"
-                    v-tooltip="label('var_line_chart_widget_options_component.circumference.tooltip')"
+                    v-tooltip="label('var_chart_options_component.circumference.tooltip')"
                 )
 
-        .options_separator_lvl1 {{ label('var_line_chart_widget_options_component.separator.datas_options') }}
+        .options_separator_lvl1 {{ label('var_chart_options_component.separator.datas_options') }}
 
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.datas_dimension_options') }}
+        .options_separator_lvl2 {{ label('var_chart_options_component.separator.datas_dimension_options') }}
         .field_has_dimension
-            .input_label {{ label('var_line_chart_widget_options_component.has_dimension') }}
+            .input_label {{ label('var_chart_options_component.has_dimension') }}
             .input_wrapper
                 toggle-button(
                     @change="switch_has_dimension" 
@@ -158,7 +158,7 @@
 
         template(v-if='has_dimension')
             .field_dimension_is_vo_field_ref
-                .input_label {{ label('var_line_chart_widget_options_component.dimension_is_vo_field_ref') }}
+                .input_label {{ label('var_chart_options_component.dimension_is_vo_field_ref') }}
                 .input_wrapper
                     toggle-button(
                         @change="switch_dimension_is_vo_field_ref" 
@@ -170,7 +170,7 @@
             
             template(v-if='dimension_is_vo_field_ref')
                 .field_ref
-                    .input_label {{ label('var_line_chart_widget_options_component.dimension_vo_field_ref') }}
+                    .input_label {{ label('var_chart_options_component.dimension_vo_field_ref') }}
                     .input_wrapper
                         Singlevofieldrefholdercomponent(
                             :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
@@ -179,7 +179,7 @@
 
             template(v-else)
                 .dimension_custom_filter_name
-                    .field_id {{ label('var_line_chart_widget_options_component.dimension_custom_filter_name') }}
+                    .field_id {{ label('var_chart_options_component.dimension_custom_filter_name') }}
                     .custom_filter 
                         input(
                             type="text"
@@ -191,7 +191,7 @@
                             .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
                             
                 .dimension_custom_filter_segment_type 
-                    .input_label {{ label('var_line_chart_widget_options_component.dimension_custom_filter_segment_type') }}
+                    .input_label {{ label('var_chart_options_component.dimension_custom_filter_segment_type') }}
                     .input_wrapper
                         multiselect.var_name_selector(
                             :preselect-first="false"
@@ -215,17 +215,17 @@
                         )
 
             .max_dimension_values
-                .input_label {{ label('var_line_chart_widget_options_component.max_dimension_values') }}
+                .input_label {{ label('var_chart_options_component.max_dimension_values') }}
                 .input_wrapper
                     input(
                         type="number"
                         v-model="max_dimension_values"
-                        v-tooltip="label('var_line_chart_widget_options_component.max_dimension_values.tooltip')"
+                        v-tooltip="label('var_chart_options_component.max_dimension_values.tooltip')"
                     )
 
             template(v-if='dimension_is_vo_field_ref')
                 .field_ref
-                    .input_label {{ label('var_line_chart_widget_options_component.sort_dimension_by_vo_field_ref') }}
+                    .input_label {{ label('var_chart_options_component.sort_dimension_by_vo_field_ref') }}
                     .input_wrapper
                         Singlevofieldrefholdercomponent(
                             :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
@@ -233,7 +233,7 @@
                         )
 
             .field_sort_dimension_by_asc
-                .input_label {{ label('var_line_chart_widget_options_component.sort_dimension_by_asc') }}
+                .input_label {{ label('var_chart_options_component.sort_dimension_by_asc') }}
                 .input_wrapper
                     toggle-button(
                         @change="switch_sort_dimension_by_asc" 
@@ -243,9 +243,9 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.datas_filter_options') }}
+        .options_separator_lvl2 {{ label('var_chart_options_component.separator.datas_filter_options') }}
         .widget_filter_options(v-if='title_name_code_text && widget_options')
-            .widget_filter_options_label {{ label('var_line_chart_widget_options_component.widget_filter_options') }}
+            .widget_filter_options_label {{ label('var_chart_options_component.widget_filter_options') }}
             .widget_filter_options_wrapper
                 Widgetfilteroptionscomponent(
                     :actual_additional_options="widget_options.filter_additional_params"
@@ -254,9 +254,9 @@
                     @update_filter_type="update_filter_type"
                 )
 
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.var_1_options') }}
+        .options_separator_lvl2 {{ label('var_chart_options_component.separator.var_1_options') }}
         .var_name_1 
-            .input_label {{ label('var_line_chart_widget_options_component.var_name_1') }}
+            .input_label {{ label('var_chart_options_component.var_name_1') }}
             .input_wrapper
                 multiselect.var_name_selector(
                     :preselect-first="false"
@@ -281,20 +281,20 @@
                     .lang_selector_option(slot="noOptions") -
 
         .var_title_1(v-if='page_widget && page_widget.id && widget_options && widget_options.var_id_1 && widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)')
-            .var_title_1_label {{ label('var_line_chart_widget_options_component.var_title_1.title_name_code_text') }}
+            .var_title_1_label {{ label('var_chart_options_component.var_title_1.title_name_code_text') }}
             .var_title_1_wrapper
                 Inlinetranslatabletext(
                     :code_text="widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)" 
                     :is_editable="true")
                     
         .bg_color_1
-            .explication {{ label("var_line_chart_widget_options_component.bg_color_1") }}
+            .explication {{ label("var_chart_options_component.bg_color_1") }}
             color-picker(v-model="bg_color_1" @change='throttled_update_colors')
         .border_color_1
-            .explication {{ label("var_line_chart_widget_options_component.border_color_1") }}
+            .explication {{ label("var_chart_options_component.border_color_1") }}
             color-picker(v-model="border_color_1" @change='throttled_update_colors')
         .border_width_1
-            .input_label {{ label('var_line_chart_widget_options_component.border_width_1') }}
+            .input_label {{ label('var_chart_options_component.border_width_1') }}
             .input_wrapper
                 input(
                     type="number"
@@ -302,7 +302,7 @@
                 )
         
         .scale_x_axis_options_1 
-            .input_label {{ label('var_line_chart_widget_options_component.scale_x_axis_options_1') }}
+            .input_label {{ label('var_chart_options_component.scale_x_axis_options_1') }}
             .input_wrapper
                 Chartjsscaleoptionscomponent(
                     :options="scale_options_x_1"
@@ -310,7 +310,7 @@
                 )
                 
         .scale_y_axis_options_1 
-            .input_label {{ label('var_line_chart_widget_options_component.scale_y_axis_options_1') }}
+            .input_label {{ label('var_chart_options_component.scale_y_axis_options_1') }}
             .input_wrapper
                 Chartjsscaleoptionscomponent(
                     :options="scale_options_y_1"
@@ -333,9 +333,9 @@
                                 .custom_filter.clickable(@click='change_custom_filter_1(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
         template(v-if='!has_dimension')
-            .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.var_2_options') }}
+            .options_separator_lvl2 {{ label('var_chart_options_component.separator.var_2_options') }}
             .var_name_2 
-                .input_label {{ label('var_line_chart_widget_options_component.var_name_2') }}
+                .input_label {{ label('var_chart_options_component.var_name_2') }}
                 .input_wrapper
                     multiselect.var_name_selector(
                         :preselect-first="false"
@@ -359,13 +359,13 @@
                     )
                         .lang_selector_option(slot="noOptions") -
             .bg_color_2
-                .explication {{ label("var_line_chart_widget_options_component.bg_color_2") }}
+                .explication {{ label("var_chart_options_component.bg_color_2") }}
                 color-picker(v-model="bg_color_2" @change='throttled_update_colors')
             .border_color_2
-                .explication {{ label("var_line_chart_widget_options_component.border_color_2") }}
+                .explication {{ label("var_chart_options_component.border_color_2") }}
                 color-picker(v-model="border_color_2" @change='throttled_update_colors')
             .border_width_2
-                .input_label {{ label('var_line_chart_widget_options_component.border_width_2') }}
+                .input_label {{ label('var_chart_options_component.border_width_2') }}
                 .input_wrapper
                     input(
                         type="number"
@@ -387,7 +387,7 @@
                                     .custom_filter.clickable(@click='change_custom_filter_2(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
             .field_max_is_sum_of_var_1_and_2
-                .input_label {{ label('var_line_chart_widget_options_component.max_is_sum_of_var_1_and_2') }}
+                .input_label {{ label('var_chart_options_component.max_is_sum_of_var_1_and_2') }}
                 .input_wrapper
                     toggle-button(
                         @change="switch_max_is_sum_of_var_1_and_2" 

@@ -211,7 +211,8 @@ export default class VarsClientController {
      */
     public async unRegisterParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
-        callbacks: { [cb_uid: number]: VarUpdateCallback } = null) {
+        callbacks: { [cb_uid: number]: VarUpdateCallback } = null
+    ) {
 
         let needs_unregistration: { [index: string]: VarDataBaseVO } = {};
 

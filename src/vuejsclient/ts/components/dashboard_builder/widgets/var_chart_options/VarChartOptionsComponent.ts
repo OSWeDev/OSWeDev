@@ -1,28 +1,28 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import VarLineChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
-import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
-import VueComponentBase from '../../../../VueComponentBase';
-import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
-import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import './VarLineChartWidgetOptionsComponent.scss';
 import { Scale } from 'chart.js';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import VarLineChartWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
+import VueComponentBase from '../../../VueComponentBase';
+import SingleVoFieldRefHolderComponent from '../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
+import ChartJsScaleOptionsComponent from '../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
+import WidgetFilterOptionsComponent from '../var_widget/options/filters/WidgetFilterOptionsComponent';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import './VarChartOptionsComponent.scss';
 
 @Component({
-    template: require('./VarLineChartWidgetOptionsComponent.pug'),
+    template: require('./VarChartOptionsComponent.pug'),
     components: {
         Chartjsscaleoptionscomponent: ChartJsScaleOptionsComponent,
         Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent,
@@ -30,7 +30,7 @@ import { Scale } from 'chart.js';
         Inlinetranslatabletext: InlineTranslatableText,
     }
 })
-export default class VarLineChartWidgetOptionsComponent extends VueComponentBase {
+export default class VarChartOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -92,14 +92,14 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     private widget_options: VarLineChartWidgetOptionsVO = null;
 
     private dimension_custom_filter_segment_types: string[] = [
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
+        this.label('VarChartOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND),
     ];
 
     private scale_types_options: string[] = [
