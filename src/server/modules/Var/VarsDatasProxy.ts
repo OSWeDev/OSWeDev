@@ -185,25 +185,32 @@ export default class VarsDatasProxy {
                 return null;
             }
 
+            let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
             for (let i in indexs) {
                 let index = indexs[i];
 
-                let node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), true);
+                // On //ise et on indique qu'on doit refaire un check en base, pour être sûr de ne pas avoir de données en base qui ne sont pas dans l'arbre
+                //  En fait ya un vrai point de conf ici / perf : est-ce qu'on impose de toujours rechecker en base ou pas ? si non on risque de refaire des calculs parfois en double, qui sont couteux
+                //  si oui on charge la base pour rien souvent
+                await promise_pipeline.push((async () => {
+                    let node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
 
-                if ((!node) || (!node.var_data)) {
-                    ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
-                    continue;
-                }
+                    if ((!node) || (!node.var_data)) {
+                        ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);
+                        return;
+                    }
 
-                // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
-                // Car le noeud pourrait ne pas être notifié sinon
-                // Si le noeud est déjà notifiable, on peut le notifier aussi pour gagner du temps
-                // Or tous les noeuds node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_5_NOTIFYING_END] sont is_notifiable
-                if (node.is_notifiable) {
-                    vars_to_notify.push(node.var_data as T);
-                }
+                    // Si le noeud est déjà en cours de notif ou déjà notifié, on doit notifier manuellement à cette étape
+                    // Car le noeud pourrait ne pas être notifié sinon
+                    // Si le noeud est déjà notifiable, on peut le notifier aussi pour gagner du temps
+                    // Or tous les noeuds node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_5_NOTIFYING_END] sont is_notifiable
+                    if (node.is_notifiable) {
+                        vars_to_notify.push(node.var_data as T);
+                    }
+                }));
             }
 
+            await promise_pipeline.end();
             resolve(vars_to_notify);
         });
     }
