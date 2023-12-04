@@ -1,7 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -63,18 +62,17 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
             return null;
         }
 
-        this.file = this.file_id ?
-            await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo() :
-            await query(FileVO.API_TYPE_ID).filter_by_text_eq('path', this.file_path).set_sort(new SortByVO(FileVO.API_TYPE_ID, 'id', false)).set_limit(1).select_vo();
+        if (this.file_id) {
+            let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
 
-        if (this.file) {
-            this.path = this.file.path;
-            this.file_name = decodeURIComponent(this.path.substring(this.path.lastIndexOf('/') + 1));
-            this.file_name_no_extension = this.file_name.substring(0, this.file_name.lastIndexOf('.'));
-
-
+            if (file) {
+                this.path = file.path;
+            }
         } else {
             this.path = this.file_path;
+        }
+
+        if (this.path) {
             this.file_name = decodeURIComponent(this.path.substring(this.path.lastIndexOf('/') + 1));
             this.file_name_no_extension = this.file_name.substring(0, this.file_name.lastIndexOf('.'));
         }
