@@ -34,6 +34,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
+import GPTServerController from '../GPT/GPTServerController';
 import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -451,9 +452,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     ) {
         let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
-            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
-                GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
-                uid,
+
+            //TODO FIXME simple test remplacer par un assistant dédié ( et lié au projet ) en gérant correctement les fichiers / captures, ou juste revenir à l'ancienne version
+            let gtp_4_brief_msg = await GPTServerController.askAssistant(
+                'g-4dPuTN6RY-celia-c-dms-mail-writer',
                 'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
                 'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
@@ -462,9 +464,26 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 ' - Message : ' + feedback.message + ' ' +
                 ' - Infos de l\'utilisateur : ' + user_infos +
                 ' - feedback_infos : ' + feedback_infos +
-                ' - console_logs_errors : ' + console_logs_errors
-                // ' - api_logs : ' + api_logs
-            ));
+                ' - console_logs_errors : ' + console_logs_errors);
+            let gtp_4_brief = {
+                content: gtp_4_brief_msg
+            };
+
+
+            // let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
+            //     GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+            //     uid,
+            //     'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
+            //     // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
+            //     'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+            //     'Ci-après les éléments constituant le formulaire de contact client : {' +
+            //     ' - Titre du formulaire : ' + feedback.title + ' ' +
+            //     ' - Message : ' + feedback.message + ' ' +
+            //     ' - Infos de l\'utilisateur : ' + user_infos +
+            //     ' - feedback_infos : ' + feedback_infos +
+            //     ' - console_logs_errors : ' + console_logs_errors
+            //     // ' - api_logs : ' + api_logs
+            // ));
             let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
             if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
                 let teamsWebhookContent = new TeamsWebhookContentVO();

@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.31.0-rc.2",
+    "version": "0.31.0-rc.2-b1",
     "description": "",
     "repository": {
         "type": "git",
@@ -99,7 +99,7 @@
         "node-powershell": "4.0.0",
         "nodemailer": "4.6.5",
         "one-colorpicker": "1.0.12",
-        "openai": "4.12.1",
+        "openai": "4.20.1",
         "oswedev-autodetect-decoder-stream": "2.0.4",
         "oswedev-connect-pg-simple": "7.0.1",
         "oswedev-trello-node-api": "0.0.11",
