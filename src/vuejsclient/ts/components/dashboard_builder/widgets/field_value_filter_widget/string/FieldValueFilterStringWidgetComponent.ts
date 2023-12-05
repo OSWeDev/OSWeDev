@@ -391,7 +391,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     @Watch('tmp_active_filter_options_lvl2')
     private onchange_tmp_active_filter_options_lvl2() {
 
-        if (!this.widget_options) {
+        if (!this.widget_options || !this.vo_field_ref_lvl2) {
             return;
         }
 
@@ -652,13 +652,21 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
      * Toggle Advanced Filters
      * Do toggle the advanced option of string filter
      */
-    private toggle_advanced_filters() {
+    private toggle_advanced_filters(do_update_visible_options: boolean = true) {
         this.is_advanced_filters = !this.is_advanced_filters;
         this.force_filter_change = true;
 
-        this.tmp_active_filter_options = null;
-        this.active_option_lvl1 = {};
-        this.tmp_active_filter_options_lvl2 = {};
+        if (this.tmp_active_filter_options?.length > 0) {
+            this.tmp_active_filter_options = null;
+        }
+
+        if (this.active_option_lvl1 && Object.keys(this.active_option_lvl1).length > 0) {
+            this.active_option_lvl1 = {};
+        }
+
+        if (this.tmp_active_filter_options_lvl2 && Object.keys(this.tmp_active_filter_options_lvl2).length > 0) {
+            this.tmp_active_filter_options_lvl2 = {};
+        }
 
         // revove the active filter from context
         if (!!this.vo_field_ref) {
@@ -667,7 +675,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         this.advanced_string_filters = [new AdvancedStringFilter()];
 
-        this.throttled_update_visible_options();
+        if (do_update_visible_options) {
+            this.throttled_update_visible_options();
+        }
     }
 
     private query_update_visible_options(_query: string) {
@@ -807,7 +817,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         if (this.advanced_mode && !this.is_advanced_filters) {
-            this.toggle_advanced_filters();
+            this.toggle_advanced_filters(false);
         }
 
         // case when not currently initializing
@@ -1163,7 +1173,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             if (this.is_advanced_filters) {
                 this.is_advanced_filters = false;
             }
-            if (this.tmp_active_filter_options) {
+            if (this.tmp_active_filter_options?.length > 0) {
                 this.tmp_active_filter_options = null;
                 this.active_option_lvl1 = {};
             }
@@ -1183,7 +1193,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.is_advanced_filters = true;
             }
 
-            if (this.tmp_active_filter_options) {
+            if (this.tmp_active_filter_options?.length > 0) {
                 this.tmp_active_filter_options = null;
                 this.active_option_lvl1 = {};
             }
@@ -1297,7 +1307,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private handle_change_filter_opt_input(input: any, opt: DataFilterOption) {
         let tmp_active_filter_options: DataFilterOption[] = cloneDeep(this.tmp_active_filter_options);
 
-        if (!tmp_active_filter_options || !this.can_select_multiple) {
+        if (!tmp_active_filter_options?.length || !this.can_select_multiple) {
             tmp_active_filter_options = [];
         }
 
