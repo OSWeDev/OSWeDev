@@ -31,7 +31,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private static instance: ModuleGPTServer = null;
 
-    private openai = null;
+    public openai = null;
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {

@@ -1,54 +1,55 @@
-import OpenAI from 'openai';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
+// import OpenAI from 'openai';
+// import ThreadHandler from '../../../shared/tools/ThreadHandler';
+// import ModuleGPTServer from './ModuleGPTServer';
 
-export default class GPTServerController {
+// export default class GPTServerController {
 
-    public static async getAssistant(assistant_id: string): Promise<OpenAI.Beta.Assistant> {
+//     public static async getAssistant(assistant_id: string): Promise<OpenAI.Beta.Assistant> {
 
-        return await OpenAI.Beta.Assistants.retrieve(assistant_id);
-    }
+//         return await ModuleGPTServer.getInstance().openai.Beta.Assistants.prototype.retrieve(assistant_id);
+//     }
 
-    public static async askAssistant(assistant_id: string, question: string): Promise<string> {
+//     public static async askAssistant(assistant_id: string, question: string): Promise<string> {
 
-        let assistant: OpenAI.Beta.Assistant = await GPTServerController.getAssistant(assistant_id);
+//         let assistant: OpenAI.Beta.Assistant = await GPTServerController.getAssistant(assistant_id);
 
-        let thread = await OpenAI.Beta.Threads.create();
+//         let thread = await ModuleGPTServer.getInstance().openai.Beta.Threads.prototype.create();
 
-        await OpenAI.Beta.Threads.Messages.create(
-            thread.id,
-            "user",
-            question
-        );
+//         await ModuleGPTServer.getInstance().openai.Beta.Threads.Messages.prototype.create(
+//             thread.id,
+//             "user",
+//             question
+//         );
 
-        let run = await OpenAI.Beta.Threads.Runs.create(
-            thread.id,
-            assistant.id
-            // ,
-            // instructions = "Please address the user as Jane Doe. The user has a premium account."
-        );
+//         let run = await ModuleGPTServer.getInstance().openai.Beta.Threads.Runs.prototype.create(
+//             thread.id,
+//             assistant.id
+//             // ,
+//             // instructions = "Please address the user as Jane Doe. The user has a premium account."
+//         );
 
-        while (run.status != "completed") {
-            await ThreadHandler.sleep(100, 'GPTServerController.askAssistant');
-            run = await OpenAI.Beta.Threads.Runs.retrieve(
-                thread.id,
-                run.id
-            );
-        }
+//         while (run.status != "completed") {
+//             await ThreadHandler.sleep(100, 'GPTServerController.askAssistant');
+//             run = await ModuleGPTServer.getInstance().openai.Beta.Threads.Runs.prototype.retrieve(
+//                 thread.id,
+//                 run.id
+//             );
+//         }
 
-        let messages = await OpenAI.Beta.Threads.Messages.list(
-            thread.id
-        );
+//         let messages = await ModuleGPTServer.getInstance().openai.Beta.Threads.Messages.prototype.list(
+//             thread.id
+//         );
 
-        let res: string = "";
+//         let res: string = "";
 
-        for (let i in messages.data) {
-            let message = messages.data[i];
+//         for (let i in messages.data) {
+//             let message = messages.data[i];
 
-            if (message.role == "assistant") {
-                res += message.text;
-            }
-        }
+//             if (message.role == "assistant") {
+//                 res += message.text;
+//             }
+//         }
 
-        return res;
-    }
-}
+//         return res;
+//     }
+// }
