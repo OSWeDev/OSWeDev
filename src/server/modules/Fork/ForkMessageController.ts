@@ -128,6 +128,12 @@ export default class ForkMessageController {
         let self = ForkMessageController;
 
         stacked_msg_waiting.forEach((msg_wrapper: IForkMessageWrapper) => {
+
+            if ((!msg_wrapper.sendHandle) || (!msg_wrapper.sendHandle.send) || (!msg_wrapper.sendHandle.connected)) {
+                ConsoleHandler.error('ForkMessageController.retry: sendHandle is not connected - aborting retry');
+                return;
+            }
+
             msg_wrapper.sendHandle.send(msg_wrapper.message, (error: Error) => {
                 self.handle_send_error(msg_wrapper, error);
             });

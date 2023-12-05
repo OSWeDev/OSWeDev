@@ -180,6 +180,7 @@ export default abstract class GeneratorBase {
     public async generate() {
 
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {

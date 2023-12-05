@@ -64,6 +64,7 @@ import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../shared/tools/PromiseTools';
+import ThreadHandler from '../../shared/tools/ThreadHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
@@ -125,6 +126,7 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
 
 export default abstract class ModuleServiceBase {
 
@@ -239,8 +241,8 @@ export default abstract class ModuleServiceBase {
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
         // On init le lien de db dans ces modules
-        ModuleDBService.getInstance(db);
-        ModuleTableDBService.getInstance(db);
+        ModuleDBService.getInstance(ModuleServiceBase.db);
+        ModuleTableDBService.getInstance(ModuleServiceBase.db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
         if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
@@ -257,7 +259,7 @@ export default abstract class ModuleServiceBase {
             for (let i in this.registered_modules) {
                 let registered_module = this.registered_modules[i];
 
-                await ModuleDBService.getInstance(db).load_or_create_module_is_actif(registered_module);
+                await ModuleDBService.getInstance(ModuleServiceBase.db).load_or_create_module_is_actif(registered_module);
             }
             if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
@@ -305,9 +307,9 @@ export default abstract class ModuleServiceBase {
             // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
             if (registered_module.fields && (registered_module.fields.length > 0)) {
 
-                await ModuleDBService.getInstance(db).loadParams(registered_module);
+                await ModuleDBService.getInstance(ModuleServiceBase.db).loadParams(registered_module);
 
-                ModuleDBService.getInstance(db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
+                ModuleDBService.getInstance(ModuleServiceBase.db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
             }
 
             // On appelle le hook de fin d'installation
@@ -413,6 +415,85 @@ export default abstract class ModuleServiceBase {
         //  Si on a des sous-modules à définir pour front / admin / server, on peut le faire
         //      et en faisant le lien dans le typescript, on importera que le fichier qui nous est utile.
         return this.registered_modules;
+    }
+
+    public async handle_errors(
+        error: Error,
+        func_name: string,
+        retry_hook_func: (...any) => Promise<any>,
+        retry_hook_func_params: any[] = null) {
+
+        let res = null;
+        if (error &&
+            ((error['message'] == 'Connection terminated unexpectedly') ||
+                (error['message'].startsWith('connect ETIMEDOUT ')))) {
+
+            StatsController.register_stat_COMPTEUR(func_name, 'error', 'connect_error');
+            ConsoleHandler.error(error + ' - retrying in 100 ms');
+
+            return new Promise(async (resolve, reject) => {
+
+                await ThreadHandler.sleep(100, 'ModuleServiceBase.handle_errors.too_many_clients', true);
+                if (DBDisconnectionManager.instance) {
+                    await DBDisconnectionManager.instance.wait_for_reconnection();
+                }
+
+                try {
+                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    resolve(res_);
+                } catch (error2) {
+                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
+                    reject(error2);
+                }
+            });
+        } else if (error && (error['message'] == 'sorry, too many clients already')) {
+
+            StatsController.register_stat_COMPTEUR(func_name, 'error', 'too_many_clients');
+            ConsoleHandler.error(error + ' - retrying in 100 ms');
+
+            return new Promise(async (resolve, reject) => {
+
+                await ThreadHandler.sleep(100, 'ModuleServiceBase.handle_errors.too_many_clients', true);
+                if (DBDisconnectionManager.instance) {
+                    await DBDisconnectionManager.instance.wait_for_reconnection();
+                }
+
+                try {
+                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    resolve(res_);
+                } catch (error2) {
+                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
+                    reject(error2);
+                }
+            });
+        } else if ((error['code'] == 'ENOTFOUND') && (error['errno'] == -3008)) {
+
+            StatsController.register_stat_COMPTEUR(func_name, 'error', 'connect_error');
+            ConsoleHandler.error(error + ' - waiting for reconnection');
+
+            if (DBDisconnectionManager.instance) {
+                DBDisconnectionManager.instance.mark_as_disconnected();
+            }
+
+            return new Promise(async (resolve, reject) => {
+
+                if (DBDisconnectionManager.instance) {
+                    await DBDisconnectionManager.instance.wait_for_reconnection();
+                }
+
+                try {
+                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    resolve(res_);
+                } catch (error2) {
+                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
+                    reject(error2);
+                }
+            });
+        }
+
+        ConsoleHandler.error(error);
+        StatsController.register_stat_COMPTEUR(func_name, 'error', 'others');
+        return res;
     }
 
     protected abstract getChildModules(): Module[];
@@ -631,45 +712,7 @@ export default abstract class ModuleServiceBase {
             await this.db_.none(query, values);
         } catch (error) {
 
-            let self = this;
-            if (error &&
-                ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
-
-                StatsController.register_stat_COMPTEUR('db_none', 'error', 'connect_error');
-                ConsoleHandler.error(error + ' - retrying once');
-
-                try {
-                    // Retry once
-                    await this.db_.none(query, values);
-                } catch (error2) {
-                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
-                    throw error2;
-                }
-
-                return;
-            } else if (error && (error['message'] == 'sorry, too many clients already')) {
-
-                StatsController.register_stat_COMPTEUR('db_none', 'error', 'too_many_clients');
-                ConsoleHandler.error(error + ' - retrying in 100 ms');
-
-                return new Promise((resolve, reject) => {
-
-                    setTimeout(async () => {
-
-                        try {
-                            await self.db_none(query, values);
-                            resolve(null);
-                        } catch (error2) {
-                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                            reject(error2);
-                        }
-                    }, 100);
-                });
-            }
-
-            ConsoleHandler.error(error);
-            return;
+            return await this.handle_errors(error, 'db_none', this.db_none, [query, values]);
         }
 
         let time_out = Dates.now_ms();
@@ -720,46 +763,7 @@ export default abstract class ModuleServiceBase {
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
-            let self = this;
-            if (error &&
-                ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
-
-                StatsController.register_stat_COMPTEUR('db_query', 'error', 'connect_error');
-                ConsoleHandler.error(error + ' - retrying once');
-
-                try {
-                    // Retry once
-                    res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
-                } catch (error2) {
-                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
-                    throw error2;
-                }
-
-                return res;
-            } else if (error && (error['message'] == 'sorry, too many clients already')) {
-
-                StatsController.register_stat_COMPTEUR('db_query', 'error', 'too_many_clients');
-                ConsoleHandler.error(error + ' - retrying in 100 ms');
-
-                return new Promise((resolve, reject) => {
-
-                    setTimeout(() => {
-
-                        try {
-                            let res_ = self.db_query(query, values);
-                            resolve(res_);
-                        } catch (error2) {
-                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                            reject(error2);
-                        }
-                    }, 100);
-                });
-            }
-
-            ConsoleHandler.error(error);
-            StatsController.register_stat_COMPTEUR('db_query', 'error', 'others');
-            return res;
+            return await this.handle_errors(error, 'db_query', this.db_query, [query, values]);
         }
 
         let time_out = Dates.now_ms();
@@ -784,46 +788,7 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.oneOrNone(query, values);
         } catch (error) {
-
-            let self = this;
-            if (error &&
-                ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
-
-                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'connect_error');
-                ConsoleHandler.error(error + ' - retrying once');
-
-                try {
-                    // Retry once
-                    res = await this.db_.oneOrNone(query, values);
-                } catch (error2) {
-                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
-                    throw error2;
-                }
-
-                return res;
-            } else if (error && (error['message'] == 'sorry, too many clients already')) {
-
-                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'too_many_clients');
-                ConsoleHandler.error(error + ' - retrying in 100 ms');
-
-                return new Promise((resolve, reject) => {
-
-                    setTimeout(() => {
-
-                        try {
-                            let res_ = self.db_oneOrNone(query, values);
-                            resolve(res_);
-                        } catch (error2) {
-                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                            reject(error2);
-                        }
-                    }, 100);
-                });
-            }
-
-            ConsoleHandler.error(error);
-            return res;
+            return await this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
         }
 
         let time_out = Dates.now_ms();

@@ -1,6 +1,7 @@
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import VarDAG from "../../../server/modules/Var/vos/VarDAG";
 import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class CurrentVarDAGHolder {
 
@@ -10,13 +11,13 @@ export default class CurrentVarDAGHolder {
      * On lance un process qui va registerStats sur le VarDAG courant, régulièrement
      */
     public static init_stats_process() {
-        setInterval(() => {
+        ThreadHandler.set_interval(async () => {
             if (!CurrentVarDAGHolder.current_vardag) {
                 return;
             }
 
             CurrentVarDAGHolder.registerStats();
-        }, 10000);
+        }, 10000, 'CurrentVarDAGHolder.init_stats_process', true);
     }
 
     public static registerStats() {

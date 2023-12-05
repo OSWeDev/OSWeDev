@@ -20,6 +20,10 @@ import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import DBDisconnectionManager from '../../../shared/tools/DBDisconnectionManager';
+import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -49,6 +53,8 @@ export default abstract class ForkedProcessWrapperBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
@@ -173,6 +179,6 @@ export default abstract class ForkedProcessWrapperBase {
         // On prévient le process parent qu'on est ready
         await ForkMessageController.send(new AliveForkMessage());
 
-        setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
+        ThreadHandler.set_interval(MemoryUsageStat.updateMemoryUsageStat, 45000, 'MemoryUsageStat.updateMemoryUsageStat', true);
     }
 }
