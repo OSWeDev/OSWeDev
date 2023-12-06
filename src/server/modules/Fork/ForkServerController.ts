@@ -249,7 +249,7 @@ export default class ForkServerController {
 
     private static async checkForksAvailability() {
 
-        setInterval(async () => {
+        ThreadHandler.set_interval(async () => {
 
             for (let i in this.forks) {
                 let forked: IFork = this.forks[i];
@@ -260,6 +260,6 @@ export default class ForkServerController {
 
                 await ForkMessageController.send(new PingForkMessage(forked.uid), forked.child_process, forked);
             }
-        }, 10000);
+        }, 10000, 'ForkServerController.checkForksAvailability', false);
     }
 }

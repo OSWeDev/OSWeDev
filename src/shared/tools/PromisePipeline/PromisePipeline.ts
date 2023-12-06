@@ -1,4 +1,3 @@
-import ConfigurationService from "../../../server/env/ConfigurationService";
 import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
@@ -7,6 +6,7 @@ import ThreadHandler from "../ThreadHandler";
 
 export default class PromisePipeline {
 
+    public static DEBUG_PROMISE_PIPELINE_WORKER_STATS: boolean = false;
     private static GLOBAL_UID: number = 0;
 
     private uid: number = 0;
@@ -36,14 +36,14 @@ export default class PromisePipeline {
         this.uid = PromisePipeline.GLOBAL_UID++;
 
         if (this.stat_name && this.stat_worker) {
-            setInterval(() => {
+            ThreadHandler.set_interval(async () => {
                 StatsController.register_stat_QUANTITE('PromisePipeline', this.stat_name, 'RUNNING', this.nb_running_promises);
-            }, 10000);
+            }, 10000, 'PromisePipeline.stat_worker', true);
 
-            if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
-                setInterval(() => {
+            if (PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS) {
+                ThreadHandler.set_interval(async () => {
                     ConsoleHandler.log('PromisePipeline:STATS:' + this.stat_name + ':' + this.uid + ':' + this.nb_running_promises);
-                }, 1000);
+                }, 1000, 'PromisePipeline.stat_worker.console_log', false);
             }
         }
     }

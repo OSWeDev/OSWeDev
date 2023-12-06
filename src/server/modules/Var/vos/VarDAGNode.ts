@@ -644,7 +644,14 @@ export default class VarDAGNode extends DAGNodeBase {
 
                 let parent_node: VarDAGNode = dep.incoming_node as VarDAGNode;
 
-                if (parent_node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
+                // Si déjà taggé on refait pas
+                if ((parent_node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_IS_COMPUTABLE]) ||
+                    parent_node.tags[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
+                    continue;
+                }
+
+                // Si le parent est pas encore déployé, on peut pas vérifier ses dépendances sortantes puisqu'elles sont pas encore déployées
+                if (parent_node.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_2_DEPLOYED]) {
                     continue;
                 }
 
@@ -685,6 +692,12 @@ export default class VarDAGNode extends DAGNodeBase {
      * On défini comme computable un noeud dont toutes les dépendances sortantes ont un tag courant >= VarDAGNode.TAG_4_COMPUTED
      */
     get is_computable(): boolean {
+
+        // Si on a pas fini de déployer les deps, on peut pas encore savoir si on est computable
+        if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_2_DEPLOYED]) {
+            return false;
+        }
+
         for (let i in this.outgoing_deps) {
             let outgoing_dep = this.outgoing_deps[i];
 

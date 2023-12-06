@@ -2,6 +2,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ForkedProcessWrapperBase from '../Fork/ForkedProcessWrapperBase';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -56,7 +57,7 @@ export default class BGThreadServerController {
         });
 
         ForkedTasksController.register_task(BGThreadServerController.TASK_NAME_register_alive_on_main_thread, this.register_alive_on_main_thread.bind(this));
-        setInterval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000);
+        ThreadHandler.set_interval(this.check_bgthreads_last_alive_ticks.bind(this), 10 * 1000, 'BGThreadServerController.check_bgthreads_last_alive_ticks', true);
     }
 
     public static async throttled_register_alive_on_main_thread(bgthread_names: string[]) {

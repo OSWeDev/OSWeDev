@@ -2731,7 +2731,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Insère les vos, et met l'id retourné par la bdd dans le vo et le retourne également en InsertOrDeleteQueryResult
      * @param exec_as_server si true, on ne vérifie pas les droits d'accès - Utilisable uniquement côté serveur, ne passe pas par l'API
      */
-    private async _insert_vos<T extends IDistantVOBase>(vos: T[], exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
+    private async _insert_vos<T extends IDistantVOBase>(vos: T[], exec_as_server: boolean = false, can_retry: number = 3): Promise<InsertOrDeleteQueryResult[]> {
 
         let time_in = Dates.now_ms();
 
@@ -2868,7 +2868,33 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
 
                     return t.batch(queries);
-                }).catch((reason) => {
+                }).catch(async (reason) => {
+
+                    // On va juste essayer de traiter un cas un peu particulier : si on a une erreur de type duplicate key, on va essayer de récupérer réajuster la contrainte pkey pour la mettre à jour vs les ids max de la table
+                    // Une erreur de ce type : 'BatchError: duplicate key value violates unique constraint "XXX_pkey"'
+                    if (reason && reason.message && (reason.message.indexOf('duplicate key value violates unique constraint') >= 0) && (reason.message.indexOf('_pkey') >= 0)) {
+                        // SELECT setval('ref.module_translation_translatable_text_id_seq'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.module_translation_translatable_text), 1), false);
+                        ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey');
+
+                        try {
+                            let table_name = reason.message.replace('duplicate key value violates unique constraint "', '').replace('_pkey"', '');
+
+                            await ModuleDAOServer.getInstance().query('SELECT setval(\'ref.' + table_name + '_id_seq\'::regclass, COALESCE((SELECT MAX(id)+1 FROM ref.' + table_name + '), 1), false);');
+
+                            if (can_retry > 0) {
+                                ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : OK : On relance l\'insertion');
+                                results = await ModuleDAOServer.getInstance()._insert_vos(vos, exec_as_server, can_retry - 1);
+                                resolve(results);
+                                resolved = true;
+                                ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : OK : On relance l\'insertion : OK');
+                                return;
+                            }
+                        } catch (error) {
+
+                            ConsoleHandler.error('insert_vos : duplicate key value violates unique constraint : ' + reason.message + ' : ' + reason.stack + ' : On tente de réajuster la contrainte pkey : FAILED : ' + error);
+                        }
+                    }
+
                     StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'ERROR');
                     ConsoleHandler.error('insert_vos :' + reason);
                     LogDBPerfServerController.log_db_query_perf_end(query_uid, 'insert_vos', 'nb:' + sqls.length + ':first:' + sqls[0]);

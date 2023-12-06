@@ -9,6 +9,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwardToBGThreadForkMessage';
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 
 /**
  * ForkedTasksController
@@ -25,7 +26,7 @@ export default class ForkedTasksController {
     public static registered_tasks: { [task_uid: string]: (...task_params) => boolean | Promise<boolean> } = {};
 
     public static init() {
-        setInterval(ForkedTasksController.handle_fork_message_callback_timeout.bind(this), 10000);
+        ThreadHandler.set_interval(ForkedTasksController.handle_fork_message_callback_timeout.bind(this), 10000, 'ForkedTasksController.handle_fork_message_callback_timeout', true);
     }
 
     /**

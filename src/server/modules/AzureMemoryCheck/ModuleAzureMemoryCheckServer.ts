@@ -6,6 +6,7 @@ import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import { all_promises } from "../../../shared/tools/PromiseTools";
 import ModuleServerBase from '../ModuleServerBase';
 import AzureMemoryCheckServerController from "./AzureMemoryCheckServerController";
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
 
@@ -18,7 +19,7 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
     }
 
     private static instance: ModuleAzureMemoryCheckServer = null;
-    private static interval: NodeJS.Timeout = null;
+    private static interval_uid: number = null;
 
     private static AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME: string = "ModuleAzureMemoryCheck.AZURE_CHECK_MEMORY_ACTIVATION";
 
@@ -46,7 +47,7 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
             return;
         }
         ConsoleHandler.log('Activation du module AzureMemoryCheck');
-        ModuleAzureMemoryCheckServer.interval = setInterval(this.getAvailableMemory.bind(this), 1000);
+        ModuleAzureMemoryCheckServer.interval_uid = ThreadHandler.set_interval(this.getAvailableMemory.bind(this), 1000, 'ModuleAzureMemoryCheckServer.getAvailableMemory', true);
     }
 
     // Le plan, c'est vérifier toutes les secondes la mémoire libre, suivre l'évolution sur 60 secondes et si on a une vitesse de remplissage
@@ -101,9 +102,9 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
         if (!activated || !clientId || !clientSecret || !tenantId || !subscriptionId || !resourceGroupName || !serverName || !memory_usage_data_max_size || !azure_mem_size) {
 
             ConsoleHandler.warn('Désactivation du module AzureMemoryCheck car paramètres manquants ou désactivation via param - impossible de relancer le check sans redémarrer le pool d\'application');
-            if (ModuleAzureMemoryCheckServer.interval) {
-                clearInterval(ModuleAzureMemoryCheckServer.interval);
-                ModuleAzureMemoryCheckServer.interval = null;
+            if (ModuleAzureMemoryCheckServer.interval_uid) {
+                ThreadHandler.clear_interval(ModuleAzureMemoryCheckServer.interval_uid);
+                ModuleAzureMemoryCheckServer.interval_uid = null;
             }
             return null;
         }

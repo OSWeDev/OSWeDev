@@ -70,14 +70,14 @@ export default class ModuleDBService {
      */
     public async reloadParamsThread(module: Module) {
 
-        setInterval(async () => {
+        ThreadHandler.set_interval(async () => {
 
             let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
 
             if (paramsChanged && paramsChanged.length) {
                 await module.hook_module_on_params_changed(paramsChanged);
             }
-        }, ModuleDBService.reloadParamsTimeout);
+        }, ModuleDBService.reloadParamsTimeout, 'reloadParamsThread:' + module.name, true);
     }
 
     // Dernière étape : Configure

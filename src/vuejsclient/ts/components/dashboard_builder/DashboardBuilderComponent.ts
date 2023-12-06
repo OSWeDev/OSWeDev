@@ -637,8 +637,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             dashboard_id,
             {
                 sorts: [
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                    new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true),
+                    new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)
                 ]
             },
             options

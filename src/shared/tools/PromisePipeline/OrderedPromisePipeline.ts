@@ -2,6 +2,7 @@ import Dates from "../../modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../modules/Stats/StatsController";
 import ConsoleHandler from "../ConsoleHandler";
 import EnvHandler from "../EnvHandler";
+import ThreadHandler from "../ThreadHandler";
 
 /**
  * Globalement la même idée que le PromisePipeline,
@@ -48,9 +49,9 @@ export default class OrderedPromisePipeline {
         this.uid = OrderedPromisePipeline.GLOBAL_UID++;
 
         if (this.stat_name) {
-            setInterval(() => {
+            ThreadHandler.set_interval(async () => {
                 StatsController.register_stat_QUANTITE('OrderedPromisePipeline', this.stat_name, 'RUNNING', this.nb_running_promises);
-            }, 10000);
+            }, 10000, 'OrderedPromisePipeline.stat_worker', true);
         }
     }
 

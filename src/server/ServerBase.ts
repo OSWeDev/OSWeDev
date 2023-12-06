@@ -61,6 +61,9 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 import { IClient } from 'pg-promise/typescript/pg-subset';
+import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
+import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -109,6 +112,8 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
@@ -1123,7 +1128,7 @@ export default abstract class ServerBase {
              */
             let timeout_sec: number = 30;
             while ((!ForkServerController.forks_are_initialized) && (timeout_sec > 0)) {
-                await ThreadHandler.sleep(1000, '/cron.!forks_are_initialized');
+                await ThreadHandler.sleep(1000, '/cron.!forks_are_initialized', true);
                 timeout_sec--;
             }
 
@@ -1169,73 +1174,84 @@ export default abstract class ServerBase {
             ConsoleHandler.error("Node nearly failed: " + err.stack);
         });
 
-        setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
+        ThreadHandler.set_interval(MemoryUsageStat.updateMemoryUsageStat, 45000, 'MemoryUsageStat.updateMemoryUsageStat', true);
 
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
+
+        let on_connection = async () => {
+            ConsoleHandler.log('connection to db successful');
+
+            let server = require('http').Server(ServerBase.getInstance().app);
+            let io = require('socket.io')(server);
+            io.use(sharedsession(ServerBase.getInstance().session));
+
+            server.listen(ServerBase.getInstance().port);
+            // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
+
+            // SocketIO
+            // let io = socketIO.listen(ServerBase.getInstance().app);
+            //turn off debug
+            // io.set('log level', 1);
+            // define interactions with client
+            io.on('connection', function (socket: socketIO.Socket) {
+                let session: IServerUserSession = socket.handshake['session'];
+
+                if (!session) {
+                    ConsoleHandler.error('Impossible de charger la session dans SocketIO');
+                    return;
+                }
+
+                PushDataServerController.getInstance().registerSocket(session, socket);
+            }.bind(ServerBase.getInstance()));
+
+            io.on('disconnect', function (socket: socketIO.Socket) {
+                let session: IServerUserSession = socket.handshake['session'];
+
+                PushDataServerController.getInstance().unregisterSocket(session, socket);
+            });
+
+            io.on('error', function (err) {
+                ConsoleHandler.error("IO nearly failed: " + err.stack);
+            });
+
+            // ServerBase.getInstance().testNotifs();
+
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:hook_on_ready:START');
+            }
+            await ServerBase.getInstance().hook_on_ready();
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
+            }
+
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:fork_threads:START');
+            }
+            await ForkServerController.fork_threads();
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:fork_threads:END');
+            }
+            BGThreadServerController.SERVER_READY = true;
+
+            if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
+                await ModuleMaintenance.getInstance().end_planned_maintenance();
+            }
+
+            ConsoleHandler.log('Server ready to go !');
+        };
+
         ServerBase.getInstance().db.one('SELECT 1')
-            .then(async () => {
-                ConsoleHandler.log('connection to db successful');
+            .then(on_connection)
+            .catch(async (err) => {
+                ConsoleHandler.error('error while connecting to db: ' + (err.message || err) + ' : trying to handle the error...');
 
-                let server = require('http').Server(ServerBase.getInstance().app);
-                let io = require('socket.io')(server);
-                io.use(sharedsession(ServerBase.getInstance().session));
-
-                server.listen(ServerBase.getInstance().port);
-                // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
-
-                // SocketIO
-                // let io = socketIO.listen(ServerBase.getInstance().app);
-                //turn off debug
-                // io.set('log level', 1);
-                // define interactions with client
-                io.on('connection', function (socket: socketIO.Socket) {
-                    let session: IServerUserSession = socket.handshake['session'];
-
-                    if (!session) {
-                        ConsoleHandler.error('Impossible de charger la session dans SocketIO');
-                        return;
-                    }
-
-                    PushDataServerController.getInstance().registerSocket(session, socket);
-                }.bind(ServerBase.getInstance()));
-
-                io.on('disconnect', function (socket: socketIO.Socket) {
-                    let session: IServerUserSession = socket.handshake['session'];
-
-                    PushDataServerController.getInstance().unregisterSocket(session, socket);
-                });
-
-                io.on('error', function (err) {
-                    ConsoleHandler.error("IO nearly failed: " + err.stack);
-                });
-
-                // ServerBase.getInstance().testNotifs();
-
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:hook_on_ready:START');
+                try {
+                    await ModuleServiceBase.getInstance().handle_errors(err, 'initial_db_connection', ServerBase.getInstance().db.one, ['SELECT 1']);
+                    await on_connection();
+                } catch (error) {
+                    ConsoleHandler.error('Could not handle error while connecting to db: ' + (error.message || error));
+                    process.exit(1);
                 }
-                await ServerBase.getInstance().hook_on_ready();
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
-                }
-
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:fork_threads:START');
-                }
-                await ForkServerController.fork_threads();
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:fork_threads:END');
-                }
-                BGThreadServerController.SERVER_READY = true;
-
-                if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
-                    await ModuleMaintenance.getInstance().end_planned_maintenance();
-                }
-
-                ConsoleHandler.log('Server ready to go !');
-            })
-            .catch((err) => {
-                ConsoleHandler.log('error while connecting to db: ' + (err.message || err));
             });
 
         // pgp.end();
