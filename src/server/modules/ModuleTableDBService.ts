@@ -101,6 +101,13 @@ export default class ModuleTableDBService {
                     let segmentation_bdd_values: IDistantVOBase[] = null;
 
                     try {
+                        // On check d'abored l'existence de la table de référence
+                        let db_table_test: IDistantVOBase[] = await this.db.query("SELECT FROM pg_catalog.pg_tables WHERE schemaname = 'ref' AND tablename = '" + moduleTable.name + "';");
+                        if ((!db_table_test) || (!db_table_test.length)) {
+                            ConsoleHandler.log('create_or_update_datatable: no ref table:' + moduleTable.name + ': not a problem, it\'s just a test in case of migration to a segmented table.');
+                            return;
+                        }
+
                         let datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
                         for (let i in datas) {
                             let data = datas[i];

@@ -2290,6 +2290,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Figer la colonne du tableau pour qu'elle soit toujours visible au niveau du scroll." },
             'table_widget_column_conf.is_sticky_column.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtrer par l\'utilisateur connecté." },
+            'dashboards.widgets.icons_tooltips.currentuserfilter.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': "Aggréger les données ManyToMany pour regrouper les données sur une seul ligne.<br/>" +

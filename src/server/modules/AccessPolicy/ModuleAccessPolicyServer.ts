@@ -463,6 +463,43 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'access_policy.admin.table.granted.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher tout le groupe : {policy_group_name}'
+        }, 'access_policy.select_full_group.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Masquer tout le groupe : {policy_group_name}'
+        }, 'access_policy.unselect_full_group.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier le rôle {role_id} : {role_name}'
+        }, 'AccessPolicyCompareAndPatchComponent.unselect_role.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Générer le code du patch pour harmoniser les droits de A vers B (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.generate_patch.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ATTENTION : Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ATTENTION : Cette page sert à comparer les droits de 2 rôles et à les harmoniser. Les seuls droits modifiés seront ceux du rôle B. Les droits du rôle A ne seront pas modifiés. Mais rien ne garantie que le patch aura l\'effet désiré puisque l\'on ne regarde pas les droits hérités. Donc si on tente de désactiver un droit hérité, celà n\'aura aucun effet !'
+        }, 'AccessPolicyCompareAndPatchComponent.disclaimer.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer ?'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mise à jour des droits du rôle B : En cours...'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mise à jour des droits du rôle B terminée'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la mise à jour des droits du rôle B'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'access_policy.admin.table.headers.first_header.___LABEL___'));
 

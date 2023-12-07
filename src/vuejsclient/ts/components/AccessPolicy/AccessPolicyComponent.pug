@@ -21,15 +21,24 @@ include ../../../views/mixins/loading.pug
                     .filters-toggles
                         template(v-for="policy_group in ordered_policy_groups")
                             template(v-if='access_matrix && display_policy_groups && policy_groups_segmentations && display_policy_groups[policy_group.id] && policy_groups_segmentations[policy_group.id]')
-                                template(v-for="(policy_group_segmentation, i) in policy_groups_segmentations[policy_group.id]")
-                                    .filters-toggle-segment
-                                        .segment-title {{ policy_group_segmentation.name }}
-                                        toggle-button(
-                                            @change="switch_display_policy_group_segmentation(policy_group_segmentation)" 
-                                            :value="display_policy_group_segmentations[policy_group_segmentation.id]" 
-                                            :sync="true"
-                                            :width="100"
-                                            :labels="{checked: label('access_policy.admin.filters.visible'), unchecked: label('access_policy.admin.filters.hidden')}")
+                                .row.filters-full-group
+                                    button.btn.btn-primary.btn-block.btn-flat(@click="select_full_group(policy_group.id)") 
+                                        i.fa-duotone.fa-check-double
+                                        | {{ label('access_policy.select_full_group', {policy_group_name : label(policy_group.translatable_name)}) }}
+                                    button.btn.btn-secondary.btn-block.btn-flat(@click="unselect_full_group(policy_group.id)") 
+                                        i.fa-duotone.fa-empty-set
+                                        | {{ label('access_policy.unselect_full_group', {policy_group_name : label(policy_group.translatable_name)}) }}
+
+                                .row
+                                    template(v-for="(policy_group_segmentation, i) in policy_groups_segmentations[policy_group.id]")
+                                        .filters-toggle-segment
+                                            .segment-title {{ policy_group_segmentation.name }}
+                                            toggle-button(
+                                                @change="switch_display_policy_group_segmentation(policy_group_segmentation)" 
+                                                :value="display_policy_group_segmentations[policy_group_segmentation.id]" 
+                                                :sync="true"
+                                                :width="100"
+                                                :labels="{checked: label('access_policy.admin.filters.visible'), unchecked: label('access_policy.admin.filters.hidden')}")
 
         .row
             .col-sm-12

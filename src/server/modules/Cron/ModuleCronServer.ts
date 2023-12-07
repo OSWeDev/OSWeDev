@@ -45,6 +45,10 @@ export default class ModuleCronServer extends ModuleServerBase {
         }, 'cron.run_cron_individuel.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Supervision des CRONs'
+        }, 'menu.menuelements.admin.sup_cron.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lancer une tâche planifiée manuellement'
         }, 'cron.run_cron_individuel.head.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

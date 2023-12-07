@@ -1,6 +1,6 @@
 .access_policy {
 
-    .filters-toggle-segment{
+    .filters-toggle-segment {
         display: inline-block;
         margin: 10px;
         border: solid 2px lightgrey;
@@ -9,7 +9,13 @@
         padding-bottom: 0;
     }
 
-    .segment-title{
+    .row.filters-full-group button i {
+        font-size: larger;
+        vertical-align: middle;
+        margin-right: 0.4em;
+    }
+
+    .segment-title {
         display: inline-block;
         margin-right: 6px;
         vertical-align: top;
@@ -22,12 +28,13 @@
         // display: none;
     }
 
-    .table_container{
-        table{
+    .table_container {
+        table {
             max-height: calc(100vh - 166px);
         }
 
-        table.scrolling td, table.scrolling th {
+        table.scrolling td,
+        table.scrolling th {
             border: 1px solid #ddd;
             width: 12em;
             min-width: 12em;
@@ -37,22 +44,23 @@
             text-align: center;
         }
 
-        table.scrolling td:first-child, table.scrolling th:first-child {
+        table.scrolling td:first-child,
+        table.scrolling th:first-child {
             width: 35em;
             min-width: 35em;
             max-width: 35em;
             text-align: left;
         }
-        
+
         .vue-js-switch {
             margin: 10px;
             font-size: 1em;
         }
 
-        tr.policy {        
+        tr.policy {
             td {
                 height: 3em;
-            }            
+            }
         }
 
         tr.policy_group {
