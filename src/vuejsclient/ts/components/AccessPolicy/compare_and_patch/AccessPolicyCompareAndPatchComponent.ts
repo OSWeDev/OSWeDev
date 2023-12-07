@@ -97,10 +97,10 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
         let patch_code =
             '/* istanbul ignore file: no unit tests on patchs */' + '\n' +
             '\n' +
-            'import ModuleAccessPolicy from "../../../shared/modules/AccessPolicy/ModuleAccessPolicy";' + '\n' +
-            'import DAOController from "../../../shared/modules/DAO/DAOController";' + '\n' +
-            'import ModuleDAO from "../../../shared/modules/DAO/ModuleDAO";' + '\n' +
-            'import PostModulesPoliciesPatchBase from "../PostModulesPoliciesPatchBase";' + '\n' +
+            '// IF project patch : ' + '\n' +
+            'import PostModulesPoliciesPatchBase from "oswedev/dist/generator/patchs/PostModulesPoliciesPatchBase"; ' + '\n' +
+            '// ELSE' + '\n' +
+            '// import PostModulesPoliciesPatchBase from "../PostModulesPoliciesPatchBase";' + '\n' +
             '\n' +
             'export default class ' + class_name + ' extends PostModulesPoliciesPatchBase {' + '\n' +
             '\n' +
@@ -134,8 +134,8 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
         }
 
         // Retrait des droits en trop
-        for (let i in this.comparison_summary.rights_in_a_not_in_b) {
-            let access_policy = this.comparison_summary.rights_in_a_not_in_b[i];
+        for (let i in this.comparison_summary.rights_in_b_not_in_a) {
+            let access_policy = this.comparison_summary.rights_in_b_not_in_a[i];
 
             patch_code +=
                 '       await this.revoke_policy(' + '\n' +
@@ -145,9 +145,8 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
         }
 
         patch_code +=
-            '} ' + '\n' +
-            '} ' + '\n' +
-            '';
+            '   }' + '\n' +
+            '}';
 
         this.patch_code = patch_code;
     }
@@ -185,8 +184,8 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
                                     }
 
                                     // Retrait des droits en trop
-                                    for (let i in self.comparison_summary.rights_in_a_not_in_b) {
-                                        let access_policy = self.comparison_summary.rights_in_a_not_in_b[i];
+                                    for (let i in self.comparison_summary.rights_in_b_not_in_a) {
+                                        let access_policy = self.comparison_summary.rights_in_b_not_in_a[i];
 
                                         await ModuleAccessPolicy.getInstance().togglePolicy(access_policy.id, self.role_b.id);
                                     }

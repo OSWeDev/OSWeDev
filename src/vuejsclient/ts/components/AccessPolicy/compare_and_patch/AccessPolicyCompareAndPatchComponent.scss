@@ -1,1 +1,119 @@
-.AccessPolicyCompareAndPatchComponent {}
+.AccessPolicyCompareAndPatchComponent {
+
+    .AccessPolicyCompareAndPatchComponent_disclaimer {
+
+        max-width: 600px;
+        padding: 1em;
+        margin: 0em auto 1em;
+        border-radius: 1em;
+        color: white;
+        text-align: left;
+
+        i {
+            font-size: xx-large;
+            float: left;
+            margin: 1em;
+            display: block;
+        }
+    }
+
+    .AccessPolicyCompareAndPatchComponent_compare_and_patch {
+        margin-top: 1em;
+    }
+
+    .AccessPolicyCompareAndPatchComponent_role_selector {
+        max-width: 1300px;
+        margin: auto;
+        text-align: center;
+
+        .AccessPolicyCompareAndPatchComponent_role {
+            display: inline-flex;
+            margin: 0.4em;
+        }
+    }
+
+    .AccessPolicyCompareAndPatchComponent_steps {
+        text-align: center;
+
+        .AccessPolicyCompareAndPatchComponent_step {
+            display: inline-flex;
+            width: 20em;
+            margin: 0.4em;
+
+            i {
+                margin-right: 0.4em;
+                font-size: larger;
+                vertical-align: middle;
+            }
+        }
+    }
+
+    .AccessPolicyCompareAndPatchComponent_comparison_summary {
+        padding: 1em;
+        box-shadow: 1px 1px 10px lightgrey;
+        border-radius: 1em;
+
+        .AccessPolicyCompareAndPatchComponent_comparison_generate_patch,
+        .AccessPolicyCompareAndPatchComponent_comparison_do_update {
+            display: inline-flex;
+            margin: 0.4em;
+
+            i {
+                margin-right: .4em;
+            }
+        }
+    }
+
+    .AccessPolicyCompareAndPatchComponent_comparison_summary_rights_in_a_not_in_b {
+        background: darkred;
+    }
+
+    .AccessPolicyCompareAndPatchComponent_comparison_summary_rights_in_b_not_in_a {
+        background: darkgreen;
+    }
+
+    .AccessPolicyCompareAndPatchComponent_comparison_summary_rights_in_a_not_in_b,
+    .AccessPolicyCompareAndPatchComponent_comparison_summary_rights_in_b_not_in_a {
+        padding: 1em;
+        margin: 1em auto;
+        border-radius: 1em;
+        color: white;
+        max-width: 1200px;
+        text-align: center;
+
+        .title {
+            font-size: x-large;
+            font-weight: bold;
+            margin-bottom: .4em;
+        }
+
+        .item {
+            background: white;
+            width: fit-content;
+            border-radius: 1em;
+            padding: 0.4em;
+            margin: 0.4em;
+            color: black;
+            display: inline-flex;
+
+            i {
+                display: inline-block;
+                margin-top: 2px;
+            }
+
+            .policy {
+                width: fit-content;
+                display: inline-block;
+                margin-left: 1em;
+            }
+        }
+    }
+
+    .AccessPolicyCompareAndPatchComponent_comparison_patch_code {
+        .title {
+            font-size: x-large;
+            margin-top: 1em;
+            font-weight: bold;
+        }
+    }
+}

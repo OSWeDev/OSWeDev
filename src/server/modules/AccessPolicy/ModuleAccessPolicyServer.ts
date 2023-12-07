@@ -500,6 +500,25 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'AccessPolicyCompareAndPatchComponent.do_update.failed.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Code du Patch'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_patch_code.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Droits dans A, absents de B'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_a_not_in_b.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Droits dans B, absents de A'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_b_not_in_a.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélectionner le rôle "{role_name}"'
+        }, 'AccessPolicyCompareAndPatchComponent.select_role.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Comparer des rôles'
+        }, 'menu.menuelements.admin.AccessPolicyCompareAndPatchComponent.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'access_policy.admin.table.headers.first_header.___LABEL___'));
 

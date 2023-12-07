@@ -33,7 +33,8 @@
             .AccessPolicyCompareAndPatchComponent_comparison_patch_code(v-if='!!patch_code')
                 .title {{ label('AccessPolicyCompareAndPatchComponent.comparison_patch_code') }}
                 .patch_code
-                    code-mirror(v-model="patch_code")
+                    code-mirror(v-model="patch_code" :basic='true' :dark='true')
+                    //- TODO FIXME https://github.com/surmon-china/surmon-china.github.io/blob/source/examples/vue-codemirror/index.vue
 
             .AccessPolicyCompareAndPatchComponent_comparison_summary_rights_in_a_not_in_b(v-if='(!!comparison_summary["rights_in_a_not_in_b"]) && comparison_summary["rights_in_a_not_in_b"].length')
                 .title {{ label('AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_a_not_in_b') }}
