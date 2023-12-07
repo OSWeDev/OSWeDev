@@ -34,8 +34,6 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
     @Prop()
     private field: DatatableField<any, any>;
 
-
-    private file: FileVO = null;
     private loaded: boolean = false;
     private path: string = null;
     private file_name: string = null;
@@ -57,7 +55,6 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
         this.path = null;
 
         if ((!this.file_id) && (!this.file_path)) {
-            this.file = null;
             this.loaded = true;
             return null;
         }

@@ -36,6 +36,7 @@
                                     :selected-label='label("multiselect.selectedLabel")'
                                     :deselect-label='label("multiselect.deselectLabel")'
                                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                    @input="onchange_advanced_number_filter_content"
                                 )
 
                             .advanced_number_filter_content(v-if='has_content_filter_type[advanced_number_filter.filter_type]')

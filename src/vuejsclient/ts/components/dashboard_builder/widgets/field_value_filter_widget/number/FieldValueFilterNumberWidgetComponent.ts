@@ -296,7 +296,10 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private async switch_advanced_filters() {
         this.advanced_filters = !this.advanced_filters;
 
-        this.tmp_active_filter_options = null;
+        if (this.tmp_active_filter_options?.length > 0) {
+            this.tmp_active_filter_options = null;
+        }
+
         if (!!this.vo_field_ref) {
             this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
         }
@@ -499,7 +502,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             // if (this.advanced_filters) {
             //     this.advanced_filters = false;
             // }
-            if (this.tmp_active_filter_options) {
+            if (this.tmp_active_filter_options?.length > 0) {
                 this.tmp_active_filter_options = null;
             }
             if (this.advanced_number_filters) {
@@ -517,7 +520,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             if (!this.advanced_filters) {
                 this.advanced_filters = true;
             }
-            if (this.tmp_active_filter_options) {
+            if (this.tmp_active_filter_options?.length > 0) {
                 this.tmp_active_filter_options = null;
             }
 
