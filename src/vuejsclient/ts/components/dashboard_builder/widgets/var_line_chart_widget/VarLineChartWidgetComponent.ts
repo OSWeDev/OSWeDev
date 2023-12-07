@@ -734,7 +734,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
         await this.throttled_update_visible_options();
     }
 

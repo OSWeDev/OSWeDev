@@ -94,7 +94,7 @@
     .display_format_options_selector 
         .input_label {{ label('chart_js_scale_time_options_component.display_format_options_selector') }}
         .add_display_format_button_wrapper
-            button.btn-success.add_display_format_button(
+            button.btn-success.btn-block.add_display_format_button(
                 @click="add_display_format"
             ) {{ label('chart_js_scale_time_options_component.add_display_format_button') }}
         template
@@ -103,7 +103,7 @@
                     :options="{time_unit: index, display_format: display_format}"
                     @on_change="handle_display_format_change(index, $event)"
                 )
-                button.btn-danger.remove_display_format_button(
+                button.btn-danger.btn-block.remove_display_format_button(
                     @click="remove_display_format(index)"
                 ) {{ label('chart_js_scale_time_options_component.remove_display_format_button') }}
         

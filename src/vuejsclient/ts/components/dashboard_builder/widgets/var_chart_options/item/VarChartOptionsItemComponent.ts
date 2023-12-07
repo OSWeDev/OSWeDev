@@ -1,7 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { Scale } from 'chart.js';
-import { isEqual } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import VarChartOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -10,6 +9,9 @@ import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './VarChartOptionsItemComponent.scss';
 
 @Component({
@@ -29,20 +31,29 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     })
     private options: VarChartOptionsVO;
 
+    @ModuleDashboardPageGetter
+    private get_custom_filters: string[];
+
     private options_props: VarChartOptionsVO;
+
 
     private selected_var_name: string = null;
 
-    private custom_field_filters: { [field_id: string]: string } = {};
+    private custom_filter_names: { [field_id: string]: string } = {};
 
     private var_id: number = null;
+    private type: string = null;
     private bg_color: string = null;
     private border_color: string = null;
     private border_width: number = null;
-    private scale_options_x: Partial<Scale> = null;
-    private scale_options_y: Partial<Scale> = null;
-    private scale_options_r: Partial<Scale> = null;
 
+    private graphe_types: string[] = [
+        'line',     // many lines on the same graph or line chart with bars
+        'bar',      // Bar chart with lines chart
+        'radar',    // Many radar charts on the same graph
+    ];
+
+    // TODO: Add translations
     private scale_types_options: string[] = [
         'linear',
         'logarithmic',
@@ -51,12 +62,145 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         'radialLinear'
     ];
 
+    // TODO: Add translations
     private legend_positions: string[] = [
         'top',
         'left',
         'bottom',
         'right'
     ];
+
+    @Watch('options', { immediate: true, deep: true })
+    private on_input_options_changed() {
+        if (isEqual(this.options_props, this.options)) {
+            return;
+        }
+
+        for (const key in this.options) {
+            if (this.hasOwnProperty(key)) {
+                this[key] = this.options[key];
+            }
+        }
+
+        if (this.var_id && (this.selected_var_name != (this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id))))) {
+            this.selected_var_name = this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
+        }
+
+        this.options_props = this.options;
+    }
+
+    @Watch('selected_var_name')
+    private async on_change_selected_var_name() {
+
+        if (!this.selected_var_name) {
+
+            this.var_id = null;
+            this.emit_change();
+
+            return;
+        }
+
+        try {
+            const selected_var_id: number = parseInt(this.selected_var_name.split(' | ')[0]);
+
+            if (this.var_id != selected_var_id) {
+
+                this.var_id = selected_var_id;
+                this.emit_change();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('type')
+    private async on_change_type() {
+        this.emit_change();
+    }
+
+    @Watch('bg_color')
+    private async on_change_bg_color() {
+        this.emit_change();
+    }
+
+    @Watch('border_color')
+    private async on_change_border_color() {
+        this.emit_change();
+    }
+
+    @Watch('border_width')
+    private async on_changborder_width() {
+        this.emit_change();
+    }
+
+    /**
+     * change_custom_filter
+     *
+     * @param {string} field_id
+     * @param {string} custom_filter
+     */
+    private async change_custom_filter(field_id: string, custom_filter: string) {
+        const custom_filter_names: { [field_id: string]: string } = cloneDeep(this.custom_filter_names);
+
+        custom_filter_names[field_id] = custom_filter;
+
+        this.custom_filter_names = custom_filter_names;
+
+        this.emit_change();
+    }
+
+    /**
+     * fields_that_could_get_custom_filter
+     *
+     * @returns {string[]}
+     */
+    get fields_that_could_get_custom_filter(): string[] {
+        let res: string[] = [];
+
+        if (!this.var_id || (!VarsController.var_conf_by_id[this.var_id])) {
+            return null;
+        }
+
+        const var_param_type = VarsController.var_conf_by_id[this.var_id].var_data_vo_type;
+        if (!var_param_type) {
+            return null;
+        }
+
+        if (!this.custom_filter_names) {
+            this.custom_filter_names = {};
+        }
+
+        const fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
+        for (const i in fields) {
+            const field = fields[i];
+
+            if (
+                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
+            ) {
+
+                res.push(field.field_id);
+
+                if (typeof this.custom_filter_names[field.field_id] === "undefined") {
+                    this.custom_filter_names[field.field_id] = null;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    private async emit_change() {
+        // Set up all params fields
+        this.options_props.var_id = this.var_id; // To load the var data
+        this.options_props.type = this.type;
+        this.options_props.bg_color = this.bg_color;
+        this.options_props.border_color = this.border_color;
+        this.options_props.border_width = this.border_width;
+        this.options_props.custom_filter_names = this.custom_filter_names;
+
+        this.$emit('on_change', this.options_props);
+    }
 
     get var_names(): string[] {
 
@@ -82,127 +226,5 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
             return 0;
         });
         return res;
-    }
-
-    @Watch('options', { immediate: true, deep: true })
-    private on_input_options_changed() {
-        if (isEqual(this.options_props, this.options)) {
-            return;
-        }
-
-        for (const key in this.options) {
-            this[key] = this.options[key];
-        }
-
-        this.options_props = this.options;
-    }
-
-    @Watch('selected_var_name')
-    private async on_change_selected_var_name() {
-
-        if (!this.selected_var_name) {
-
-            this.var_id = null;
-            this.handle_change();
-
-            return;
-        }
-
-        try {
-            const selected_var_id: number = parseInt(this.selected_var_name.split(' | ')[0]);
-
-            if (this.var_id != selected_var_id) {
-
-                this.var_id = selected_var_id;
-                this.handle_change();
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch('bg_color')
-    private async on_change_bg_color() {
-
-        if (!this.bg_color) {
-
-            this.bg_color = null;
-            this.handle_change();
-
-            return;
-        }
-
-        try {
-            this.options_props.bg_color = this.bg_color;
-
-            this.handle_change();
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch('border_color')
-    private async on_change_border_color() {
-        if (!this.border_color) {
-
-            this.border_color = null;
-            this.handle_change();
-
-            return;
-        }
-
-        try {
-            this.options_props.border_color = this.border_color;
-
-            this.handle_change();
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch('border_width')
-    private async on_changborder_width() {
-        if (!this.border_width) {
-
-            this.border_width = null;
-            this.handle_change();
-
-            return;
-        }
-
-        try {
-            this.options_props.border_width = parseInt(this.border_width.toString());
-
-            this.handle_change();
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    private handle_scale_options_x_change(options: Partial<Scale>) {
-        this.scale_options_x = options;
-        this.options_props.scale_options_x = this.scale_options_x;
-
-        this.handle_change();
-    }
-
-    private handle_scale_options_y_change(options: Partial<Scale>) {
-        this.scale_options_y = options;
-        this.options_props.scale_options_y = this.scale_options_y;
-
-        this.handle_change();
-    }
-
-    private async handle_change() {
-        // Set up all params fields
-        this.options_props.var_id = this.var_id;
-        this.options_props.bg_color = this.bg_color;
-        this.options_props.border_color = this.border_color;
-        this.options_props.border_width = this.border_width;
-        this.options_props.scale_options_x = this.scale_options_x;
-        this.options_props.scale_options_y = this.scale_options_y;
-        this.options_props.scale_options_r = this.scale_options_r;
-
-        this.$emit('on_change', this.options_props);
     }
 }

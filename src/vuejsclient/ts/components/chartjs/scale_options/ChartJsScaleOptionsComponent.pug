@@ -28,6 +28,6 @@
         .input_label {{ label('chart_js_scale_options_component.time_options_selector') }}
         .input_wrapper
             Chartjsscaletimeoptionscomponent(
-                :options="time"
                 @on_change="handle_time_options_change"
+                :options="time"
             )

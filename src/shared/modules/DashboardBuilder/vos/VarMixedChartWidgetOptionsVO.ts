@@ -1,15 +1,14 @@
+import { Scale } from "chart.js";
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
+import VarChartOptionsVO from "./VarChartOptionsVO";
 import VarConfVO from "../../Var/vos/VarConfVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
-import VarChartOptionsVO from "./VarChartOptionsVO";
 
 /**
  * Line chart widget options
- *  - To be able to configure a line chart widget
- *  - We may configure 2 vars with the same dimension
  */
 export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
@@ -82,6 +81,9 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
              * VarChartOptionsVO
              */
             [],
+            null,
+            null,
+            null
         );
     }
 
@@ -133,6 +135,9 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
         // --- Var Options We should be able to add as many vars as we can ---
         public var_charts_options?: VarChartOptionsVO[],
+        public scale_options_x?: Partial<Scale>,
+        public scale_options_y?: Partial<Scale>,
+        public scale_options_r?: Partial<Scale>,
     ) {
         super();
     }

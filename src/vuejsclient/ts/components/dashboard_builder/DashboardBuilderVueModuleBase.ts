@@ -25,6 +25,7 @@ import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import VarLineChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
+import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -104,6 +105,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_VarPieChart();
         await this.initializeWidget_VarLineChart();
+        await this.initializeWidget_VarMixedChart();
 
         await this.initializeWidget_Checklist();
         await this.initializeWidget_Supervision();
@@ -466,6 +468,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Varlinechartwidgetcomponent', () => import('./widgets/var_line_chart_widget/VarLineChartWidgetComponent'));
         Vue.component('Varlinechartwidgetoptionscomponent', () => import('./widgets/var_line_chart_widget/options/VarLineChartWidgetOptionsComponent'));
         Vue.component('Varlinechartwidgeticoncomponent', () => import('./widgets/var_line_chart_widget/icon/VarLineChartWidgetIconComponent'));
+    }
+
+    private async initializeWidget_VarMixedChart() {
+        let VarMixedChart = new DashboardWidgetVO();
+
+        VarMixedChart.default_height = 10;
+        VarMixedChart.default_width = 2;
+        VarMixedChart.name = DashboardWidgetVO.WIDGET_NAME_varmixedcharts;
+        VarMixedChart.widget_component = 'Varmixedchartswidgetcomponent';
+        VarMixedChart.options_component = 'Varmixedchartswidgetoptionscomponent';
+        VarMixedChart.weight = 15;
+        VarMixedChart.default_background = '#f5f5f5';
+        VarMixedChart.icon_component = 'Varmixedchartswidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarMixedChart, () => VarMixedChartWidgetOptionsVO.createDefault(), VarMixedChartWidgetOptionsVO.get_selected_fields);
+
+        Vue.component('Varmixedchartswidgetcomponent', () => import('./widgets/var_mixed_charts_widget/VarMixedChartsWidgetComponent'));
+        Vue.component('Varmixedchartswidgetoptionscomponent', () => import('./widgets/var_mixed_charts_widget/options/VarMixedChartsWidgetOptionsComponent'));
+        Vue.component('Varmixedchartswidgeticoncomponent', () => import('./widgets/var_mixed_charts_widget/icon/VarMixedChartsWidgetIconComponent'));
     }
 
     private async initializeWidget_YearFilter() {

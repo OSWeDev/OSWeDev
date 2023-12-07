@@ -1,6 +1,8 @@
 import { LinearScale } from 'chart.js';
+
 import VarDataSetDescriptor from './VarDataSetDescriptor';
 
+// TODO: Can be extended to add more scales @see https://www.chartjs.org/docs/latest/api/classes/Scale.html
 interface IPlotScale extends LinearScale { }
 
 /**

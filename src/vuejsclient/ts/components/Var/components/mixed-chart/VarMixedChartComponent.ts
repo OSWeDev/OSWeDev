@@ -17,7 +17,21 @@ import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 
-interface IChartDataset {
+export interface IChartOptions {
+    responsive?: boolean;
+    maintainAspectRatio?: boolean;
+    aspectRatio?: number;
+    legend?: any;
+    title?: any;
+    scales?: any;
+    tooltips?: any;
+    hover?: any;
+    onClick?: any;
+    plugins?: any;
+}
+
+export interface IChartDataset {
+    type?: string | 'line' | 'bar' | 'radar';
     label: string;
     data: number[] | string[];
     backgroundColor: string[];
@@ -44,9 +58,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
     @ModuleVarGetter
     public isDescMode: boolean;
 
-    /**
-     * TODO FIXME DIRTY : cas particulier des vars_params où l'on ne veut pas trimballer le var_id, on veut juste identifier les segments sur axis
-     */
     @Prop({ default: null })
     public charts_var_params: { [chart_index: string]: VarDataBaseVO[] };
 
@@ -57,7 +68,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
     public charts_var_dataset_descriptor: { [chart_index: string]: VarMixedChartDataSetDescriptor };
 
     @Prop({ default: null })
-    public options: any;
+    public options: IChartOptions;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -91,15 +102,15 @@ export default class VarMixedChartComponent extends VueComponentBase {
         await import("chart.js-plugin-labels-dv");
     }
 
-    @Watch('chart_data')
-    @Watch('chart_options')
+    @Watch('charts_data')
+    @Watch('charts_options')
     private async onChartDataChanged() {
-        if (!this.chart_data || !this.chart_options) {
+        if (!this.charts_data || !this.charts_options) {
             return;
         }
 
-        this.current_mixed_charts_data = this.chart_data;
-        this.current_mixed_charts_options = this.chart_options;
+        this.current_mixed_charts_data = this.charts_data;
+        this.current_mixed_charts_options = this.charts_options;
     }
 
     /**
@@ -375,26 +386,41 @@ export default class VarMixedChartComponent extends VueComponentBase {
         // this.onchange_all_data_loaded();
     }
 
-    get chart_data() {
+    /**
+     * charts_data
+     * @see https://www.chartjs.org/docs/latest/getting-started/usage.html
+     */
+    get charts_data(): { labels: string[], datasets: IChartDataset[] } {
         if (!this.all_data_loaded) {
             return null;
         }
 
         return {
-            labels: this.labels,
-            datasets: this.datasets
+            labels: this.labels, // Abscisses
+            datasets: this.datasets // Ordonnées (charts datasets definition)
         };
     }
 
-    get chart_options() {
-        let self = this;
+    /**
+     * charts_options
+     * @see https://www.chartjs.org/docs/latest/general/options.html
+     *
+     * @returns {IChartOptions}
+     */
+    get charts_options(): IChartOptions {
+        const self = this;
+
         return Object.assign(
             {
                 options: {
+
                 },
+
+                // @see https://www.chartjs.org/docs/latest/general/options.html#plugin-options
                 plugins: {
                     labels: false,
                 },
+
                 onClick: (point, event) => {
                     if (!self.isDescMode) {
                         return;
@@ -432,7 +458,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private render_chart_js() {
 
-        if (!this.chart_data) {
+        if (!this.charts_data) {
             return;
         }
 
@@ -451,8 +477,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
             // Issu de Chart
             (this as any).renderChart(
-                this.chart_data,
-                this.chart_options
+                this.charts_data,
+                this.charts_options
             );
         } catch (error) {
             // ConsoleHandler.warn('PB:render Chart Chart probablement trop tôt:' + error);
@@ -464,7 +490,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     private update_chart_js() {
 
-        if (!this.chart_data) {
+        if (!this.charts_data) {
             return;
         }
 

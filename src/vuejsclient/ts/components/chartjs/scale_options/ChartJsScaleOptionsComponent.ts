@@ -22,8 +22,8 @@ import VueComponentBase from '../../VueComponentBase';
 export default class ChartJsScaleOptionsComponent extends VueComponentBase {
 
     @Prop({
+        default: () => new Object(),
         type: Object,
-        default: () => new Object()
     })
     private options: Partial<Scale | TimeScaleOptions>;
 
@@ -32,8 +32,9 @@ export default class ChartJsScaleOptionsComponent extends VueComponentBase {
     private type: string = null;
     private time: ITimeScaleFields = null;
 
-    // type of scale
+    // type of scale @TODO: add translation
     private types_options: string[] = [
+        '', // May be null (for default)
         'linear',
         'logarithmic',
         'category',
