@@ -1,8 +1,11 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
+import { ClockifyTimeEntryParamStatic } from '../../../server/modules/ClockifyAPI/vos/ClockifyTimeEntryParam';
+import TimeParamClockifyTimeEntry from '../../../server/modules/ClockifyAPI/vos/TimeParamClockifyTimeEntry';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -45,7 +48,7 @@ export default class ModuleClockifyAPI extends Module {
     public get_all_clockify_clients: () => Promise<ClockifyClientVO[]> = APIControllerWrapper.sah(ModuleClockifyAPI.APINAME_get_all_clockify_clients);
     public get_all_clockify_projects: () => Promise<ClockifyProjetVO[]> = APIControllerWrapper.sah(ModuleClockifyAPI.APINAME_get_all_clockify_projects);
     public get_all_clockify_tasks_by_project: () => Promise<ClockifyTacheVO[]> = APIControllerWrapper.sah(ModuleClockifyAPI.APINAME_get_all_clockify_tasks_by_project);
-    public get_all_clockify_timentries_by_user: () => Promise<ClockifyTimeEntryVO[]> = APIControllerWrapper.sah(ModuleClockifyAPI.APINAME_get_all_clockify_timentries_by_user);
+    public get_all_clockify_timentries_by_user: (time_param: TimeParamClockifyTimeEntry) => Promise<ClockifyTimeEntryVO[]> = APIControllerWrapper.sah(ModuleClockifyAPI.APINAME_get_all_clockify_timentries_by_user);
 
     private constructor() {
 
@@ -77,10 +80,11 @@ export default class ModuleClockifyAPI extends Module {
             []
         ));
 
-        APIControllerWrapper.registerApi(new GetAPIDefinition<null, ClockifyTimeEntryVO[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<TimeParamClockifyTimeEntry, ClockifyTimeEntryVO[]>(
             null,
             ModuleClockifyAPI.APINAME_get_all_clockify_timentries_by_user,
-            []
+            [],
+            ClockifyTimeEntryParamStatic
         ));
     }
 

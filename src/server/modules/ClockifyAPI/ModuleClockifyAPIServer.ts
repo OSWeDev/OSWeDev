@@ -19,6 +19,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import TimeParamClockifyTimeEntry from './vos/TimeParamClockifyTimeEntry';
 
 export default class ModuleClockifyAPIServer extends ModuleServerBase {
 
@@ -190,7 +191,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     }
 
     // Getter des entrées de temps clockify d'un workspace donné
-    public async get_all_clockify_timentries_by_user(): Promise<ClockifyTimeEntryVO[]> {
+    public async get_all_clockify_timentries_by_user(time_param: TimeParamClockifyTimeEntry): Promise<ClockifyTimeEntryVO[]> {
         try {
             let workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
@@ -201,7 +202,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
             for (let i in users) {
                 let user: ClockifyUserVO = users[i];
                 // Pour chaque utilisateur, on récupère toutes les entrées de temps clockify associées (il n'y a pas d'api nous permettant de récupérer les entrées de temps en masse autrement pour le moment (07/12/2023))
-                let clockify_timeentries: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/user/' + user.clockify_id + '/time-entries');
+                let clockify_timeentries: any[] = await this.get_all_time_entries('api/v1/workspaces/' + workspace_id + '/user/' + user.clockify_id + '/time-entries', time_param.start_time, time_param.end_time);
 
                 for (let j in clockify_timeentries) {
                     let clockify_timeentry = clockify_timeentries[j];
@@ -248,6 +249,41 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
                 ModuleClockifyAPI.ClockifyAPI_BaseURL,
                 (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
                     page: page.toString(),
+                }),
+                null,
+                {
+                    'X-Api-Key': api_key,
+                    'Content-Type': 'application/json',
+                },
+                true,
+                null,
+                false,
+            );
+
+            res = res.concat(elts);
+            page++;
+
+            has_more = elts?.length > 0;
+        }
+
+        return res;
+    }
+
+    private async get_all_time_entries(url: string, start_time: number, end_time: number) {
+
+        let res: any[] = [];
+        let has_more: boolean = true;
+        let page: number = 1;
+        let api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
+
+        while (has_more) {
+            let elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleClockifyAPI.ClockifyAPI_BaseURL,
+                (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
+                    page: page.toString(),
+                    start: Dates.format(start_time, "YYYY-MM-DD", true) + "T00:00:00Z",
+                    end: Dates.format(end_time, "YYYY-MM-DD", true) + "T23:59:59Z",
                 }),
                 null,
                 {
