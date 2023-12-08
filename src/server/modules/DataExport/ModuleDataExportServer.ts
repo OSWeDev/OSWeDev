@@ -442,6 +442,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             this_context_query.set_limit(limit, this_offset);
 
+            // On doit aussi ajuster les sub_queries en jointure dans ce cas
+            for (let i in this_context_query.joined_context_queries) {
+                let joined_context_query = this_context_query.joined_context_queries[i];
+
+                if (!joined_context_query) {
+                    continue;
+                }
+
+                joined_context_query.joined_context_query.set_limit(limit, this_offset);
+            }
+
+
             if (!has_query_limit) {
                 offset += limit;
             }
@@ -676,6 +688,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 await promise_pipeline.push(async () => {
                     let table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
+
+                    if (!table) {
+                        // Probablement un field pour des chargement de var ?
+                        return;
+                    }
 
                     // cas spécifique de l'id
                     if (field.field_id == 'id') {

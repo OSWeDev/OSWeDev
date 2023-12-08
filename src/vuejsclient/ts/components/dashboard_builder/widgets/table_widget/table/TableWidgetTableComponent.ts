@@ -2068,6 +2068,17 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         let xlsx_context_query = cloneDeep(this.actual_page_rows_datas_query);
         if (!limit_to_page) {
             xlsx_context_query.set_limit(0, 0);
+
+            // On doit aussi ajuster les sub_queries en jointure dans ce cas
+            for (let i in xlsx_context_query.joined_context_queries) {
+                let joined_context_query = xlsx_context_query.joined_context_queries[i];
+
+                if (!joined_context_query) {
+                    continue;
+                }
+
+                joined_context_query.joined_context_query.set_limit(0, 0);
+            }
         }
 
         let export_name: string = 'Export-';
