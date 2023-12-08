@@ -456,6 +456,19 @@ export default abstract class ServerBase {
                 return next();
             });
 
+        // On rajoute un middleware pour stocker l'info de la last use tab_id par user
+        this.app.use(
+            async (req, res, next) => {
+                const uid = req.session ? req.session.uid : null;
+                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+
+                if (!uid || !client_tab_id) {
+                    return next();
+                }
+
+                PushDataServerController.last_known_tab_id_by_user_id[uid] = client_tab_id;
+                return next();
+            });
 
         // Pour renvoyer les js en gzip directement quand ils sont appelés en .js.gz dans le html
         // Accept-Encoding: gzip, deflate

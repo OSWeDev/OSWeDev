@@ -23,6 +23,15 @@ import SocketWrapper from './vos/SocketWrapper';
 
 export default class PushDataServerController {
 
+    /**
+     * Only on main thread (express).
+     */
+    // The goal is to keep track of the last tab id for each user, being the last tab to have sent a request
+    public static last_known_tab_id_by_user_id: { [user_id: number]: string } = {};
+    /**
+     * !!!!!!!!!
+     */
+
     public static NOTIF_INTERVAL_MS: number = 1000;
 
     public static NOTIFY_SESSION_INVALIDATED: string = 'PushDataServerController.session_invalidated' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
@@ -889,7 +898,13 @@ export default class PushDataServerController {
         await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
-    // Notifications qui permettent de télécharger un fichier
+    /**
+     * Notifications qui permettent de télécharger un fichier
+     *  On sélectionne la current tab du user pour ne pas envoyer autant de notif que de tabs ouvertes, si la tab n'est pas fournie d'emblée à la fonction
+     * @param user_id
+     * @param client_tab_id
+     * @param full_file_path
+     */
     public async notifyDownloadFile(
         user_id: number,
         client_tab_id: string,
@@ -909,7 +924,7 @@ export default class PushDataServerController {
         notification.notification_type = NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE;
         notification.read = false;
         notification.user_id = user_id;
-        notification.client_tab_id = client_tab_id;
+        notification.client_tab_id = client_tab_id ? client_tab_id : PushDataServerController.last_known_tab_id_by_user_id[user_id];
         notification.simple_downloadable_link = full_file_path;
         await this.notify(notification);
     }
