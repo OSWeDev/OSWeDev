@@ -426,7 +426,11 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
      * @returns le datatableField modifié
      */
     public async setSelectOptionsEnabled(options: number[]): Promise<DatatableField<T, U>> {
-        this.select_options_enabled = Array.from(options);
+        if (!options) {
+            console.error("setSelectOptionsEnabled : options vide");
+        }
+
+        this.select_options_enabled = !options ? [] : Array.from(options);
 
         if (!!this.vue_component) {
             // on informe
