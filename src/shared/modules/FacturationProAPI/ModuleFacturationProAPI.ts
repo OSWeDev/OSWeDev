@@ -17,6 +17,8 @@ import FactuProInvoiceVO from './vos/invoices/FactuProInvoiceVO';
 import FactuProProductsLISTParams from './vos/products/FactuProProductsLISTParams';
 import FactuProProductVO from './vos/products/FactuProProductVO';
 import FactuProInvoiceFinaliseVO, { FactuProInvoiceFinaliseVOStatic } from './vos/apis/FactuProInvoiceFinaliseVO';
+import FactuProDevisLISTParams from './vos/devis/FactuProDevisLISTParams';
+import FactuProDevisVO from './vos/devis/FactuProDevisVO';
 
 export default class ModuleFacturationProAPI extends Module {
 
@@ -114,6 +116,15 @@ export default class ModuleFacturationProAPI extends Module {
             params as any as { [i: string]: string },
         ) as FactuProCategoryVO[];
         return categories;
+    }
+
+    public async list_devis(firm_id: number, params: FactuProDevisLISTParams) {
+
+        let devis: FactuProDevisVO[] = await this.get_all_pages(
+            "firms/" + firm_id + "/quotes.json",
+            params as any as { [i: string]: string },
+        ) as FactuProDevisVO[];
+        return devis;
     }
 
     public async getHeadersRequest(): Promise<any> {

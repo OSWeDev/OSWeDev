@@ -18,6 +18,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import EvolizAPIToken from './vos/EvolizAPIToken';
+import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -74,6 +75,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_devis, this.list_devis.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
@@ -122,6 +124,18 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
     }
 
+    // DEVIS
+    public async list_devis(): Promise<EvolizDevisVO[]> {
+        try {
+            let invoices: EvolizDevisVO[] = await this.get_all_pages('/api/v1/quotes') as EvolizDevisVO[];
+
+            return invoices;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // FACTURES
     public async list_invoices(): Promise<EvolizInvoiceVO[]> {
         try {
             let invoices: EvolizInvoiceVO[] = await this.get_all_pages('/api/v1/invoices') as EvolizInvoiceVO[];
