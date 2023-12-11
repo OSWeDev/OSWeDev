@@ -1,4 +1,4 @@
-import { debounce } from 'lodash';
+import { debounce, isEqual } from 'lodash';
 import { Chart as VueChart } from 'vue-chartjs';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
@@ -104,7 +104,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     @Watch('charts_data')
     @Watch('charts_options')
-    private async onChartDataChanged() {
+    private async onchange_chart_data() {
         if (!this.charts_data || !this.charts_options) {
             return;
         }
@@ -158,23 +158,33 @@ export default class VarMixedChartComponent extends VueComponentBase {
         });
     }
 
-    private var_datas_updater() {
+    /**
+     * var_datas_updater
+     *
+     * @returns {Promise<void>}
+     */
+    private var_datas_updater(): Promise<void> {
 
-        if ((!this.charts_var_datas) || (!this.charts_var_dataset_descriptor)) {
+        if ((!this.charts_var_params) || (!this.charts_var_dataset_descriptor)) {
             this.charts_var_datas = null;
+
             return;
         }
 
         // get all charts_var_datas (we may have many charts in one mixed chart component)
         const res: { [chart_index: string]: { [index: string]: VarDataValueResVO } } = {};
 
-        for (const key in this.charts_var_datas) {
-            const chart_var_datas = this.charts_var_datas[key];
+        for (const chart_key in this.charts_var_params) {
+            const var_params = this.charts_var_params[chart_key];
 
-            for (const i in chart_var_datas) {
-                const var_param = chart_var_datas[i];
+            for (const i in var_params) {
+                const var_param = var_params[i];
 
-                res[key][var_param.index] = VarsClientController.cached_var_datas[var_param.index];
+                if (!res[chart_key]) {
+                    res[chart_key] = {};
+                }
+
+                res[chart_key][var_param.index] = VarsClientController.cached_var_datas[var_param.index];
             }
         }
 
@@ -191,13 +201,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         for (const chart_index in this.charts_var_params) {
 
-            const data: {
-                data: string[] | number[];
-                backgroundColor: string[];
-                borderColor: string[];
-                borderWidth: number[];
-                label: string;
-            } = this.get_chart_dataset_by_chart_index(chart_index);
+            const data: IChartDataset = this.get_chart_dataset_by_chart_index(chart_index);
 
             datasets[chart_index] = data;
         }
@@ -259,6 +263,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             label: (!!chart_var_dataset_descriptor.label_translatable_code) ?
                 this.t(chart_var_dataset_descriptor.label_translatable_code) :
                 this.t(VarsController.get_translatable_name_code(chart_var_dataset_descriptor.var_name)),
+            type: chart_var_dataset_descriptor.type,
             backgroundColor: backgroundColor,
             borderColor: borderColor,
             borderWidth: borderWidth,
@@ -284,15 +289,18 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     get all_data_loaded(): boolean {
 
-        if ((!this.charts_var_params) || (!this.charts_var_params.length) || (!this.charts_var_dataset_descriptor)) {
+        if (
+            !(this.charts_var_dataset_descriptor) ||
+            !(this.charts_var_params)
+        ) {
             return false;
         }
 
         for (let chart_key in this.charts_var_params) {
-            let chart_var_params = this.charts_var_params[chart_key];
+            const chart_var_params = this.charts_var_params[chart_key];
 
             for (let i in chart_var_params) {
-                let var_param: VarDataBaseVO = chart_var_params[i];
+                const var_param: VarDataBaseVO = chart_var_params[i];
 
                 if (
                     (!this.charts_var_datas[chart_key]) ||
@@ -303,6 +311,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 }
             }
         }
+
         return true;
     }
 
@@ -330,20 +339,28 @@ export default class VarMixedChartComponent extends VueComponentBase {
         return this.filter.apply(null, params);
     }
 
-    @Watch('var_params', { immediate: true })
-    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
+    @Watch('charts_var_params', { immediate: true })
+    private async onchange_charts_var_params(new_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
+        if (isEqual(new_charts_var_params, old_charts_var_params)) {
             return;
         }
 
-        if (old_var_params && old_var_params.length) {
-            await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
+        if (!!old_charts_var_params) {
+            for (const chart_key in old_charts_var_params) {
+                const old_chart_var_params = old_charts_var_params[chart_key];
+
+                await VarsClientController.getInstance().unRegisterParams(old_chart_var_params, this.varUpdateCallbacks);
+            }
         }
 
-        if (new_var_params && new_var_params.length) {
-            await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
+        if (!!new_charts_var_params) {
+            for (const chart_key in new_charts_var_params) {
+                const new_chart_var_params = new_charts_var_params[chart_key];
+
+                await VarsClientController.getInstance().registerParams(new_chart_var_params, this.varUpdateCallbacks);
+            }
         }
 
         // this.set_datasets();
@@ -351,8 +368,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
         // this.onchange_all_data_loaded();
     }
 
-    @Watch('var_dataset_descriptor')
-    private async onchange_descriptors(
+    @Watch('charts_var_dataset_descriptor')
+    private async onchange_charts_var_dataset_descriptor(
         new_var_dataset_descriptor: VarMixedChartDataSetDescriptor,
         old_var_dataset_descriptor: VarMixedChartDataSetDescriptor
     ) {
@@ -360,6 +377,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         // On doit vérifier qu'ils sont bien différents
         new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
         old_var_dataset_descriptor = old_var_dataset_descriptor ? old_var_dataset_descriptor : null;
+
         let same: boolean = true;
         if (((!old_var_dataset_descriptor) && (!!new_var_dataset_descriptor)) ||
             ((!!old_var_dataset_descriptor) && (!new_var_dataset_descriptor)) ||
@@ -370,8 +388,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return;
         }
 
-        for (let chart_key in this.charts_var_params) {
-            let chart_var_params = this.charts_var_params[chart_key];
+        for (const chart_key in this.charts_var_params) {
+            const chart_var_params = this.charts_var_params[chart_key];
 
             // sur chaque dimension
             if ((!!old_var_dataset_descriptor) && (chart_var_params) && chart_var_params.length) {
@@ -505,6 +523,12 @@ export default class VarMixedChartComponent extends VueComponentBase {
         await this.debounced_render_or_update_chart_js();
     }
 
+    /**
+     * labels
+     *  - All charts should have the same labels
+     *
+     * @returns {string[]}
+     */
     get labels(): string[] {
         const res = [];
 
@@ -519,6 +543,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id))
                 );
             }
+
+            break;
         }
 
         return res;

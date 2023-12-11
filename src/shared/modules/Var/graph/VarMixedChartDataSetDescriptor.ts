@@ -13,6 +13,7 @@ interface IPlotScale extends LinearScale { }
 export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor {
 
     public scales: { y?: Partial<IPlotScale>, x?: Partial<IPlotScale>, r?: Partial<IPlotScale> } = { y: {}, x: {}, r: {} };
+    public type: string | 'line' | 'bar' | 'radar' = '';
     public backgroundColor: string[] = [];
     public borderColor: string[] = [];
     public borderWidth: number[] = [];
@@ -22,6 +23,12 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
         public label_translatable_code: string = null,
     ) {
         super(var_name, label_translatable_code);
+    }
+
+    public set_type(type: string | 'line' | 'bar' | 'radar'): VarMixedChartDataSetDescriptor {
+        this.type = type;
+
+        return this;
     }
 
     public set_backgrounds(backgroundColor: string[]): VarMixedChartDataSetDescriptor {

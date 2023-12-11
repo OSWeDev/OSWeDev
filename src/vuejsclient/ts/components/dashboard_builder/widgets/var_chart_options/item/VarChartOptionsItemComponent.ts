@@ -41,8 +41,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
     private custom_filter_names: { [field_id: string]: string } = {};
 
+    private chart_id: number = null;
     private var_id: number = null;
-    private type: string = null;
+    private type: string | 'line' | 'bar' | 'radar' = null;
     private bg_color: string = null;
     private border_color: string = null;
     private border_width: number = null;
@@ -69,6 +70,10 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         'bottom',
         'right'
     ];
+
+    public async created() {
+        this.chart_id = this.chart_id ?? Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+    }
 
     @Watch('options', { immediate: true, deep: true })
     private on_input_options_changed() {
@@ -192,6 +197,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
     private async emit_change() {
         // Set up all params fields
+        this.options_props.chart_id = this.chart_id; // To load the var data
         this.options_props.var_id = this.var_id; // To load the var data
         this.options_props.type = this.type;
         this.options_props.bg_color = this.bg_color;

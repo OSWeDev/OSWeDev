@@ -1,6 +1,17 @@
 .var_chart_options_item_component 
     .var_chart_options_item_component_wrapper
+
         .options_separator_lvl2 {{ label('var_chart_options_item_component.separator.var_options') }}
+    
+        .chart_id
+            .input_label {{ label('var_chart_options_item_component.chart_id') }}
+            .input_wrapper 
+                input(
+                    v-model="chart_id"
+                    :disabled="true"
+                    type="text"
+                )
+
         .var_name 
             .input_label {{ label('var_chart_options_item_component.var_name') }}
             .input_wrapper

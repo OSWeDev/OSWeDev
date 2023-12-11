@@ -90,7 +90,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     @Watch('options')
     @Watch('charts_var_dataset_descriptor')
     @Watch('charts_var_params')
-    private async onOptionsChange() {
+    private async onchange_options() {
         if (!this.options || !this.charts_var_dataset_descriptor || !this.charts_var_params) {
             return;
         }
@@ -218,7 +218,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         for (const key in this.widget_options.var_charts_options) {
             const var_chart_options = this.widget_options.var_charts_options[key];
 
-            const var_chart_id = var_chart_options.var_id;
+            const var_chart_id = var_chart_options.chart_id;
 
             for (const i in dimensions) {
                 const dimension: any = dimensions[i];
@@ -244,15 +244,12 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         this.widget_options.dimension_vo_field_ref.api_type_id, this.widget_options.dimension_vo_field_ref.field_id
                     ).by_num_has([dimension_value]);
 
-                    // Get the var chart name
-                    const var_chart_name = VarsController.var_conf_by_id[var_chart_id].name;
-
                     if (!charts_var_params_by_dimension[var_chart_id]) {
                         charts_var_params_by_dimension[var_chart_id] = {};
                     }
 
                     charts_var_params_by_dimension[var_chart_id][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                        var_chart_name,
+                        VarsController.var_conf_by_id[var_chart_options.var_id].name,
                         active_field_filters,
                         custom_filters,
                         this.get_dashboard_api_type_ids,
@@ -339,7 +336,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 const custom_filter_name = var_chart_options.custom_filter_names[j];
 
                 if (custom_filter_name == this.widget_options.dimension_custom_filter_name) {
-                    found[var_chart_options.var_id] = true;
+                    found[var_chart_options.chart_id] = true;
                 }
             }
         }
@@ -376,7 +373,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         for (const key in this.widget_options.var_charts_options) {
             const var_chart_options = this.widget_options.var_charts_options[key];
 
-            const var_chart_id = var_chart_options.var_id;
+            const var_chart_id = var_chart_options.chart_id;
 
             for (const i in dimension_values) {
                 const dimension_value: number = dimension_values[i];
@@ -411,17 +408,14 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         }
                     }
 
-                    // Get the var chart name
-                    const var_chart_name = VarsController.var_conf_by_id[var_chart_id].name;
-
                     if (!charts_var_params_by_dimension[var_chart_id]) {
                         charts_var_params_by_dimension[var_chart_id] = {};
                     }
 
                     charts_var_params_by_dimension[var_chart_id][dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                        var_chart_name,
+                        VarsController.var_conf_by_id[var_chart_options.var_id].name,
                         active_field_filters,
-                        custom_filters,
+                        update_custom_filters,
                         this.get_dashboard_api_type_ids,
                         this.get_discarded_field_paths
                     );
@@ -668,12 +662,13 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     return null;
                 }
 
-                mixed_charts_dataset_descriptor[var_chart_options.var_id] = new VarMixedChartDataSetDescriptor(
+                mixed_charts_dataset_descriptor[var_chart_options.chart_id] = new VarMixedChartDataSetDescriptor(
                     VarsController.var_conf_by_id[var_chart_options.var_id].name, // ?? flou le var_name à utiliser ici
                     this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id))) // ?? flou le label à utiliser ici
                     .set_backgrounds([var_chart_options.bg_color])
                     .set_bordercolors([var_chart_options.border_color])
-                    .set_borderwidths([var_chart_options.border_width]);
+                    .set_borderwidths([var_chart_options.border_width])
+                    .set_type(var_chart_options.type);
             }
 
             return mixed_charts_dataset_descriptor;
@@ -720,12 +715,13 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 colors.push(color);
             }
 
-            mixed_charts_dataset_descriptor[var_chart_options.var_id] = new VarMixedChartDataSetDescriptor(
+            mixed_charts_dataset_descriptor[var_chart_options.chart_id] = new VarMixedChartDataSetDescriptor(
                 VarsController.var_conf_by_id[var_chart_options.var_id].name,
                 this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id)))
                 .set_backgrounds(colors)
                 .set_bordercolors([var_chart_options.border_color])
-                .set_borderwidths([var_chart_options.border_width]);
+                .set_borderwidths([var_chart_options.border_width])
+                .set_type(var_chart_options.type);
         }
 
         return mixed_charts_dataset_descriptor;
@@ -752,10 +748,12 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
 
         for (const chart_id in this.charts_var_params_by_dimension) {
-            for (let i in this.ordered_dimension) {
-                let dimension = this.ordered_dimension[i];
+            const chart_var_params_by_dimension = this.charts_var_params_by_dimension[chart_id];
 
-                if (!this.charts_var_params_by_dimension[chart_id][dimension]) {
+            for (const i in this.ordered_dimension) {
+                const dimension = this.ordered_dimension[i];
+
+                if (!chart_var_params_by_dimension[dimension]) {
                     return null;
                 }
 
@@ -763,7 +761,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     res[chart_id] = [];
                 }
 
-                res[chart_id].push(this.charts_var_params_by_dimension[chart_id][dimension]);
+                res[chart_id].push(chart_var_params_by_dimension[dimension]);
             }
         }
 

@@ -401,7 +401,11 @@ export default class VarLineChartComponent extends VueComponentBase {
         let res = [];
 
         for (let i in this.var_params) {
-            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            res.push(
+                this.getlabel ?
+                    this.getlabel(this.var_params[i]) :
+                    this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id))
+            );
         }
 
         return res;

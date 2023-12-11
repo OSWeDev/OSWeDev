@@ -9,7 +9,8 @@ import AbstractVO from "../../VO/abstract/AbstractVO";
 export default class VarChartOptionsVO extends AbstractVO {
 
     constructor(
-        public var_id?: number,
+        public chart_id?: number,
+        public var_id?: number, // May have many chart with the same var_id
 
         public custom_filter_names?: { [field_id: string]: string },
 

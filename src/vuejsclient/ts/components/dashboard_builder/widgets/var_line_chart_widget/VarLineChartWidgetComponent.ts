@@ -545,12 +545,14 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                  * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
                  */
                 let active_field_filters = cloneDeep(this.get_active_field_filters);
+
                 active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
                     ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     this.widget_options.dimension_custom_filter_name
                 ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
 
                 let update_custom_filters_1 = cloneDeep(custom_filters_1);
+
                 if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
                     this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
 
