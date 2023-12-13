@@ -237,6 +237,8 @@
             .input_wrapper
                 Varchartsoptionscomponent(
                     @on_change="handle_var_charts_options_change"
+                    :get_var_name_code_text="get_var_name_code_text"
+                    :page_widget_id="page_widget.id"
                     :options="var_charts_options"
                 )
 

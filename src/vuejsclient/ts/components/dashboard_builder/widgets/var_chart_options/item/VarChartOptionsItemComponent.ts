@@ -31,6 +31,12 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     })
     private options: VarChartOptionsVO;
 
+    @Prop({ default: null })
+    private page_widget_id: number;
+
+    @Prop({ default: null })
+    private get_var_name_code_text: (page_widget_id: number, var_id: number) => string;
+
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
 
@@ -47,6 +53,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private bg_color: string = null;
     private border_color: string = null;
     private border_width: number = null;
+
 
     private graphe_types: string[] = [
         'line',     // many lines on the same graph or line chart with bars

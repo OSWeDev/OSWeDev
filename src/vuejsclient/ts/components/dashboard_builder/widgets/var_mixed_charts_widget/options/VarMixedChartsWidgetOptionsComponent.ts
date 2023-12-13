@@ -788,6 +788,19 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         this.$emit('update_layout_widget', this.page_widget);
     }
 
+    /**
+     * get_var_name_code_text
+     *
+     * @returns {string}
+     */
+    private get_var_name_code_text(): (page_widget_id: number, var_id: number) => string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_var_name_code_text;
+    }
+
     get title_name_code_text(): string {
         if (!this.widget_options) {
             return null;

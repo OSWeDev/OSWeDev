@@ -9,6 +9,8 @@
             .input_wrapper(v-for="(var_chart_options, index) in options_props")
                 Varchartoptionsitemcomponent(
                     @on_change="handle_var_chart_options_change(index, $event)"
+                    :get_var_name_code_text="get_var_name_code_text"
+                    :page_widget_id="page_widget_id"
                     :options="var_chart_options"
                 )
                 button.btn-danger.btn-lg.btn-block.remove_var_chart_options_button(

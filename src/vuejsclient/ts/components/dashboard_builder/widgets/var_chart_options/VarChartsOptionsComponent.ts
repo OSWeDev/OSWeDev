@@ -21,6 +21,12 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
     })
     private options: VarChartOptionsVO[];
 
+    @Prop({ default: null })
+    private page_widget_id: number;
+
+    @Prop({ default: null })
+    private get_var_name_code_text: (page_widget_id: number, var_id: number) => string;
+
     private options_props: VarChartOptionsVO[] = [];
 
     @Watch('options', { immediate: true, deep: true })

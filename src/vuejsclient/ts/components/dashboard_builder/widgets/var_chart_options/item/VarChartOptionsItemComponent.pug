@@ -37,6 +37,14 @@
                 )
                     .lang_selector_option(slot="noOptions") -
 
+        .var_title(v-if='page_widget_id && var_id && get_var_name_code_text(page_widget_id, var_id)')
+            .var_title_label {{ label('var_chart_options_item_component.var_title.title_name_code_text') }}
+            .var_title_wrapper
+                Inlinetranslatabletext(
+                    :code_text="get_var_name_code_text(page_widget_id, var_id)" 
+                    :is_editable="true"
+                )
+
         .graphe_type 
             .input_label {{ label('var_chart_options_item_component.graphe_type') }}
             .input_wrapper
