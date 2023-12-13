@@ -1,0 +1,103 @@
+.var_chart_options_item_component 
+    .var_chart_options_item_component_wrapper
+
+        .options_separator_lvl2 {{ label('var_chart_options_item_component.separator.var_options') }}
+    
+        .chart_id
+            .input_label {{ label('var_chart_options_item_component.chart_id') }}
+            .input_wrapper 
+                input(
+                    v-model="chart_id"
+                    :disabled="true"
+                    type="text"
+                )
+
+        .var_name 
+            .input_label {{ label('var_chart_options_item_component.var_name') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="selected_var_name"
+                    :options="var_names"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+                    
+                    name="var_name_selector"
+                )
+                    .lang_selector_option(slot="noOptions") -
+
+        .var_title(v-if='page_widget_id && var_id && get_var_name_code_text(page_widget_id, var_id)')
+            .var_title_label {{ label('var_chart_options_item_component.var_title.title_name_code_text') }}
+            .var_title_wrapper
+                Inlinetranslatabletext(
+                    :code_text="get_var_name_code_text(page_widget_id, var_id)" 
+                    :is_editable="true"
+                )
+
+        .graphe_type 
+            .input_label {{ label('var_chart_options_item_component.graphe_type') }}
+            .input_wrapper
+                multiselect.graphe_type_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="type"
+                    :options="graphe_types"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+                    
+                    name="graphe_type_selector"
+                )
+                    .lang_selector_option(slot="noOptions") -
+
+        .bg_color
+            .explication {{ label("var_chart_options_item_component.bg_color") }}
+            color-picker(v-model="bg_color")
+
+        .border_color
+            .explication {{ label("var_chart_options_item_component.border_color") }}
+            color-picker(v-model="border_color")
+
+        .border_width
+            .input_label {{ label('var_chart_options_item_component.border_width') }}
+            .input_wrapper
+                input(
+                    v-model="border_width"
+                    type="number"
+                )
+
+        template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
+            .fields_that_could_get_custom_filter
+                template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                    .field_that_could_get_custom_filter
+                        .field_id {{ field_that_could_get_custom_filter }}
+                        .custom_filter 
+                            input(
+                                v-model="custom_filter_names[field_that_could_get_custom_filter]"
+                                :disabled="true"
+                                type="text"
+                            )
+                        .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                            template(v-for='custom_filter in get_custom_filters')
+                                .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+

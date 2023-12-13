@@ -1,0 +1,19 @@
+.var_charts_options_component
+    .options_separator_lvl2 {{ label('var_charts_options_component.separator.var_options') }}
+    .var_charts_options_selector 
+        .add_var_chart_options_button_wrapper
+            button.btn-success.btn-lg.btn-block.add_var_chart_options_button(
+                @click="add_var_chart_options"
+            ) {{ label('var_charts_options_component.add_var_chart_options_button') }}
+        template
+            .input_wrapper(v-for="(var_chart_options, index) in options_props")
+                Varchartoptionsitemcomponent(
+                    @on_change="handle_var_chart_options_change(index, $event)"
+                    :get_var_name_code_text="get_var_name_code_text"
+                    :page_widget_id="page_widget_id"
+                    :options="var_chart_options"
+                )
+                button.btn-danger.btn-lg.btn-block.remove_var_chart_options_button(
+                    @click="remove_var_chart_options(index)"
+                ) {{ label('var_charts_options_component.remove_var_chart_options_button') }}
+
