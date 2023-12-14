@@ -344,14 +344,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             CurrentUserFilter,
-            () => new CurrentUserFilterWidgetOptionsVO(
-                new VOFieldRefVO().from({
-                    api_type_id: UserVO.API_TYPE_ID,
-                    field_id: "id"
-                }),
-                true
-            ),
-            CurrentUserFilterWidgetOptionsVO.get_selected_fields
+            () => new CurrentUserFilterWidgetOptionsVO(),
+            null
         );
 
         Vue.component('Currentuserfilterwidgetcomponent', () => import('./widgets/current_user_filter_widget/CurrentUserFilterWidgetComponent'));

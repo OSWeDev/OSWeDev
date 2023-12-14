@@ -1,6 +1,5 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipelineHelper';
@@ -47,14 +46,14 @@ export default class VarsServerCallBackSubsController {
     }
 
     public static async get_vars_datas<T extends VarDataBaseVO>(params_indexes: string[]): Promise<{ [index: string]: T }> {
-        let res: { [index: string]: VarDataBaseVO } = {};
+        let res: { [index: string]: T } = {};
 
         let promises = [];
         for (let i in params_indexes) {
             let params_index = params_indexes[i];
 
             promises.push((async () => {
-                let var_data = await this.get_var_data(params_index);
+                let var_data = await this.get_var_data(params_index) as T;
 
                 if (var_data) {
                     res[var_data.index] = var_data;
