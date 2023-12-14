@@ -46,7 +46,7 @@ export default class VarsServerCallBackSubsController {
         return this.get_var_data_indexed<T>(param_index, param_index);
     }
 
-    public static async get_vars_datas(params_indexes: string[]): Promise<{ [index: string]: VarDataBaseVO }> {
+    public static async get_vars_datas<T extends VarDataBaseVO>(params_indexes: string[]): Promise<{ [index: string]: T }> {
         let res: { [index: string]: VarDataBaseVO } = {};
 
         let promises = [];
