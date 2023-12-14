@@ -110,7 +110,7 @@ export default class ModuleCMS extends Module {
             route = '/' + route;
         }
 
-        if (!URLHandler.getInstance().isValidRoute(route)) {
+        if (!URLHandler.isValidRoute(route)) {
             return null;
         }
 

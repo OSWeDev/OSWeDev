@@ -49,6 +49,7 @@ export default class YearFilterWidgetOptionsVO {
         public relative_to_other_filter_id?: number,
         public hide_filter?: boolean,
         public can_select_all?: boolean,
+        public is_all_years_selected?: boolean,
     ) { }
 
     /**

@@ -4,7 +4,6 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 
 export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -16,8 +15,17 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
         sortedTargetFields: Array<DatatableField<any, any>>): ManyToOneReferenceDatatableFieldVO<any> {
 
         let res = new ManyToOneReferenceDatatableFieldVO();
-        res.init_ref_dtf(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.MANY_TO_ONE_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
+
+        res.init_ref_dtf(
+            ManyToOneReferenceDatatableFieldVO.API_TYPE_ID,
+            DatatableField.MANY_TO_ONE_FIELD_TYPE,
+            datatable_field_uid,
+            targetModuleTable,
+            sortedTargetFields
+        );
+
         res.src_field_id = datatable_field_uid;
+
         return res;
     }
 
@@ -60,6 +68,10 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
     get translatable_title(): string {
         if (!this.vo_type_full_name) {
             return null;
+        }
+
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
         }
 
         let e = this.srcField.field_label.code_text;

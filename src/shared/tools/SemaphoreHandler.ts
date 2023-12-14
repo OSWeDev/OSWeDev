@@ -1,17 +1,44 @@
-/* istanbul ignore file: nothing to test here */
-
 import ThreadHandler from "./ThreadHandler";
 
 export default class SemaphoreHandler {
 
-    public static async semaphore(key: string, cb: () => Promise<any>): Promise<any> {
+    /**
+     * @param key
+     * @param cb
+     * @param return_if_unavailable En async on peut choisir d'attendre la dispo du semaphore ou de retourner null directement si il est indispo
+     * @returns
+     */
+    public static async semaphore_async(key: string, cb: () => any | Promise<any>, return_if_unavailable: boolean = true): Promise<any> {
+
+        if (return_if_unavailable && SemaphoreHandler.SEMAPHORES[key]) {
+            return null;
+        }
 
         while (SemaphoreHandler.SEMAPHORES[key]) {
-            await ThreadHandler.sleep(10, 'SemaphoreHandler.semaphore');
+            await ThreadHandler.sleep(1, 'SemaphoreHandler.semaphore_async.' + key);
         }
 
         SemaphoreHandler.SEMAPHORES[key] = true;
         let res = await cb();
+        SemaphoreHandler.SEMAPHORES[key] = false;
+
+        return res;
+    }
+
+    /**
+     * En sync on est forcément return_if_unavailable = true
+     * @param key
+     * @param cb
+     * @returns
+     */
+    public static semaphore_sync(key: string, cb: () => any): any {
+
+        if (SemaphoreHandler.SEMAPHORES[key]) {
+            return null;
+        }
+
+        SemaphoreHandler.SEMAPHORES[key] = true;
+        let res = cb();
         SemaphoreHandler.SEMAPHORES[key] = false;
 
         return res;

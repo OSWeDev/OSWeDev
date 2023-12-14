@@ -24,7 +24,7 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
 
     public abstract getConditionUID_from_Conditions(conditions: Conditions): string;
 
-    public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params, exec_as_server?: boolean) => Promise<Out>) {
+    public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params, exec_as_server?: boolean) => Promise<Out> | Out) {
         let conditionUID: string = conditions ? this.getConditionUID_from_Conditions(conditions) : TriggerHook.NO_CONDITION_UID;
 
         if (!this.registered_handlers[conditionUID]) {

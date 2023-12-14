@@ -9,10 +9,11 @@ import ManyToOneReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToOn
 import OneToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
+import FieldFiltersVO from '../../DashboardBuilder/vos/FieldFiltersVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../DataRender/vos/DataFilterOption';
-import TimeSegment from '../../DataRender/vos/TimeSegment';
 import TSRange from '../../DataRender/vos/TSRange';
+import TimeSegment from '../../DataRender/vos/TimeSegment';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTableField from '../../ModuleTableField';
@@ -54,6 +55,76 @@ export default class ContextFilterVOHandler {
         "label.day.vendredi",
         "label.day.samedi"
     ];
+
+    /**
+     * Objectif retrouver les filtres simples (pas de or / xor ou subquery par exemple) d'un vo_type spécifique
+     */
+    public static get_simple_filters_by_vo_type(filters: ContextFilterVO[], vo_type: string): ContextFilterVO[] {
+
+        let res: ContextFilterVO[] = [];
+        for (let i in filters) {
+            let filter = filters[i];
+
+            if (filter.vo_type != vo_type) {
+                continue;
+            }
+
+            switch (filter.filter_type) {
+                case ContextFilterVO.TYPE_FILTER_AND:
+                case ContextFilterVO.TYPE_FILTER_NOT:
+                case ContextFilterVO.TYPE_FILTER_OR:
+                case ContextFilterVO.TYPE_FILTER_XOR:
+                case ContextFilterVO.TYPE_IN:
+                case ContextFilterVO.TYPE_NOT_IN:
+                case ContextFilterVO.TYPE_NOT_EXISTS:
+                    continue;
+            }
+
+            res.push(filter);
+        }
+
+        return res;
+    }
+
+    /**
+     * Objectif retrouver un filtre simple (pas de or / xor ou subquery par exemple) pour identifier par exemple
+     *  un filtre sur un champ de segmentation
+     *  on checke qu'on a qu'un seul résultat (sinon on est sur un filtre complexe)
+     */
+    public static get_simple_filter_by_vo_type_and_field_id(filters: ContextFilterVO[], vo_type: string, field_id: string): ContextFilterVO {
+
+        let res = null;
+        for (let i in filters) {
+            let filter = filters[i];
+
+            if (filter.field_id != field_id) {
+                continue;
+            }
+
+            if (filter.vo_type != vo_type) {
+                continue;
+            }
+
+            switch (filter.filter_type) {
+                case ContextFilterVO.TYPE_FILTER_AND:
+                case ContextFilterVO.TYPE_FILTER_NOT:
+                case ContextFilterVO.TYPE_FILTER_OR:
+                case ContextFilterVO.TYPE_FILTER_XOR:
+                case ContextFilterVO.TYPE_IN:
+                case ContextFilterVO.TYPE_NOT_IN:
+                case ContextFilterVO.TYPE_NOT_EXISTS:
+                    continue;
+            }
+
+            if (res) {
+                return null;
+            }
+
+            res = filter;
+        }
+
+        return res;
+    }
 
     /**
      * Context Filter To Readable Ihm
@@ -224,22 +295,12 @@ export default class ContextFilterVOHandler {
         return ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root, context_filter_to_find);
     }
 
-    public static getInstance(): ContextFilterVOHandler {
-        if (!ContextFilterVOHandler.instance) {
-            ContextFilterVOHandler.instance = new ContextFilterVOHandler();
-        }
-        return ContextFilterVOHandler.instance;
-    }
-
-    private static instance: ContextFilterVOHandler = null;
-
-    protected constructor() { }
-
-    public async get_datatable_row_field_data_async(
+    public static async get_datatable_row_field_data_async(
         raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>
     ): Promise<any> {
 
         try {
+            field.auto_update_datatable_field_uid_with_vo_type();
 
             switch (field.type) {
 
@@ -253,9 +314,15 @@ export default class ContextFilterVOHandler {
                         simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_id :
                         simpleField.moduleTableField.field_id;
 
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                        let raw_value = raw_data[module_table_field_id + '__raw'];
+                        resData[field.datatable_field_uid] = RangeHandler.humanizeRanges(raw_value);
+                        break;
+                    }
+
                     let value = field.dataToReadIHM(raw_data[module_table_field_id], raw_data);
                     // Limite à 300 cars si c'est du html et strip html
-                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
 
                         if (value) {
                             try {
@@ -278,7 +345,7 @@ export default class ContextFilterVOHandler {
                         }
                     }
 
-                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
 
                         for (let vi in value) {
                             let v = value[vi];
@@ -427,13 +494,14 @@ export default class ContextFilterVOHandler {
                     resData[field.datatable_field_uid] = [];
 
                     let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id :
+                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id + '__raw' : // We are waiting for the actual converted NumRange[] value
                         refField.srcField.field_id;
 
                     await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
                         let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
                             .filter_by_id(id)
                             .select_vo();
+
                         resData[field.datatable_field_uid].push({
                             id: id,
                             label: refField.dataToHumanReadable(ref_data)
@@ -448,10 +516,12 @@ export default class ContextFilterVOHandler {
             ConsoleHandler.error(error);
             resData[field.datatable_field_uid] = null;
         }
+
+        return resData;
     }
 
-    public get_active_field_filters(filters: ContextFilterVO[]): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+    public static get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {
+        let res: FieldFiltersVO = {};
 
         for (let i in filters) {
             let filter = filters[i];
@@ -466,13 +536,15 @@ export default class ContextFilterVOHandler {
     }
 
     /**
+     * find_context_filter_by_type
+     *
      * @param context_filter_tree_root
      * @param type
      * @returns the context_filter that has the asked type from the tree_root
      */
-    public find_context_filter_by_type(context_filter_tree_root: ContextFilterVO, type: number): ContextFilterVO {
+    public static find_context_filter_by_type(context_filter_tree_root: ContextFilterVO, type: number): ContextFilterVO {
         if (context_filter_tree_root && (context_filter_tree_root.filter_type != type) && context_filter_tree_root.left_hook && context_filter_tree_root.right_hook) {
-            return this.find_context_filter_by_type(context_filter_tree_root.left_hook, type) || this.find_context_filter_by_type(context_filter_tree_root.right_hook, type);
+            return ContextFilterVOHandler.find_context_filter_by_type(context_filter_tree_root.left_hook, type) || ContextFilterVOHandler.find_context_filter_by_type(context_filter_tree_root.right_hook, type);
         }
 
         if (context_filter_tree_root.filter_type != type) {
@@ -486,11 +558,12 @@ export default class ContextFilterVOHandler {
      * Remove the context_filter_to_delete from context_filter_tree_root and returns the new root
      * Need to ask the deletion with the real contextfilter object and not a description or clone of it.
      * Tests are done on the objects adresses, not deeply on the contents.
+     *
      * @param context_filter_tree_root
      * @param context_filter_to_delete
      * @returns
      */
-    public remove_context_filter_from_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_delete: ContextFilterVO): ContextFilterVO {
+    public static remove_context_filter_from_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_delete: ContextFilterVO): ContextFilterVO {
 
         if ((!context_filter_tree_root) || (!context_filter_to_delete)) {
             return null;
@@ -519,7 +592,7 @@ export default class ContextFilterVOHandler {
         /**
          * On tente la suppression à gauche. si on récupère un null, on doit renvoyer le hook_right en guise de nouveau root à ce niveau
          */
-        let left_hook_replacement = this.remove_context_filter_from_tree(context_filter_tree_root.left_hook, context_filter_to_delete);
+        let left_hook_replacement = ContextFilterVOHandler.remove_context_filter_from_tree(context_filter_tree_root.left_hook, context_filter_to_delete);
         if (!left_hook_replacement) {
             return context_filter_tree_root.right_hook;
         }
@@ -528,7 +601,7 @@ export default class ContextFilterVOHandler {
             return context_filter_tree_root;
         }
 
-        let right_hook_replacement = this.remove_context_filter_from_tree(context_filter_tree_root.right_hook, context_filter_to_delete);
+        let right_hook_replacement = ContextFilterVOHandler.remove_context_filter_from_tree(context_filter_tree_root.right_hook, context_filter_to_delete);
         if ((!right_hook_replacement) && (context_filter_tree_root.right_hook)) {
             return context_filter_tree_root.left_hook;
         }
@@ -540,79 +613,9 @@ export default class ContextFilterVOHandler {
     }
 
     /**
-     * Objectif retrouver les filtres simples (pas de or / xor ou subquery par exemple) d'un vo_type spécifique
-     */
-    public get_simple_filters_by_vo_type(filters: ContextFilterVO[], vo_type: string): ContextFilterVO[] {
-
-        let res: ContextFilterVO[] = [];
-        for (let i in filters) {
-            let filter = filters[i];
-
-            if (filter.vo_type != vo_type) {
-                continue;
-            }
-
-            switch (filter.filter_type) {
-                case ContextFilterVO.TYPE_FILTER_AND:
-                case ContextFilterVO.TYPE_FILTER_NOT:
-                case ContextFilterVO.TYPE_FILTER_OR:
-                case ContextFilterVO.TYPE_FILTER_XOR:
-                case ContextFilterVO.TYPE_IN:
-                case ContextFilterVO.TYPE_NOT_IN:
-                case ContextFilterVO.TYPE_NOT_EXISTS:
-                    continue;
-            }
-
-            res.push(filter);
-        }
-
-        return res;
-    }
-
-    /**
-     * Objectif retrouver un filtre simple (pas de or / xor ou subquery par exemple) pour identifier par exemple
-     *  un filtre sur un champ de segmentation
-     *  on checke qu'on a qu'un seul résultat (sinon on est sur un filtre complexe)
-     */
-    public get_simple_filter_by_vo_type_and_field_id(filters: ContextFilterVO[], vo_type: string, field_id: string): ContextFilterVO {
-
-        let res = null;
-        for (let i in filters) {
-            let filter = filters[i];
-
-            if (filter.field_id != field_id) {
-                continue;
-            }
-
-            if (filter.vo_type != vo_type) {
-                continue;
-            }
-
-            switch (filter.filter_type) {
-                case ContextFilterVO.TYPE_FILTER_AND:
-                case ContextFilterVO.TYPE_FILTER_NOT:
-                case ContextFilterVO.TYPE_FILTER_OR:
-                case ContextFilterVO.TYPE_FILTER_XOR:
-                case ContextFilterVO.TYPE_IN:
-                case ContextFilterVO.TYPE_NOT_IN:
-                case ContextFilterVO.TYPE_NOT_EXISTS:
-                    continue;
-            }
-
-            if (res) {
-                return null;
-            }
-
-            res = filter;
-        }
-
-        return res;
-    }
-
-    /**
      * Renvoie une context query qui renvoie systématiquement 0 éléments, pour bloquer l'accès à un vo par exemple dans un context access hook
      */
-    public get_empty_res_context_hook_query(api_type_id: string) {
+    public static get_empty_res_context_hook_query(api_type_id: string) {
         // on veut rien renvoyer, donc on fait une query qui retourne rien
         let filter_none: ContextFilterVO = new ContextFilterVO();
         filter_none.filter_type = ContextFilterVO.TYPE_NULL_ALL;
@@ -622,7 +625,7 @@ export default class ContextFilterVOHandler {
         return query(api_type_id).field('id').set_query_distinct().add_filters([filter_none]).exec_as_server();
     }
 
-    public add_context_filters_exclude_values(
+    public static add_context_filters_exclude_values(
         exclude_values: DataFilterOption[],
         vo_field_ref: VOFieldRefVO,
         query_filters: ContextFilterVO[],
@@ -641,7 +644,7 @@ export default class ContextFilterVOHandler {
         for (let j in exclude_values) {
             let active_option = exclude_values[j];
 
-            let new_exclude_values = this.get_ContextFilterVO_from_DataFilterOption(active_option, null, field, vo_field_ref);
+            let new_exclude_values = ContextFilterVOHandler.get_ContextFilterVO_from_DataFilterOption(active_option, null, field, vo_field_ref);
 
             if (!new_exclude_values) {
                 continue;
@@ -655,7 +658,7 @@ export default class ContextFilterVOHandler {
         }
 
         // Changer le filter_type pour dire ne pas prendre en compte
-        exclude_values_context_filter.filter_type = this.get_ContextFilterVO_None(field, vo_field_ref);
+        exclude_values_context_filter.filter_type = ContextFilterVOHandler.get_ContextFilterVO_None(field, vo_field_ref);
 
         let new_query_filters: ContextFilterVO[] = [];
         let is_add: boolean = false;
@@ -683,7 +686,7 @@ export default class ContextFilterVOHandler {
         return new_query_filters;
     }
 
-    public get_ContextFilterVO_None(field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): number {
+    public static get_ContextFilterVO_None(field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): number {
         let field_type = null;
 
         if ((!field) && (vo_field_ref.field_id == 'id')) {
@@ -726,10 +729,10 @@ export default class ContextFilterVOHandler {
 
     /**
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
-     * @use ContextFilterVOManager.get_context_filter_from_data_filter_option instead
+     * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
      */
-    public get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
-        return ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
+    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+        return ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
     }
 
     /**
@@ -740,7 +743,7 @@ export default class ContextFilterVOHandler {
      * @param order_asc ordre ascendant ou descendant sur les ts_ranges - pour appliquer la limite
      * @returns
      */
-    public get_ts_ranges_from_context_filter_root(
+    public static get_ts_ranges_from_context_filter_root(
         context_filter_root: ContextFilterVO,
         target_segment_type: number,
         limit: number = 10,
@@ -768,16 +771,16 @@ export default class ContextFilterVOHandler {
          *      - exactement 1 filtre de type année ou année glissante
          *      - pas de OU
          */
-        let has_only_TYPE_DATE_INTERSECTS: boolean = this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter_root);
+        let has_only_TYPE_DATE_INTERSECTS: boolean = ContextFilterVOHandler.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter_root);
 
         if (has_only_TYPE_DATE_INTERSECTS) {
-            return this.get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
+            return ContextFilterVOHandler.get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
                 context_filter_root,
                 target_segment_type,
                 limit,
                 order_asc);
         } else {
-            return this.get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
+            return ContextFilterVOHandler.get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
                 context_filter_root,
                 target_segment_type,
                 limit,
@@ -793,7 +796,7 @@ export default class ContextFilterVOHandler {
      * @param {boolean} [order_asc=true] Indicates whether the timestamp ranges should be ordered in ascending order.
      * @returns {TSRange[]} An array of timestamp ranges.
      */
-    public get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
+    public static get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
         context_filter_root: ContextFilterVO,
         target_segment_type: number,
         limit: number = 10,
@@ -814,7 +817,7 @@ export default class ContextFilterVOHandler {
         return ts_ranges;
     }
 
-    public get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
+    public static get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
         context_filter_root: ContextFilterVO,
         target_segment_type: number,
         limit: number = 10,
@@ -830,11 +833,11 @@ export default class ContextFilterVOHandler {
             hour_filter,
             minute_filter,
             second_filter
-        } = this.assert_context_filter_root_is_valid_and_get_filters(context_filter_root, target_segment_type);
+        } = ContextFilterVOHandler.assert_context_filter_root_is_valid_and_get_filters(context_filter_root, target_segment_type);
 
         // On commence par l'année. On sait que le filtre existe et est unique
 
-        let ts_ranges: TSRange[] = this.get_ts_ranges_from_year_filter(year_filter, limit, order_asc);
+        let ts_ranges: TSRange[] = ContextFilterVOHandler.get_ts_ranges_from_year_filter(year_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_YEAR) {
             return ts_ranges;
         }
@@ -843,7 +846,7 @@ export default class ContextFilterVOHandler {
         if (!order_asc) {
             ts_ranges = ts_ranges.reverse();
         }
-        ts_ranges = this.get_filter_ts_ranges_month_from_year(ts_ranges, month_filter, limit, order_asc);
+        ts_ranges = ContextFilterVOHandler.get_filter_ts_ranges_month_from_year(ts_ranges, month_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_MONTH) {
             return ts_ranges;
         }
@@ -851,7 +854,7 @@ export default class ContextFilterVOHandler {
         if (!order_asc) {
             ts_ranges = ts_ranges.reverse();
         }
-        ts_ranges = this.get_filter_ts_ranges_day_from_month(ts_ranges, null, limit, order_asc);
+        ts_ranges = ContextFilterVOHandler.get_filter_ts_ranges_day_from_month(ts_ranges, null, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_DAY) {
             return ts_ranges;
         }
@@ -859,7 +862,7 @@ export default class ContextFilterVOHandler {
         if (!order_asc) {
             ts_ranges = ts_ranges.reverse();
         }
-        ts_ranges = this.get_filter_ts_ranges_hour_from_day(ts_ranges, hour_filter, limit, order_asc);
+        ts_ranges = ContextFilterVOHandler.get_filter_ts_ranges_hour_from_day(ts_ranges, hour_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_HOUR) {
             return ts_ranges;
         }
@@ -867,7 +870,7 @@ export default class ContextFilterVOHandler {
         if (!order_asc) {
             ts_ranges = ts_ranges.reverse();
         }
-        ts_ranges = this.get_filter_ts_ranges_minute_from_hour(ts_ranges, minute_filter, limit, order_asc);
+        ts_ranges = ContextFilterVOHandler.get_filter_ts_ranges_minute_from_hour(ts_ranges, minute_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_MINUTE) {
             return ts_ranges;
         }
@@ -875,7 +878,7 @@ export default class ContextFilterVOHandler {
         if (!order_asc) {
             ts_ranges = ts_ranges.reverse();
         }
-        ts_ranges = this.get_filter_ts_ranges_second_from_minute(ts_ranges, second_filter, limit, order_asc);
+        ts_ranges = ContextFilterVOHandler.get_filter_ts_ranges_second_from_minute(ts_ranges, second_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_SECOND) {
             return ts_ranges;
         }
@@ -883,7 +886,7 @@ export default class ContextFilterVOHandler {
         throw new Error('Should not be here');
     }
 
-    private get_filter_ts_ranges_minute_from_hour(
+    private static get_filter_ts_ranges_minute_from_hour(
         ordered_hour_ts_ranges: TSRange[],
         minute_filter: ContextFilterVO,
         limit: number = 10,
@@ -922,7 +925,7 @@ export default class ContextFilterVOHandler {
         return res;
     }
 
-    private get_filter_ts_ranges_second_from_minute(
+    private static get_filter_ts_ranges_second_from_minute(
         ordered_minute_ts_ranges: TSRange[],
         second_filter: ContextFilterVO,
         limit: number = 10,
@@ -961,7 +964,7 @@ export default class ContextFilterVOHandler {
         return res;
     }
 
-    private get_filter_ts_ranges_hour_from_day(
+    private static get_filter_ts_ranges_hour_from_day(
         ordered_day_ts_ranges: TSRange[],
         hour_filter: ContextFilterVO,
         limit: number = 10,
@@ -1000,7 +1003,7 @@ export default class ContextFilterVOHandler {
         return res;
     }
 
-    private get_filter_ts_ranges_day_from_month(
+    private static get_filter_ts_ranges_day_from_month(
         ordered_month_ts_ranges: TSRange[],
         dom_filter: ContextFilterVO,
         limit: number = 10,
@@ -1039,7 +1042,7 @@ export default class ContextFilterVOHandler {
         return res;
     }
 
-    private get_ts_ranges_from_year_filter(
+    private static get_ts_ranges_from_year_filter(
         year_filter: ContextFilterVO,
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
@@ -1059,7 +1062,7 @@ export default class ContextFilterVOHandler {
         return res;
     }
 
-    private get_filter_ts_ranges_month_from_year(
+    private static get_filter_ts_ranges_month_from_year(
         ordered_year_ts_ranges: TSRange[],
         month_filter: ContextFilterVO,
         limit: number = 10,
@@ -1106,7 +1109,7 @@ export default class ContextFilterVOHandler {
      *      - pas de OU
      * @param context_filter_root
      */
-    private assert_context_filter_root_is_valid_and_get_filters(
+    private static assert_context_filter_root_is_valid_and_get_filters(
         context_filter_root: ContextFilterVO,
         segment_type: number): {
             year_filter: ContextFilterVO,
@@ -1303,7 +1306,7 @@ export default class ContextFilterVOHandler {
      * @param order_asc ordre ascendant ou descendant sur les ts_ranges - pour appliquer la limite
      * @returns
      */
-    private check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter: ContextFilterVO) {
+    private static check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter: ContextFilterVO) {
 
         while (context_filter) {
 
@@ -1312,7 +1315,7 @@ export default class ContextFilterVOHandler {
                     return true;
                 // case ContextFilterVO.TYPE_FILTER_AND:
                 // case ContextFilterVO.TYPE_FILTER_OR:
-                //     return this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.left_hook) && this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.right_hook);
+                //     return ContextFilterVOHandler.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.left_hook) && ContextFilterVOHandler.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.right_hook);
                 //     break;
                 default:
                     return false;

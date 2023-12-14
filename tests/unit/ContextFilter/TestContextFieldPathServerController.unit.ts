@@ -26,7 +26,7 @@ test('ContextFieldPathServerController: test reverse_path - Empty path', () => {
 
     let path: FieldPathWrapper[] = [];
 
-    let reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    let reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([]);
 });
@@ -40,7 +40,7 @@ test('ContextFieldPathServerController: test reverse_path - User => Lang', () =>
     let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
     let path: FieldPathWrapper[] = [new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), false)];
 
-    let reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    let reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([
         new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), true)
@@ -56,7 +56,7 @@ test('ContextFieldPathServerController: test reverse_path - Lang => User', () =>
     let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
     let path: FieldPathWrapper[] = [new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), true)];
 
-    let reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    let reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([
         new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), false)
@@ -74,7 +74,7 @@ test('ContextFieldPathServerController: test reverse_path - Userrole => User & R
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
     ];
 
-    let reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    let reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true)
@@ -84,7 +84,7 @@ test('ContextFieldPathServerController: test reverse_path - Userrole => User & R
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), false)
     ];
 
-    reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), true)
@@ -104,7 +104,7 @@ test('ContextFieldPathServerController: test reverse_path - UserRoleVO => Anonym
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
     ];
 
-    let reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    let reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
@@ -127,7 +127,7 @@ test('ContextFieldPathServerController: test reverse_path - UserRoleVO => Anonym
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
     ];
 
-    let reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    let reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
@@ -152,7 +152,7 @@ test('ContextFieldPathServerController: test reverse_path - RoleVO => Anonymizat
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), true)
     ];
 
-    let reverse_path = ContextFieldPathServerController.getInstance()['reverse_path'](path);
+    let reverse_path = ContextFieldPathServerController['reverse_path'](path);
 
     expect(reverse_path).toStrictEqual([
         new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), false),
@@ -174,7 +174,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - User =
 
     let this_path_next_turn_paths: FieldPathWrapper[][] = [];
     let deployed_deps_from: { [api_type_id: string]: boolean } = {};
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    let path: FieldPathWrapper[] = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         [],
@@ -205,7 +205,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - Lang =
 
     let this_path_next_turn_paths: FieldPathWrapper[][] = [];
     let deployed_deps_from: { [api_type_id: string]: boolean } = {};
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    let path: FieldPathWrapper[] = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         [],
@@ -236,7 +236,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - Userro
 
     let this_path_next_turn_paths: FieldPathWrapper[][] = [];
     let deployed_deps_from: { [api_type_id: string]: boolean } = {};
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    let path: FieldPathWrapper[] = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         [],
@@ -261,7 +261,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - Userro
 
     this_path_next_turn_paths = [];
     deployed_deps_from = {};
-    path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    path = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         [],
@@ -292,7 +292,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - UserRo
 
     let this_path_next_turn_paths: FieldPathWrapper[][] = [];
     let deployed_deps_from: { [api_type_id: string]: boolean } = {};
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    let path: FieldPathWrapper[] = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         [],
@@ -323,7 +323,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - UserRo
     });
 
     let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
-    path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    path = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         this_path_next_turn_paths[0],
@@ -360,7 +360,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - UserRo
 
     let this_path_next_turn_paths: FieldPathWrapper[][] = [];
     let deployed_deps_from: { [api_type_id: string]: boolean } = {};
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    let path: FieldPathWrapper[] = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         [],
@@ -391,7 +391,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - UserRo
     });
 
     let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
-    path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    path = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         this_path_next_turn_paths[0],
@@ -430,7 +430,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - RoleVO
 
     let this_path_next_turn_paths: FieldPathWrapper[][] = [];
     let deployed_deps_from: { [api_type_id: string]: boolean } = {};
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    let path: FieldPathWrapper[] = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         [],
@@ -461,7 +461,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - RoleVO
     });
 
     let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
-    path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+    path = ContextFieldPathServerController['get_paths_from_moduletable'](
         null,
         null,
         this_path_next_turn_paths[0],
@@ -502,7 +502,7 @@ test('ContextFieldPathServerController: test get_paths_from_moduletable - RoleVO
  */
 test('ContextFieldPathServerController: test get_path_between_types - User => Lang', () => {
 
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+    let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
         null,
         null,
         [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
@@ -522,7 +522,7 @@ test('ContextFieldPathServerController: test get_path_between_types - User => La
  */
 test('ContextFieldPathServerController: test get_path_between_types - Lang => User', () => {
 
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+    let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
         null,
         null,
         [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
@@ -542,7 +542,7 @@ test('ContextFieldPathServerController: test get_path_between_types - Lang => Us
  */
 test('ContextFieldPathServerController: test get_path_between_types - Userrole => User & Role', () => {
 
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+    let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
         null,
         null,
         [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID],
@@ -555,7 +555,7 @@ test('ContextFieldPathServerController: test get_path_between_types - Userrole =
         new FieldPathWrapper(userrole_modultable.getFieldFromId('user_id'), true)
     ]);
 
-    path = ContextFieldPathServerController.getInstance().get_path_between_types(
+    path = ContextFieldPathServerController.get_path_between_types(
         null,
         null,
         [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID],
@@ -573,7 +573,7 @@ test('ContextFieldPathServerController: test get_path_between_types - Userrole =
  */
 test('ContextFieldPathServerController: test get_path_between_types - UserRoleVO => AnonymizationUserConfVO', () => {
 
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+    let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
         null,
         null,
         [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
@@ -595,7 +595,7 @@ test('ContextFieldPathServerController: test get_path_between_types - UserRoleVO
  */
 test('ContextFieldPathServerController: test get_path_between_types - UserRoleVO => AnonymizationFieldConfVO', () => {
 
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+    let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
         null,
         null,
         [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
@@ -618,7 +618,7 @@ test('ContextFieldPathServerController: test get_path_between_types - UserRoleVO
  */
 test('ContextFieldPathServerController: test get_path_between_types - RoleVO => AnonymizationFieldConfVO', () => {
 
-    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+    let path: FieldPathWrapper[] = ContextFieldPathServerController.get_path_between_types(
         null,
         null,
         [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],

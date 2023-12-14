@@ -63,6 +63,18 @@ import Patch20230517DeleteAllStats from './patchs/premodules/Patch20230517Delete
 import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
 import VersionUpdater from './version_updater/VersionUpdater';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
+import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
+import Patch20231003ForceUnicityCodeText from './patchs/premodules/Patch20231003ForceUnicityCodeText';
+import Patch20231010ForceUnicityVarConfName from './patchs/premodules/Patch20231010ForceUnicityVarConfName';
+import Patch20231010ForceUnicityVarCacheConfVarID from './patchs/premodules/Patch20231010ForceUnicityVarCacheConfVarID';
+import Patch20231010ForceUnicityParamName from './patchs/premodules/Patch20231010ForceUnicityParamName';
+import Patch20231030FilePathUnique from './patchs/premodules/Patch20231030FilePathUnique';
+import Patch20231030ImagePathUnique from './patchs/premodules/Patch20231030ImagePathUnique';
+import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20231116AddUniqPhoneUserConstraint';
+import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch20231117AddUniqCookieNamePopup';
+import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch20231120AddUniqCronPlanificationUID';
+import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
 
 export default abstract class GeneratorBase {
 
@@ -88,7 +100,8 @@ export default abstract class GeneratorBase {
         GeneratorBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
-        ModulesManager.getInstance().isServerSide = true;
+        ModulesManager.isServerSide = true;
+        ModulesManager.isGenerator = true;
 
         this.init_pre_modules_workers = [
             CheckExtensions.getInstance(),
@@ -114,10 +127,14 @@ export default abstract class GeneratorBase {
             InitFrontVarsPolicies.getInstance(),
             InitFrontVarsPolicies2.getInstance(),
             AddMaintenanceCreationPolicy.getInstance(),
-            InitLoggedOnce.getInstance(),
+            InitLoggedOnce.getInstance()
         ];
 
         this.pre_modules_workers = [
+            Patch20231003ForceUnicityCodeText.getInstance(),
+            Patch20231010ForceUnicityVarConfName.getInstance(),
+            Patch20231010ForceUnicityVarCacheConfVarID.getInstance(),
+            Patch20231010ForceUnicityParamName.getInstance(),
             Patch20210803ChangeDIHDateType.getInstance(),
             Patch20210914ClearDashboardWidgets.getInstance(),
             Patch20211004ChangeLang.getInstance(),
@@ -129,6 +146,11 @@ export default abstract class GeneratorBase {
             Patch20230512DeleteAllStats.getInstance(),
             Patch20230517DeleteAllStats.getInstance(),
             Patch20230428UpdateUserArchivedField.getInstance(),
+            Patch20231030FilePathUnique.getInstance(),
+            Patch20231030ImagePathUnique.getInstance(),
+            Patch20231116AddUniqPhoneUserConstraint.getInstance(),
+            Patch20231117AddUniqCookieNamePopup.getInstance(),
+            Patch20231120AddUniqCronPlanificationUID.getInstance()
         ];
 
         this.post_modules_workers = [
@@ -147,6 +169,9 @@ export default abstract class GeneratorBase {
             Patch20230428FavoriteWidgetsAreNotFilters.getInstance(),
             Patch20230517InitParamsStats.getInstance(),
             Patch20230519AddRightsFeedbackStateVO.getInstance(),
+            Patch20230927AddSupervisionToCrons.getInstance(),
+            Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
+            Patch20231123AddRightsSharedFilters.getInstance()
         ];
     }
 
@@ -155,6 +180,7 @@ export default abstract class GeneratorBase {
     public async generate() {
 
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
@@ -207,7 +233,7 @@ export default abstract class GeneratorBase {
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
         console.log("configure_server_modules...");
-        await this.modulesService.configure_server_modules(null);
+        await this.modulesService.configure_server_modules(null, true);
 
         if (envParam.LAUNCH_INIT) {
             console.log("INIT post modules initialization workers...");
@@ -230,7 +256,7 @@ export default abstract class GeneratorBase {
         console.log("post modules initialization workers done.");
 
         // Derniers chargements
-        await this.modulesService.late_server_modules_configurations();
+        await this.modulesService.late_server_modules_configurations(true);
 
         /**
          * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet
@@ -245,7 +271,7 @@ export default abstract class GeneratorBase {
     private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>): Promise<boolean> {
 
         let workers_to_execute: { [id: number]: IGeneratorWorker } = {};
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'GeneratorBase.execute_workers');
         for (let i in workers) {
             let worker = workers[i];
 

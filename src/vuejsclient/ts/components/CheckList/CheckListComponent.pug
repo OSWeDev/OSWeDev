@@ -30,7 +30,7 @@ include ../../../views/mixins/loading.pug
                     i.text-danger.fa.fa-fw.fa-circle
                     span {{ label('checklist.legend.checkpoint.state.error') }}
 
-        .row(v-if='is_load && (has_checklistitems && ordered_checklistitems && ((ordered_checklistitems.length <= 15) || show_anyway))')
+        .row(v-if='is_load && (has_checklist_items && ordered_checklistitems && ((ordered_checklistitems.length <= 15) || show_anyway))')
             .col-sm-12
                 table.table-striped.table-hover
                     thead
@@ -48,7 +48,7 @@ include ../../../views/mixins/loading.pug
                             :hide_item_description='checklist.hide_item_description'
                             @onchangevo='onchangevo')
 
-        .row(v-else-if='has_checklistitems && ordered_checklistitems && (ordered_checklistitems.length > 15)')
+        .row(v-else-if='has_checklist_items && ordered_checklistitems && (ordered_checklistitems.length > 15)')
             .col-sm-12
                 .is_limited_by_number {{ label('checklist.is_limited_by_number', {limit: 15}) }}
                     button.action-button(@click="()=>{show_anyway=true}")

@@ -61,6 +61,9 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 import { IClient } from 'pg-promise/typescript/pg-subset';
+import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
+import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
+import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -95,7 +98,8 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
-        ForkedTasksController.getInstance().assert_is_main_process();
+        ForkedTasksController.init();
+        ForkedTasksController.assert_is_main_process();
 
         // INIT Stats Server side
         StatsController.THREAD_NAME = 'main';
@@ -108,6 +112,8 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
@@ -118,10 +124,11 @@ export default abstract class ServerBase {
         });
 
         // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
-        BGThreadServerController.getInstance().register_bgthreads = true;
+        BGThreadServerController.init();
+        BGThreadServerController.register_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
 
-        ModulesManager.getInstance().isServerSide = true;
+        ModulesManager.isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });
     }
 
@@ -235,6 +242,7 @@ export default abstract class ServerBase {
         this.app = express();
 
         let responseTime = require('response-time');
+
         this.app.use(responseTime(async (req, res, time) => {
             let url = req.originalUrl;
             let method = req.method;
@@ -448,6 +456,19 @@ export default abstract class ServerBase {
                 return next();
             });
 
+        // On rajoute un middleware pour stocker l'info de la last use tab_id par user
+        this.app.use(
+            async (req, res, next) => {
+                const uid = req.session ? req.session.uid : null;
+                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+
+                if (!uid || !client_tab_id) {
+                    return next();
+                }
+
+                PushDataServerController.last_known_tab_id_by_user_id[uid] = client_tab_id;
+                return next();
+            });
 
         // Pour renvoyer les js en gzip directement quand ils sont appelés en .js.gz dans le html
         // Accept-Encoding: gzip, deflate
@@ -541,13 +562,13 @@ export default abstract class ServerBase {
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
-                // if (uid && client_tab_id) {
-                //     StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
-                //     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
-                //     await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
-                // } else {
-                ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or no tab_id - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
-                // }
+                if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
+                    StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
+                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
+                    await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                } else {
+                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
+                }
 
                 res.status(404).send("Not found");
                 return;
@@ -738,7 +759,7 @@ export default abstract class ServerBase {
                 api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.url);
             }
 
-            await ForkedTasksController.getInstance().exec_self_on_bgthread(
+            await ForkedTasksController.exec_self_on_bgthread(
                 AccessPolicyDeleteSessionBGThread.getInstance().name,
                 AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
                 api_req
@@ -874,7 +895,7 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:START');
         }
-        await this.modulesService.late_server_modules_configurations();
+        await this.modulesService.late_server_modules_configurations(false);
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
@@ -1066,7 +1087,7 @@ export default abstract class ServerBase {
 
             let user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+                async () => await ModuleAccessPolicyServer.getSelfUser());
 
             res.json(JSON.stringify(
                 {
@@ -1084,7 +1105,7 @@ export default abstract class ServerBase {
 
             let user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+                async () => await ModuleAccessPolicyServer.getSelfUser());
 
             res.json(JSON.stringify(
                 {
@@ -1119,12 +1140,12 @@ export default abstract class ServerBase {
              *  attendre la fin du démarrage du serveur et des childs threads pour lancer le broadcast
              */
             let timeout_sec: number = 30;
-            while ((!ForkServerController.getInstance().forks_are_initialized) && (timeout_sec > 0)) {
-                await ThreadHandler.sleep(1000, '/cron.!forks_are_initialized');
+            while ((!ForkServerController.forks_are_initialized) && (timeout_sec > 0)) {
+                await ThreadHandler.sleep(1000, '/cron.!forks_are_initialized', true);
                 timeout_sec--;
             }
 
-            if (!ForkServerController.getInstance().forks_are_initialized) {
+            if (!ForkServerController.forks_are_initialized) {
                 ConsoleHandler.error('CRON non lancé car le thread enfant n\'est pas disponible en 30 secondes.');
                 res.send();
             } else {
@@ -1166,83 +1187,84 @@ export default abstract class ServerBase {
             ConsoleHandler.error("Node nearly failed: " + err.stack);
         });
 
-        setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
+        ThreadHandler.set_interval(MemoryUsageStat.updateMemoryUsageStat, 45000, 'MemoryUsageStat.updateMemoryUsageStat', true);
 
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
+
+        let on_connection = async () => {
+            ConsoleHandler.log('connection to db successful');
+
+            let server = require('http').Server(ServerBase.getInstance().app);
+            let io = require('socket.io')(server);
+            io.use(sharedsession(ServerBase.getInstance().session));
+
+            server.listen(ServerBase.getInstance().port);
+            // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
+
+            // SocketIO
+            // let io = socketIO.listen(ServerBase.getInstance().app);
+            //turn off debug
+            // io.set('log level', 1);
+            // define interactions with client
+            io.on('connection', function (socket: socketIO.Socket) {
+                let session: IServerUserSession = socket.handshake['session'];
+
+                if (!session) {
+                    ConsoleHandler.error('Impossible de charger la session dans SocketIO');
+                    return;
+                }
+
+                PushDataServerController.getInstance().registerSocket(session, socket);
+            }.bind(ServerBase.getInstance()));
+
+            io.on('disconnect', function (socket: socketIO.Socket) {
+                let session: IServerUserSession = socket.handshake['session'];
+
+                PushDataServerController.getInstance().unregisterSocket(session, socket);
+            });
+
+            io.on('error', function (err) {
+                ConsoleHandler.error("IO nearly failed: " + err.stack);
+            });
+
+            // ServerBase.getInstance().testNotifs();
+
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:hook_on_ready:START');
+            }
+            await ServerBase.getInstance().hook_on_ready();
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
+            }
+
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:fork_threads:START');
+            }
+            await ForkServerController.fork_threads();
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ServerExpressController:fork_threads:END');
+            }
+            BGThreadServerController.SERVER_READY = true;
+
+            if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
+                await ModuleMaintenance.getInstance().end_planned_maintenance();
+            }
+
+            ConsoleHandler.log('Server ready to go !');
+        };
+
         ServerBase.getInstance().db.one('SELECT 1')
-            .then(async () => {
-                ConsoleHandler.log('connection to db successful');
+            .then(on_connection)
+            .catch(async (err) => {
+                ConsoleHandler.error('error while connecting to db: ' + (err.message || err) + ' : trying to handle the error...');
 
-                let server = require('http').Server(ServerBase.getInstance().app);
-                let io = require('socket.io')(server);
-                io.use(sharedsession(ServerBase.getInstance().session));
-
-                server.listen(ServerBase.getInstance().port);
-                // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
-
-                // SocketIO
-                // let io = socketIO.listen(ServerBase.getInstance().app);
-                //turn off debug
-                // io.set('log level', 1);
-                // define interactions with client
-                io.on('connection', function (socket: socketIO.Socket) {
-                    let session: IServerUserSession = socket.handshake['session'];
-
-                    if (!session) {
-                        ConsoleHandler.error('Impossible de charger la session dans SocketIO');
-                        return;
-                    }
-
-                    PushDataServerController.getInstance().registerSocket(session, socket);
-                }.bind(ServerBase.getInstance()));
-
-                io.on('disconnect', function (socket: socketIO.Socket) {
-                    let session: IServerUserSession = socket.handshake['session'];
-
-                    PushDataServerController.getInstance().unregisterSocket(session, socket);
-                });
-
-                io.on('error', function (err) {
-                    ConsoleHandler.error("IO nearly failed: " + err.stack);
-                });
-
-                // ServerBase.getInstance().testNotifs();
-
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:hook_on_ready:START');
+                try {
+                    await ModuleServiceBase.getInstance().handle_errors(err, 'initial_db_connection', ServerBase.getInstance().db.one, ['SELECT 1']);
+                    await on_connection();
+                } catch (error) {
+                    ConsoleHandler.error('Could not handle error while connecting to db: ' + (error.message || error));
+                    process.exit(1);
                 }
-                await ServerBase.getInstance().hook_on_ready();
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
-                }
-
-                // //TODO DELETE TEST JNE
-                // let fake_file: FileVO = new FileVO();
-                // fake_file.file_access_policy_name = null;
-                // fake_file.path = 'test.txt';
-                // fake_file.is_secured = false;
-
-                // await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY([
-                //     fake_file
-                // ]);
-
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:fork_threads:START');
-                }
-                await ForkServerController.getInstance().fork_threads();
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.log('ServerExpressController:fork_threads:END');
-                }
-                BGThreadServerController.SERVER_READY = true;
-
-                if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
-                    await ModuleMaintenance.getInstance().end_planned_maintenance();
-                }
-
-                ConsoleHandler.log('Server ready to go !');
-            })
-            .catch((err) => {
-                ConsoleHandler.log('error while connecting to db: ' + (err.message || err));
             });
 
         // pgp.end();
@@ -1321,18 +1343,11 @@ export default abstract class ServerBase {
         return true;
     }
 
-    // protected terminus() {
-    //     ConsoleHandler.log('Server is starting cleanup');
-    //     return all_promises([
-    //         VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
-    //     ]);
-    // }
-
     protected async exitHandler(options, exitCode, from) {
         ConsoleHandler.log('Server is starting cleanup: ' + from);
 
-        ConsoleHandler.log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
-        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        ConsoleHandler.log(JSON.stringify(VarsDatasVoUpdateHandler['ordered_vos_cud']));
+        await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
         if (options.cleanup) {
             console.log('clean');
         }

@@ -46,8 +46,11 @@ export default class APIControllerWrapper {
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
         sanitize_result: (res: any, ...params) => any = null,
+        use_notif_for_result: boolean = false
     ): (...params) => Promise<U> {
-        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result);
+        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(
+            api_name, sanitize_params, precondition,
+            precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result, use_notif_for_result);
     }
 
     public static registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
@@ -191,14 +194,20 @@ export default class APIControllerWrapper {
         return ModuleTable.default_from_api_version(elt);
     }
 
-    public static try_translate_vo_to_api(e: any): any {
+    public static try_translate_vo_to_api(e: any, nb_calls: number = 0): any {
 
+        nb_calls++;
         if (!e) {
             return e;
         }
 
         if (Array.isArray(e)) {
             return APIControllerWrapper.try_translate_vos_to_api(e);
+        }
+
+        if (nb_calls > 100) {
+            ConsoleHandler.error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
+            throw new Error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
         }
 
         let elt = (e as IDistantVOBase);
@@ -221,10 +230,17 @@ export default class APIControllerWrapper {
             }
 
             if (typeof e === 'object') {
+
+                // Ignorer les méthodes
                 let res = Object.assign({}, e);
+
                 for (let i in res) {
 
-                    res[i] = APIControllerWrapper.try_translate_vo_to_api(e[i]);
+                    if (e[i] == e) {
+                        ConsoleHandler.error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
+                        throw new Error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
+                    }
+                    res[i] = APIControllerWrapper.try_translate_vo_to_api(e[i], nb_calls);
                 }
                 return res;
             }

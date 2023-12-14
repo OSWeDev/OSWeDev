@@ -1994,28 +1994,28 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
     pg_inherited.translatable_name = 'pg_inherited';
     pg_inherited.id = 2;
 
-    let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited.LIST_LABELS',
         pg_inherited,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_LIST_LABELS.id = 11;
 
-    let policy_inherited_READ: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_READ: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_READ',
         pg_inherited,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_READ.id = 12;
 
-    let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_INSERT_OR_UPDATE',
         pg_inherited,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policy_inherited_INSERT_OR_UPDATE.id = 13;
 
-    let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_DELETE',
         pg_inherited,
         true,
@@ -2028,28 +2028,28 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         true,
@@ -2070,33 +2070,33 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
     };
 
 
-    let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 
-    let inherited_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_inherited_LIST_LABELS);
-    let inherited_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_inherited_READ);
-    let inherited_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_inherited_INSERT_OR_UPDATE);
-    let inherited_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_inherited_DELETE);
 
@@ -2185,28 +2185,28 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType', () => {
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         true,
@@ -2222,20 +2222,20 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType', () => {
     };
 
 
-    let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 
@@ -2323,28 +2323,28 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
     pg_inherited.translatable_name = 'pg_inherited';
     pg_inherited.id = 2;
 
-    let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited.LIST_LABELS',
         pg_inherited,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_LIST_LABELS.id = 11;
 
-    let policy_inherited_READ: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_READ: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_READ',
         pg_inherited,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_READ.id = 12;
 
-    let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_INSERT_OR_UPDATE',
         pg_inherited,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policy_inherited_INSERT_OR_UPDATE.id = 13;
 
-    let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_DELETE',
         pg_inherited,
         false,
@@ -2357,28 +2357,28 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         false,
@@ -2399,33 +2399,33 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
     };
 
 
-    let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 
-    let inherited_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_inherited_LIST_LABELS);
-    let inherited_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_inherited_READ);
-    let inherited_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_inherited_INSERT_OR_UPDATE);
-    let inherited_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let inherited_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_inherited_DELETE);
 
@@ -2514,28 +2514,28 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType', () => {
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         false,
@@ -2551,20 +2551,20 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType', () => {
     };
 
 
-    let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 

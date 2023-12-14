@@ -1,3 +1,5 @@
+/* istanbul ignore file : nothing to test in ParamVOs */
+
 import IAPIParamTranslator from "../../interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../interfaces/IAPIParamTranslatorStatic";
 

@@ -3,6 +3,7 @@ import DefaultProduitController from './DefaultProduitController';
 import ProduitVOBase from '../../../../shared/modules/Commerce/Produit/vos/ProduitVOBase';
 
 export default class ProduitControllersManager {
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ProduitControllersManager.instance) {
             ProduitControllersManager.instance = new ProduitControllersManager();

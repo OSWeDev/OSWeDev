@@ -22,6 +22,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleNFCConnectServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleNFCConnectServer.instance) {
             ModuleNFCConnectServer.instance = new ModuleNFCConnectServer();
@@ -33,10 +34,12 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private ps = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleNFCConnect.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleNFCConnect.POLICY_GROUP;
@@ -66,6 +69,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur à la lecture du Tag NFC. Réessayer.'
@@ -162,6 +166,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         }, 'menu.menuelements.admin.nfc_tag_user.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_connect, this.connect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_connect_and_redirect, this.connect_and_redirect.bind(this));
@@ -172,7 +177,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
     }
 
     private async get_own_tags(): Promise<NFCTagVO[]> {
-        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_id = await ModuleAccessPolicyServer.getLoggedUserId();
 
         if (!user_id) {
             ConsoleHandler.error("Impossible de lister les tags. Pas de user_id:" + user_id);
@@ -254,7 +259,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private async add_tag(serial_number: string): Promise<boolean> {
 
-        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_id = await ModuleAccessPolicyServer.getLoggedUserId();
 
         if (!user_id) {
             ConsoleHandler.error("Impossible de créer le nouveau tag. Pas de user_id:" + user_id);
@@ -303,7 +308,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private async remove_user_tag(serial_number: string): Promise<boolean> {
 
-        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_id = await ModuleAccessPolicyServer.getLoggedUserId();
 
         if (!user_id) {
             ConsoleHandler.error("Impossible de supprimer le tag. Pas de user_id:" + user_id);

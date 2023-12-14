@@ -1,0 +1,53 @@
+.favorites_filters_widget_options_component
+    .page_widget_options(:id="'page_widget_options_' + page_widget.id" :key="'page_widget_options_' + page_widget.id")
+        
+        .field_ref 
+            .input_label {{ label('show_favorites_filters_widget_component.vo_field_ref') }}
+            .input_wrapper
+                Singlevofieldrefholdercomponent(
+                    @remove_field_ref="handle_remove_field_ref"
+                    @add_field_ref="handle_add_field_ref"
+                    :page_widget_id='page_widget ? page_widget.id : null'
+                    :vo_field_ref="vo_field_ref"
+                )
+
+        .max_visible_options
+            .input_label {{ label('show_favorites_filters_widget_component.max_visible_options') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model.number="max_visible_options"
+                )
+
+        .can_configure_export
+            .input_label {{ label('favorites_filters_widget_component.can_configure_export') }}
+            .input_wrapper
+                toggle-button(
+                    @change="toggle_can_configure_export" 
+                    :value="can_configure_export" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 
+
+        .can_configure_date_filters
+            .input_label {{ label('favorites_filters_widget_component.can_configure_date_filters') }}
+            .input_wrapper
+                toggle-button(
+                    @change="toggle_can_configure_date_filters" 
+                    :value="can_configure_date_filters" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 
+
+        .send_email_with_export_notification
+            .input_label {{ label('favorites_filters_widget_component.send_email_with_export_notification') }}
+            .input_wrapper
+                toggle-button(
+                    @change="toggle_send_email_with_export_notification" 
+                    :value="send_email_with_export_notification" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 

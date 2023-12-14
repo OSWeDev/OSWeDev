@@ -18,6 +18,6 @@ export default class VarDescDsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_ds_name(this.ds_name));
+        return this.t(VarsController.get_translatable_ds_name(this.ds_name));
     }
 }

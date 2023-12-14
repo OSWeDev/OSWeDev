@@ -4,11 +4,9 @@ import DataSourceControllerBase from '../../../../src/server/modules/Var/datasou
 import VarServerControllerBase from '../../../../src/server/modules/Var/VarServerControllerBase';
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../src/shared/modules/IDistantVOBase';
-import VarDAGNode from '../../../../src/shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../../src/shared/modules/Var/vos/VarCacheConfVO';
+import VarDAGNode from '../../../../src/server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../src/shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../src/shared/modules/Var/vos/VarDataBaseVO';
-import DateHandler from '../../../../src/shared/tools/DateHandler';
 import RangeHandler from '../../../../src/shared/tools/RangeHandler';
 import FakeDistantDatasourceController from './FakeDistantDatasourceController';
 import FakeDataVO from './vos/FakeDataVO';
@@ -31,13 +29,6 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
         }, 1), {}, {}, {}, {});
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.id = 1;
-        res.var_id = this.varConf.id;
-        return res;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

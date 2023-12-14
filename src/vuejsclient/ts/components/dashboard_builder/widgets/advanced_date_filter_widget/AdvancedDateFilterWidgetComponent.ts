@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import AdvancedDateFilterOptDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -22,6 +23,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
+import e from 'express';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetComponent.pug'),
@@ -32,7 +34,7 @@ import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetO
 export default class AdvancedDateFilterWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    private get_active_field_filters: FieldFiltersVO;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -74,8 +76,22 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
-        this.tmp_filter_active_opt = null;
+        this.tmp_filter_active_opt = this.widget_options.default_value;
+
+        // Si on a qu'un seul choix possible, et que ce n'est pas le choix qui change la date (is_type_custom par exemple qui ne fait qu'afficher un input), on le sélectionne
+        if ((!this.widget_options.default_value) && this.is_auto_selectable_choice) {
+            this.tmp_filter_active_opt = this.opts[0];
+        } else if (this.widget_options.default_value) {
+            this.tmp_filter_active_opt = this.widget_options.default_value;
+        } else {
+            this.tmp_filter_active_opt = null;
+        }
+
         this.tmp_ts_range = null;
+    }
+
+    get is_auto_selectable_choice() {
+        return (this.opts && (this.opts.length == 1) && (this.opts[0].search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_CUSTOM));
     }
 
     @Watch('tmp_ts_range')
@@ -92,7 +108,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+            context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
         let ts_range: TSRange = null;
@@ -197,7 +213,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!ts_range)) {
-            let new_root = ContextFilterVOHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -313,11 +329,12 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
                 options = options ? new AdvancedDateFilterWidgetOptions(
-                    options.is_vo_field_ref,
+                    options.is_vo_field_ref == null ? true : options.is_vo_field_ref,
                     options.vo_field_ref,
                     options.custom_filter_name,
                     options.opts,
                     options.is_checkbox,
+                    options.default_value,
                 ) : null;
             }
         } catch (error) {
@@ -367,6 +384,12 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         let options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         return options.is_checkbox;
+    }
+
+    get default_value(): AdvancedDateFilterOptDescVO {
+        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+
+        return options.default_value;
     }
 
     get is_type_custom(): boolean {

@@ -24,6 +24,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleVersionedServer.instance) {
             ModuleVersionedServer.instance = new ModuleVersionedServer();
@@ -33,14 +34,17 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
     private static instance: ModuleVersionedServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleVersioned.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleVersioned.APINAME_RESTORE_TRASHED_VO, this.restoreTrashedVo.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         for (let i in VersionedVOController.getInstance().registeredModuleTables) {
@@ -80,7 +84,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
         let ts = Dates.now();
-        let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let uid: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!uid) {
             uid = await this.get_robot_user_id();
         }
@@ -118,7 +122,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
 
-        let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let uid: number = ModuleAccessPolicyServer.getLoggedUserId();
 
         if (!!uid) {
             vo_update_handler.post_update_vo.version_edit_author_id = uid;

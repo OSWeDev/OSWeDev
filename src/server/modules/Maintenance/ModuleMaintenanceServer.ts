@@ -29,6 +29,7 @@ import MaintenanceServerController from './MaintenanceServerController';
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleMaintenanceServer.instance) {
             ModuleMaintenanceServer.instance = new ModuleMaintenanceServer();
@@ -38,14 +39,17 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     private static instance: ModuleMaintenanceServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleMaintenance.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         MaintenanceCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         MaintenanceServerController.getInstance();
@@ -118,12 +122,17 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         // Quand on modifie une maintenance, quelle qu'elle soit, on informe pas, il faudrait informer les 3 threads
         //  ça se mettra à jour dans les 30 secondes
 
-        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
-        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
-        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
-        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(MaintenanceServerController.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleMaintenance.APINAME_END_MAINTENANCE, this.end_maintenance.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleMaintenance.APINAME_START_MAINTENANCE, this.start_maintenance.bind(this));
@@ -132,7 +141,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async end_maintenance(num: number): Promise<void> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_maintenance, num)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_maintenance, num)) {
             return;
         }
 
@@ -160,7 +169,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async end_planned_maintenance(): Promise<void> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_planned_maintenance)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_planned_maintenance)) {
             return;
         }
 
@@ -184,7 +193,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async start_maintenance(validation_code: string): Promise<void> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance, validation_code)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance, validation_code)) {
             return;
         }
 
@@ -219,7 +228,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
         await ThreadHandler.sleep(readonly_maintenance_deadline, 'ModuleMaintenanceServer.start_maintenance');
-        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
     }
 
     public async get_planned_maintenance(): Promise<MaintenanceVO> {
@@ -232,7 +241,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     private async handleTriggerPreC_MaintenanceVO(maintenance: MaintenanceVO): Promise<boolean> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
             return false;
         }
 

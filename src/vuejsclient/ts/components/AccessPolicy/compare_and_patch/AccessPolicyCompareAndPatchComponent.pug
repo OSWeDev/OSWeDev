@@ -1,0 +1,53 @@
+.AccessPolicyCompareAndPatchComponent
+    .AccessPolicyCompareAndPatchComponent_disclaimer.bg-warning
+        i.fa-duotone.fa-triangle-exclamation
+        | {{ label('AccessPolicyCompareAndPatchComponent.disclaimer') }}
+    .AccessPolicyCompareAndPatchComponent_steps
+        .AccessPolicyCompareAndPatchComponent_step.AccessPolicyCompareAndPatchComponent_step1_done(v-if="role_a")
+            button.btn.btn-secondary.btn-block.btn-flat(@click="role_a = null") 
+                i.fa-duotone.fa-user-pen
+                | {{ label('AccessPolicyCompareAndPatchComponent.unselect_role', {role_id : "A", role_name : label(role_a.translatable_name)}) }}
+        .AccessPolicyCompareAndPatchComponent_step.AccessPolicyCompareAndPatchComponent_step2_done(v-if="role_b")
+            button.btn.btn-secondary.btn-block.btn-flat(@click="role_b = null") 
+                i.fa-duotone.fa-user-pen
+                | {{ label('AccessPolicyCompareAndPatchComponent.unselect_role', {role_id : "B", role_name : label(role_b.translatable_name)}) }}
+
+    .AccessPolicyCompareAndPatchComponent_role_selector(v-if='(!role_a) || (!role_b)')
+        .AccessPolicyCompareAndPatchComponent_role(v-for='role in roles')
+            button.btn.btn-primary.btn-block.btn-flat(@click="select_role(role)") 
+                | {{ label('AccessPolicyCompareAndPatchComponent.select_role', {role_name : label(role.translatable_name)}) }}
+                //- i.fa-duotone.fa-user-pen
+
+    .AccessPolicyCompareAndPatchComponent_compare_and_patch(v-if='role_a && role_b')
+        .AccessPolicyCompareAndPatchComponent_comparison_summary(v-if='!!comparison_summary')
+
+            .AccessPolicyCompareAndPatchComponent_comparison_generate_patch(v-if='!patch_code')
+                button.btn.btn-primary.btn-block.btn-flat(@click="generate_patch_code") 
+                    i.fa-duotone.fa-code
+                    | {{ label('AccessPolicyCompareAndPatchComponent.generate_patch') }}
+            .AccessPolicyCompareAndPatchComponent_comparison_do_update
+                button.btn.btn-warning.btn-block.btn-flat(@click="do_update")
+                    i.fa-duotone.fa-gear-complex-code
+                    | {{ label('AccessPolicyCompareAndPatchComponent.do_update') }}
+
+            .AccessPolicyCompareAndPatchComponent_comparison_patch_code(v-if='!!patch_code')
+                .title {{ label('AccessPolicyCompareAndPatchComponent.comparison_patch_code') }}
+                .patch_code
+                    code-mirror(v-model="patch_code" :basic='true' :dark='true')
+                    //- TODO FIXME https://github.com/surmon-china/surmon-china.github.io/blob/source/examples/vue-codemirror/index.vue
+
+            .AccessPolicyCompareAndPatchComponent_comparison_summary_rights_in_a_not_in_b(v-if='(!!comparison_summary["rights_in_a_not_in_b"]) && comparison_summary["rights_in_a_not_in_b"].length')
+                .title {{ label('AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_a_not_in_b') }}
+                .list
+                    .item(v-for='policy in comparison_summary["rights_in_a_not_in_b"]')
+                        i.fa-sharp.fa-solid.fa-a.text-success
+                        i.fa-sharp.fa-solid.fa-b.text-danger
+                        .policy {{ label(policy.translatable_name) }}
+
+            .AccessPolicyCompareAndPatchComponent_comparison_summary_rights_in_b_not_in_a(v-if='(!!comparison_summary["rights_in_b_not_in_a"]) && comparison_summary["rights_in_b_not_in_a"].length')
+                .title {{ label('AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_b_not_in_a') }}
+                .list
+                    .item(v-for='policy in comparison_summary["rights_in_b_not_in_a"]')
+                        i.fa-sharp.fa-solid.fa-a.text-danger
+                        i.fa-sharp.fa-solid.fa-b.text-success
+                        .policy {{ label(policy.translatable_name) }}

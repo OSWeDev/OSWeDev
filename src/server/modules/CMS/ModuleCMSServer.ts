@@ -18,6 +18,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleCMSServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleCMSServer.instance) {
             ModuleCMSServer.instance = new ModuleCMSServer();
@@ -27,10 +28,12 @@ export default class ModuleCMSServer extends ModuleServerBase {
 
     private static instance: ModuleCMSServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleCMS.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
         // APIControllerWrapper.registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
@@ -39,6 +42,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleCMS.POLICY_GROUP;

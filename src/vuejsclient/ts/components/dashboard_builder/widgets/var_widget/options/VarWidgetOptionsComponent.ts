@@ -37,9 +37,9 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     private get_custom_filters: string[];
 
     private next_update_options: VarWidgetOptions = null;
-    private throttled_reload_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
+    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
 
     private tmp_selected_var_name: string = null;
     private custom_filter_names: { [field_id: string]: string } = {};
@@ -98,7 +98,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id].var_data_vo_type;
+        let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -165,9 +165,9 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
         let res: string[] = [];
 
-        for (let i in VarsController.getInstance().var_conf_by_name) {
-            let var_conf = VarsController.getInstance().var_conf_by_name[i];
-            res.push(var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id)));
+        for (let i in VarsController.var_conf_by_name) {
+            let var_conf = VarsController.var_conf_by_name[i];
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
         res.sort((a, b) => {
@@ -235,8 +235,8 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             return;
         }
 
-        if (this.tmp_selected_var_name != (this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id)))) {
-            this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
+        if (this.tmp_selected_var_name != (this.widget_options.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id)))) {
+            this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
         }
         if (this.custom_filter_names != (this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {})) {
             this.custom_filter_names = this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {};
@@ -322,6 +322,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
+        return this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
     }
 }

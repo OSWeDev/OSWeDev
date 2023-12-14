@@ -20,6 +20,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         return this.shared_module as ModuleCheckListBase;
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -115,6 +116,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.checklist_shared_module.POLICY_GROUP;

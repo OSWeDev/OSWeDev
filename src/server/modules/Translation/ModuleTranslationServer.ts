@@ -15,6 +15,7 @@ import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -36,6 +37,7 @@ import TranslationsServerController from './TranslationsServerController';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleTranslationServer.instance) {
             ModuleTranslationServer.instance = new ModuleTranslationServer();
@@ -54,14 +56,17 @@ export default class ModuleTranslationServer extends ModuleServerBase {
      * ----- Local thread cache
      */
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTranslation.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         TranslationCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
@@ -474,7 +479,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'client.main-title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Admin'
-        }, 'client.menu-gauche.admin'));
+        }, 'client.menu-gauche.admin.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Menu principal'
         }, 'client.menu-gauche.navigationPrincipale'));
@@ -550,10 +555,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'label.day.samedi.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'tous'
+            'fr-fr': 'Tous'
         }, 'select_all.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'aucun'
+            'fr-fr': 'Aucun'
         }, 'select_none.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -593,11 +598,38 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Liste des alertes'
         }, 'alert.list.title.default.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Annuler'
+        }, 'on_page_translation.rollback_button.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sauvegarder'
+        }, 'on_page_translation.save_button.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'OK'
+        }, 'on_page_translation.save_translation.ok.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Proposer une traduction automatique'
+        }, 'on_page_translation.get_gpt_translation.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique en cours...'
+        }, 'get_gpt_translation.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la traduction automatique'
+        }, 'get_gpt_translation.failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique OK : {gpt_response}'
+        }, 'get_gpt_translation.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Traduction automatique KO : {error}'
+        }, 'get_gpt_translation.error.___LABEL___'));
     }
 
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleTranslation.POLICY_GROUP;
@@ -667,6 +699,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         await Promise.all(promises);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
@@ -883,10 +916,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if ((!vo_update_handler.post_update_vo) || (!vo_update_handler.post_update_vo.code_text)) {
             return false;
         }
-        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text);
+        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text, vo_update_handler.post_update_vo.id);
     }
 
-    private async isCodeOk(code_text: string): Promise<boolean> {
+    private async isCodeOk(code_text: string, self_id: number = null): Promise<boolean> {
 
         // On vérifie qu'il existe pas en base un code conflictuel. Sinon on refuse l'insert
         let something_longer: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
@@ -894,24 +927,29 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             .select_vos<TranslatableTextVO>();
 
         if ((!!something_longer) && (something_longer.length > 0)) {
+
+            if ((something_longer.length == 1) && (something_longer[0].id == self_id)) {
+                return true;
+            }
+
             ConsoleHandler.error('isCodeOk:' + code_text + ':Something longer already exists:' + something_longer[0].code_text + ': (total of ' + something_longer.length + ' existing conflicting codes)');
             return false;
         }
 
-        let shorter_code: string = code_text;
-        let segments: string[] = shorter_code.split('.');
+        let segments: string[] = code_text.split('.');
 
         let res = true;
 
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleTranslationServer.isCodeOk');
         while ((!!segments) && (segments.length > 1)) {
 
             segments.pop();
-            shorter_code = segments.join('.');
 
             await promises_pipeline.push(async () => {
+                let shorter_code: string = segments.join('.');
                 let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_text_eq('code_text', shorter_code)
+                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, shorter_code)
+                    .filter_by_num_not_eq(field_names<TranslatableTextVO>().id, self_id)
                     .select_vos<TranslatableTextVO>();
 
                 if ((!!something_shorter) && (something_shorter.length > 0)) {

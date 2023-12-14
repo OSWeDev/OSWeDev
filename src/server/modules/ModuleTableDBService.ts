@@ -11,6 +11,7 @@ import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
 import ConfigurationService from '../env/ConfigurationService';
+import DAOServerController from './DAO/DAOServerController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ForkedTasksController from './Fork/ForkedTasksController';
 import TableColumnDescriptor from './TableColumnDescriptor';
@@ -100,6 +101,13 @@ export default class ModuleTableDBService {
                     let segmentation_bdd_values: IDistantVOBase[] = null;
 
                     try {
+                        // On check d'abored l'existence de la table de référence
+                        let db_table_test: IDistantVOBase[] = await this.db.query("SELECT FROM pg_catalog.pg_tables WHERE schemaname = 'ref' AND tablename = '" + moduleTable.name + "';");
+                        if ((!db_table_test) || (!db_table_test.length)) {
+                            ConsoleHandler.log('create_or_update_datatable: no ref table:' + moduleTable.name + ': not a problem, it\'s just a test in case of migration to a segmented table.');
+                            return;
+                        }
+
                         let datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
                         for (let i in datas) {
                             let data = datas[i];
@@ -198,7 +206,7 @@ export default class ModuleTableDBService {
                     let table_name = moduleTable.get_segmented_name(segmented_value);
 
                     // Une fois la création de la table terminée, on peut faire la migration des datas si on attendait de le faire.
-                    let field_where_clause = ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
+                    let field_where_clause = DAOServerController.getClauseWhereRangeIntersectsField(
                         moduleTable.table_segmented_field.field_type, moduleTable.table_segmented_field.field_id,
                         RangeHandler.create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
 
@@ -285,7 +293,7 @@ export default class ModuleTableDBService {
             await this.chec_indexes(moduleTable, database_name, table_name);
 
             if (segmented_value != null) {
-                await ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
+                await ForkedTasksController.broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
             }
         } else {
             res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
@@ -706,16 +714,16 @@ export default class ModuleTableDBService {
         }
 
         /**
-         * Ajout des clés d'unicité sur plusieurs colonnes
+         * Ajout des clés d'unicité
          */
         let uniq_constraints = '';
         if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
             for (let i in moduleTable.uniq_indexes) {
                 let uniq_index = moduleTable.uniq_indexes[i];
 
-                if (uniq_index.length <= 1) {
-                    continue;
-                }
+                // if (uniq_index.length <= 1) {
+                //     continue;
+                // }
 
                 uniq_constraints += ', UNIQUE (' + uniq_index.map((f) => f.field_id).join(', ') + ')';
             }

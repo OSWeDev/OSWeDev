@@ -11,14 +11,14 @@
         :y="y" 
         :z="10000" 
         :drag-handle="'#dragsize_handle_' + uid" 
-        :class="{'opened':opened}")
+        :class="{'opened':opened, 'closed':!opened}")
 
         .col-sm-12
             .row.dragsize_handle(:id='"dragsize_handle_" + uid')
                 .col-sm-12  
-                    i.fa-solid.fa-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened" @click="opened = !opened")
-                    i.fa-solid.fa-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened" @click="opened = !opened")
-                    i.fa-solid.fa-arrows.fa-fw.pull-right(aria-hidden="true")
+                    i.fa-duotone.fa-square-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened" @click="opened = !opened")
+                    i.fa-duotone.fa-square-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened" @click="opened = !opened")
+                    i.fa-duotone.fa-up-down-left-right.fa-fw.pull-right(aria-hidden="true")
 
                     slot(name="icons")
             .row.dragsize_content

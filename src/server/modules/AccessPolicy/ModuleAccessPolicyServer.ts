@@ -67,6 +67,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
     public static TASK_NAME_delete_sessions_from_other_thread = 'ModuleAccessPolicyServer.delete_sessions_from_other_thread';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleAccessPolicyServer.instance) {
             ModuleAccessPolicyServer.instance = new ModuleAccessPolicyServer();
@@ -74,15 +75,68 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return ModuleAccessPolicyServer.instance;
     }
 
+    public static getLoggedUserId(): number {
+
+        try {
+
+            let session = StackContext.get('SESSION');
+
+            if (session && session.uid) {
+                return session.uid;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+        return null;
+    }
+
+    public static async getLoggedUserName(): Promise<string> {
+
+        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        return user ? user.name : null;
+    }
+
+    /**
+     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
+     */
+    public static async getSelfUser(): Promise<UserVO> {
+
+        if (StackContext.get('SELF_USER')) {
+            return StackContext.get('SELF_USER');
+        }
+
+        /**
+         * on doit pouvoir charger son propre user
+         */
+        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        if (!user_id) {
+            return null;
+        }
+
+        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
+    }
+
+    public static async getMyLang(): Promise<LangVO> {
+
+        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        if (!user) {
+            return null;
+        }
+        return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+    }
+
+
     private static instance: ModuleAccessPolicyServer = null;
 
     private debug_check_access: boolean = false;
     private rights_have_been_preloaded: boolean = false;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
 
-        ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
         AccessPolicyServerController.init_tasks();
     }
 
@@ -113,6 +167,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAccessPolicy.POLICY_GROUP;
@@ -301,17 +356,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return await this.registerPolicyDependency(dep);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         AccessPolicyCronWorkersHandler.getInstance();
     }
 
 
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
         ModuleDAOServer.getInstance().registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
         ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
@@ -403,6 +461,62 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accordé'
         }, 'access_policy.admin.table.granted.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher tout le groupe : {policy_group_name}'
+        }, 'access_policy.select_full_group.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Masquer tout le groupe : {policy_group_name}'
+        }, 'access_policy.unselect_full_group.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier le rôle {role_id} : {role_name}'
+        }, 'AccessPolicyCompareAndPatchComponent.unselect_role.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Générer le code du patch pour harmoniser les droits de A vers B (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.generate_patch.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ATTENTION : Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ATTENTION : Cette page sert à comparer les droits de 2 rôles et à les harmoniser. Les seuls droits modifiés seront ceux du rôle B. Les droits du rôle A ne seront pas modifiés. Mais rien ne garantie que le patch aura l\'effet désiré puisque l\'on ne regarde pas les droits hérités. Donc si on tente de désactiver un droit hérité, celà n\'aura aucun effet !'
+        }, 'AccessPolicyCompareAndPatchComponent.disclaimer.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer ?'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mise à jour des droits du rôle B : En cours...'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mise à jour des droits du rôle B terminée'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la mise à jour des droits du rôle B'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Code du Patch'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_patch_code.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Droits dans A, absents de B'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_a_not_in_b.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Droits dans B, absents de A'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_b_not_in_a.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélectionner le rôle "{role_name}"'
+        }, 'AccessPolicyCompareAndPatchComponent.select_role.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Comparer des rôles'
+        }, 'menu.menuelements.admin.AccessPolicyCompareAndPatchComponent.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
@@ -825,6 +939,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'TableWidgetComponent.confirm_archive.title.___LABEL___'));
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_TEST_ACCESS, this.testAccess.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_CHECK_ACCESS, this.checkAccess.bind(this));
@@ -842,16 +957,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT, this.signinAndRedirect.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, this.getLoggedUserId.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, this.getLoggedUserName.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, ModuleAccessPolicyServer.getLoggedUserId as any);
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, ModuleAccessPolicyServer.getLoggedUserName);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, ModuleAccessPolicyServer.getMyLang);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_sendrecapture, this.sendrecapture.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwdsms, this.begininitpwdsms.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, ModuleAccessPolicyServer.getSelfUser);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_logout, this.logout.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_delete_session, this.delete_session.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_sid, this.get_my_sid.bind(this));
@@ -1030,35 +1145,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    /**
-     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
-     */
-    public async getSelfUser(): Promise<UserVO> {
-
-        if (StackContext.get('SELF_USER')) {
-            return StackContext.get('SELF_USER');
-        }
-
-        /**
-         * on doit pouvoir charger son propre user
-         */
-        let user_id: number = this.getLoggedUserId();
-        if (!user_id) {
-            return null;
-        }
-
-        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
-    }
-
-    public async getMyLang(): Promise<LangVO> {
-
-        let user: UserVO = await this.getSelfUser();
-        if (!user) {
-            return null;
-        }
-        return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
-    }
-
     public async generate_challenge(user: UserVO) {
 
         StatsController.register_stat_COMPTEUR('ModuleAccessPolicyServer', 'generate_challenge', '-');
@@ -1091,7 +1177,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let user_id: number = this.getLoggedUserId();
+        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!user_id) {
             return;
         }
@@ -1160,9 +1246,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      */
     public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
 
-        ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
             return;
         }
 
@@ -1256,28 +1343,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return false;
-    }
-
-    public getLoggedUserId(): number {
-
-        try {
-
-            let session = StackContext.get('SESSION');
-
-            if (session && session.uid) {
-                return session.uid;
-            }
-            return null;
-        } catch (error) {
-            ConsoleHandler.error(error);
-            return null;
-        }
-    }
-
-    public async getLoggedUserName(): Promise<string> {
-
-        let user: UserVO = await this.getSelfUser();
-        return user ? user.name : null;
     }
 
     public isLogedAs(): boolean {
@@ -1435,7 +1500,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         role_policy.granted = true;
         role_policy.role_id = role.id;
 
-        insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role_policy);
+        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role_policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return false;
         }
@@ -1639,7 +1704,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_registered_policy, vo);
         return;
     }
 
@@ -1648,7 +1713,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_policy_dependency, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_policy_dependency, vo);
         return;
     }
 
@@ -1657,8 +1722,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_role_policy, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_role_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
@@ -1667,8 +1732,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_role, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_registered_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
@@ -1677,34 +1742,34 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_user_role, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_set_registered_user_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
     private async onUpdateAccessPolicyVO(vo_update_holder: DAOUpdateVOHolder<AccessPolicyVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdatePolicyDependencyVO(vo_update_holder: DAOUpdateVOHolder<PolicyDependencyVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateRolePolicyVO(vo_update_holder: DAOUpdateVOHolder<RolePolicyVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role_policy, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_role_policy, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateRoleVO(vo_update_holder: DAOUpdateVOHolder<RoleVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_role, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateUserRoleVO(vo_update_holder: DAOUpdateVOHolder<UserRoleVO>): Promise<void> {
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_user_role, vo_update_holder);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_update_user_role, vo_update_holder);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onDeleteAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
@@ -1712,8 +1777,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1722,8 +1787,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1732,8 +1797,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, vo);
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1742,7 +1807,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role, vo);
         return true;
     }
 
@@ -1751,7 +1816,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, vo);
+        await ForkedTasksController.broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, vo);
         return true;
     }
 
@@ -1895,7 +1960,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
-                await ModuleDAO.getInstance().insertOrUpdateVO(user);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
             }
 
             session.uid = user.id;

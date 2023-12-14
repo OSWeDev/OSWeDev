@@ -1,11 +1,10 @@
 
 
 import { readFileSync } from 'fs';
-import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import moment from 'moment';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
+import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
@@ -19,12 +18,13 @@ import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManag
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import FileHandler from '../../../../shared/tools/FileHandler';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ImportLogger from '../logger/ImportLogger';
-import moment from 'moment';
 const XmlReader = require('xml-reader');
 const he = require('he');
 
 export default class ImportTypeXMLHandler {
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ImportTypeXMLHandler.instance) {
             ImportTypeXMLHandler.instance = new ImportTypeXMLHandler();
@@ -101,7 +101,7 @@ export default class ImportTypeXMLHandler {
                     datas
                 );
             } else {
-                await ModuleDAO.getInstance().insertOrUpdateVOs(datas);
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(datas);
             }
 
             resolve(true);

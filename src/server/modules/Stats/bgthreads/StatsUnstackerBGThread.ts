@@ -24,6 +24,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
 
     public static TASK_NAME_register_aggregated_stats: string = 'StatsUnstackerBGThread.register_aggregated_stats';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!StatsUnstackerBGThread.instance) {
             StatsUnstackerBGThread.instance = new StatsUnstackerBGThread();
@@ -36,6 +37,10 @@ export default class StatsUnstackerBGThread implements IBGThread {
     public current_timeout: number = 10000;
     public MAX_timeout: number = 10000;
     public MIN_timeout: number = 10000;
+
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
 
     public exec_in_dedicated_thread: boolean = true;
 
@@ -51,7 +56,8 @@ export default class StatsUnstackerBGThread implements IBGThread {
     private aggregated_stats: StatClientWrapperVO[] = [];
 
     private constructor() {
-        ForkedTasksController.getInstance().register_task(StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, this.register_aggregated_stats.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, this.register_aggregated_stats.bind(this));
     }
 
     /**
@@ -61,7 +67,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
      */
     public async register_aggregated_stats(
         aggregated_stats: StatClientWrapperVO[]
-    ): Promise<void> {
+    ): Promise<string> {
 
         if (!aggregated_stats || !aggregated_stats.length) {
             return;
@@ -74,7 +80,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 reject();
             };
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
                 thrower,
                 StatsUnstackerBGThread.getInstance().name,
                 StatsUnstackerBGThread.TASK_NAME_register_aggregated_stats, resolve,
@@ -83,7 +89,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
             }
 
             this.aggregated_stats = this.aggregated_stats.concat(aggregated_stats);
-            resolve();
+            resolve('register_aggregated_stats');
         });
     }
 
@@ -183,6 +189,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if (!invalid_stats_group.stat_type_name) {
             ConsoleHandler.error('Statsstat_typeMapperBGThread:FAILED:invalid_stats_group.tmp_stat_type_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.stat_type_name = 'ERROR';
+            return null;
         }
 
         if (!this.stat_type_cache[invalid_stats_group.stat_type_name]) {
@@ -274,6 +281,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if ((!invalid_stats_group.sub_category_name) || (!invalid_stats_group.category_id)) {
             ConsoleHandler.error('StatsUnstackerBGThread:FAILED:invalid_stats_group.tmp_sub_category_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.sub_category_name = 'ERROR';
+            return null;
         }
 
         if (!this.sub_category_cache[invalid_stats_group.category_id]) {
@@ -303,6 +311,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if ((!invalid_stats_group.event_name) || (!invalid_stats_group.sub_category_id)) {
             ConsoleHandler.error('StatsUnstackerBGThread:FAILED:invalid_stats_group.tmp_event_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.event_name = 'ERROR';
+            return null;
         }
 
         if (!this.event_cache[invalid_stats_group.sub_category_id]) {
@@ -332,6 +341,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if (!invalid_stats_group.thread_name) {
             ConsoleHandler.error('StatsUnstackerBGThread:FAILED:invalid_stats_group.tmp_thread_name:' + JSON.stringify(invalid_stats_group));
             invalid_stats_group.thread_name = 'ERROR';
+            return null;
         }
 
         if (!this.thread_cache[invalid_stats_group.thread_name]) {

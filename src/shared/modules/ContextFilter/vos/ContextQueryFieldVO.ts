@@ -21,7 +21,7 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
     public api_type_id: string;
 
     /**
-     * field_id du champs ciblé
+     * field_id du champs ciblé. Si le field est null, on considère que c'est un champs calculé défini par ailleurs et on affiche directement l'alias sans filtre
      */
     public field_id: string;
 

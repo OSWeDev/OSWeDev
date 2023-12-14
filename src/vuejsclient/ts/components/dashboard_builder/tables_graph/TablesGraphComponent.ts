@@ -15,6 +15,7 @@ import MaxGraphEdgeMapper from './graph_mapper/MaxGraphEdgeMapper';
 import MaxGraphMapper from './graph_mapper/MaxGraphMapper';
 import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
+import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 // const graphConfig = {
 //     mxBasePath: '/mx/', //Specifies the path in Client.basePath.
 //     ImageBasePath: '/mx/images', // Specifies the path in Client.imageBasePath.
@@ -53,7 +54,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private maxgraph: Graph = null;
 
-    private throttle_init_or_update_graph = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_or_update_graph.bind(this), 100);
+    private throttle_init_or_update_graph = ThrottleHelper.declare_throttle_without_args(this.init_or_update_graph.bind(this), 100);
     private graph_mapper: MaxGraphMapper = null;
     private current_cell_mapper: MaxGraphEdgeMapper | MaxGraphCellMapper = null;
 
@@ -101,6 +102,22 @@ export default class TablesGraphComponent extends VueComponentBase {
             }
 
             let container = (this.$refs['container'] as any);
+            if (!container) {
+                let max_timeout = 10;
+                while ((!container) && (max_timeout > 0)) {
+                    await ThreadHandler.sleep(1000, 'TablesGraphComponent.no_container');
+                    container = (this.$refs['container'] as any);
+                    max_timeout--;
+                    if (!container) {
+                        ConsoleHandler.warn('TablesGraphComponent.no_container');
+                    }
+                }
+
+                if (!container) {
+                    ConsoleHandler.error('TablesGraphComponent.no_container');
+                    throw new Error('TablesGraphComponent.no_container');
+                }
+            }
             container.style.overflow = 'hidden';
             container.style.background = '#F5F5F5';
             container.style.padding = '1em';
@@ -188,5 +205,9 @@ export default class TablesGraphComponent extends VueComponentBase {
         }
 
         await this.throttle_init_or_update_graph();
+    }
+
+    private async update_discarded_field_paths(discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
+        this.$emit('update_discarded_field_paths', discarded_field_paths);
     }
 }

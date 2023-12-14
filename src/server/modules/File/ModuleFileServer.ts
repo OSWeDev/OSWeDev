@@ -37,6 +37,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFile.POLICY_GROUP;
@@ -58,6 +59,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
 
@@ -69,6 +71,11 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fichiers' },
             'menu.menuelements.admin.file.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Chemin' },
+            'fields.labels.ref.module_file_file.path.file___path.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -114,13 +121,16 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     protected getNewVo(): FileVO {
         return new FileVO();
     }
+    protected get_vo_type(): string {
+        return FileVO.API_TYPE_ID;
+    }
 
     private async check_secured_files_conf_update(vo_update_handler: DAOUpdateVOHolder<FileVO>): Promise<boolean> {
         return ModuleFileServer.getInstance().check_secured_files_conf(vo_update_handler.post_update_vo);
     }
 
     private async check_secured_files_conf(f: FileVO): Promise<boolean> {
-        let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let uid = ModuleAccessPolicyServer.getLoggedUserId();
         let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (f.is_secured && !f.file_access_policy_name) {

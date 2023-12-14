@@ -2,7 +2,12 @@ import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
+import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -10,15 +15,16 @@ import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidget
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
-import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './widgets/field_value_filter_widget/string/AdvancedStringFilter';
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
-import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
+import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -94,6 +100,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_MonthFilter();
         await this.initializeWidget_YearFilter();
         await this.initializeWidget_AdvancedDateFilter();
+        await this.initializeWidget_CurrentUserFilter();
 
         await this.initializeWidget_VarPieChart();
 
@@ -207,7 +214,10 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
+            null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false
+        ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -226,7 +236,10 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
+            null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false,
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false
+        ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -246,7 +259,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
         fieldValueFilter.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false, null, null, null), FieldValueFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptionsVO(
+            null, null, null, true, false, FieldValueFilterWidgetOptionsVO.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false, null, null, null
+        ), FieldValueFilterWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import('./widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import('./widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
@@ -303,11 +318,45 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         AdvancedDateFilter.default_background = '#f5f5f5';
         AdvancedDateFilter.icon_component = 'Advanceddatefilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(AdvancedDateFilter, () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false), AdvancedDateFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            AdvancedDateFilter,
+            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null),
+            AdvancedDateFilterWidgetOptions.get_selected_fields
+        );
 
         Vue.component('Advanceddatefilterwidgetcomponent', () => import('./widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
         Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import('./widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));
         Vue.component('Advanceddatefilterwidgeticoncomponent', () => import('./widgets/advanced_date_filter_widget/icon/AdvancedDateFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CurrentUserFilter() {
+        let CurrentUserFilter = new DashboardWidgetVO();
+
+        CurrentUserFilter.default_height = 5;
+        CurrentUserFilter.default_width = 2;
+        CurrentUserFilter.name = DashboardWidgetVO.WIDGET_NAME_currentuserfilter;
+        CurrentUserFilter.widget_component = 'Currentuserfilterwidgetcomponent';
+        CurrentUserFilter.options_component = 'Currentuserfilterwidgetoptionscomponent';
+        CurrentUserFilter.weight = 19;
+        CurrentUserFilter.default_background = '#f5f5f5';
+        CurrentUserFilter.icon_component = 'Currentuserfilterwidgeticoncomponent';
+        CurrentUserFilter.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            CurrentUserFilter,
+            () => new CurrentUserFilterWidgetOptionsVO(
+                new VOFieldRefVO().from({
+                    api_type_id: UserVO.API_TYPE_ID,
+                    field_id: "id"
+                }),
+                true
+            ),
+            CurrentUserFilterWidgetOptionsVO.get_selected_fields
+        );
+
+        Vue.component('Currentuserfilterwidgetcomponent', () => import('./widgets/current_user_filter_widget/CurrentUserFilterWidgetComponent'));
+        Vue.component('Currentuserfilterwidgetoptionscomponent', () => import('./widgets/current_user_filter_widget/options/CurrentUserFilterWidgetOptionsComponent'));
+        Vue.component('Currentuserfilterwidgeticoncomponent', () => import('./widgets/current_user_filter_widget/icon/CurrentUserFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_VarPieChart() {
@@ -446,16 +495,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SaveFavoritesFilters.default_width = 2;
         SaveFavoritesFilters.name = DashboardWidgetVO.WIDGET_NAME_savefavoritesfilters;
         SaveFavoritesFilters.widget_component = 'Savefavoritesfilterswidgetcomponent';
-        SaveFavoritesFilters.options_component = 'Savefavoritesfilterswidgetoptionscomponent';
+        SaveFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         SaveFavoritesFilters.weight = 3;
         SaveFavoritesFilters.default_background = '#f5f5f5';
         SaveFavoritesFilters.icon_component = 'Savefavoritesfilterswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(SaveFavoritesFilters, null, null);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            SaveFavoritesFilters,
+            () => new FavoritesFiltersWidgetOptionsVO(
+                new VOFieldRefVO().from({
+                    api_type_id: FavoritesFiltersVO.API_TYPE_ID,
+                    field_id: "name"
+                }),
+            ),
+            null
+        );
 
-        Vue.component('Savefavoritesfilterswidgetcomponent', () => import('./widgets/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
-        Vue.component('Savefavoritesfilterswidgetoptionscomponent', () => import('./widgets/save_favorites_filters_widget/options/SaveFavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import('./widgets/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
+        Vue.component('Savefavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
+        Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import('./widgets/favorites_filters_widget/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ShowFavoritesFilters() {
@@ -465,16 +523,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ShowFavoritesFilters.default_width = 2;
         ShowFavoritesFilters.name = DashboardWidgetVO.WIDGET_NAME_showfavoritesfilters;
         ShowFavoritesFilters.widget_component = 'Showfavoritesfilterswidgetcomponent';
-        ShowFavoritesFilters.options_component = 'Showfavoritesfilterswidgetoptionscomponent';
+        ShowFavoritesFilters.options_component = 'Favoritesfilterswidgetoptionscomponent';
         ShowFavoritesFilters.weight = 3;
         ShowFavoritesFilters.default_background = '#f5f5f5';
         ShowFavoritesFilters.icon_component = 'Showfavoritesfilterswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(ShowFavoritesFilters, null, null);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            ShowFavoritesFilters,
+            () => new FavoritesFiltersWidgetOptionsVO(
+                new VOFieldRefVO().from({
+                    api_type_id: FavoritesFiltersVO.API_TYPE_ID,
+                    field_id: "name"
+                }),
+            ),
+            null
+        );
 
-        Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
-        Vue.component('Showfavoritesfilterswidgetoptionscomponent', () => import('./widgets/show_favorites_filters_widget/options/ShowFavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import('./widgets/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
+        Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
+        Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ResetFilters() {

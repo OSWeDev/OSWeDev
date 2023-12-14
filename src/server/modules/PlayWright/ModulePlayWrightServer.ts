@@ -17,10 +17,12 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     private static instance: ModulePlayWrightServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModulePlayWright.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModulePlayWright.APINAME_setup_and_login, this.setup_and_login.bind(this));
         // APIControllerWrapper.registerServerApiHandler(ModulePlayWright.APINAME_global_setup, this.global_setup.bind(this));
@@ -31,6 +33,7 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModulePlayWright.APINAME_before_each, this.before_each.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
     }
 

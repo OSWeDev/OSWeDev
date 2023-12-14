@@ -2,14 +2,12 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 
@@ -36,7 +34,6 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     //  */
     // public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
 
-    public var_cache_conf: VarCacheConfVO = null;
     public aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
 
     protected constructor(
@@ -52,32 +49,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * Pour les TUs passer un id au varconf et au varcacheconf
      */
     public async initialize() {
-        this.varConf = await VarsServerController.getInstance().registerVar(this.varConf, this);
-        let var_cache_conf = this.getVarCacheConf();
-        this.var_cache_conf = (var_cache_conf && !var_cache_conf.id) ? await VarsServerController.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
-
-        if (var_cache_conf && var_cache_conf.id && this.varConf.id) {
-            // Cas des tests unitaires par exemple, on doit quand même init le varcacheconf_by_var_ids du VarsServerController
-            VarsServerController.getInstance().varcacheconf_by_var_ids[this.varConf.id] = this.var_cache_conf;
-            if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type]) {
-                VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type] = {};
-            }
-            VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type][this.varConf.id] = this.var_cache_conf;
-        }
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.var_id = this.varConf.id;
-
-        res.estimated_compute_node_1k_card = 0.001;
-        res.estimated_ctree_ddeps_get_node_deps_1k_card = 0.001;
-        res.estimated_ctree_ddeps_handle_pixellisation_1k_card = 0.001;
-        res.estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card = 0.001;
-        res.estimated_ctree_ddeps_try_load_cache_complet_1k_card = 0.001;
-        res.estimated_ctree_ddeps_try_load_cache_partiel_1k_card = 0.001;
-        res.estimated_load_node_datas_1k_card = 0.001;
-        return res;
+        this.varConf = await VarsServerController.registerVar(this.varConf, this);
     }
 
     /**
@@ -106,7 +78,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      *  Si on est sur un noeud aggrégé, on calcul via la fonction d'aggrégat, sinon on calcul par la fonction getValue
      * @param varDAGNode
      */
-    public async computeValue(varDAGNode: VarDAGNode) {
+    public computeValue(varDAGNode: VarDAGNode) {
 
         StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'computeValue', this.varConf.name);
         let time_in = Dates.now_ms();
@@ -130,7 +102,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value = value;
         varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
         varDAGNode.var_data.value_ts = Dates.now();
-        await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
+        // await VarsDatasProxy.update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
 
         let time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('VarServerControllerBase', 'computeValue', this.varConf.name, time_out - time_in);
@@ -198,7 +170,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
          * On peut pas les mettre en // ?
          */
         let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
-        let promise_pipeline = new PromisePipeline(limit);
+        let promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group');
 
         for (let k in c_or_d_vos) {
             let vo_create_or_delete = c_or_d_vos[k];
@@ -248,7 +220,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
          * On peut pas les mettre en // ?
          */
         let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
-        let promise_pipeline = new PromisePipeline(limit);
+        let promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group');
 
         for (let k in u_vo_holders) {
             let u_vo_holder = u_vo_holders[k];
@@ -324,37 +296,4 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param varDAGNode Le noeud à calculer
      */
     protected abstract getValue(varDAGNode: VarDAGNode): number;
-
-    // /**
-    //  * Fonction spécifique aux tests unitaires qui permet de créer un faux arbre pour avec les paramètres du test pour appeler
-    //  *  la fonction à tester beaucoup plus facilement
-    //  * @param param le var data / matroid qui sert à paramétrer le calcul
-    //  * @param datasources les datas de chaque datasource, par nom du datasource
-    //  * @param deps_values les valeurs des deps, par id de dep
-    //  */
-    // private async UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<VarDAGNode> {
-    //     let dag: VarDAG = new VarDAG();
-    //     let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
-
-    //     if (!varDAGNode) {
-    //         return null;
-    //     }
-
-    //     let deps = this.getParamDependencies(varDAGNode);
-
-    //     for (let i in deps) {
-    //         let dep_value = deps_values ? deps_values[i] : undefined;
-
-    //         let var_dag_node_dep = await VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController, false);
-    //         if (!var_dag_node_dep) {
-    //             return null;
-    //         }
-
-    //         varDAGNode.addOutgoingDep(i, var_dag_node_dep);
-    //     }
-
-    //     varDAGNode.datasources = datasources;
-
-    //     return varDAGNode;
-    // }
 }

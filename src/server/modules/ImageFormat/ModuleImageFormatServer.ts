@@ -26,9 +26,11 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleImageFormatServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleImageFormatServer.instance) {
             ModuleImageFormatServer.instance = new ModuleImageFormatServer();
@@ -38,10 +40,12 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
     private static instance: ModuleImageFormatServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleImageFormat.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleImageFormat.POLICY_GROUP;
@@ -63,6 +67,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
@@ -71,6 +76,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(ImageFormatVO.API_TYPE_ID, this, this.handleTriggerPostUpdateImageFormat);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleImageFormat.APINAME_get_formatted_image, this.get_formatted_image.bind(this));
     }
@@ -250,9 +256,18 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 image.cover(param_width, param_height);
             }
 
-            let new_img_file: FileVO = new FileVO();
-            new_img_file.is_secured = false;
-            new_img_file.path = new_src;
+            // Si le file existe déjà, on le récupère
+            let new_img_file: FileVO = await query(FileVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<FileVO>().path, new_src)
+                .select_vo<FileVO>();
+
+            if (!new_img_file) {
+                new_img_file = new FileVO();
+                new_img_file.is_secured = false;
+                new_img_file.path = new_src;
+                let resnew_img_file: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_file);
+                new_img_file.id = resnew_img_file.id;
+            }
 
             let src_dirname: string = path.dirname(new_img_file.path);
             if (!fs.existsSync(src_dirname)) {
@@ -297,9 +312,6 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 await image.blit(fontCanvas, 0, 0).writeAsync(new_img_file.path);
             }
 
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_file);
-            new_img_file.id = res.id;
-
             let new_img_formattee: FormattedImageVO = new FormattedImageVO();
             new_img_formattee.align_haut = format.align_haut;
             new_img_formattee.align_larg = format.align_larg;
@@ -312,7 +324,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.remplir_haut = format.remplir_haut;
             new_img_formattee.remplir_larg = format.remplir_larg;
             new_img_formattee.formatted_src = new_img_file.path;
-            res = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_formattee);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_formattee);
             new_img_formattee.id = res.id;
             return new_img_formattee;
         } catch (error) {

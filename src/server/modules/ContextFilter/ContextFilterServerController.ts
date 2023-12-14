@@ -17,23 +17,12 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ContextQueryServerController from './ContextQueryServerController';
 
 export default class ContextFilterServerController {
 
-    public static getInstance() {
-        if (!ContextFilterServerController.instance) {
-            ContextFilterServerController.instance = new ContextFilterServerController();
-        }
-        return ContextFilterServerController.instance;
-    }
-
-    private static instance: ContextFilterServerController = null;
-
-    private constructor() { }
-
-    public async configure() {
+    // istanbul ignore next: cannot test configure
+    public static async configure() {
     }
 
     /**
@@ -43,7 +32,7 @@ export default class ContextFilterServerController {
      * @param tables_aliases_by_type
      * @returns
      */
-    public async update_where_conditions(
+    public static async update_where_conditions(
         context_query: ContextQueryVO,
         query_result: ParameterizedQueryWrapper,
         where_conditions: string[],
@@ -57,9 +46,6 @@ export default class ContextFilterServerController {
         if (context_filter.param_alias) {
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_filter.param_alias);
         }
-
-
-        // TODO : when using alias
 
         let field_id = context_filter.field_id ?
             tables_aliases_by_type[context_filter.vo_type] + '.' + context_filter.field_id :
@@ -88,13 +74,18 @@ export default class ContextFilterServerController {
         // On tente de déanonymiser avant de construire la requête
         let uid = await StackContext.get('UID');
         if (context_filter.param_text) {
-            context_filter.param_text = await ServerAnonymizationController.getInstance().get_unanonymised_row_field_value(context_filter.param_text, context_filter.vo_type, context_filter.field_id, uid);
+            context_filter.param_text = await ServerAnonymizationController.get_unanonymised_row_field_value(
+                context_filter.param_text,
+                context_filter.vo_type,
+                context_filter.field_id,
+                uid
+            );
         }
         if (context_filter.param_textarray) {
             for (let i in context_filter.param_textarray) {
                 let param_text = context_filter.param_textarray[i];
 
-                context_filter.param_textarray[i] = await ServerAnonymizationController.getInstance().get_unanonymised_row_field_value(param_text, context_filter.vo_type, context_filter.field_id, uid);
+                context_filter.param_textarray[i] = await ServerAnonymizationController.get_unanonymised_row_field_value(param_text, context_filter.vo_type, context_filter.field_id, uid);
             }
         }
 
@@ -143,7 +134,7 @@ export default class ContextFilterServerController {
                     //     context_filter.field_id, null, context_filter.vo_type,
                     //     VarConfVO.ARRAY_AGG_AGGREGATOR,
                     //     context_filter.text_ignore_case ? ContextQueryFieldVO.FIELD_MODIFIER_LOWER : ContextQueryFieldVO.FIELD_MODIFIER_NONE);
-                    // let sub_query_str = await ContextQueryServerController.getInstance().build_select_query(sub_query);
+                    // let sub_query_str = await ContextQueryServerController.build_select_query(sub_query);
 
                     // if ((!sub_query_str) || (!sub_query_str.query)) {
                     //     throw new Error('Invalid query');
@@ -291,9 +282,21 @@ export default class ContextFilterServerController {
                             let text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
-                                where_conditions.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " ILIKE ANY(" + field_id + ')');
+
+                                where_conditions.push(
+                                    'EXISTS ( ' +
+                                    '  select 1' +
+                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                    '  where a ILIKE ' + pgPromise.as.format('$1', ["%" + text + "%"]) +
+                                    '  )');
                             } else {
-                                where_conditions.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " LIKE ANY(" + field_id + ')');
+
+                                where_conditions.push(
+                                    'EXISTS ( ' +
+                                    '  select 1' +
+                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                    '  where a LIKE ' + pgPromise.as.format('$1', ["%" + text + "%"]) +
+                                    '  )');
                             }
                         } else if (context_filter.param_textarray != null) {
                             let like_array = [];
@@ -304,9 +307,21 @@ export default class ContextFilterServerController {
                                 }
 
                                 if (context_filter.text_ignore_case) {
-                                    like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " ILIKE ANY(" + field_id + ')');
+
+                                    where_conditions.push(
+                                        'EXISTS ( ' +
+                                        '  select 1' +
+                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                        '  where a ILIKE ANY(ARRAY[' + like_array.join(',') + '])' +
+                                        '  )');
                                 } else {
-                                    like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " LIKE ANY(" + field_id + ')');
+
+                                    where_conditions.push(
+                                        'EXISTS ( ' +
+                                        '  select 1' +
+                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                        '  where a LIKE ANY(ARRAY[' + like_array.join(',') + '])' +
+                                        '  )');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -2528,7 +2543,7 @@ export default class ContextFilterServerController {
 
                             where_clause += (where_clause == '') ? "(" : ") OR (";
 
-                            where_clause += ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
+                            where_clause += DAOServerController.getClauseWhereRangeIntersectsField(
                                 field_type, field_id, field_range);
                         }
 
@@ -2573,17 +2588,17 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_FILTER_OR:
                 let conditions_OR_left: string[] = [];
-                await this.update_where_conditions(context_query, query_result, conditions_OR_left, context_filter.left_hook, tables_aliases_by_type);
+                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_OR_left, context_filter.left_hook, tables_aliases_by_type);
                 let conditions_OR_right: string[] = [];
-                await this.update_where_conditions(context_query, query_result, conditions_OR_right, context_filter.right_hook, tables_aliases_by_type);
+                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_OR_right, context_filter.right_hook, tables_aliases_by_type);
                 where_conditions.push(' ((' + conditions_OR_left[0] + ') OR (' + conditions_OR_right[0] + ')) ');
                 break;
 
             case ContextFilterVO.TYPE_FILTER_AND:
                 let conditions_AND_left: string[] = [];
-                await this.update_where_conditions(context_query, query_result, conditions_AND_left, context_filter.left_hook, tables_aliases_by_type);
+                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_AND_left, context_filter.left_hook, tables_aliases_by_type);
                 let conditions_AND_right: string[] = [];
-                await this.update_where_conditions(context_query, query_result, conditions_AND_right, context_filter.right_hook, tables_aliases_by_type);
+                await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_AND_right, context_filter.right_hook, tables_aliases_by_type);
                 where_conditions.push(' ((' + conditions_AND_left[0] + ') AND (' + conditions_AND_right[0] + ')) ');
                 break;
 
@@ -2592,7 +2607,7 @@ export default class ContextFilterServerController {
                 throw new Error('Not Implemented');
 
             // let conditions_NOT: string[] = [];
-            // await this.update_where_conditions(context_query, conditions_NOT, context_filter.left_hook, tables_aliases_by_type);
+            // await ContextFilterServerController.update_where_conditions(context_query, conditions_NOT, context_filter.left_hook, tables_aliases_by_type);
             // where_conditions.push(' (NOT (' + conditions_NOT[0] + ')) ');
             // break;
 
@@ -2859,7 +2874,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_IN = await ContextQueryServerController.getInstance().build_select_query(context_filter.sub_query);
+                let qr_TYPE_IN = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) && (!qr_TYPE_IN.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_IN:INFOS context_query:' + (qr_TYPE_IN ? (qr_TYPE_IN.query ? qr_TYPE_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -2926,7 +2941,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_NOT_IN = await ContextQueryServerController.getInstance().build_select_query(context_filter.sub_query);
+                let qr_TYPE_NOT_IN = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) && (!qr_TYPE_NOT_IN.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_NOT_IN:INFOS context_query:' + (qr_TYPE_NOT_IN ? (qr_TYPE_NOT_IN.query ? qr_TYPE_NOT_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -2952,7 +2967,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_NOT_EXISTS = await ContextQueryServerController.getInstance().build_select_query(context_filter.sub_query);
+                let qr_TYPE_NOT_EXISTS = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) && (!qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_NOT_EXISTS:INFOS context_query:' + (qr_TYPE_NOT_EXISTS ? (qr_TYPE_NOT_EXISTS.query ? qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -2978,7 +2993,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_EXISTS = await ContextQueryServerController.getInstance().build_select_query(context_filter.sub_query);
+                let qr_TYPE_EXISTS = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) && (!qr_TYPE_EXISTS.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_EXISTS:INFOS context_query:' + (qr_TYPE_EXISTS ? (qr_TYPE_EXISTS.query ? qr_TYPE_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -3095,7 +3110,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
-                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_numranges, field, field.field_type
                             );
 
@@ -3121,7 +3136,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
 
-                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_tsranges, field, field.field_type
                             );
 
@@ -3178,7 +3193,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
-                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_numranges, field, field.field_type
                             );
 
@@ -3206,7 +3221,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
 
-                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_tsranges, field, field.field_type
                             );
 
@@ -3265,7 +3280,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
-                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_numranges, field, field.field_type
                             );
 
@@ -3291,7 +3306,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
 
-                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_tsranges, field, field.field_type
                             );
 
@@ -3387,7 +3402,7 @@ export default class ContextFilterServerController {
      *
      * Check Injection OK : Aucun insère de données depuis la query(pas en param) ou les filtres
      */
-    public async updates_jointures(
+    public static async updates_jointures(
         context_query: ContextQueryVO,
         query_tables_prefix: string,
         jointures: string[],
@@ -3420,9 +3435,12 @@ export default class ContextFilterServerController {
 
                     if (table.is_segmented) {
 
-                        let ids: number[] = await ContextQueryServerController.getInstance().get_valid_segmentations(table, context_query);
+                        let ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
 
                         if ((!ids) || (!ids.length)) {
+                            // Pour le coup sur une table segmentée qu'on essaie de join, si on a pas de données, c'est un gros problème.
+                            //  On ne peut pas faire de jointure, donc on ne peut pas faire de query
+                            ConsoleHandler.error('ERROR : no segmentation found for segmented table ' + table.full_name + ' on context_query :' + context_query.log(true));
                             return aliases_n;
                         }
 
@@ -3453,7 +3471,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
+                        let full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3499,7 +3517,7 @@ export default class ContextFilterServerController {
 
                     if (table.is_segmented) {
 
-                        let ids: number[] = await ContextQueryServerController.getInstance().get_valid_segmentations(table, context_query);
+                        let ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
 
                         if ((!ids) || (!ids.length)) {
                             return aliases_n;
@@ -3532,7 +3550,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
+                        let full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3570,7 +3588,7 @@ export default class ContextFilterServerController {
         return aliases_n;
     }
 
-    public async updates_cross_jointures(
+    public static async updates_cross_jointures(
         context_query: ContextQueryVO,
         query_tables_prefix: string,
         api_type_id: string,
@@ -3598,7 +3616,7 @@ export default class ContextFilterServerController {
 
             if (table.is_segmented) {
 
-                let ids: number[] = await ContextQueryServerController.getInstance().get_valid_segmentations(table, context_query);
+                let ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
 
                 if ((!ids) || (!ids.length)) {
                     return aliases_n;
@@ -3631,7 +3649,7 @@ export default class ContextFilterServerController {
                 }
             } else {
 
-                let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
+                let full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                 if (!full_name) {
                     throw new Error('Table not found');
                 }
@@ -3652,7 +3670,7 @@ export default class ContextFilterServerController {
      *
      * Check injection OK : get_segmented_full_name est ok et est le seul risque identifié
      */
-    public async get_table_full_name(
+    public static async get_table_full_name(
         context_query: ContextQueryVO,
         moduletable: ModuleTable<any>,
         filters: ContextFilterVO[]): Promise<string> {
@@ -3675,7 +3693,7 @@ export default class ContextFilterServerController {
 
             // Cas champ segmenté exacte - on filtre directement sur l'id du champs de segmentation, par exemple sur pdv_id
             //  de la facture (vo_type c'est la ligne de facturation et donc on veut le filtre exacte sur le champs pdv_id)
-            let simple_filter = ContextFilterVOHandler.getInstance().get_simple_filter_by_vo_type_and_field_id(
+            let simple_filter = ContextFilterVOHandler.get_simple_filter_by_vo_type_and_field_id(
                 filters, moduletable.vo_type, moduletable.table_segmented_field.field_id);
             if (simple_filter) {
 
@@ -3686,7 +3704,7 @@ export default class ContextFilterServerController {
                      * On check que la table existe, si la table existe pas, ça veut dire qu'on a pas de données à requêter mais
                      *  pas qu'on est pas implémenté
                      */
-                    if (!ModuleDAOServer.getInstance().has_segmented_known_database(moduletable, simple_filter.param_numeric)) {
+                    if (!DAOServerController.has_segmented_known_database(moduletable, simple_filter.param_numeric)) {
                         return null;
                     }
                     is_implemented = true;
@@ -3703,7 +3721,7 @@ export default class ContextFilterServerController {
             if ((!is_implemented) && moduletable.table_segmented_field.manyToOne_target_moduletable) {
                 let linked_segment_table = moduletable.table_segmented_field.manyToOne_target_moduletable;
 
-                let simple_filters = ContextFilterVOHandler.getInstance().get_simple_filters_by_vo_type(
+                let simple_filters = ContextFilterVOHandler.get_simple_filters_by_vo_type(
                     filters, linked_segment_table.vo_type);
 
                 if (simple_filters && simple_filters.length) {
@@ -3715,11 +3733,11 @@ export default class ContextFilterServerController {
                         linked_query.exec_as_server();
                     }
 
-                    let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(linked_query);
+                    let query_res: any[] = await ContextQueryServerController.select_vos(linked_query);
 
                     if (query_res && query_res.length) {
 
-                        let unique_segment_vos = context_query.is_server ? query_res : await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
+                        let unique_segment_vos = context_query.is_server ? query_res : await DAOServerController.filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
 
                         if (unique_segment_vos && (unique_segment_vos.length == 1)) {
                             is_implemented = true;

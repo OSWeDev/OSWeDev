@@ -1,12 +1,14 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
@@ -39,14 +41,17 @@ export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
         } else {
             let fr = await ModuleTranslation.getInstance().getLang('fr-fr');
             if (fr) {
-                let trads_fr: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<TranslationVO>(TranslationVO.API_TYPE_ID, 'lang_id', [fr.id], 'text_id', [trad.id]);
-                if ((!trads_fr) || (!trads_fr.length)) {
+                let trad_fr: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<TranslationVO>().lang_id, fr.id)
+                    .filter_by_num_eq(field_names<TranslationVO>().text_id, trad.id)
+                    .select_vo<TranslationVO>();
+                if (!trad_fr) {
                     DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
                         'fr-fr': text
                     }, code));
                 } else {
-                    trads_fr[0].translated = text;
-                    await ModuleDAO.getInstance().insertOrUpdateVO(trads_fr[0]);
+                    trad_fr.translated = text;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(trad_fr);
                 }
             }
         }

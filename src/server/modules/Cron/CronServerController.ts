@@ -1,25 +1,25 @@
 
-import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ForkedProcessWrapperBase from '../Fork/ForkedProcessWrapperBase';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
+import ForkedProcessWrapperBase from '../Fork/ForkedProcessWrapperBase';
+import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import ICronWorker from './interfaces/ICronWorker';
 import RunCronForkMessage from './messages/RunCronForkMessage';
 import RunCronsForkMessage from './messages/RunCronsForkMessage';
-import DateHandler from '../../../shared/tools/DateHandler';
-import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class CronServerController {
 
     public static ForkedProcessType: string = "CRON";
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!CronServerController.instance) {
             CronServerController.instance = new CronServerController();
@@ -47,8 +47,8 @@ export default class CronServerController {
      */
 
     private constructor() {
-        ForkMessageController.getInstance().register_message_handler(RunCronForkMessage.FORK_MESSAGE_TYPE, this.handle_runcron_message.bind(this));
-        ForkMessageController.getInstance().register_message_handler(RunCronsForkMessage.FORK_MESSAGE_TYPE, this.handle_runcrons_message.bind(this));
+        ForkMessageController.register_message_handler(RunCronForkMessage.FORK_MESSAGE_TYPE, this.handle_runcron_message.bind(this));
+        ForkMessageController.register_message_handler(RunCronsForkMessage.FORK_MESSAGE_TYPE, this.handle_runcrons_message.bind(this));
     }
 
     /**
@@ -63,16 +63,16 @@ export default class CronServerController {
             if (CronServerController.getInstance().valid_crons_names[worker_uid]) {
                 await this.handle_runcron_message(new RunCronForkMessage(worker_uid));
             } else {
-                await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
+                await ForkMessageController.send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
             }
         } else {
 
-            if ((!ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType]) ||
-                (!ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid])) {
+            if ((!ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType]) ||
+                (!ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid])) {
                 return false;
             }
-            let forked = ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
-            await ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
+            let forked = ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
+            await ForkMessageController.send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
         }
     }
 
@@ -82,7 +82,7 @@ export default class CronServerController {
      */
     public async executeWorkers() {
 
-        await ForkMessageController.getInstance().broadcast(new RunCronsForkMessage());
+        await ForkMessageController.broadcast(new RunCronsForkMessage());
     }
 
     private async handle_runcrons_message(msg: RunCronForkMessage): Promise<boolean> {
@@ -180,7 +180,7 @@ export default class CronServerController {
     private async nextRecurrence(plannedWorker: CronWorkerPlanification) {
         if ((!plannedWorker) || (plannedWorker.type_recurrence == CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE)) {
             plannedWorker.date_heure_planifiee = null;
-            await ModuleDAO.getInstance().insertOrUpdateVO(plannedWorker);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(plannedWorker);
 
             return;
         }
@@ -210,6 +210,6 @@ export default class CronServerController {
         }
         plannedWorker.date_heure_planifiee = Dates.add(plannedWorker.date_heure_planifiee, plannedWorker.intervale_recurrence, type_interval);
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(plannedWorker);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(plannedWorker);
     }
 }

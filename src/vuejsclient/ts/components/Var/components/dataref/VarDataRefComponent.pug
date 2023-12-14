@@ -1,6 +1,4 @@
-
-mixin var_data_content()
-
+.var-data--intersector-wrapper
     .var-data-wrapper
         template(v-if='!!var_param')
             //- .var_data_ref(@click='selectVar', v-tooltip.top='loadedData',:class='{"selected_var":is_selected_var, "selectable_var":isDescMode, "has_loaded_data":has_loaded_data, "selected_var_dependency": is_selected_var_dependency, "selected_var_dependent": is_selected_var_dependent, "dependencies_heatmap_lvl_0":is_dependencies_heatmap_lvl_0, "dependencies_heatmap_lvl_1":is_dependencies_heatmap_lvl_1, "dependencies_heatmap_lvl_2":is_dependencies_heatmap_lvl_2, "dependencies_heatmap_lvl_3":is_dependencies_heatmap_lvl_3, "dependencies_heatmap_lvl_4":is_dependencies_heatmap_lvl_4, "dependencies_heatmap_lvl_5":is_dependencies_heatmap_lvl_5}')
@@ -8,8 +6,13 @@ mixin var_data_content()
                 .var_data_ref(
                     @click='selectVar',
                     :class='{"is_show_public_tooltip": is_show_public_tooltip && !!var_data_value_tooltip, "is_inline_editing":is_inline_editing, "is_not_inline_editing":!is_inline_editing, "denied": var_data_value_is_denied, "is_computing": (var_data && var_data.is_computing), "selected_var":is_selected_var, "selectable_var":isDescMode, "is_being_updated":is_being_updated, "can_inline_edit":can_inline_edit}'
-                    
-                    v-tooltip.top='var_data_value_tooltip')
+                    :can_inline_edit='can_inline_edit'
+                    :var_data_value_is_imported='var_data_value_is_imported'
+                    :var_param_index='var_param.index'
+                    :var_data_formatted_copyable_value='var_data_formatted_copyable_value'
+                    :var_data_raw_copyable_value='var_data_raw_copyable_value'
+                    v-tooltip.top='var_data_value_tooltip'
+                )
                     slot(v-bind:var_data="var_data")
                         template
                             template(v-if='is_inline_editing && var_data')
@@ -33,15 +36,19 @@ mixin var_data_content()
                                 )
                             template(v-else)
                                 template(v-if='(!!var_data) && ((var_data_value != 0) || (!consider_zero_value_as_null)) && ((var_data_value != null) || null_value_replacement)')
+                                    
                                     template(v-if='!!prefix')
                                         span(class='var-data-prefix') {{ prefix }}
+
                                     template(v-if='(var_data_value === 0) && zero_value_replacement')
                                         template {{ zero_value_replacement }}
                                     template(v-else-if='(var_data_value === null) && null_value_replacement')
                                         template {{ null_value_replacement }}
+
                                     template(v-if='(var_data_value !== 0) || ((var_data_value === 0) && (!zero_value_replacement))')
                                         template(v-if="filter") {{ filtered_value }}
-                                        template(v-if="(!filter)") {{ var_data_value }}
+                                        template(v-else) {{ var_data_value }}
+                                        
                                     template(v-if='!!suffix')
                                         span(class='var-data-suffix') {{ suffix }}
                                 template(v-else)
@@ -49,7 +56,7 @@ mixin var_data_content()
                                         i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                                     template(v-else) {{ null_value_replacement }}
                         template
-                            template(v-if='(!!var_data)&&(var_data_value != null)')
+                            template(v-if='(!!var_data) && (var_data_value != null)')
                                 template(v-if='can_inline_edit')
                                     i.fa-duotone.fa-pencil.text-primary.import_marker_var(aria-hidden="true")
                                 template(v-if='(var_data_value_is_imported && show_import) || is_show_import_aggregated')
@@ -59,9 +66,3 @@ mixin var_data_content()
         template(v-else)
             .var_data_ref(:class='{"is_show_public_tooltip": is_show_public_tooltip && !!var_data_value_tooltip}' v-tooltip.top='var_data_value_tooltip')
                 | -
-
-
-
-
-.var-data--intersector-wrapper
-    +var_data_content()

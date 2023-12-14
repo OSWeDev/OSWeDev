@@ -29,6 +29,7 @@ export default class PasswordRecovery {
 
     public static MAILCATEGORY_PasswordRecovery = 'MAILCATEGORY.PasswordRecovery';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PasswordRecovery.instance) {
             PasswordRecovery.instance = new PasswordRecovery();

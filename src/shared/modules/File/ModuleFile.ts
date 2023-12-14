@@ -48,7 +48,7 @@ export default class ModuleFile extends Module {
     }
 
     public initializeFileVO() {
-        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Fichier', false);
+        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Fichier', true).unique();
 
         let datatable_fields = [
             label_field,

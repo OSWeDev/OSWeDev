@@ -1,9 +1,10 @@
-import { isArray } from "lodash";
+import { cloneDeep, isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
+import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
@@ -18,6 +19,8 @@ import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
 import ParameterizedQueryWrapper from "./ParameterizedQueryWrapper";
 import SortByVO from "./SortByVO";
+import ContextQueryJoinVO from "./ContextQueryJoinVO";
+import ContextQueryJoinOnFieldVO from "./ContextQueryJoinOnFieldVO";
 
 /**
  * Encapsuler la définition d'une requête ou d'une sous-requête (qu'on liera à la requête principale par un filtre)
@@ -67,6 +70,11 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Les filtres à appliquer à la requête
      */
     public filters: ContextFilterVO[];
+
+    /**
+     * Les jointures manuelles entre 2 context query
+     */
+    public joined_context_queries: ContextQueryJoinVO[];
 
     /**
      * Les types utilisables dans la requete pour faire les jointures
@@ -157,26 +165,50 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         return this;
     }
 
+    public join_context_query(
+        joined_context_query: ContextQueryVO,
+        joined_table_alias: string,
+        join_type: number,
+        join_on_fields: ContextQueryJoinOnFieldVO[],
+    ): ContextQueryVO {
+
+        let context_query_join: ContextQueryJoinVO = ContextQueryJoinVO.createNew(joined_context_query, joined_table_alias, join_on_fields, join_type);
+        if (!this.joined_context_queries) {
+            this.joined_context_queries = [];
+        }
+
+        this.joined_context_queries.push(context_query_join);
+
+        return this;
+    }
+
     public set_query_distinct() {
         this.query_distinct = true;
         return this;
     }
 
     /**
-     * @deprecated use set_discard_field_path instead
+     * @deprecated use set_discarded_field_path instead
      */
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
-        return this.set_discard_field_path(vo_type, field_id);
+        return this.set_discarded_field_path(vo_type, field_id);
     }
 
     /**
-     * set_discard_field_path
+     * @deprecated use set_discarded_field_path instead
+     */
+    public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+        return this.set_discarded_field_path(vo_type, field_id);
+    }
+
+    /**
+     * set_discarded_field_path
      *
      * @param {string} vo_type
      * @param {string} field_id
      * @returns {ContextQueryVO}
      */
-    public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+    public set_discarded_field_path(vo_type: string, field_id: string): ContextQueryVO {
 
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
@@ -285,6 +317,18 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         return this.add_field(field_id, alias, api_type_id, aggregator, modifier, cast_with);
     }
 
+    public remove_field(
+        field_id_in_array: number
+    ): ContextQueryVO {
+
+        if (!this.fields) {
+            return;
+        }
+
+        this.fields.splice(field_id_in_array, 1);
+        return this;
+    }
+
     /**
      * Ajouter un field attendu en résultat de la requête par le field_id, et optionnellement un alias spécifique
      *  on utilise base_api_type_id de la requete si on en fournit pas un explicitement ici
@@ -315,6 +359,58 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         }
 
         this.fields.push(field);
+
+        this.update_active_api_type_ids_from_fields([field]);
+
+        return this;
+    }
+
+    /**
+     * has_field
+     *  - Check if the given field_id is in the fields
+     */
+    public has_field(field_id: string): boolean {
+        if (!this.fields) {
+            return false;
+        }
+
+        return this.fields?.find((f) => f.field_id == field_id) != null;
+    }
+
+    /**
+     * replace_field
+     *  - Replace field from this fields by the given field
+     *
+     * @param field_id l'id du field à ajouter.
+     */
+    public replace_field(
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
+
+        const field = new ContextQueryFieldVO(
+            api_type_id ? api_type_id : this.base_api_type_id,
+            field_id,
+            alias,
+            aggregator,
+            modifier,
+            cast_with,
+        );
+
+        if (!this.fields) {
+            this.fields = [];
+        }
+
+        this.fields = this.fields.map((f) => {
+            if (f.field_id == field_id) {
+                return field;
+            }
+            return f;
+        });
 
         this.update_active_api_type_ids_from_fields([field]);
 
@@ -664,7 +760,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];
@@ -743,7 +839,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];
@@ -898,7 +994,9 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         if (!this.filters) {
             this.filters = [];
         }
+
         this.filters = this.filters.concat(filters);
+
         this.update_active_api_type_ids_from_filters(filters);
 
         return this;
@@ -936,6 +1034,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         this.update_active_api_type_ids_from_sorts([sort]);
 
         return this;
+    }
+
+    public clone(): ContextQueryVO {
+        return Object.assign(new ContextQueryVO(), cloneDeep(this));
     }
 
     /**
@@ -998,8 +1100,8 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     /**
      * Faire la requête en mode select
      */
-    public async get_select_query_str<T extends IDistantVOBase>(): Promise<ParameterizedQueryWrapper> {
-        return await ModuleContextFilter.getInstance().build_select_query(this);
+    public async get_select_query_str<T extends IDistantVOBase>(): Promise<string> {
+        return await ModuleContextFilter.getInstance().build_select_query_str(this);
     }
 
     /**

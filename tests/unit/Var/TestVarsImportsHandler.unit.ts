@@ -1,25 +1,25 @@
-/* tslint:disable:no-unused-expression */
-import { test, expect } from "playwright-test-coverage";
 import ServerAPIController from '../../../src/server/modules/API/ServerAPIController';
-import VarsComputeController from '../../../src/server/modules/Var/VarsComputeController';
-import VarsImportsHandler from '../../../src/server/modules/Var/VarsImportsHandler';
-import VarsServerController from '../../../src/server/modules/Var/VarsServerController';
 import APIControllerWrapper from '../../../src/shared/modules/API/APIControllerWrapper';
-import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
+/* tslint:disable:no-unused-expression */
+import { expect, test } from "playwright-test-coverage";
+import VarsImportsHandler from '../../../src/server/modules/Var/VarsImportsHandler';
 import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 import MatroidController from '../../../src/shared/modules/Matroid/MatroidController';
-import VarDAG from '../../../src/shared/modules/Var/graph/VarDAG';
-import VarDAGNode from '../../../src/shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../src/shared/modules/Var/ModuleVar';
 import VarsController from '../../../src/shared/modules/Var/VarsController';
+import VarDAG from '../../../src/server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../src/server/modules/Var/vos/VarDAGNode';
 import FakeDataHandler from './fakes/FakeDataHandler';
-import FakeDistantHandler from './fakes/FakeDistantHandler';
 import FakeVarControllerDeps from './fakes/FakeVarControllerDeps';
 import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
-import FakeDataVO from './fakes/vos/FakeDataVO';
 import FakeVarsInit from './fakes/FakeVarsInit';
-APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+import FakeDataVO from './fakes/vos/FakeDataVO';
+import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
+import ConfigurationService from '../../../src/server/env/ConfigurationService';
 
 // test('VarsImportsHandler: test load_imports_and_split_nodes', async () => {
 
@@ -32,10 +32,14 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 //     expect(VarsImportsHandler.getInstance().load_imports_and_split_nodes(var_data_A, var_data_B)).toStrictEqual(1);
 // });
 
+ConsoleHandler.init();
+ConfigurationService.setEnvParams({});
+ConfigurationService.IS_UNIT_TEST_MODE = true;
+
 test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () => {
 
-    // VarsController.getInstance().clear_all_inits();
-    // VarsServerController.getInstance().clear_all_inits();
+    // VarsController.clear_all_inits();
+    // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
     await ModuleVar.getInstance().initializeasync({
@@ -47,7 +51,7 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
+    VarsController.initialize({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
@@ -65,11 +69,11 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
     let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
     let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
     let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
-    let remaning_calcs: FakeDataVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(
+    let remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings(
         [var_data_C, var_data_B],
         [var_data_F]);
 
-    let node_F = await VarDAGNode.getInstance(new VarDAG(), var_data_F, VarsComputeController, true);
+    let node_F = await VarDAGNode.getInstance(new VarDAG(), var_data_F, true);
     await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
     expect(node_F.is_aggregator).toStrictEqual(true);
     expect(node_F.aggregated_datas).toStrictEqual({
@@ -82,8 +86,8 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
 
 test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', async () => {
 
-    // VarsController.getInstance().clear_all_inits();
-    // VarsServerController.getInstance().clear_all_inits();
+    // VarsController.clear_all_inits();
+    // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
     await ModuleVar.getInstance().initializeasync({
@@ -95,7 +99,7 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', 
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
+    VarsController.initialize({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
@@ -133,8 +137,8 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc', async () => {
 
 test('VarsImportsHandler: test get_selection_imports', async () => {
 
-    // VarsController.getInstance().clear_all_inits();
-    // VarsServerController.getInstance().clear_all_inits();
+    // VarsController.clear_all_inits();
+    // VarsServerController.clear_all_inits();
 
     await FakeVarsInit.initAll();
 
@@ -147,7 +151,7 @@ test('VarsImportsHandler: test get_selection_imports', async () => {
     await FakeVarControllerDsDistant.getInstance().initialize();
     await FakeVarControllerDsEmpDistant.getInstance().initialize();
     await FakeVarControllerDeps.getInstance().initialize();
-    await VarsController.getInstance().initializeasync({
+    VarsController.initialize({
         [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
         [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf

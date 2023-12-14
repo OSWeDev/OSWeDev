@@ -13,6 +13,21 @@ export default interface IBGThread {
     current_timeout: number;
 
     /**
+     * Indique qu'un lancement est en cours
+     */
+    semaphore: boolean;
+
+    /**
+     * Indique qu'un lancement doit être fait ASAP
+     */
+    run_asap: boolean;
+
+    /**
+     * TS du dernier lancement en ms
+     */
+    last_run_unix: number;
+
+    /**
      * Max timeout (ms) possible for this BGT (see ModuleBGThreadServer.DEFAULT_MAX_timeout for example)
      */
     MAX_timeout: number;

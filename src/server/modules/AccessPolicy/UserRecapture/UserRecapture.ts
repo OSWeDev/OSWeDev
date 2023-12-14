@@ -22,6 +22,7 @@ export default class UserRecapture {
 
     public static MAILCATEGORY_UserRecapture = 'MAILCATEGORY.UserRecapture';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!UserRecapture.instance) {
             UserRecapture.instance = new UserRecapture();

@@ -16,7 +16,7 @@ export default class EditablePageController {
 
     private static instance: EditablePageController;
 
-    public debounce_timer: number = 5000;
+    public debounce_timer: number = 1000;
 
     private semaphore_saving: boolean = false;
 
@@ -91,7 +91,7 @@ export default class EditablePageController {
                 let tmp = edit_info.vo ? edit_info.vo[edit_info.field.module_table_field_id] : null;
                 try {
 
-                    // VarsController.getInstance().stageUpdateVoUpdate(edit_info.vo, null);
+                    // VarsController.stageUpdateVoUpdate(edit_info.vo, null);
 
                     edit_info.vo[edit_info.field.module_table_field_id] = edit_info.field_value;
 
@@ -99,7 +99,7 @@ export default class EditablePageController {
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = res.id;
-                        // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
+                        // VarsController.stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
                     ConsoleHandler.error(error);
@@ -116,7 +116,7 @@ export default class EditablePageController {
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = res.id;
-                        // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
+                        // VarsController.stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
                     ConsoleHandler.error(error);

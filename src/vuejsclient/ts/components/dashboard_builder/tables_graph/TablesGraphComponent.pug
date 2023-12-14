@@ -20,6 +20,11 @@
                     :current_cell_mapper ="current_cell_mapper"
                     @remap="throttle_init_or_update_graph"
                     :dashboard='dashboard'
+                    @update_discarded_field_paths="update_discarded_field_paths"
                     :graph_mapper='graph_mapper'
-                    @delete_cell="delete_cell")
-            Droppablevoscomponent(ref="droppables")
+                    @delete_cell="delete_cell"
+                )
+                
+            Droppablevoscomponent(
+                ref="droppables"
+            )

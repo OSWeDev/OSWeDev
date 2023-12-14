@@ -11,15 +11,75 @@ import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
 import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
-import FieldFilterManager from "./FieldFilterManager";
+import FieldFiltersVOManager from "./FieldFiltersVOManager";
 import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ModuleDAO from "../../DAO/ModuleDAO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import UserVO from "../../AccessPolicy/vos/UserVO";
+import { cloneDeep } from "lodash";
 
 /**
  * FieldValueFilterEnumWidgetManager
  */
 export default class FieldValueFilterEnumWidgetManager {
+
+    public static getInstance(): FieldValueFilterEnumWidgetManager {
+        if (!FieldValueFilterEnumWidgetManager.instance) {
+            FieldValueFilterEnumWidgetManager.instance = new FieldValueFilterEnumWidgetManager();
+        }
+        return FieldValueFilterEnumWidgetManager.instance;
+    }
+
+    /**
+     * check_dashboard_widget_access
+     * - Check if user has access to dashboard_widget vo
+     *
+     * @param {string} access_type
+     * @returns {Promise<boolean>}
+     */
+    public static async check_api_type_id_access(
+        api_type_id: string,
+        access_type?: string,
+        options?: {
+            user_id?: number;
+        }
+    ): Promise<boolean> {
+        const self = FieldValueFilterEnumWidgetManager.getInstance();
+        let has_access: boolean = false;
+
+        access_type = access_type ?? ModuleDAO.DAO_ACCESS_TYPE_READ;
+
+        // Check access
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
+            api_type_id
+        );
+
+        if (options?.user_id) {
+            if (!self.access_policy_by_user_id[options.user_id]) {
+                self.access_policy_by_user_id[options.user_id] = {};
+            }
+
+            // May have been loaded once
+            if (self.access_policy_by_user_id[options.user_id][access_policy_name] !== undefined) {
+                has_access = self.access_policy_by_user_id[options.user_id][access_policy_name];
+            } else {
+                has_access = await ModuleAccessPolicy.getInstance().testAccess(
+                    access_policy_name
+                );
+
+                self.access_policy_by_user_id[options.user_id][access_policy_name] = has_access;
+            }
+        } else {
+            has_access = await ModuleAccessPolicy.getInstance().testAccess(
+                access_policy_name
+            );
+        }
+
+        return has_access;
+    }
+
 
     /**
      * Load enum data filters from widget options
@@ -27,7 +87,7 @@ export default class FieldValueFilterEnumWidgetManager {
      *
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {FieldFiltersVO} active_field_filters Active field filters (from the user selection) from the actual dashboard
      * @param {options.active_api_type_ids} options.active_api_type_ids - Setted on user selection (select option) to specify query on specified vos api ids
      * @param {options.query_api_type_ids} options.query_api_type_ids - Setted from widget options to have custom|default query on specified vos api ids
      * @param {options.with_count} options.with_count - Setted from widget options to have count on each data_filter
@@ -35,14 +95,19 @@ export default class FieldValueFilterEnumWidgetManager {
      */
     public static async find_enum_data_filters_from_widget_options(
         dashboard: DashboardVO,
+        dashboard_api_type_ids: string[],
+        dashboard_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         widget_options: FieldValueFilterWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }, // Active field filters from the actual dashboard
+        active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
             with_count?: boolean; // Setted from widget options to have count on each data_filter
+            user?: UserVO;
         }
     ): Promise<DataFilterOption[]> {
+
+        widget_options = cloneDeep(widget_options);
 
         let added_data_filter: { [numeric_value: number]: boolean } = {};
         let enum_data_filters: DataFilterOption[] = [];
@@ -57,15 +122,13 @@ export default class FieldValueFilterEnumWidgetManager {
 
         const vo_field_ref = widget_options?.vo_field_ref;
 
-        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths({ id: dashboard.id } as DashboardVO);
-
         const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_ids_from_widget_options(
             widget_options,
             options
         );
 
         const pipeline_limit = available_api_type_ids.length;
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options');
 
         const allowed_api_type_ids: string[] = [];
 
@@ -73,8 +136,14 @@ export default class FieldValueFilterEnumWidgetManager {
             const api_type_id: string = available_api_type_ids[key];
 
             await promise_pipeline.push(async () => {
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                    api_type_id,
+                    ModuleDAO.DAO_ACCESS_TYPE_READ,
+                    {
+                        user_id: options?.user?.id
+                    }
+                );
 
                 if (!has_access) {
                     return;
@@ -86,13 +155,13 @@ export default class FieldValueFilterEnumWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options');
 
         // In some case we may need to only filter on required_api_type_ids
         // (each api_type_id will have its own filter or vo_type)
         const field_filters_by_api_type_id: {
-            [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+            [api_type_id: string]: FieldFiltersVO
+        } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
             allowed_api_type_ids,
@@ -101,7 +170,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         // In some case we may need to filter on other api_type_ids than required_api_type_ids
         // (each api_type_id will filter on other api_type_ids or vo_type)
-        const other_field_filter = FieldFilterManager.filter_field_filters_by_api_type_ids_to_exlude(
+        const other_field_filter = FieldFiltersVOManager.filter_field_filters_by_api_type_ids_to_exlude(
             widget_options,
             active_field_filters,
             options.query_api_type_ids ?? []
@@ -133,7 +202,7 @@ export default class FieldValueFilterEnumWidgetManager {
             ];
 
             let api_type_context_query = query(api_type_id)
-                .using(dashboard.api_type_ids)
+                .using(dashboard_api_type_ids)
                 .field(vo_field_ref.field_id, 'label', vo_field_ref.api_type_id)
                 .add_filters(context_filters)
                 .set_limit(widget_options.max_visible_options)
@@ -141,10 +210,10 @@ export default class FieldValueFilterEnumWidgetManager {
 
             FieldValueFilterWidgetManager.add_discarded_field_paths(
                 api_type_context_query,
-                discarded_field_paths
+                dashboard_discarded_field_paths
             );
 
-            api_type_context_query.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
+            api_type_context_query.filters = ContextFilterVOHandler.add_context_filters_exclude_values(
                 widget_options.get_exclude_values(),
                 vo_field_ref,
                 api_type_context_query.filters,
@@ -182,7 +251,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 }
             } else {
                 const overflowing_api_type_id = await FieldValueFilterWidgetManager.get_overflowing_segmented_options_api_type_id_from_dashboard(
-                    dashboard,
+                    dashboard_api_type_ids,
                     api_type_context_query,
                     true
                 );
@@ -191,7 +260,7 @@ export default class FieldValueFilterEnumWidgetManager {
                     api_type_context_query = FieldValueFilterWidgetManager.remove_overflowing_api_type_id_from_context_query(
                         api_type_context_query,
                         overflowing_api_type_id,
-                        discarded_field_paths
+                        dashboard_discarded_field_paths
                     );
                 }
             }
@@ -243,7 +312,9 @@ export default class FieldValueFilterEnumWidgetManager {
      *
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {FieldFiltersVO} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {DataFilterOption[]} selected_active_filter_options Selected filter active options from the actual dashboard
+     * @param {DataFilterOption[]} enum_data_filters All enum data filters from the actual dashboard
      * @param {options.active_api_type_ids} options.active_api_type_ids - Setted on user selection (select option) to specify query on specified vos api ids
      * @param {options.query_api_type_ids} options.query_api_type_ids - Setted from widget options to have custom|default query on specified vos api ids
      * @param {options.with_count} options.with_count - Setted from widget options to have count on each data_filter
@@ -252,15 +323,20 @@ export default class FieldValueFilterEnumWidgetManager {
     public static async find_enum_data_filters_count_from_widget_options(
         dashboard: DashboardVO,
         widget_options: FieldValueFilterWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }, // Active field filters from the actual dashboard
+        active_field_filters: FieldFiltersVO, // Active field filters from the actual dashboard
+        selected_active_filter_options: DataFilterOption[], // Selected filter active options from the actual dashboard
         enum_data_filters: DataFilterOption[], // Enum data filters from the actual dashboard
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
             with_count?: boolean; // Setted from widget options to have count on each data_filter
+            user?: UserVO;
         }
     ): Promise<{ [enum_value: number]: number }> {
-        let count_by_enum_data_filter: { [enum_value: number]: number } = {};
+
+        widget_options = cloneDeep(widget_options);
+
+        const count_by_enum_data_filter: { [enum_value: number]: number } = {};
 
         // We should set all enum count to 0
         for (const key in enum_data_filters) {
@@ -277,9 +353,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         const vo_field_ref = widget_options?.vo_field_ref;
 
-        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
-            { id: dashboard.id } as DashboardVO
-        );
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
         const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_ids_from_widget_options(
             widget_options,
@@ -290,7 +364,7 @@ export default class FieldValueFilterEnumWidgetManager {
         );
 
         const pipeline_limit = available_api_type_ids.length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_count_from_widget_options');
 
         const allowed_api_type_ids: string[] = [];
 
@@ -303,8 +377,14 @@ export default class FieldValueFilterEnumWidgetManager {
             // We must check access on each api_type_id
             await promise_pipeline.push(async () => {
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+                // Check access on each api_type_id
+                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                    api_type_id,
+                    ModuleDAO.DAO_ACCESS_TYPE_READ,
+                    {
+                        user_id: options?.user?.id
+                    }
+                );
 
                 if (!has_access) {
                     return;
@@ -316,13 +396,13 @@ export default class FieldValueFilterEnumWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'FieldValueFilterEnumWidgetManager.find_enum_data_filters_count_from_widget_options');
 
         // In some case we may need to only filter on required_api_type_ids
         // (each api_type_id will have its own filter or vo_type)
         const field_filters_by_api_type_id: {
-            [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+            [api_type_id: string]: FieldFiltersVO
+        } = FieldFiltersVOManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
             allowed_api_type_ids,
@@ -331,7 +411,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         // In some case we may need to filter on other api_type_ids than required_api_type_ids
         // (each api_type_id will filter on other api_type_ids or vo_type)
-        const other_field_filter = FieldFilterManager.filter_field_filters_by_api_type_ids_to_exlude(
+        const other_field_filter = FieldFiltersVOManager.filter_field_filters_by_api_type_ids_to_exlude(
             widget_options,
             active_field_filters,
             options.query_api_type_ids ?? []
@@ -349,6 +429,14 @@ export default class FieldValueFilterEnumWidgetManager {
                 continue;
             }
 
+            const is_selected = selected_active_filter_options?.find((selected_active_filter_option: DataFilterOption) => {
+                return selected_active_filter_option.numeric_value == filter_opt.numeric_value;
+            });
+
+            if ((selected_active_filter_options?.length > 0) && !is_selected) {
+                continue;
+            }
+
             let context_query: ContextQueryVO = null;
 
             for (const key in allowed_api_type_ids) {
@@ -360,7 +448,7 @@ export default class FieldValueFilterEnumWidgetManager {
                     api_type_field_filters
                 );
 
-                const enum_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+                const enum_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                     filter_opt,
                     null,
                     VOsTypesManager.get_field_from_vo_field_ref(vo_field_ref),
@@ -379,7 +467,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 ];
 
                 const api_type_context_query = query(api_type_id)
-                    .using(dashboard.api_type_ids)
+                    .using(api_type_ids)
                     .add_filters(context_filters);
 
                 FieldValueFilterWidgetManager.add_discarded_field_paths(
@@ -453,7 +541,12 @@ export default class FieldValueFilterEnumWidgetManager {
         return api_type_ids;
     }
 
+    private static instance: FieldValueFilterEnumWidgetManager = null;
+
+    public access_policy_by_user_id: { [user_id: number]: { [access_policy: string]: boolean } } = {};
+
     constructor() { }
+
 
     public load(): void {
     }

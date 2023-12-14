@@ -1,8 +1,8 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ImageFormatVO from '../../../shared/modules/ImageFormat/vos/ImageFormatVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
@@ -37,7 +37,7 @@ export default class InitBaseImageFormats implements IGeneratorWorker {
         img_format.remplir_larg = true;
         img_format.align_haut = ImageFormatVO.VALIGN_CENTER;
         img_format.align_larg = ImageFormatVO.HALIGN_CENTER;
-        await ModuleDAO.getInstance().insertOrUpdateVO(img_format);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(img_format);
 
         img_format = new ImageFormatVO();
         img_format.name = 'Contain - centered';
@@ -46,7 +46,7 @@ export default class InitBaseImageFormats implements IGeneratorWorker {
         img_format.remplir_larg = false;
         img_format.align_haut = ImageFormatVO.VALIGN_CENTER;
         img_format.align_larg = ImageFormatVO.HALIGN_CENTER;
-        await ModuleDAO.getInstance().insertOrUpdateVO(img_format);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(img_format);
 
         img_format = new ImageFormatVO();
         img_format.name = 'Cover width - centered';
@@ -55,7 +55,7 @@ export default class InitBaseImageFormats implements IGeneratorWorker {
         img_format.remplir_larg = true;
         img_format.align_haut = ImageFormatVO.VALIGN_CENTER;
         img_format.align_larg = ImageFormatVO.HALIGN_CENTER;
-        await ModuleDAO.getInstance().insertOrUpdateVO(img_format);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(img_format);
 
         img_format = new ImageFormatVO();
         img_format.name = 'Cover height - centered';
@@ -64,6 +64,6 @@ export default class InitBaseImageFormats implements IGeneratorWorker {
         img_format.remplir_larg = false;
         img_format.align_haut = ImageFormatVO.VALIGN_CENTER;
         img_format.align_larg = ImageFormatVO.HALIGN_CENTER;
-        await ModuleDAO.getInstance().insertOrUpdateVO(img_format);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(img_format);
     }
 }

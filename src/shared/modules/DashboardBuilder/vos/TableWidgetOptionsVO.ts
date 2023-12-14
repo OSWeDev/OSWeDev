@@ -4,7 +4,7 @@ import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import TableColumnDescVO from "./TableColumnDescVO";
 
 /**
- * @class TableWidgetOptionsVO
+ * TableWidgetOptionsVO
  */
 export default class TableWidgetOptionsVO extends AbstractVO {
 
@@ -13,41 +13,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
     public static DEFAULT_LIMIT_SELECTABLE: string = "10,20,50,100";
     public static DEFAULT_NBPAGES_PAGINATION_LIST: number = 5;
 
-    public constructor(
-        public columns?: TableColumnDescVO[],
-        public is_focus_api_type_id?: boolean,
-        public limit?: number,
-        public crud_api_type_id?: string,
-        public vocus_button?: boolean,
-        public delete_button?: boolean,
-        public delete_all_button?: boolean,
-        public create_button?: boolean,
-        public update_button?: boolean,
-        public refresh_button?: boolean,
-        public export_button?: boolean,
-        public can_filter_by?: boolean,
-        public show_pagination_resumee?: boolean,
-        public show_pagination_slider?: boolean,
-        public show_pagination_form?: boolean,
-        public show_limit_selectable?: boolean,
-        public limit_selectable?: string,
-        public show_pagination_list?: boolean,
-        public nbpages_pagination_list?: number,
-        public has_table_total_footer?: boolean,
-        public hide_pagination_bottom?: boolean,
-        public default_export_option?: number,
-        public has_default_export_option?: boolean,
-        public use_kanban_by_default_if_exists?: boolean,
-        public use_kanban_column_weight_if_exists?: boolean,
-        public use_for_count?: boolean, // Seulement pour enum pour l'instant
-        public archive_button?: boolean,
-        public can_export_active_field_filters?: boolean,
-        public can_export_vars_indicator?: boolean,
-    ) {
-        super();
-    }
-
-    public get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
+    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
         let options: TableWidgetOptionsVO = (page_widget && page_widget.json_options) ? JSON.parse(page_widget.json_options) : null;
@@ -83,6 +49,46 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         }
 
         return res;
+    }
+
+    public constructor(
+        public columns?: TableColumnDescVO[],
+        public is_focus_api_type_id?: boolean,
+        public limit?: number,
+        public crud_api_type_id?: string,
+        public vocus_button?: boolean,
+        public delete_button?: boolean,
+        public delete_all_button?: boolean,
+        public create_button?: boolean,
+        public update_button?: boolean,
+        public refresh_button?: boolean,
+        public export_button?: boolean,
+        public can_filter_by?: boolean,
+        public show_pagination_resumee?: boolean,
+        public show_pagination_slider?: boolean,
+        public show_pagination_form?: boolean,
+        public show_limit_selectable?: boolean,
+        public limit_selectable?: string,
+        public show_pagination_list?: boolean,
+        public nbpages_pagination_list?: number,
+        public has_table_total_footer?: boolean,
+        public hide_pagination_bottom?: boolean,
+        public default_export_option?: number,
+        public has_default_export_option?: boolean,
+        public use_kanban_by_default_if_exists?: boolean,
+        public use_kanban_card_archive_if_exists?: boolean,
+        public use_kanban_column_weight_if_exists?: boolean,
+        public use_for_count?: boolean, // Seulement pour enum pour l'instant
+        public archive_button?: boolean,
+        public can_export_active_field_filters?: boolean,
+        public can_export_vars_indicator?: boolean,
+        public can_apply_default_field_filters_without_validation?: boolean, // Case when we have configured default field_filters
+        public show_bulk_edit?: boolean,
+        public cb_bulk_actions?: string[],
+        public show_bulk_select_all?: boolean,
+        public has_export_maintenance_alert?: boolean,
+    ) {
+        super();
     }
 
     public get_title_name_code_text(page_widget_id: number): string {

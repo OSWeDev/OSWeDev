@@ -103,6 +103,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public hide_btn_switch_advanced?: boolean,
         public hide_advanced_string_filter_type?: boolean,
         public vo_field_ref_multiple?: VOFieldRefVO[],
+        public default_showed_filter_opt_values?: DataFilterOption[], // Default filter options to show (supervision case by example)
         public default_filter_opt_values?: DataFilterOption[],
         public default_ts_range_values?: TSRange,
         public default_boolean_values?: number[],
@@ -128,6 +129,8 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public fg_color_text?: string,
         public can_select_all?: boolean,
         public can_select_none?: boolean,
+        public default_advanced_ref_field_filter_type?: number,
+        public hide_advanced_ref_field_filter_type?: boolean,
     ) {
         super();
     }
@@ -146,6 +149,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         if ((!this.vo_field_ref) || (!page_widget_id)) {
             return null;
         }
+
         return FieldValueFilterWidgetOptionsVO.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 
@@ -193,6 +197,14 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
      * @returns {DataFilterOption[]}
      */
     public get_default_filter_options(): DataFilterOption[] {
-        return this.default_filter_opt_values?.map((val) => new DataFilterOption().from(val));
+        if (!this.default_filter_opt_values) {
+            return null;
+        }
+
+        if (Array.isArray(this.default_filter_opt_values) && (this.default_filter_opt_values.length > 0)) {
+            return this.default_filter_opt_values.map((val) => new DataFilterOption().from(val));
+        }
+
+        return [new DataFilterOption().from(this.default_filter_opt_values as any)];
     }
 }

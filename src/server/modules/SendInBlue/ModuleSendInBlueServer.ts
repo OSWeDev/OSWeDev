@@ -23,6 +23,7 @@ import SendInBlueServerController from './SendInBlueServerController';
 
 export default class ModuleSendInBlueServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSendInBlueServer.instance) {
             ModuleSendInBlueServer.instance = new ModuleSendInBlueServer();
@@ -32,15 +33,18 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
     private static instance: ModuleSendInBlueServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSendInBlue.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_event_webhook, this.sendinblue_event_webhook.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_refresh_mail_events, this.sendinblue_refresh_mail_events.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SendInBlue'
@@ -64,6 +68,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSendInBlue.POLICY_GROUP;

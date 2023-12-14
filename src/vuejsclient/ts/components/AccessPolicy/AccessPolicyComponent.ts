@@ -8,7 +8,6 @@ import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/Poli
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
@@ -64,7 +63,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
     private visible_policies_by_group_id: { [group_id: number]: AccessPolicyVO[] } = {};
     private roles: { [id: number]: RoleVO } = {};
 
-    private throttled_update_component = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_component.bind(this), 500);
+    private throttled_update_component = ThrottleHelper.declare_throttle_without_args(this.update_component.bind(this), 500);
 
     public async beforeDestroy() {
         for (let i in this.dao_watchers) {
@@ -499,4 +498,21 @@ export default class AccessPolicyComponent extends VueComponentBase {
     private set_display_policy_group(policy_group_id: number) {
         Vue.set(this.display_policy_groups as any, policy_group_id, !this.display_policy_groups[policy_group_id]);
     }
+
+    private select_full_group(policy_group_id: number) {
+
+        for (let i in this.policy_groups_segmentations[policy_group_id]) {
+            let policy_group_segmentation = this.policy_groups_segmentations[policy_group_id][i];
+            Vue.set(this.display_policy_group_segmentations as any, policy_group_segmentation.id, true);
+        }
+    }
+
+    private unselect_full_group(policy_group_id: number) {
+
+        for (let i in this.policy_groups_segmentations[policy_group_id]) {
+            let policy_group_segmentation = this.policy_groups_segmentations[policy_group_id][i];
+            Vue.set(this.display_policy_group_segmentations as any, policy_group_segmentation.id, false);
+        }
+    }
+
 }

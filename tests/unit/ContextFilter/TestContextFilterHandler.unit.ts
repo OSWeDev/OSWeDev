@@ -12,7 +12,7 @@ import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
 import ContextFilterVOHandler from '../../../src/shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 
 test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filters: should throw an error if context_filter_root is null', () => {
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](null, 1)).toThrow('ContextFilterVO is null');
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](null, 1)).toThrow('ContextFilterVO is null');
 });
 
 test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filters: should throw an error if there are too many year filters', () => {
@@ -24,7 +24,7 @@ test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filt
     andFilter.left_hook = yearFilter;
     andFilter.right_hook = yearFilter;
 
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many year filters');
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many year filters');
 });
 
 test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filters: should throw an error if there are too many month filters', () => {
@@ -36,8 +36,8 @@ test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filt
     andFilter.left_hook = monthFilter;
     andFilter.right_hook = monthFilter;
 
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many month filters');
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many month filters');
 });
 
 test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filters: should throw an error if there are too many hour filters', () => {
@@ -49,8 +49,8 @@ test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filt
     andFilter.left_hook = hourFilter;
     andFilter.right_hook = hourFilter;
 
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many hour filters');
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many hour filters');
 });
 
 test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filters: should throw an error if there are too many minute filters', () => {
@@ -62,8 +62,8 @@ test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filt
     andFilter.left_hook = minuteFilter;
     andFilter.right_hook = minuteFilter;
 
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many minute filters');
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many minute filters');
 });
 
 test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filters: should throw an error if there are too many second filters', () => {
@@ -75,8 +75,8 @@ test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filt
     andFilter.left_hook = secondFilter;
     andFilter.right_hook = secondFilter;
 
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
-    expect(() => ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many second filters');
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_YEAR)).not.toThrow();
+    expect(() => ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_SECOND)).toThrow('Too many second filters');
 });
 
 
@@ -96,7 +96,7 @@ test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filt
     andFilter.left_hook = yearFilter;
     andFilter.right_hook = monthFilter;
 
-    const result = ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_MONTH);
+    const result = ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](andFilter, TimeSegment.TYPE_MONTH);
 
     expect(result).toStrictEqual({
         year_filter: yearFilter,
@@ -125,7 +125,7 @@ test('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filt
         JSON.parse('{"_type":"context_filter","text_ignore_case":true,"sub_query":null,"vo_type":"__custom_filters__","field_id":"Dates","filter_type":1}')
     );
 
-    const result = ContextFilterVOHandler.getInstance()['assert_context_filter_root_is_valid_and_get_filters'](root_filter, TimeSegment.TYPE_MINUTE);
+    const result = ContextFilterVOHandler['assert_context_filter_root_is_valid_and_get_filters'](root_filter, TimeSegment.TYPE_MINUTE);
 
     expect(result).toStrictEqual({
         year_filter: left_hook,
@@ -145,7 +145,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.create_single_elt_NumRange(2022, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 3, true);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 3, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
@@ -161,7 +161,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.createNew(NumRange.RANGE_TYPE, 2020, 2022, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 3, true);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 3, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
@@ -179,7 +179,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.create_single_elt_NumRange(2022, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 3, false);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR),
@@ -195,7 +195,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.createNew(NumRange.RANGE_TYPE, 2020, 2022, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 3, false);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR),
@@ -213,7 +213,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.create_single_elt_NumRange(2022, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 1, true);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 1, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR)
@@ -227,7 +227,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.createNew(NumRange.RANGE_TYPE, 2020, 2022, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 1, true);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 1, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR)
@@ -243,7 +243,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.create_single_elt_NumRange(2022, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 1, false);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 1, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -257,7 +257,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         RangeHandler.createNew(NumRange.RANGE_TYPE, 2020, 2022, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 1, false);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 1, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -270,7 +270,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_year_filter: should return th
         JSON.parse('{"_type":"context_filter","text_ignore_case":true,"sub_query":null,"filter_type":43,"param_numranges":[{"range_type":1,"max":2024,"max_inclusiv":false,"min":2023,"min_inclusiv":true,"segment_type":0}],"vo_type":"__custom_filters__","field_id":"Dates"}')
     );
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_year_filter'](yearFilter, 10, false);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_year_filter'](yearFilter, 10, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1672531200, TimeSegment.TYPE_YEAR)
@@ -291,7 +291,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_month_from_year: should ret
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, true);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH),
@@ -314,7 +314,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_month_from_year: should ret
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1646092800, TimeSegment.TYPE_MONTH),
@@ -337,7 +337,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_month_from_year: should ret
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, true);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH),
@@ -360,7 +360,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_month_from_year: should ret
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1643673600, TimeSegment.TYPE_MONTH),
@@ -383,7 +383,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_month_from_year: should ret
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 1, true);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 1, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH)
@@ -404,7 +404,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_month_from_year: should ret
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 1, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 1, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1643673600, TimeSegment.TYPE_MONTH)
@@ -422,7 +422,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_month_from_year: should ret
         JSON.parse('{"_type":"context_filter","text_ignore_case":true,"sub_query":null,"filter_type":42,"param_numranges":[{"range_type":1,"max":5,"max_inclusiv":false,"min":4,"min_inclusiv":true,"segment_type":0}],"vo_type":"__custom_filters__","field_id":"Dates"}')
     );
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 10, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 10, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1680307200, TimeSegment.TYPE_MONTH)
@@ -443,7 +443,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_day_from_month: should retu
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, day_filter, 3, true);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_day_from_month'](month_ts_ranges, day_filter, 3, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_DAY),
@@ -466,7 +466,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_day_from_month: should retu
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, day_filter, 3, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_day_from_month'](month_ts_ranges, day_filter, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1583193600, TimeSegment.TYPE_DAY),
@@ -483,7 +483,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_day_from_month: should retu
         RangeHandler.create_single_elt_TSRange(1583020800, TimeSegment.TYPE_MONTH)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, null, 3, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_day_from_month'](month_ts_ranges, null, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1585612800, TimeSegment.TYPE_DAY),
@@ -500,7 +500,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_day_from_month: should retu
         RangeHandler.create_single_elt_TSRange(1680307200, TimeSegment.TYPE_MONTH)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, null, 10, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_day_from_month'](month_ts_ranges, null, 10, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1682812800, TimeSegment.TYPE_DAY),
@@ -530,7 +530,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_hour_from_day: should retur
         RangeHandler.createNew(NumRange.RANGE_TYPE, 4, 6, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, hour_filter, 3, true);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, hour_filter, 3, true);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1577851200, TimeSegment.TYPE_HOUR),
@@ -553,7 +553,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_hour_from_day: should retur
         RangeHandler.createNew(NumRange.RANGE_TYPE, 4, 6, true, true, NumSegment.TYPE_INT)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, hour_filter, 3, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, hour_filter, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1578031200, TimeSegment.TYPE_HOUR),
@@ -570,7 +570,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_hour_from_day: should retur
         RangeHandler.create_single_elt_TSRange(1578009600, TimeSegment.TYPE_DAY)
     ];
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, null, 3, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, null, 3, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1578092400, TimeSegment.TYPE_HOUR),
@@ -595,7 +595,7 @@ test('TestContextFilterHandler: get_filter_ts_ranges_hour_from_day: should retur
     ];
     day_ts_ranges.reverse();
 
-    const result = ContextFilterVOHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, null, 10, false);
+    const result = ContextFilterVOHandler['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, null, 10, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1682895600, TimeSegment.TYPE_HOUR),
@@ -632,7 +632,7 @@ test('TestContextFilterHandler: get_ts_ranges_from_context_filter_root: Test cas
         JSON.parse('{"_type":"context_filter","text_ignore_case":true,"sub_query":null,"vo_type":"__custom_filters__","field_id":"Dates","filter_type":1}')
     );
 
-    const result = ContextFilterVOHandler.getInstance()['get_ts_ranges_from_context_filter_root'](root_filter, TimeSegment.TYPE_MINUTE, 10, false);
+    const result = ContextFilterVOHandler['get_ts_ranges_from_context_filter_root'](root_filter, TimeSegment.TYPE_MINUTE, 10, false);
 
     expect(result).toStrictEqual([
         RangeHandler.create_single_elt_TSRange(1682899140, TimeSegment.TYPE_MINUTE),

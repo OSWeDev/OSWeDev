@@ -1,3 +1,5 @@
+/* istanbul ignore file : nothing to test in ParamVOs */
+
 import ProduitParamLigneParamVO from './ProduitParamLigneParamVO';
 import CommandeVO from '../../../Commande/vos/CommandeVO';
 import IAPIParamTranslator from '../../../../API/interfaces/IAPIParamTranslator';

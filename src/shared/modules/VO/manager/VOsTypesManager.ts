@@ -269,7 +269,7 @@ export default class VOsTypesManager {
      * @returns {ModuleTableField<any>}
      */
     public static get_field_from_vo_field_ref(vo_field_ref: { api_type_id: string, field_id: string }): ModuleTableField<any> {
-        if (!vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
+        if (!vo_field_ref || !vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
             return null;
         }
 
@@ -283,7 +283,7 @@ export default class VOsTypesManager {
     private static manyToManyModuleTables: Array<ModuleTable<any>> = null;
 
     /**
-     * on voudrait utiliser BGThreadServerController.getInstance().server_ready mais on peut pas import ça bloc
+     * on voudrait utiliser BGThreadServerController.server_ready mais on peut pas import ça bloc
      *  donc on passe par un pis-aller pour le moment avec juste un délai de 1 minute après le boot du serveur pour accepter de cacher les résultas du get_manyToManyModuleTables
      */
     private static init_date: number = Dates.now();

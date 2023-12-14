@@ -1,12 +1,13 @@
 import ContextFilterVO, { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
-import VarDAGNode from "../../../../shared/modules/Var/graph/VarDAGNode";
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import ModuleVar from "../../../../shared/modules/Var/ModuleVar";
 import VarConfAutoDepVO from "../../../../shared/modules/Var/vos/VarConfAutoDepVO";
 import VarConfVO from "../../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarParamFieldTransformStrategyVO from "../../../../shared/modules/Var/vos/VarParamFieldTransformStrategyVO";
+import FieldFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DAOUpdateVOHolder from "../../DAO/vos/DAOUpdateVOHolder";
 import DataSourceControllerBase from "../datasource/DataSourceControllerBase";
@@ -56,7 +57,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
                 continue;
             }
 
-            res[AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i] = VarsServerController.getInstance().getVarControllerById(dep.var_id);
+            res[AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i] = VarsServerController.getVarControllerById(dep.var_id);
         }
         return res;
     }
@@ -113,7 +114,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
 
             switch (dep.type) {
                 case VarConfAutoDepVO.DEP_TYPE_VAR:
-                    let dep_value = VarsServerController.getInstance().get_outgoing_deps_sum(
+                    let dep_value = VarsServerController.get_outgoing_deps_sum(
                         varDAGNode, AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i + AutoVarServerController.DEP_SEPARATOR);
                     deps_values.push(dep_value);
                     break;
@@ -260,7 +261,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
     }
 
     private get_params_for_dep(varDAGNode: VarDAGNode, dep: VarConfAutoDepVO): VarDataBaseVO[] {
-        let target_varconf: VarConfVO = VarsServerController.getInstance().getVarConfById(dep.var_id);
+        let target_varconf: VarConfVO = VarsServerController.getVarConfById(dep.var_id);
 
         let res: VarDataBaseVO[] = [];
         let cloned = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO>(
@@ -332,7 +333,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
 
     private async get_invalid_params_intersectors_from_vo(vo: IDistantVOBase): Promise<VarDataBaseVO> {
 
-        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {
+        let active_field_filters: FieldFiltersVO = {
             [vo._type]: { id: filter(vo._type).by_id(vo.id) }
         };
 

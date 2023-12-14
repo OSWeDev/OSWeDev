@@ -9,7 +9,6 @@
         "importHelpers": true,
         "lib": [
             "es2020",
-            "es2015",
             "dom",
             "ESNext"
         ],

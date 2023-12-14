@@ -6,10 +6,12 @@ import SupervisionTypeWidgetOptionsVO from '../vos/SupervisionTypeWidgetOptionsV
 import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
 import SupervisionController from '../../Supervision/SupervisionController';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
-import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
+import FieldFiltersVO from "../vos/FieldFiltersVO";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import DashboardVO from "../vos/DashboardVO";
 import ModuleDAO from '../../DAO/ModuleDAO';
+import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
+import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
 
 /**
  * @class SupervisionTypeWidgetManager
@@ -21,18 +23,18 @@ export default class SupervisionTypeWidgetManager {
      * load_supervision_api_type_ids_by_dashboard
      * - This method is responsible for loading the supervision api type ids by the given dashboard
      *
-     * @param {DashboardVO} dashboard
+     * @param {string[]} api_type_ids of the dashboard
      * @returns {string[]}
      */
-    public static load_supervision_api_type_ids_by_dashboard(dashboard: DashboardVO): string[] {
-        if (!(dashboard?.api_type_ids?.length > 0)) {
+    public static load_supervision_api_type_ids_by_dashboard(api_type_ids: string[]): string[] {
+        if (!(api_type_ids?.length > 0)) {
             return null;
         }
 
         const all_available_supervision_api_type_ids = SupervisionManager.load_all_supervision_api_type_ids();
 
         return all_available_supervision_api_type_ids.filter((api_type_id) => {
-            return dashboard.api_type_ids.includes(api_type_id);
+            return api_type_ids.includes(api_type_id);
         });
     }
 
@@ -43,7 +45,7 @@ export default class SupervisionTypeWidgetManager {
      *
      * @param {DashboardVO} dashboard
      * @param {SupervisionWidgetOptionsVO} widget_options
-     * @param {{ [api_type_id: string]: { [field_name: string]: ContextFilterVO } }} active_field_filters
+     * @param {FieldFiltersVO} active_field_filters
      * @param {string[]} active_supervision_api_type_ids API type ids that have been selected by the user
      * @param {{ offset: number, limit?: number, sort_by_field_id?: string }} pagination Pagination options
      * @returns {Promise<ISupervisedItem[]>}
@@ -51,7 +53,7 @@ export default class SupervisionTypeWidgetManager {
     public static async find_available_supervision_type_ids(
         dashboard: DashboardVO,
         widget_options: SupervisionTypeWidgetOptionsVO,
-        active_field_filters: { [api_type_id: string]: { [field_name: string]: ContextFilterVO } },
+        active_field_filters: FieldFiltersVO,
         options?: {
             categories_by_name?: { [name: string]: SupervisedCategoryVO },
             refresh?: boolean,
@@ -74,6 +76,7 @@ export default class SupervisionTypeWidgetManager {
         }
 
         const registered_supervision_api_type_ids: string[] = [];
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(dashboard.id);
 
         for (const key in supervision_api_type_ids) {
             const api_type_id: string = supervision_api_type_ids[key];
@@ -113,7 +116,7 @@ export default class SupervisionTypeWidgetManager {
         }
 
         const pipeline_limit = registered_supervision_api_type_ids.length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_available_supervision_type_ids');
 
         const allowed_supervision_api_type_ids: string[] = [];
 
@@ -143,13 +146,15 @@ export default class SupervisionTypeWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_available_supervision_type_ids');
 
         for (const key in allowed_supervision_api_type_ids) {
             const api_type_id: string = allowed_supervision_api_type_ids[key];
 
             let api_type_context_query = query(api_type_id)
-                .using(dashboard.api_type_ids);
+                .using(api_type_ids);
+
+            FieldValueFilterWidgetManager.add_discarded_field_paths(api_type_context_query, discarded_field_paths);
 
             if (category_selections?.length > 0) {
                 api_type_context_query = api_type_context_query.filter_by_num_eq(
@@ -163,7 +168,7 @@ export default class SupervisionTypeWidgetManager {
 
         await promise_pipeline.end();
 
-        promise_pipeline = new PromisePipeline(pipeline_limit);
+        promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionTypeWidgetManager.find_available_supervision_type_ids');
 
         for (const key in allowed_supervision_api_type_ids) {
             const api_type_id: string = allowed_supervision_api_type_ids[key];

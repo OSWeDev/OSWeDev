@@ -16,7 +16,14 @@
                                 :code_text="var_description_code" :is_editable="true" :textarea="true")
 
             .var_data_label {{ label('var_desc.var_data_label') }}
-                var-data(:var_param='var_param' :show_tooltip='true' :show_import_aggregated='true' :show_import='true' :can_inline_edit='true')
+                var-data(
+                    :var_param='var_param' 
+                    :show_tooltip='true' 
+                    :show_import_aggregated='true' 
+                    :show_import='true' 
+                    :can_inline_edit='true'
+                    @set_var_data_value='set_var_data_value'
+                    @set_filtered_value='set_filtered_value')
                 i.update_var_data.fa.fa-refresh(aria-hidden="true" @click='update_var_data')
                 i.update_var_data.fa.fa-sitemap(aria-hidden="true" @click='update_var_data_and_parents')
                 i.update_var_data.fa.fa-filter(aria-hidden="true" @click='filter_on_this_param')
@@ -32,4 +39,10 @@
                     :disabled="true")
             
             Vardescparamfieldscomponent(:var_param='var_param')
-            Vardescexplaincomponent(:var_param='var_param' v-if='show_deps')
+            Vardescexplaincomponent(
+                v-if='show_deps'
+                
+                :var_param='var_param' 
+                :var_data_value='var_data_value'
+                :filtered_value='filtered_value'
+            )

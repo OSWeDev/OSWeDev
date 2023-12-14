@@ -2,15 +2,15 @@
 
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker {
@@ -80,7 +80,7 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
         user.password = user_name + '$';
         user.email = email;
 
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(user);
+        let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
         if ((!res) || (!res.id)) {
             throw new Error('Echec de création du compte admin par défaut');
         }
@@ -103,6 +103,6 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
         userrole.role_id = role.id;
         userrole.user_id = user.id;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(userrole);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userrole);
     }
 }

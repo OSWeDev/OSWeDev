@@ -243,6 +243,40 @@ export default class Dates {
     }
 
     /**
+     * isDate
+     *
+     * @param {string} date
+     * @returns {boolean}
+     */
+    public static find_date_format(date: string): string {
+        let format: string = null;
+
+        const date_format_0 = /^([0-9]{4})[\-]([0-9]{1,2})[\-]([0-9]{1,2})( ([0-2][0-9]|[0-1][0-9]|2[0-3]):([0-5][0-9])(?:\:([0-5][0-9]))?)?$/; // Format YYYY-MM-DD HH:mm:ss
+        const date_format_1 = /^([0-9]{4})[\/]([0-9]{1,2})[\/]([0-9]{1,2})( ([0-2][0-9]|[0-1][0-9]|2[0-3]):([0-5][0-9])(?:\:([0-5][0-9]))?)?$/; // Format YYYY/MM/DD HH:mm:ss
+
+        const date_format_10 = /^([0-9]{1,2})[\-]([0-9]{1,2})[\-]([0-9]{4})( ([0-2][0-9]|[0-1][0-9]|2[0-3]):([0-5][0-9])(?:\:([0-5][0-9]))?)?$/; // Format DD-MM-YYYY HH:mm:ss
+        const date_format_11 = /^([0-9]{1,2})[\/]([0-9]{1,2})[\/]([0-9]{4})( ([0-2][0-9]|[0-1][0-9]|2[0-3]):([0-5][0-9])(?:\:([0-5][0-9]))?)?$/; // Format DD/MM/YYYY HH:mm:ss
+
+        if (date_format_0.test(date)) {
+            format = 'YYYY-MM-DD HH:mm:ss';
+        }
+
+        if (date_format_1.test(date)) {
+            format = 'YYYY/MM/DD HH:mm:ss';
+        }
+
+        if (date_format_10.test(date)) {
+            format = 'DD-MM-YYYY HH:mm:ss';
+        }
+
+        if (date_format_11.test(date)) {
+            format = 'DD/MM/YYYY HH:mm:ss';
+        }
+
+        return format;
+    }
+
+    /**
      * @param a
      * @param b
      * @param segmentation

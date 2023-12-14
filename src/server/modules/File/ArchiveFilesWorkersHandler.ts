@@ -8,6 +8,7 @@ import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 
 export default class ArchiveFilesWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ArchiveFilesWorkersHandler.instance) {
             ArchiveFilesWorkersHandler.instance = new ArchiveFilesWorkersHandler();

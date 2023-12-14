@@ -40,7 +40,10 @@ export default class VarDescComponent extends VueComponentBase {
     private show_last_update: boolean;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 500, { leading: false, trailing: true });
+
+    private var_data_value = null;
+    private filtered_value = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
@@ -98,7 +101,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id);
+        return VarsController.get_translatable_description_code_by_var_id(this.var_param.var_id);
     }
 
     get var_description(): string {
@@ -133,9 +136,9 @@ export default class VarDescComponent extends VueComponentBase {
             return;
         }
 
-        VarsDatasExplorerFiltersComponent.instance.fitered_vars_confs = [VarsController.getInstance().var_conf_by_id[this.var_param.var_id]];
+        VarsDatasExplorerFiltersComponent.instance.fitered_vars_confs = [VarsController.var_conf_by_id[this.var_param.var_id]];
 
-        let matroid_fields = MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        let matroid_fields = MatroidController.getMatroidFields(this.var_param._type);
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
 
@@ -175,4 +178,13 @@ export default class VarDescComponent extends VueComponentBase {
         }
         ConsoleHandler.log('Index du paramètre de var sélectionné : ' + this.var_param.index);
     }
+
+    private set_var_data_value(var_data_value) {
+        this.var_data_value = var_data_value;
+    }
+
+    private set_filtered_value(filtered_value) {
+        this.filtered_value = filtered_value;
+    }
+
 }

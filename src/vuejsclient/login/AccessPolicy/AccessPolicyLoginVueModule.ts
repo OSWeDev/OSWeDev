@@ -4,6 +4,7 @@ import VueModuleBase from '../../ts/modules/VueModuleBase';
 
 export default class AccessPolicyLoginVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AccessPolicyLoginVueModule.instance) {
             AccessPolicyLoginVueModule.instance = new AccessPolicyLoginVueModule();

@@ -23,7 +23,7 @@ export default class StatsController {
     /**
      * Le générateur ne crée pas de stats
      */
-    public static ACTIVATED: boolean = true;
+    public static ACTIVATED: boolean = false;
 
     /**
      * Le server doit initialiser le THREAD_NAME en fonction du thread. Côté client on garde la valeur par défaut.
@@ -42,7 +42,7 @@ export default class StatsController {
 
     public static stacked_registered_stats_by_group_name: { [group_name: string]: StatClientWrapperVO[] } = {};
 
-    public static throttled_unstack_stats = ThrottleHelper.getInstance().declare_throttle_without_args(
+    public static throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
         StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, { leading: false, trailing: true }); // defaults to 1 minute
 
     public static get_aggregator_extension(aggregator: number): string {
@@ -73,7 +73,11 @@ export default class StatsController {
             return;
         }
 
-        StatsController.getInstance().UNSTACK_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000);
+        let default_value = 60000;
+        StatsController.getInstance().UNSTACK_THROTTLE = default_value;
+        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000).then((res: number) => {
+            StatsController.getInstance().UNSTACK_THROTTLE = res;
+        });
     }
 
     /**
@@ -382,7 +386,7 @@ export default class StatsController {
 
     set UNSTACK_THROTTLE(throttle: number) {
         this.UNSTACK_THROTTLE_ = throttle;
-        StatsController.throttled_unstack_stats = ThrottleHelper.getInstance().declare_throttle_without_args(
+        StatsController.throttled_unstack_stats = ThrottleHelper.declare_throttle_without_args(
             StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, { leading: false, trailing: true });
     }
 }

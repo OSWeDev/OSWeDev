@@ -2,7 +2,6 @@ import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/Acc
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
@@ -19,6 +18,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import AccessPolicyServerController from '../../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import DataImportModuleBase from '../../DataImport/DataImportModuleBase/DataImportModuleBase';
 import ImportLogger from '../../DataImport/logger/ImportLogger';
 import ModulesManagerServer from '../../ModulesManagerServer';
@@ -36,6 +36,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
 
     private static instance: ModuleTranslationsImportServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTranslationsImport.getInstance().name);
     }
@@ -43,6 +44,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleTranslation.POLICY_GROUP);
 
@@ -159,7 +161,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                 if (overwrite && translation) {
                     translation.translated = data.translated;
                     promises.push((async () => {
-                        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
                     })());
                     continue;
                 }
@@ -169,7 +171,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                 translatable = new TranslatableTextVO();
 
                 translatable.code_text = data.code_text;
-                let insertRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
+                let insertRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translatable);
 
                 if ((!insertRes) || (!insertRes.id)) {
                     ConsoleHandler.error('Erreur d\'insertion d\'un nouveau translatable en base :' + data.code_lang + ':' + data.code_text + ':' + data.translated + ':');
@@ -186,7 +188,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             new_translation.text_id = translatable.id;
             new_translation.translated = data.translated;
             promises.push((async () => {
-                await ModuleDAO.getInstance().insertOrUpdateVO(new_translation);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_translation);
             })());
         }
 

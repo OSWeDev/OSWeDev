@@ -8,7 +8,6 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -66,24 +65,41 @@ export default class AccessPolicyServerController {
     public static hook_user_login: (email: string, password: string) => Promise<UserVO> = null;
 
     public static init_tasks() {
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, AccessPolicyServerController.set_registered_user_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, AccessPolicyServerController.delete_registered_user_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, AccessPolicyServerController.set_registered_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, AccessPolicyServerController.set_policy_dependency);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, AccessPolicyServerController.set_role_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, AccessPolicyServerController.reload_access_matrix);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, AccessPolicyServerController.update_registered_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, AccessPolicyServerController.update_policy_dependency);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, AccessPolicyServerController.update_role_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role, AccessPolicyServerController.update_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_user_role, AccessPolicyServerController.update_user_role);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, AccessPolicyServerController.delete_registered_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, AccessPolicyServerController.delete_registered_policy_dependency);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, AccessPolicyServerController.delete_registered_role_policy);
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, AccessPolicyServerController.delete_registered_role);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, AccessPolicyServerController.set_registered_role);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, AccessPolicyServerController.set_registered_user_role);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, AccessPolicyServerController.delete_registered_user_role);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, AccessPolicyServerController.set_registered_policy);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, AccessPolicyServerController.set_policy_dependency);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, AccessPolicyServerController.set_role_policy);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, AccessPolicyServerController.reload_access_matrix);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, AccessPolicyServerController.update_registered_policy);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, AccessPolicyServerController.update_policy_dependency);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, AccessPolicyServerController.update_role_policy);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_role, AccessPolicyServerController.update_role);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_update_user_role, AccessPolicyServerController.update_user_role);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, AccessPolicyServerController.delete_registered_policy);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, AccessPolicyServerController.delete_registered_policy_dependency);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, AccessPolicyServerController.delete_registered_role_policy);
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, AccessPolicyServerController.delete_registered_role);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!AccessPolicyServerController.instance) {
             AccessPolicyServerController.instance = new AccessPolicyServerController();
@@ -145,7 +161,6 @@ export default class AccessPolicyServerController {
 
         let uid: number = StackContext.get('UID');
         if (!uid) {
-            ConsoleHandler.log('TEMP_DELETE_ME:checkAccessSync:!UID:' + policy_name + ':');
             // profil anonyme
             return AccessPolicyServerController.checkAccessTo(
                 target_policy,
@@ -217,7 +232,7 @@ export default class AccessPolicyServerController {
         /**
          * Si on a le rôle admin on dégage immédiatement
          */
-        if (roles_ids && (roles_ids.indexOf(AccessPolicyServerController.role_admin.id) >= 0)) {
+        if (roles_ids && AccessPolicyServerController.role_admin && (roles_ids.indexOf(AccessPolicyServerController.role_admin.id) >= 0)) {
             return true;
         }
 
@@ -302,7 +317,7 @@ export default class AccessPolicyServerController {
 
         await ModulesManagerServer.getInstance().preload_modules();
         let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).exec_as_server().select_vos<AccessPolicyVO>();
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2);
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'AccessPolicyServerController.preload_registered_policies');
         for (let i in policies) {
             let policy: AccessPolicyVO = policies[i];
 
@@ -721,14 +736,14 @@ export default class AccessPolicyServerController {
         //  - si c'est le rôle 'admin', son parent est 'identifié'
         //  - pour tout autre rôle, son parent est soit 'identifié' soit un autre rôle ajouté (ne peut dépendre de 'anonyme' ou de 'admin')
 
-        if (role.translatable_name == AccessPolicyServerController.role_anonymous.translatable_name) {
+        if (AccessPolicyServerController.role_anonymous && (role.translatable_name == AccessPolicyServerController.role_anonymous.translatable_name)) {
             role.parent_role_id = null;
-        } else if (role.translatable_name == AccessPolicyServerController.role_logged.translatable_name) {
+        } else if (AccessPolicyServerController.role_logged && (role.translatable_name == AccessPolicyServerController.role_logged.translatable_name)) {
             role.parent_role_id = AccessPolicyServerController.role_anonymous.id;
-        } else if (role.translatable_name == AccessPolicyServerController.role_admin.translatable_name) {
+        } else if (AccessPolicyServerController.role_admin && (role.translatable_name == AccessPolicyServerController.role_admin.translatable_name)) {
             role.parent_role_id = AccessPolicyServerController.role_logged.id;
         } else {
-            if ((!role.parent_role_id) || (role.parent_role_id == AccessPolicyServerController.role_anonymous.id) || (role.parent_role_id == AccessPolicyServerController.role_admin.id)) {
+            if ((!role.parent_role_id) || (AccessPolicyServerController.role_anonymous && (role.parent_role_id == AccessPolicyServerController.role_anonymous.id)) || (AccessPolicyServerController.role_admin && (role.parent_role_id == AccessPolicyServerController.role_admin.id))) {
                 role.parent_role_id = AccessPolicyServerController.role_logged.id;
             }
         }
@@ -754,7 +769,7 @@ export default class AccessPolicyServerController {
             return roleFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de role échoué:' + role.translatable_name + ':');
             return null;
@@ -810,7 +825,7 @@ export default class AccessPolicyServerController {
             return groupFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(group);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(group);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de groupe échoué :' + group.translatable_name + ':');
             return null;
@@ -880,7 +895,7 @@ export default class AccessPolicyServerController {
                 policyFromBDD.module_id = moduleVoID;
                 policyFromBDD.default_behaviour = policy.default_behaviour;
                 policyFromBDD.group_id = policy.group_id;
-                let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policyFromBDD);
+                let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policyFromBDD);
                 if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
                     ConsoleHandler.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
@@ -893,7 +908,7 @@ export default class AccessPolicyServerController {
             return policyFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policy);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de droit échoué :' + policy.translatable_name + ':');
             return null;
@@ -948,7 +963,7 @@ export default class AccessPolicyServerController {
             return dependencyFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(dependency);
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dependency);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
             return null;
@@ -1026,7 +1041,7 @@ export default class AccessPolicyServerController {
                 let role: RoleVO = AccessPolicyServerController.registered_roles[j];
 
                 // On ignore l'admin qui a accès à tout
-                if (role.id == AccessPolicyServerController.role_admin.id) {
+                if (AccessPolicyServerController.role_admin && (role.id == AccessPolicyServerController.role_admin.id)) {
                     continue;
                 }
 
@@ -1134,7 +1149,7 @@ export default class AccessPolicyServerController {
             }
 
             // Cas 0
-            if (user_role.id == AccessPolicyServerController.role_admin.id) {
+            if (AccessPolicyServerController.role_admin && (user_role.id == AccessPolicyServerController.role_admin.id)) {
                 return true;
             }
 
@@ -1166,7 +1181,7 @@ export default class AccessPolicyServerController {
                     case AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE:
                         return true;
                     case AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS:
-                        if (user_role.id != AccessPolicyServerController.role_anonymous.id) {
+                        if (AccessPolicyServerController.role_anonymous && (user_role.id != AccessPolicyServerController.role_anonymous.id)) {
                             return true;
                         }
                         break;
@@ -1208,7 +1223,7 @@ export default class AccessPolicyServerController {
             // On ajoute la session au bgthread d'invalidation si on a un sid
             let session: IServerUserSession = StackContext.get('SESSION');
             if (session && session.sid) {
-                ForkedTasksController.getInstance().exec_self_on_bgthread(
+                ForkedTasksController.exec_self_on_bgthread(
                     AccessPolicyDeleteSessionBGThread.getInstance().name,
                     AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids,
                     session
@@ -1242,7 +1257,7 @@ export default class AccessPolicyServerController {
 
     private static instance: AccessPolicyServerController = null;
 
-    private static throttled_reload_access_matrix_computation = ThrottleHelper.getInstance().declare_throttle_without_args(AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
+    private static throttled_reload_access_matrix_computation = ThrottleHelper.declare_throttle_without_args(AccessPolicyServerController.reload_access_matrix_computation.bind(this), 1000);
 
     private static hasCleanDependencies(
         target_policy: AccessPolicyVO,

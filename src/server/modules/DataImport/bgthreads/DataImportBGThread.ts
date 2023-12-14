@@ -1,7 +1,6 @@
 import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
@@ -17,12 +16,13 @@ import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import VarsDatasProxy from '../../Var/VarsDatasProxy';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import ModuleDataImportServer from '../ModuleDataImportServer';
 
 export default class DataImportBGThread implements IBGThread {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DataImportBGThread.instance) {
             DataImportBGThread.instance = new DataImportBGThread();
@@ -41,6 +41,10 @@ export default class DataImportBGThread implements IBGThread {
     public current_timeout: number = 10000;
     public MAX_timeout: number = 60000;
     public MIN_timeout: number = 100;
+
+    public semaphore: boolean = false;
+    public run_asap: boolean = false;
+    public last_run_unix: number = null;
 
     private waiting_for_empty_vars_vos_cud: boolean = false;
     private waiting_for_empty_cache_vars_waiting_for_compute: boolean = false;
@@ -66,7 +70,7 @@ export default class DataImportBGThread implements IBGThread {
             let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true, 180000);
             try {
                 if (wait_for_empty_vars_vos_cud) {
-                    if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
+                    if (await VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors()) {
                         ConsoleHandler.log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
                         this.waiting_for_empty_vars_vos_cud = true;
                         this.stats_out('waiting_for_empty_vars_vos_cud', time_in);
@@ -244,7 +248,7 @@ export default class DataImportBGThread implements IBGThread {
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
     }
 
     /**
@@ -311,7 +315,7 @@ export default class DataImportBGThread implements IBGThread {
             return false;
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
 
         return true;
     }
@@ -345,28 +349,28 @@ export default class DataImportBGThread implements IBGThread {
 
             case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
 
-                /**
-                 * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
-                 */
-                let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true, 180000);
-                try {
-                    if (wait_for_empty_cache_vars_waiting_for_compute) {
-                        if (await VarsDatasProxy.getInstance().has_cached_vars_waiting_for_compute()) {
-                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
-                            this.waiting_for_empty_cache_vars_waiting_for_compute = true;
-                            return false;
-                        }
+                // /**
+                //  * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
+                //  */
+                // let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true, 180000);
+                // try {
+                //     if (wait_for_empty_cache_vars_waiting_for_compute) {
+                //         if (await VarsDatasProxy.has_cached_vars_waiting_for_compute()) {
+                //             ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
+                //             this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                //             return false;
+                //         }
 
-                        if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
-                            this.waiting_for_empty_cache_vars_waiting_for_compute = false;
-                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
-                        }
-                    }
-                } catch (error) {
-                    ConsoleHandler.error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
-                    this.waiting_for_empty_cache_vars_waiting_for_compute = true;
-                    return false;
-                }
+                //         if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
+                //             this.waiting_for_empty_cache_vars_waiting_for_compute = false;
+                //             ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
+                //         }
+                //     }
+                // } catch (error) {
+                //     ConsoleHandler.error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
+                //     this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                //     return false;
+                // }
 
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATING;
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
@@ -376,7 +380,7 @@ export default class DataImportBGThread implements IBGThread {
             case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
 
                 importHistoric.state = (((importHistoric.status_before_reimport != null) && (typeof importHistoric.status_before_reimport != 'undefined')) ? importHistoric.status_before_reimport : ModuleDataImport.IMPORTATION_STATE_POSTTREATED);
-                await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
 
                 let new_importHistoric = new DataImportHistoricVO();
                 new_importHistoric.api_type_id = importHistoric.api_type_id;
@@ -391,7 +395,7 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.reimport_of_dih_id = importHistoric.id;
                 new_importHistoric.use_fast_track = importHistoric.use_fast_track;
 
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
+                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     ConsoleHandler.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');

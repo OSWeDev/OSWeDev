@@ -1,3 +1,5 @@
+/* istanbul ignore file : nothing to test in this VO */
+
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class VarPixelFieldConfVO implements IDistantVOBase {

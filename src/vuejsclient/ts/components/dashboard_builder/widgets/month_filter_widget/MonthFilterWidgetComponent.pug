@@ -1,14 +1,16 @@
 .month_filter_widget_component
-    template(v-if='(is_vo_field_ref && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)')
-        template(v-if='is_vo_field_ref')
-            .vo_field_ref_label {{ vo_field_ref_label }}
-        template(v-else-id='!!custom_filter_name')
-            .custom_filter_name {{ custom_filter_name }}
-
-        .months
-            template(v-if='(!months) || !months.length')
-                .no_month {{ label('month_filter_widget_component.no_month') }}
-            template(v-if='can_select_all')
-                .all_months(:class='{"selected": !!is_all_months_selected}' @click='handle_toggle_select_all()')  {{ label('month_filter_widget_component.select_all') }}
-            template(v-for='month in months')
-                .month(:class='{"selected": !!selected_months[month]}' @click='handle_toggle_selected_month(month)') {{ label(getMonthName((month-1)%12)) }}
+    template
+        Monthfilterinputcomponent(
+            :months='months' 
+            :selected_months='selected_months' 
+            :can_select_all='can_select_all' 
+            :is_month_cumulated_selected='is_month_cumulated_selected' 
+            :is_all_months_selected='is_all_months_selected' 
+            :is_vo_field_ref='is_vo_field_ref' 
+            :custom_filter_name='custom_filter_name' 
+            :input_label='vo_field_ref_label' 
+            :can_ytd='can_ytd'
+            :ytd_option_m_minus_x='ytd_option_m_minus_x'
+            @onchange_selected_month='handle_selected_month_change' 
+            @onchange_all_months_selected='handle_all_months_selected_change'
+        )

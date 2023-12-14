@@ -19,20 +19,21 @@ import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/T
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SupervisionBGThread from './bgthreads/SupervisionBGThread';
+import SupervisedCRONServerController from './cron_supervision/SupervisedCRONServerController';
 import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
 import SupervisionServerController from './SupervisionServerController';
 
@@ -41,6 +42,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     public static ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK';
     public static ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSupervisionServer.instance) {
             ModuleSupervisionServer.instance = new ModuleSupervisionServer();
@@ -50,6 +52,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
     private static instance: ModuleSupervisionServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSupervision.getInstance().name);
     }
@@ -58,13 +61,19 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         SupervisionCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleSupervision.APINAME_refresh_one_manually, this.refresh_one_manually.bind(this));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         ModuleBGThreadServer.getInstance().registerBGThread(SupervisionBGThread.getInstance());
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nb de crons en retard'
+        }, 'sup_cron_graph_data_label.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supervision'
@@ -156,11 +165,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             preUpdateTrigger.registerHandler(vo_type, this, this.onPreU_SUP_ITEM_HISTORIZE);
             preCreateTrigger.registerHandler(vo_type, this, this.onpreC_SUP_ITEM);
         }
+
+        SupervisedCRONServerController.getInstance();
     }
 
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSupervision.POLICY_GROUP;
@@ -269,7 +281,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
             historique._type = SupervisionController.getInstance().getSupHistVoType(vo_update_handler.post_update_vo._type);
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(historique);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(historique);
         }
 
         return true;
@@ -335,7 +347,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));
         }
 
-        await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
+        await TeamsAPIServerController.send_to_teams_webhook(webhook, message);
     }
 
     private async on_back_to_normal(supervised_item: ISupervisedItem) {
@@ -376,7 +388,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));
         }
 
-        await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
+        await TeamsAPIServerController.send_to_teams_webhook(webhook, message);
     }
 
     private async execute_manually(text: string) {

@@ -1,10 +1,12 @@
 import { Express } from 'express';
 import { IDatabase } from 'pg-promise';
+import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleActionURL from '../../shared/modules/ActionURL/ModuleActionURL';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
-import ModuleAPI from '../../shared/modules/API/ModuleAPI';
+import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
 import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
@@ -30,6 +32,7 @@ import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleFork from '../../shared/modules/Fork/ModuleFork';
 import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
 import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
@@ -52,8 +55,8 @@ import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervisio
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
-import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
+import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ModuleUserLogVars from '../../shared/modules/UserLogVars/ModuleUserLogVars';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
@@ -61,12 +64,15 @@ import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../shared/tools/PromiseTools';
+import ThreadHandler from '../../shared/tools/ThreadHandler';
 import ConfigurationService from '../env/ConfigurationService';
+import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
+import ModuleActionURLServer from './ActionURL/ModuleActionURLServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
-import ModuleAPIServer from './API/ModuleAPIServer';
+import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
 import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
@@ -90,6 +96,7 @@ import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
 import ModuleFormatDatesNombresServer from './FormatDatesNombres/ModuleFormatDatesNombresServer';
+import ModuleGPTServer from './GPT/ModuleGPTServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
@@ -112,17 +119,18 @@ import ModuleStatsServer from './Stats/ModuleStatsServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
-import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
+import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTriggerServer from './Trigger/ModuleTriggerServer';
 import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ModuleGPT from '../../shared/modules/GPT/ModuleGPT';
-import ModuleGPTServer from './GPT/ModuleGPTServer';
+import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
 
 export default abstract class ModuleServiceBase {
+
+    public static db;
 
     public static getInstance(): ModuleServiceBase {
         return ModuleServiceBase.instance;
@@ -132,8 +140,6 @@ export default abstract class ModuleServiceBase {
     /**
      * Local thread cache -----
      */
-    public db;
-
     public post_modules_installation_hooks: Array<() => void> = [];
 
     protected registered_child_modules: Module[] = [];
@@ -157,7 +163,7 @@ export default abstract class ModuleServiceBase {
         ModuleServiceBase.instance = null;
         ModuleServiceBase.instance = this;
 
-        this.db = {
+        ModuleServiceBase.db = {
             none: this.db_none.bind(this),
             oneOrNone: this.db_oneOrNone.bind(this),
             query: this.db_query.bind(this),
@@ -235,8 +241,8 @@ export default abstract class ModuleServiceBase {
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
         // On init le lien de db dans ces modules
-        ModuleDBService.getInstance(db);
-        ModuleTableDBService.getInstance(db);
+        ModuleDBService.getInstance(ModuleServiceBase.db);
+        ModuleTableDBService.getInstance(ModuleServiceBase.db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
         if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
@@ -253,7 +259,7 @@ export default abstract class ModuleServiceBase {
             for (let i in this.registered_modules) {
                 let registered_module = this.registered_modules[i];
 
-                await ModuleDBService.getInstance(db).load_or_create_module_is_actif(registered_module);
+                await ModuleDBService.getInstance(ModuleServiceBase.db).load_or_create_module_is_actif(registered_module);
             }
             if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
@@ -301,9 +307,9 @@ export default abstract class ModuleServiceBase {
             // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
             if (registered_module.fields && (registered_module.fields.length > 0)) {
 
-                await ModuleDBService.getInstance(db).loadParams(registered_module);
+                await ModuleDBService.getInstance(ModuleServiceBase.db).loadParams(registered_module);
 
-                ModuleDBService.getInstance(db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
+                ModuleDBService.getInstance(ModuleServiceBase.db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
             }
 
             // On appelle le hook de fin d'installation
@@ -354,7 +360,7 @@ export default abstract class ModuleServiceBase {
      * FIXME : pour le moment on est obligé de tout faire dans l'ordre, impossible de paraléliser à ce niveau
      *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
      */
-    public async configure_server_modules(app: Express) {
+    public async configure_server_modules(app: Express, is_generator: boolean = false) {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
@@ -365,7 +371,7 @@ export default abstract class ModuleServiceBase {
             if (server_module.actif) {
 
                 await all_promises([
-                    server_module.registerAccessPolicies(),
+                    server_module.registerAccessPolicies(is_generator),
                     server_module.registerAccessRoles(),
                     server_module.registerImport(),
                 ]);
@@ -395,12 +401,12 @@ export default abstract class ModuleServiceBase {
         }
     }
 
-    public async late_server_modules_configurations() {
+    public async late_server_modules_configurations(is_generator: boolean) {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
-                await server_module.late_configuration();
+                await server_module.late_configuration(is_generator);
             }
         }
     }
@@ -411,6 +417,85 @@ export default abstract class ModuleServiceBase {
         return this.registered_modules;
     }
 
+    public async handle_errors(
+        error: Error,
+        func_name: string,
+        retry_hook_func: (...any) => Promise<any>,
+        retry_hook_func_params: any[] = null) {
+
+        let res = null;
+        if (error &&
+            ((error['message'] == 'Connection terminated unexpectedly') ||
+                (error['message'].startsWith('connect ETIMEDOUT ')))) {
+
+            StatsController.register_stat_COMPTEUR(func_name, 'error', 'connect_error');
+            ConsoleHandler.error(error + ' - retrying in 100 ms');
+
+            return new Promise(async (resolve, reject) => {
+
+                await ThreadHandler.sleep(100, 'ModuleServiceBase.handle_errors.too_many_clients', true);
+                if (DBDisconnectionManager.instance) {
+                    await DBDisconnectionManager.instance.wait_for_reconnection();
+                }
+
+                try {
+                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    resolve(res_);
+                } catch (error2) {
+                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
+                    reject(error2);
+                }
+            });
+        } else if (error && (error['message'] == 'sorry, too many clients already')) {
+
+            StatsController.register_stat_COMPTEUR(func_name, 'error', 'too_many_clients');
+            ConsoleHandler.error(error + ' - retrying in 100 ms');
+
+            return new Promise(async (resolve, reject) => {
+
+                await ThreadHandler.sleep(100, 'ModuleServiceBase.handle_errors.too_many_clients', true);
+                if (DBDisconnectionManager.instance) {
+                    await DBDisconnectionManager.instance.wait_for_reconnection();
+                }
+
+                try {
+                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    resolve(res_);
+                } catch (error2) {
+                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
+                    reject(error2);
+                }
+            });
+        } else if ((error['code'] == 'ENOTFOUND') && (error['errno'] == -3008)) {
+
+            StatsController.register_stat_COMPTEUR(func_name, 'error', 'connect_error');
+            ConsoleHandler.error(error + ' - waiting for reconnection');
+
+            if (DBDisconnectionManager.instance) {
+                DBDisconnectionManager.instance.mark_as_disconnected();
+            }
+
+            return new Promise(async (resolve, reject) => {
+
+                if (DBDisconnectionManager.instance) {
+                    await DBDisconnectionManager.instance.wait_for_reconnection();
+                }
+
+                try {
+                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    resolve(res_);
+                } catch (error2) {
+                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
+                    reject(error2);
+                }
+            });
+        }
+
+        ConsoleHandler.error(error);
+        StatsController.register_stat_COMPTEUR(func_name, 'error', 'others');
+        return res;
+    }
+
     protected abstract getChildModules(): Module[];
     protected getLoginChildModules(): Module[] {
         return [];
@@ -419,9 +504,9 @@ export default abstract class ModuleServiceBase {
 
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
-        await this.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
-        await this.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
-        await this.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
+        await ModuleServiceBase.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
+        await ModuleServiceBase.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
+        await ModuleServiceBase.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
     }
 
     private async install_modules() {
@@ -429,7 +514,7 @@ export default abstract class ModuleServiceBase {
             let registered_module = this.registered_modules[i];
 
             try {
-                await ModuleDBService.getInstance(this.db).module_install(
+                await ModuleDBService.getInstance(ModuleServiceBase.db).module_install(
                     registered_module
                 );
             } catch (e) {
@@ -453,7 +538,7 @@ export default abstract class ModuleServiceBase {
 
             try {
                 if (registered_module.actif) {
-                    await ModuleDBService.getInstance(this.db).module_configure(
+                    await ModuleDBService.getInstance(ModuleServiceBase.db).module_configure(
                         registered_module
                     );
                 }
@@ -552,6 +637,8 @@ export default abstract class ModuleServiceBase {
             ModuleUserLogVars.getInstance(),
             ModulePlayWright.getInstance(),
             ModuleGPT.getInstance(),
+            ModuleAzureMemoryCheck.getInstance(),
+            ModuleActionURL.getInstance(),
         ];
     }
 
@@ -612,6 +699,8 @@ export default abstract class ModuleServiceBase {
             ModuleUserLogVarsServer.getInstance(),
             ModulePlayWrightServer.getInstance(),
             ModuleGPTServer.getInstance(),
+            ModuleAzureMemoryCheckServer.getInstance(),
+            ModuleActionURLServer.getInstance(),
         ];
     }
 
@@ -623,50 +712,21 @@ export default abstract class ModuleServiceBase {
             await this.db_.none(query, values);
         } catch (error) {
 
-            let self = this;
-            if (error &&
-                ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
-
-                StatsController.register_stat_COMPTEUR('db_none', 'error', 'connect_error');
-                ConsoleHandler.error(error + ' - retrying once');
-
-                try {
-                    // Retry once
-                    await this.db_.none(query, values);
-                } catch (error2) {
-                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
-                    throw error2;
-                }
-
-                return;
-            } else if (error && (error['message'] == 'sorry, too many clients already')) {
-
-                StatsController.register_stat_COMPTEUR('db_none', 'error', 'too_many_clients');
-                ConsoleHandler.error(error + ' - retrying in 100 ms');
-
-                return new Promise((resolve, reject) => {
-
-                    setTimeout(async () => {
-
-                        try {
-                            await self.db_none(query, values);
-                            resolve(null);
-                        } catch (error2) {
-                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                            reject(error2);
-                        }
-                    }, 100);
-                });
-            }
-
-            ConsoleHandler.error(error);
-            return;
+            return await this.handle_errors(error, 'db_none', this.db_none, [query, values]);
         }
 
         let time_out = Dates.now_ms();
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
         StatsController.register_stat_COMPTEUR('db_none', 'ok', '-');
-        StatsController.register_stat_DUREE('db_none', 'ok', '-', time_out - time_in);
+        StatsController.register_stat_DUREE('db_none', 'ok', '-', duration);
+    }
+
+    private count_union_all_occurrences(query: string): number {
+        const matches = query.match(/ union all /gi);
+        return matches ? matches.length : 0;
     }
 
     private async db_query(query: string, values?: []) {
@@ -675,54 +735,44 @@ export default abstract class ModuleServiceBase {
         let time_in = Dates.now_ms();
 
         try {
+
+            // On rajoute quelques contrôles de cohérence | des garde-fous simples mais qui protège d'une panne idiote
+
+            if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
+
+                // export query to txt file for debug
+                let fs = require('fs');
+                let path = require('path');
+                let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                fs.writeFileSync(filename, query);
+
+                throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
+            }
+
+            if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
+
+                // export query to txt file for debug
+                let fs = require('fs');
+                let path = require('path');
+                let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                fs.writeFileSync(filename, query);
+
+                throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
+            }
+
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
-            let self = this;
-            if (error &&
-                ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
-
-                StatsController.register_stat_COMPTEUR('db_query', 'error', 'connect_error');
-                ConsoleHandler.error(error + ' - retrying once');
-
-                try {
-                    // Retry once
-                    res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
-                } catch (error2) {
-                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
-                    throw error2;
-                }
-
-                return res;
-            } else if (error && (error['message'] == 'sorry, too many clients already')) {
-
-                StatsController.register_stat_COMPTEUR('db_query', 'error', 'too_many_clients');
-                ConsoleHandler.error(error + ' - retrying in 100 ms');
-
-                return new Promise((resolve, reject) => {
-
-                    setTimeout(() => {
-
-                        try {
-                            let res_ = self.db_query(query, values);
-                            resolve(res_);
-                        } catch (error2) {
-                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                            reject(error2);
-                        }
-                    }, 100);
-                });
-            }
-
-            ConsoleHandler.error(error);
-            StatsController.register_stat_COMPTEUR('db_query', 'error', 'others');
-            return res;
+            return await this.handle_errors(error, 'db_query', this.db_query, [query, values]);
         }
 
         let time_out = Dates.now_ms();
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
         StatsController.register_stat_COMPTEUR('db_query', 'ok', '-');
-        StatsController.register_stat_DUREE('db_query', 'time', '-', time_out - time_in);
+        StatsController.register_stat_DUREE('db_query', 'time', '-', duration);
 
         return res;
     }
@@ -738,51 +788,30 @@ export default abstract class ModuleServiceBase {
         try {
             res = await this.db_.oneOrNone(query, values);
         } catch (error) {
-
-            let self = this;
-            if (error &&
-                ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
-
-                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'connect_error');
-                ConsoleHandler.error(error + ' - retrying once');
-
-                try {
-                    // Retry once
-                    res = await this.db_.oneOrNone(query, values);
-                } catch (error2) {
-                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
-                    throw error2;
-                }
-
-                return res;
-            } else if (error && (error['message'] == 'sorry, too many clients already')) {
-
-                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'too_many_clients');
-                ConsoleHandler.error(error + ' - retrying in 100 ms');
-
-                return new Promise((resolve, reject) => {
-
-                    setTimeout(() => {
-
-                        try {
-                            let res_ = self.db_oneOrNone(query, values);
-                            resolve(res_);
-                        } catch (error2) {
-                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                            reject(error2);
-                        }
-                    }, 100);
-                });
-            }
-
-            ConsoleHandler.error(error);
-            return res;
+            return await this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
         }
 
         let time_out = Dates.now_ms();
+        let duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
         StatsController.register_stat_COMPTEUR('db_oneOrNone', 'ok', '-');
-        StatsController.register_stat_DUREE('db_oneOrNone', 'time', '-', time_out - time_in);
+        StatsController.register_stat_DUREE('db_oneOrNone', 'time', '-', duration);
         return res;
+    }
+
+    private debug_slow_queries(query: string, values: any[], duration: number) {
+        duration = Math.round(duration);
+        let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
+        query_s = (ConfigurationService.node_configuration.DEBUG_DB_FULL_QUERY_PERF ? query_s : query_s.substring(0, 1000));
+
+        if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+            (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+            ConsoleHandler.error('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
+        } else if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+            (duration > ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+            ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
+        }
     }
 }

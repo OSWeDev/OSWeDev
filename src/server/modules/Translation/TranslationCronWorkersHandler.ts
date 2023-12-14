@@ -5,6 +5,7 @@ import InstallTranslationsCronWorker from './workers/InstallTranslations/Install
 
 export default class TranslationCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!TranslationCronWorkersHandler.instance) {
             TranslationCronWorkersHandler.instance = new TranslationCronWorkersHandler();

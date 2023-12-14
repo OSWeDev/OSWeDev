@@ -1,15 +1,13 @@
 
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
-import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
+import CurrentBatchDSCacheHolder from '../CurrentBatchDSCacheHolder';
 import DataSourceControllerBase from './DataSourceControllerBase';
+import VarsProcessBase from '../bgthreads/processes/VarsProcessBase';
 
 export default abstract class DataSourceControllerTSRangeIndexedBase extends DataSourceControllerBase {
 
@@ -43,18 +41,20 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
         }
 
         node.datasources[this.name] = {};
-        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
-            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]) {
+            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name] = {};
         }
 
         await RangeHandler.foreach_ranges(data_index, async (date: number) => {
 
             let ms_i = date;
-            if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i] === 'undefined') {
+            if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][ms_i] === 'undefined') {
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
                 let time_in = Dates.now_ms();
+
                 let data = await this.get_data(node.var_data);
+
                 let time_out = Dates.now_ms();
                 // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
                 StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
@@ -65,14 +65,14 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
                     /**
                      * On ne change pas les datas qu'on avait déjà
                      */
-                    if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] === 'undefined') {
-                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
+                    if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][j] === 'undefined') {
+                        CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
                     }
                 }
             }
 
-            if (VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i]) {
-                node.datasources[this.name][ms_i] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i];
+            if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][ms_i]) {
+                node.datasources[this.name][ms_i] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][ms_i];
             }
         });
 

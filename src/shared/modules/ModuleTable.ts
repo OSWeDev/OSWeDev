@@ -88,8 +88,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
+     * @param translate_field_id Si on veut traduire les field_id en api_field_id (false pour l'usage du update_vos que la context query)
+     * @param translate_plain_obj_inside_fields_ids Si on veut traduire les plain obj à l'intérieur des fields (a priori true tout le temps, même dans le cas des context query)
      */
-    public static default_get_api_version<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true): any {
+    public static default_get_api_version<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true, translate_plain_obj_inside_fields_ids: boolean = true): any {
         if (!e) {
             return null;
         }
@@ -117,7 +119,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
          */
         let ignore_fields: { [field_id: string]: boolean } = {};
         if (table.isMatroidTable) {
-            let ignore_fields_ = MatroidController.getInstance().getMatroidFields(table.vo_type);
+            let ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
             for (let i in ignore_fields_) {
                 let ignore_field_ = ignore_fields_[i];
                 ignore_fields[ignore_field_.field_id] = true;
@@ -137,7 +139,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
 
             let new_id = translate_field_id ? fieldIdToAPIMap[field.field_id] : field.field_id;
-            res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_field_id);
+            res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_plain_obj_inside_fields_ids);
         }
 
         return res;
@@ -179,7 +181,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             a._type = res._type;
             a.id = res.id;
             res = a;
-            let ignore_fields_ = MatroidController.getInstance().getMatroidFields(table.vo_type);
+            let ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
             for (let i in ignore_fields_) {
                 let ignore_field_ = ignore_fields_[i];
                 ignore_fields[ignore_field_.field_id] = true;
@@ -368,6 +370,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
         }
         this.label = label;
+
+        this.check_unicity_field_names(tmp_fields);
 
         //remplis fields_ et fields_by_ids avec le champ tmp_fields
         this.set_fields(tmp_fields);
@@ -834,7 +838,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let trans_array = [];
                     for (let i in e) {
                         let e_ = e[i];
-                        trans_array.push(this.default_get_field_api_version(e_, field, translate_field_id));
+
+                        if ((typeof e_ === 'string') && ((!e_) || (e_.indexOf('{') < 0))) {
+                            trans_array.push(e_);
+                        } else {
+                            trans_array.push(this.default_get_field_api_version(e_, field, translate_field_id));
+                        }
                     }
                     return JSON.stringify(trans_array);
 
@@ -987,6 +996,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
     public force_numeric_field(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
+
+        if (field.is_readonly) {
+            return;
+        }
 
         let field_id = field_alias ? field_alias : field.field_id;
         let field_value = src_vo[field_id.toLowerCase()] ? src_vo[field_id.toLowerCase()] : src_vo[field_id];
@@ -1337,6 +1350,21 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return (e && (typeof e === 'string') && e.startsWith('{') && e.endsWith('}')) ? JSON.parse(e) : e;
         } catch (error) {
             return e;
+        }
+    }
+
+    private check_unicity_field_names(tmp_fields: Array<ModuleTableField<any>>) {
+        let field_names: { [field_name: string]: boolean } = {};
+
+        for (let i in tmp_fields) {
+            let field = tmp_fields[i];
+
+            if (field_names[field.field_id]) {
+                ConsoleHandler.error('Field name ' + field.field_id + ' already exists in table ' + this.name);
+                throw new Error('Field name ' + field.field_id + ' already exists in table ' + this.name);
+            }
+
+            field_names[field.field_id] = true;
         }
     }
 }

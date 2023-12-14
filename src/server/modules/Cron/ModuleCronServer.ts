@@ -13,6 +13,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -21,6 +22,7 @@ import ICronWorker from './interfaces/ICronWorker';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleCronServer.instance) {
             ModuleCronServer.instance = new ModuleCronServer();
@@ -30,15 +32,21 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     private static instance: ModuleCronServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleCron.getInstance().name);
         CronServerController.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '{worker_uid}'
         }, 'cron.run_cron_individuel.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Supervision des CRONs'
+        }, 'menu.menuelements.admin.sup_cron.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lancer une tâche planifiée manuellement'
@@ -121,6 +129,7 @@ export default class ModuleCronServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleCron.POLICY_GROUP;
@@ -142,6 +151,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
@@ -182,7 +192,7 @@ export default class ModuleCronServer extends ModuleServerBase {
             .select_vo<CronWorkerPlanification>();
 
         if (!vo) {
-            await ModuleDAO.getInstance().insertOrUpdateVO(cronWorkerPlan);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cronWorkerPlan);
         }
     }
 

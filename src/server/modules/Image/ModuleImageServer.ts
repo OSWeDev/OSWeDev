@@ -28,6 +28,7 @@ export default class ModuleImageServer extends ModuleFileServerBase<ImageVO> {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleImage.POLICY_GROUP;
@@ -47,6 +48,10 @@ export default class ModuleImageServer extends ModuleFileServerBase<ImageVO> {
         admin_access_dependency.src_pol_id = bo_access.id;
         admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+    }
+
+    protected get_vo_type(): string {
+        return ImageVO.API_TYPE_ID;
     }
 
     protected getNewVo(): ImageVO {

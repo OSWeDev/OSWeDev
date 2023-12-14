@@ -1,17 +1,17 @@
+import { isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { isEqual } from 'lodash';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SupervisionTypeWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import SupervisionTypeWidgetOptions from './SupervisionTypeWidgetOptions';
 import './SupervisionTypeWidgetOptionsComponent.scss';
@@ -23,6 +23,9 @@ import './SupervisionTypeWidgetOptionsComponent.scss';
     }
 })
 export default class SupervisionTypeWidgetOptionsComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_api_type_ids: string[];
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
@@ -37,7 +40,7 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: SupervisionTypeWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private supervision_api_type_ids: string[] = [];
     private supervision_select_options: string[] = [];
@@ -45,7 +48,7 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
 
-        this.supervision_select_options = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(this.dashboard);
+        this.supervision_select_options = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(this.get_dashboard_api_type_ids);
 
         if ((!this.page_widget) || (!this.widget_options)) {
             if (this.supervision_api_type_ids?.length > 0) {

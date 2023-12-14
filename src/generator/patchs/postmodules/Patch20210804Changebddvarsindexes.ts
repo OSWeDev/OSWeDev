@@ -2,10 +2,9 @@
 
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
-import ModuleVarServer from '../../../server/modules/Var/ModuleVarServer';
-import VarsServerController from '../../../server/modules/Var/VarsServerController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VarsInitController from '../../../shared/modules/Var/VarsInitController';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20210804Changebddvarsindexes implements IGeneratorWorker {
@@ -35,7 +34,7 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
         /**
          * Pour tous les types de vars
          */
-        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+        for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
             let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
 

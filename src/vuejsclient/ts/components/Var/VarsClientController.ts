@@ -44,8 +44,8 @@ export default class VarsClientController {
      */
     public registered_var_params_to_check_next_time: { [index: string]: boolean } = {};
 
-    public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 50, { leading: false, trailing: true });
-    public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false, trailing: true });
+    public throttled_server_registration = ThrottleHelper.declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 50, { leading: false, trailing: true });
+    public throttled_server_unregistration = ThrottleHelper.declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false, trailing: true });
 
     /**
      * Utilisé comme sémaphore pour l'édition inline des vars
@@ -67,14 +67,18 @@ export default class VarsClientController {
     /**
      * L'objectif est de stocker les registered_params et d'envoyer une requête pour avoir une valeur :
      *  - soit par ce qu'on a pas de valeur connue pour cet index
-     *  - soit par ce qu'on nous demande explicitement de forcer une nouvelle demande au serveur (ce qui ne devrait pas être utile donc pour le moment on gère pas ce cas)
+     *  - soit par ce qu'on nous demande explicitement de forcer une nouvelle demande au serveur
+     *      (ce qui ne devrait pas être utile donc pour le moment on gère pas ce cas)
+     *
      * @param var_params les params sur lesquels on veut s'abonner
-     * @param callbacks les callbacks pour le suivi des mises à jour si on utilise pas simplement le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
+     * @param callbacks les callbacks pour le suivi des mises à jour si on utilise pas simplement
+     *                  le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
      * @remark rajoute les callbacks dans registered_var_params pour les var_params spécifiés
      */
     public async registerParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
-        callbacks: { [cb_uid: number]: VarUpdateCallback } = null) {
+        callbacks: { [cb_uid: number]: VarUpdateCallback } = null
+    ) {
 
         let needs_registration: { [index: string]: VarDataBaseVO } = {};
 
@@ -85,7 +89,7 @@ export default class VarsClientController {
                 continue;
             }
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
                 continue;
             }
@@ -121,7 +125,7 @@ export default class VarsClientController {
         for (let i in VarsClientController.registered_var_params) {
             let var_param_wrapper = VarsClientController.registered_var_params[i];
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param_wrapper.var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param_wrapper.var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param_wrapper.var_param.index);
                 continue;
             }
@@ -150,7 +154,7 @@ export default class VarsClientController {
                 continue;
             }
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
                 continue;
             }
@@ -219,7 +223,7 @@ export default class VarsClientController {
                 // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
             }
 
-            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+            if (!MatroidController.check_bases_not_max_ranges(var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
                 continue;
             }

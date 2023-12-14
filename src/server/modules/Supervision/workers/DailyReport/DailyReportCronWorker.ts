@@ -15,6 +15,7 @@ import ConfigurationService from '../../../../env/ConfigurationService';
 import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 import SendInBlueMailServerController from '../../../SendInBlue/SendInBlueMailServerController';
 import ModuleTeamsAPIServer from '../../../TeamsAPI/ModuleTeamsAPIServer';
+import TeamsAPIServerController from '../../../TeamsAPI/TeamsAPIServerController';
 
 export default class DailyReportCronWorker implements ICronWorker {
 
@@ -25,6 +26,7 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     public static MAILCATEGORY_DailyReportCronWorker = 'MAILCATEGORY.DailyReportCronWorker';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DailyReportCronWorker.instance) {
             DailyReportCronWorker.instance = new DailyReportCronWorker();
@@ -106,15 +108,17 @@ export default class DailyReportCronWorker implements ICronWorker {
                 (ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN] ? ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN].length : 0)
                 + "</blockquote>"));
 
-            await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(TEAMS_WEBHOOK_PARAM_NAME, message);
+            await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK_PARAM_NAME, message);
         } else {
             ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour Teams, le paramètre requis n\'est pas initialisé :' + DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME + ':');
         }
     }
 
     private get_log_for_teams(ordered_supervised_items: ISupervisedItem[]): string {
-
         let log_errors: string = null;
+        let log_errors_max = 10;
+        let log_errors_remaining = log_errors_max;
+
         for (let i in ordered_supervised_items) {
             let supervised_item = ordered_supervised_items[i];
 
@@ -122,6 +126,12 @@ export default class DailyReportCronWorker implements ICronWorker {
                 log_errors = '<ul>';
             }
             log_errors += '<li><a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
+
+            log_errors_remaining--;
+            if (!log_errors_remaining) {
+                log_errors += '<li>... (limit ' + log_errors_max + ')</li>';
+                break;
+            }
         }
 
         if (!!log_errors) {

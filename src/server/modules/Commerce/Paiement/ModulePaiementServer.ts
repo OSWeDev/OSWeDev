@@ -3,6 +3,7 @@ import ModulePaiement from '../../../../shared/modules/Commerce/Paiement/ModuleP
 
 export default class ModulePaiementServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModulePaiementServer.instance) {
             ModulePaiementServer.instance = new ModulePaiementServer();
@@ -16,6 +17,7 @@ export default class ModulePaiementServer extends ModuleServerBase {
         super(ModulePaiement.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
     }
 }

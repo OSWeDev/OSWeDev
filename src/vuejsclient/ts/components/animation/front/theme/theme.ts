@@ -74,7 +74,7 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
                 let prct_atteinte_seuil_module_param = this.get_prct_atteinte_seuil_module_param(anim_module.id);
                 let theme_module_dataRange: ThemeModuleDataRangesVO = await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(prct_atteinte_seuil_module_param);
 
-                this.prct_atteinte_seuil_module[anim_module.id] = VarsController.getInstance().getValueOrDefault(theme_module_dataRange, 0);
+                this.prct_atteinte_seuil_module[anim_module.id] = VarsController.getValueOrDefault(theme_module_dataRange, 0);
             })());
             // récupération des sessions module de l'utilisateur
             promises.push((async () => this.um_by_module_id[anim_module.id] = await ModuleAnimation.getInstance().getUserModule(this.logged_user_id, anim_module.id))());

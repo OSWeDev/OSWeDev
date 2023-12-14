@@ -1,10 +1,8 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
 import 'vue-slider-component/theme/default.css';
 import ICheckList from '../../../../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
-import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import CheckListControllerBase from '../../../../CheckList/CheckListControllerBase';
 import CheckListModalComponent from '../../../../CheckList/modal/CheckListModalComponent';
 import VueComponentBase from '../../../../VueComponentBase';
@@ -25,11 +23,17 @@ export default class ChecklistItemModalComponent extends VueComponentBase {
 
     private initialized: boolean = false;
 
-    public openmodal(checklist: ICheckList, selected_checklist_item: ICheckListItem, selected_checkpoint: ICheckPoint, ordered_checkpoints: ICheckPoint[]) {
+    public openmodal(
+        checklist: ICheckList,
+        selected_checklist_item: ICheckListItem,
+        selected_checkpoint: ICheckPoint,
+        ordered_checkpoints: ICheckPoint[]
+    ) {
         this.selected_checklist_item = selected_checklist_item;
+        this.ordered_checkpoints = ordered_checkpoints;
         this.selected_checkpoint = selected_checkpoint;
         this.checklist = checklist;
-        this.ordered_checkpoints = ordered_checkpoints;
+
         $('#checklist_item_modal').modal('show');
     }
 

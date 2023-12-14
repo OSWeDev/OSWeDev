@@ -43,7 +43,7 @@ test('ContextQueryServer: test .build_select_query - User => Lang', async () => 
     ]).add_filters([filter_]);
     context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.firstname as firstname , t0.lastname as lastname  FROM ref.user t0 LEFT JOIN ref.lang t1 on t1.id = t0.lang_id WHERE (LOWER(t1.code_lang) = 'fr-fr')  ORDER BY t0.name ASC "
@@ -67,7 +67,7 @@ test('ContextQueryServer: test .build_select_query - Lang => User', async () => 
     ]).add_filters([filter_]);
     context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'phone', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.code_lang as code_lang  FROM ref.lang t0 LEFT JOIN ref.user t1 on t1.lang_id = t0.id WHERE (t1.firstname is NOT NULL)  ORDER BY t1.phone ASC "
@@ -90,7 +90,7 @@ test('ContextQueryServer: test .build_select_query - Userrole => User & Role', a
     ]).add_filters([filter_]);
     context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'phone', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.user t1 on t1.id = t0.user_id WHERE (t1.firstname is NOT NULL)  ORDER BY t1.phone ASC "
@@ -108,7 +108,7 @@ test('ContextQueryServer: test .build_select_query - Userrole => User & Role', a
     context_query.add_filters([filter_]);
     context_query.set_sort(new SortByVO(RoleVO.API_TYPE_ID, 'translatable_name', true));
 
-    request = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    request = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.role t1 on t1.id = t0.role_id WHERE (t1.translatable_name is NOT NULL)  ORDER BY t1.translatable_name ASC "
@@ -131,7 +131,7 @@ test('ContextQueryServer: test .build_select_query - UserRoleVO => Anonymization
     ]).add_filters([filter_]);
     context_query.set_sort(new SortByVO(AnonymizationUserConfVO.API_TYPE_ID, 'anon_field_id', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.user t1 on t1.id = t0.user_id LEFT JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id WHERE (t2.anon_field_id is NOT NULL)  ORDER BY t2.anon_field_id ASC "
@@ -156,7 +156,7 @@ test('ContextQueryServer: test .build_select_query - UserRoleVO => Anonymization
         ]).add_filters([filter_]);
     context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.user t1 on t1.id = t0.user_id LEFT JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id LEFT JOIN ref.anonym_field_conf t3 on t3.id = t2.anon_field_id WHERE (t3.field_id is NOT NULL)  ORDER BY t3.vo_type ASC "
@@ -181,7 +181,7 @@ test('ContextQueryServer: test .build_select_query - RoleVO => AnonymizationFiel
     ]).add_filters([filter_]);
     context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t1.translatable_name as translatable_name  FROM ref.userroles t0 LEFT JOIN ref.role t1 on t1.id = t0.role_id LEFT JOIN ref.user t2 on t2.id = t0.user_id LEFT JOIN ref.anonym_user_conf t3 on t3.user_id = t2.id LEFT JOIN ref.anonym_field_conf t4 on t4.id = t3.anon_field_id WHERE (t4.field_id is NOT NULL)  ORDER BY t4.vo_type ASC "
@@ -201,7 +201,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison', async ()
                 .or(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('b').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a')))
         ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( ((t0.firstname = 'a') AND (t0.lastname = 'b')) ) OR ( ((t0.firstname = 'b') AND (t0.lastname = 'a')) )) )  ORDER BY t0.name ASC "
@@ -235,7 +235,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++', async
             ])
         ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( (( ((t0.firstname = 'a1') AND (t0.lastname = 'b1')) ) AND (t0.name = 'c1')) ) AND (t0.password = crypt('d1', t0.password))) ) OR ( (( (( (( ((t0.firstname = 'a') AND (t0.lastname = 'b')) ) AND (t0.name = 'c')) ) AND (t0.password = crypt('d', t0.password))) ) OR ( (( (( ((t0.firstname = 'a2') AND (t0.lastname = 'b2')) ) AND (t0.name = 'c2')) ) AND (t0.password = crypt('d2', t0.password))) )) )) )  ORDER BY t0.name ASC "
@@ -269,7 +269,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++2', asyn
             ])
         ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( ((t0.firstname = 'a1') OR (t0.lastname = 'b1')) ) OR (t0.name = 'c1')) ) OR (t0.password = crypt('d1', t0.password))) ) AND ( (( (( ((t0.firstname = 'a') OR (t0.lastname = 'b')) ) OR (t0.name = 'c')) ) OR (t0.password = crypt('d', t0.password))) ) AND ( (( (( ((t0.firstname = 'a2') OR (t0.lastname = 'b2')) ) OR (t0.name = 'c2')) ) OR (t0.password = crypt('d2', t0.password))) )  ORDER BY t0.name ASC "
@@ -290,7 +290,7 @@ test('ContextQueryServer: test .build_select_query having auto', async () => {
         )
     ]).exec_as_server();
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.id  FROM ref.user t0 LEFT JOIN ref.userroles t1 on t1.user_id = t0.id LEFT JOIN ref.role t2 on t2.id = t1.role_id WHERE ( ((t2.id IN (SELECT __t0.id  FROM ref.role __t0 )) OR (t0.id NOT IN (SELECT __t0.user_id  FROM ref.userroles __t0 ))) ) "
@@ -305,7 +305,7 @@ test('ContextQueryServer: test .build_select_query having auto simple', async ()
 
     let context_query: ContextQueryVO = query(RoleVO.API_TYPE_ID).filter_by_id(15, UserVO.API_TYPE_ID).exec_as_server();
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.id , t0.translatable_name , t0.parent_role_id , t0.weight  FROM ref.role t0 LEFT JOIN ref.userroles t1 on t1.role_id = t0.id LEFT JOIN ref.user t2 on t2.id = t1.user_id WHERE (t2.id = 15) "
@@ -337,7 +337,7 @@ test('ContextQueryServer: test .build_select_query chained OR', async () => {
 
     context_query.add_filters([f1]).add_filters([filter_]).exec_as_server();
 
-    let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
+    let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
     expect(request.query).toStrictEqual(
         "SELECT t0.id , t0.name , t0.firstname , t0.lastname , t0.email , t0.phone , t0.blocked , t0.password , t0.password_change_date , t0.reminded_pwd_1 , t0.reminded_pwd_2 , t0.invalidated , t0.lang_id , t0.recovery_challenge , t0.recovery_expiration , t0.logged_once , t0.creation_date  FROM ref.user t0 LEFT JOIN ref.userroles t1 on t1.user_id = t0.id LEFT JOIN ref.role t2 on t2.id = t1.role_id WHERE ( ((t0.id NOT IN (SELECT __t0.user_id  FROM ref.userroles __t0 )) OR ( ((t2.id IN (SELECT __t0.id  FROM ref.role __t0 )) OR (t0.id = 15)) )) ) AND ( ((t0.id = 15) OR ( ((t0.id IN (SELECT __t0.id  FROM ref.user __t0 )) OR (t0.id IN (SELECT __t0.id  FROM ref.user __t0 ))) )) ) "

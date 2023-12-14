@@ -61,7 +61,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     private async mounted() {
 
         VarsDatasExplorerFiltersComponent.instance = this;
-        let vars_confs = Object.values(VarsController.getInstance().var_conf_by_id);
+        let vars_confs = Object.values(VarsController.var_conf_by_id);
 
         // On en profite pour mettre à jour le fields_filters_is_valid
         // si on a 1 label_handler sur une var on considère que c'est un enum partout
@@ -84,7 +84,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             }
             filtered_vo_types[var_conf.var_data_vo_type] = true;
 
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];
@@ -160,7 +160,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             return '';
         }
 
-        return var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id));
+        return var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id));
     }
 
     private set_filterable_vars_confs() {
@@ -355,7 +355,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
          */
         let first: boolean = true;
         for (let vo_type in filtered_vo_types) {
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(vo_type);
 
             if (first) {
                 for (let j in matroid_fields) {
@@ -427,7 +427,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             let var_conf = this.real_filtered_vars_confs[i];
 
             let param = VarDataBaseVO.createNew(var_conf.name);
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];

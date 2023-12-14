@@ -5,8 +5,7 @@ import StatsVarsNamesHolder from '../../../../../shared/modules/Stats/vars/Stats
 import StatsGroupSecDataRangesVO from '../../../../../shared/modules/Stats/vars/vos/StatsGroupDayDataRangesVO';
 import StatsGroupVO from '../../../../../shared/modules/Stats/vos/StatsGroupVO';
 import StatVO from '../../../../../shared/modules/Stats/vos/StatVO';
-import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
-import VarCacheConfVO from '../../../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
@@ -40,13 +39,6 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
             {});
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.var_id = this.varConf.id;
-        res.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS;
-        return res;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

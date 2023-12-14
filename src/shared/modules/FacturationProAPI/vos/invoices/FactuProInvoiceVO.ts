@@ -114,4 +114,6 @@ export default class FactuProInvoiceVO {
     public external: boolean;
     // Liste des règlements
     public settlements: FactuProSettlementVO[];
+    // Pour le PATCH, final pour passer la facture en définitive, draft pour la laisser en brouillon
+    public type_doc: "final" | "draft";
 }

@@ -186,6 +186,22 @@
         }
     }
 
+    .span_dismiss_export_alert {
+        display: inline-flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+
+        .btn_dismiss_export_alert {
+            background-color: transparent;
+            border-color: transparent;
+
+            i::after {
+                opacity: 1 !important;
+            }
+        }
+    }
+
     @media (max-width: 767px) {
         .upper_pagination {
             flex-direction: column;

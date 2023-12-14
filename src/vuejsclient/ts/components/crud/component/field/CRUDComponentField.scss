@@ -1,5 +1,4 @@
 .field {
-
     textarea {
         min-width: 45em;
         min-height: 10em;
@@ -28,7 +27,6 @@
     .inline_input_is_editing,
     .inline_input_cancel_input,
     .inline_input_is_not_editing {
-
         padding: 5px;
         height: 1.85em;
         padding-top: 0.3em;
@@ -63,7 +61,7 @@
     .inline_input_is_not_editing.busy {
         opacity: 0.5;
         color: #888 !important;
-        background-color: #AAA !important;
+        background-color: #aaa !important;
         cursor: wait;
     }
 }
@@ -167,7 +165,6 @@
     }
 
     .quill-editor {
-
         width: calc(100% - 3.6em);
         min-width: 0;
         display: inline-block;
@@ -180,7 +177,6 @@
         background: white;
 
         .form-check label {
-
             margin-left: 0.3em;
             vertical-align: middle;
         }
@@ -233,7 +229,6 @@
 }
 
 .special_placeholder_field {
-
     .special_placeholder_label {
         transition: all 0.3s;
         opacity: 0;

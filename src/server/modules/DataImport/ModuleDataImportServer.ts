@@ -6,6 +6,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../shared/modules/DataImport/interfaces/IImportedData';
@@ -27,10 +28,11 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -54,6 +56,7 @@ import ImportLogger from './logger/ImportLogger';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDataImportServer.instance) {
             ModuleDataImportServer.instance = new ModuleDataImportServer();
@@ -66,6 +69,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private has_preloaded_difs_by_uid: boolean = false;
     private preloaded_difs_by_uid: { [uid: string]: DataImportFormatVO } = {};
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDataImport.getInstance().name);
     }
@@ -73,6 +77,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     /**
      * On définit les droits d'accès du module
      */
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDataImport.POLICY_GROUP;
@@ -126,10 +131,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
         DataImportCronWorkersHandler.getInstance();
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         // On enregistre le bgthread qui gère les imports
@@ -148,6 +155,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUpdateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatUpdate);
+
+        // On force l'exec asap du bgthread des imports à la créa et/ou update des DIH
+        let force_run_asap = BGThreadServerController.force_run_asap_by_bgthread_name[DataImportBGThread.getInstance().name];
+        // Dans le cas du générateur on a pas cette fonctionnalité
+        if (force_run_asap) {
+            postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, force_run_asap);
+            postUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, force_run_asap);
+        }
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Annuler les imports en cours'
@@ -207,6 +222,50 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Format d\'import'
         }, 'fields.labels.ref.module_data_import_dif.___LABEL____post_exec_module_id'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Fichier importé'
+        }, 'fields.labels.ref.module_data_import_dih.file_id.dih___file_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ID unique'
+        }, 'fields.labels.ref.module_data_import_dih.historic_uid.dih___historic_uid.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modification'
+        }, 'fields.labels.ref.module_data_import_dih.last_up_date.dih___last_up_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nb. de lignes validées'
+        }, 'fields.labels.ref.module_data_import_dih.nb_row_validated.dih___nb_row_validated.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres'
+        }, 'fields.labels.ref.module_data_import_dih.params.dih___params.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Réimport de ...'
+        }, 'fields.labels.ref.module_data_import_dih.reimport_of_dih_id.dih___reimport_of_dih_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Date de démarrage'
+        }, 'fields.labels.ref.module_data_import_dih.start_date.dih___start_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Etat de l\'import'
+        }, 'fields.labels.ref.module_data_import_dih.state.dih___state.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sauvegarde de l\'état pour réimport'
+        }, 'fields.labels.ref.module_data_import_dih.status_before_reimport.dih___status_before_reimport.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Etat du réimport le plus récent'
+        }, 'fields.labels.ref.module_data_import_dih.status_of_last_reimport.dih___status_of_last_reimport.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Poids'
+        }, 'fields.labels.ref.module_data_import_dih.weight.dih___weight.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Date'
+        }, 'fields.labels.ref.module_data_import_dil.date.dil___date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Type'
+        }, 'fields.labels.ref.module_data_import_dil.log_level.dil___log_level.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Message (statique)'
+        }, 'fields.labels.ref.module_data_import_dil.message.dil___message.___LABEL___'));
 
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -369,6 +428,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
@@ -637,7 +697,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 }
 
                 if (error_logs.length > 0) {
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(error_logs);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(error_logs);
                 }
             }
 
@@ -736,9 +796,13 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     public async importDatas_classic(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, fasttrack_datas: IImportedData[] = null): Promise<void> {
 
         //  1 - Récupérer le format validé, et les données importées ()
+        let data_api_type_id: string = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id);
+
         let raw_imported_datas: IImportedData[] =
             importHistoric.use_fast_track ? fasttrack_datas :
-                await query(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id)).select_vos<IImportedData>();
+                await query(data_api_type_id)
+                    .set_sort(new SortByVO(data_api_type_id, field_names<IImportedData>().imported_line_number, true))
+                    .select_vos<IImportedData>();
 
         // On garde que les données, validées et importées
         let validated_imported_datas: IImportedData[] = [];
@@ -920,9 +984,13 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     public async posttreatDatas_classic(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, fasttrack_datas: IImportedData[] = null): Promise<boolean> {
 
         //  1 - Récupérer le format validé, et les données importées ()
+        let data_api_type_id: string = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id);
+
         let raw_imported_datas: IImportedData[] =
             importHistoric.use_fast_track ? fasttrack_datas :
-                await query(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id)).select_vos<IImportedData>();
+                await query(data_api_type_id)
+                    .set_sort(new SortByVO(data_api_type_id, field_names<IImportedData>().imported_line_number, true))
+                    .select_vos<IImportedData>();
 
         if ((!format) || (!format.post_exec_module_id) || (!raw_imported_datas) || (!raw_imported_datas.length)) {
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data formattée ou pas de module configuré", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
@@ -1061,7 +1129,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     protected async get_batch_mode_batch_datas<T extends IImportedData>(raw_api_type_id: string, importHistoric: DataImportHistoricVO, format: DataImportFormatVO, offset: number, batch_size: number, importation_state: number): Promise<T[]> {
 
         let filter = new ContextFilterVO();
-        filter.field_id = 'importation_state';
+        filter.field_id = field_names<IImportedData>().importation_state;
         filter.vo_type = raw_api_type_id;
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter.param_numeric = importation_state;
@@ -1069,14 +1137,17 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         /**
          * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
          */
-        let query_: ContextQueryVO = query(raw_api_type_id).add_filters([filter]).set_limit(batch_size, 0);
+        let query_: ContextQueryVO = query(raw_api_type_id)
+            .add_filters([filter])
+            .set_sort(new SortByVO(raw_api_type_id, field_names<IImportedData>().imported_line_number, true))
+            .set_limit(batch_size, 0);
 
         return await ModuleContextFilterServer.getInstance().select_vos(query_);
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
         importHistoric.historic_uid = importHistoric.id.toString();
-        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
     }
 
     private async handleImportFormatCreate(format: DataImportFormatVO): Promise<void> {
@@ -1108,7 +1179,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (!!importHistoric.reimport_of_dih_id) {
             let reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1121,7 +1192,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if (!!importHistoric.reimport_of_dih_id) {
             let reimport_of_dih: DataImportHistoricVO = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             reimport_of_dih.status_of_last_reimport = importHistoric.state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(reimport_of_dih);
         }
 
         return true;
@@ -1171,7 +1242,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private async reimportdih(dih: DataImportHistoricVO): Promise<void> {
         dih.status_before_reimport = dih.state;
         dih.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(dih);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dih);
 
     }
 
@@ -1362,7 +1433,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
              */
             this.check_text_fields(ordered_vo, ordered_vos_by_type_and_initial_id);
             ordered_vo.id = new_id;
-            let insert_res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ordered_vo);
+            let insert_res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ordered_vo);
             if ((!insert_res) || (!insert_res.id) || (new_id && (new_id != insert_res.id))) {
                 throw new Error('Failed insert');
             }

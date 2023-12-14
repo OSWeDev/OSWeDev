@@ -4,7 +4,6 @@ import AnimationImportModuleVO from "../../../../../shared/modules/Animation/imp
 import AnimationModuleVO from "../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationThemeVO from "../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import InsertOrDeleteQueryResult from "../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult";
 import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
@@ -12,9 +11,8 @@ import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/D
 import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataImportLogVO";
 import NumRange from "../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../shared/modules/DataRender/vos/NumSegment";
-import LangVO from "../../../../../shared/modules/Translation/vos/LangVO";
-import TranslatableTextVO from "../../../../../shared/modules/Translation/vos/TranslatableTextVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import DataImportModuleBase from "../../../DataImport/DataImportModuleBase/DataImportModuleBase";
 import ImportLogger from "../../../DataImport/logger/ImportLogger";
 import ModuleAnimationImportModuleDefaultFormats from "./ModuleAnimationImportModuleDefaultFormat";
@@ -32,6 +30,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
     private static instance: ModuleAnimationImportModuleServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAnimationImportModule.getInstance().name);
     }
@@ -39,6 +38,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
     // /**
     //  * On définit les droits d'accès du module
     //  */
+    // // istanbul ignore next: cannot test registerAccessPolicies
     // public async registerAccessPolicies(): Promise<void> {
     //     let group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleAnimation.POLICY_GROUP);
 
@@ -123,7 +123,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
             if (!this.alreadyPresent(moduleData, modulesInDB)) {
 
                 let module: AnimationModuleVO = this.createModuleBase(moduleData, themes, roles);
-                let queryRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(module);
+                let queryRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(module);
 
                 if (!queryRes) {
                     succeeded = false;

@@ -26,9 +26,11 @@ export default abstract class ModuleServerBase implements IModuleBase {
 
     public initialize() { }
     public registerExpressApis(app: Express): void { }
-    public async registerAccessPolicies(): Promise<void> { }
+    public async registerAccessPolicies(is_generator: boolean = false): Promise<void> { }
     public async registerAccessRoles(): Promise<void> { }
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerCrons(): void { }
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void { }
     public registerServerApiHandlers(): void { }
     public async configure(): Promise<void> { }
@@ -37,5 +39,5 @@ export default abstract class ModuleServerBase implements IModuleBase {
     /**
      * Called after all modules have been configured and initialized
      */
-    public async late_configuration(): Promise<void> { }
+    public async late_configuration(is_generator: boolean): Promise<void> { }
 }

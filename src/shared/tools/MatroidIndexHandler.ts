@@ -7,6 +7,7 @@ import TSRange from "../modules/DataRender/vos/TSRange";
 import MatroidController from "../modules/Matroid/MatroidController";
 import VarsController from "../modules/Var/VarsController";
 import VarDataBaseVO from "../modules/Var/vos/VarDataBaseVO";
+import VarPixelFieldConfVO from "../modules/Var/vos/VarPixelFieldConfVO";
 import VOsTypesManager from "../modules/VO/manager/VOsTypesManager";
 import RangeHandler from "./RangeHandler";
 
@@ -140,6 +141,27 @@ export default class MatroidIndexHandler {
         return res;
     }
 
+    /**
+     * Check injection (usage dans les requêtes) ok : get_normalized_range ok
+     * Version pour avoir les variations de chaque pixel (au lieu de faire un index, on fait un index par pixel)
+     * @param ranges
+     * @param is_matroid_index
+     * @returns liste des indexs de pixels
+     */
+    public static get_pixels_normalized_ranges(ranges: IRange[]): string[] {
+
+        if (!ranges || !ranges.length) {
+            return null;
+        }
+
+        let res: string[] = [];
+
+        RangeHandler.foreach_ranges_sync(ranges, (e: number) => {
+            res.push(MatroidIndexHandler.base_10_num_to_base_76_txt(e));
+        });
+        return res;
+    }
+
     public static from_normalized_ranges(index: string, range_type: number, is_matroid_index: boolean = false, matroid_segmentations: { [field_id: string]: number } = null, field_id: string = null): IRange[] {
 
         if (index == null) {
@@ -173,7 +195,7 @@ export default class MatroidIndexHandler {
         let res: string = vardata.var_id.toString();
 
         this.normalize_vardata_fields(vardata);
-        let fields = MatroidController.getInstance().getMatroidFields(vardata._type);
+        let fields = MatroidController.getMatroidFields(vardata._type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -192,7 +214,7 @@ export default class MatroidIndexHandler {
         let res: string = MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
 
         this.normalize_vardata_fields(vardata);
-        let fields = MatroidController.getInstance().getMatroidFields(vardata._type);
+        let fields = MatroidController.getMatroidFields(vardata._type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -202,9 +224,89 @@ export default class MatroidIndexHandler {
         return res;
     }
 
+    /**
+     * Une variante pour les pixels, qui renvoie les indexs de tous les pixels touchés par cette var
+     * WARN: nE peut marcher que sur un unique champs pixellisé pour le moment
+     * @param vardata
+     * @returns la liste des pixels (sous la forme de leur index)
+     */
+    public static get_normalized_vardata_pixels(vardata: VarDataBaseVO): string[] {
+
+        if (!vardata) {
+            return null;
+        }
+
+        let res: string[] = [];
+
+        let index_prefix = MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
+        let pixel_field_values = null;
+        let index_suffix = '';
+
+        let varconf = VarsController.var_conf_by_id[vardata.var_id];
+        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+        for (let i in varconf.pixel_fields) {
+            let pixel_field = varconf.pixel_fields[i];
+
+            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+        }
+
+        this.normalize_vardata_fields(vardata);
+        let fields = MatroidController.getMatroidFields(vardata._type);
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            if (!pixellised_fields_by_id[field.field_id]) {
+                if (!pixel_field_values) {
+                    index_prefix += '|' + this.get_normalized_ranges(vardata[field.field_id], true);
+                } else {
+                    index_suffix += '|' + this.get_normalized_ranges(vardata[field.field_id], true);
+                }
+            } else {
+                pixel_field_values = this.get_pixels_normalized_ranges(vardata[field.field_id]);
+            }
+        }
+
+        if ((!pixel_field_values) || (!pixel_field_values.length)) {
+            return null;
+        }
+
+        for (let i in pixel_field_values) {
+            res.push(index_prefix + '|' + pixel_field_values[i] + index_suffix);
+        }
+
+        return res;
+    }
+
+
+    public static get_var_id_from_normalized_vardata(index: string): number {
+
+        if (!index) {
+            return null;
+        }
+
+        let pieces: string[] = [];
+
+        try {
+            pieces = index.split('|');
+        } catch (error) {
+            console.error('get_var_id_from_normalized_vardata ; index : ' + index);
+            console.error(error);
+        }
+
+        return MatroidIndexHandler.base_76_txt_to_base_10_num(pieces[0]);
+    }
+
     public static from_normalized_vardata(index: string): VarDataBaseVO {
 
         if (!index) {
+            return null;
+        }
+
+        let var_id: number = this.get_var_id_from_normalized_vardata(index);
+        let var_conf = VarsController.var_conf_by_id[var_id];
+
+        if (!var_conf) {
             return null;
         }
 
@@ -217,17 +319,10 @@ export default class MatroidIndexHandler {
             console.error(error);
         }
 
-        let var_id: number = MatroidIndexHandler.base_76_txt_to_base_10_num(pieces[0]);
-        let var_conf = VarsController.getInstance().var_conf_by_id[var_id];
-
-        if (!var_conf) {
-            return null;
-        }
-
         let res: VarDataBaseVO = VOsTypesManager.moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
 
         res.var_id = var_id;
-        let fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+        let fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
         let matroid_segmentations = VarDataBaseVO.get_varconf_segmentations(var_conf);
 
@@ -245,7 +340,7 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let var_conf = VarsController.getInstance().var_conf_by_id[vardata.var_id];
+        let var_conf = VarsController.var_conf_by_id[vardata.var_id];
         let field_segmentations: { [field_id: string]: number } = VarDataBaseVO.get_varconf_segmentations(var_conf);
         VarDataBaseVO.adapt_param_to_varconf_segmentations(vardata, field_segmentations);
     }

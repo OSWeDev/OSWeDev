@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
@@ -21,8 +22,11 @@ export default class ImageComponent extends VueComponentBase {
     @Prop({ default: false })
     protected readonly: boolean;
 
+    @Prop()
+    protected field: DatatableField<any, any>;
+
     @Prop({ default: null })
-    protected imagevo: ImageVO;
+    protected imagevo: IDistantVOBase;
 
     @Prop({ default: null })
     protected options: any;
@@ -44,10 +48,12 @@ export default class ImageComponent extends VueComponentBase {
             return;
         }
 
+        let path: string = this.imagevo[this.field.module_table_field_id];
+
         var mock = {
             accepted: true,
-            name: this.imagevo.path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
-            url: this.imagevo.path
+            name: path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
+            url: path
         };
 
         mock.accepted = true;
@@ -109,7 +115,7 @@ export default class ImageComponent extends VueComponentBase {
             success: async (infos, res) => {
 
                 try {
-                    let newvo = JSON.parse(res);
+                    let newvo: ImageVO = JSON.parse(res);
                     self.storeData(newvo);
                     self.$emit('uploaded', newvo);
 

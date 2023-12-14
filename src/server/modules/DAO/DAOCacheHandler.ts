@@ -1,4 +1,5 @@
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 import DAOCacheParamVO from "./bgthreads/vos/DAOCacheParamVO";
 
 export default class DAOCacheHandler {
@@ -47,6 +48,7 @@ export default class DAOCacheHandler {
         DAOCacheHandler.dao_cache_params[parameterized_full_query] = new DAOCacheParamVO(Dates.now_ms(), max_age);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!DAOCacheHandler.instance) {
             DAOCacheHandler.instance = new DAOCacheHandler();
@@ -68,11 +70,11 @@ export default class DAOCacheHandler {
     private cleaning_semaphore: boolean = false;
 
     private constructor() {
-        setInterval(() => {
+        ThreadHandler.set_interval(async () => {
             if (!this.cleaning_semaphore) {
                 this.clean_cache();
             }
-        }, 10000);
+        }, 10000, 'DAOCacheHandler.clean_cache', true);
     }
 
     /**

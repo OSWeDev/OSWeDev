@@ -19,7 +19,6 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         'context_filter.type.FILTER_AND',
         'context_filter.type.FILTER_OR',
         'context_filter.type.FILTER_XOR',
-        'context_filter.type.FILTER_UNION',
 
         'context_filter.type.NULL_ALL',
         'context_filter.type.NULL_ANY',
@@ -77,7 +76,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         'context_filter.type.TYPE_NUMERIC_EQUALS_ANY',
         'context_filter.type.TYPE_EXISTS',
 
-        'context_filter.type.TYPE_UNION_ALL',
+        'context_filter.type.FILTER_UNION',
     ];
 
     /**
@@ -100,7 +99,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     public static TYPE_FILTER_AND: number = 1;
     public static TYPE_FILTER_OR: number = 2;
     public static TYPE_FILTER_XOR: number = 3;
-    public static TYPE_FILTER_UNION: number = 100;
+    public static TYPE_FILTER_UNION: number = 60;
 
     /**
      * B - Les filtres sur les datas
@@ -854,7 +853,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     /**
-     * Filtre par intersection de ts_ranges
+     * Filtre par inclusion de ts_ranges
      * @param ranges
      */
     public by_date_is_in_ranges(ranges: TSRange[]): ContextFilterVO {

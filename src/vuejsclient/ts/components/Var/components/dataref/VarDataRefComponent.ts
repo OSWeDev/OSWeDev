@@ -1,28 +1,32 @@
-
-import { debounce, cloneDeep } from 'lodash';
+import 'jquery-contextmenu';
+import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
+import { cloneDeep, debounce } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import FilterObj from '../../../../../../shared/tools/Filters';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
+import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
-import HourHandler from '../../../../../../shared/tools/HourHandler';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -30,10 +34,13 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
     public getDescSelectedVarParam: VarDataBaseVO;
+
     @ModuleVarAction
     public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
+
     @ModuleVarGetter
     public isDescMode: boolean;
+
     @ModuleVarGetter
     public is_show_public_tooltip: boolean;
 
@@ -41,7 +48,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     public var_param: VarDataBaseVO;
 
     @Prop({ default: null })
-    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
+    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any; // Should return the parent (caller) component value
 
     @Prop({ default: null })
     public filter: () => any;
@@ -101,9 +108,10 @@ export default class VarDataRefComponent extends VueComponentBase {
     public show_tooltip_prefix: boolean;
 
     private entered_once: boolean = false;
+    private can_explain_var: boolean = false;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false, trailing: true });
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false, trailing: true });
 
     // Pour éviter de rentrer en conflit avec le clic
     private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
@@ -112,8 +120,12 @@ export default class VarDataRefComponent extends VueComponentBase {
     private var_data_editing: VarDataValueResVO = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
+            this.var_data_updater.bind(this),
+            VarUpdateCallback.VALUE_TYPE_ALL
+        )
     };
+
     private aggregated_var_param: VarDataBaseVO = null;
 
     private var_data_value_is_imported: boolean = false;
@@ -224,11 +236,9 @@ export default class VarDataRefComponent extends VueComponentBase {
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
         if ((!res) || (!res.id)) {
             ConsoleHandler.warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
-            let bdddatas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(clone._type, [clone]);
-            if (bdddatas && bdddatas.length) {
+            let bdddata: VarDataBaseVO = await query(clone._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, clone.index).select_vo<VarDataBaseVO>();
+            if (bdddata) {
                 ConsoleHandler.log('...trouvé on met à jour');
-                let bdddata: VarDataBaseVO = bdddatas[0];
-
                 if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts > clone.value_ts))) {
                     ConsoleHandler.error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
                     return;
@@ -266,7 +276,27 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        await this.intersect_in();
+
+        this.set_var_conf();
+        this.set_editable_field();
+
+        let self = this;
+        await all_promises([
+            this.intersect_in(),
+            (async () => {
+                self.can_explain_var = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_FO_VAR_EXPLAIN_ACCESS);
+            })()
+        ]);
+
+        /**
+         * On ajoute le contextmenu
+         */
+        SemaphoreHandler.semaphore_sync("VarDataRefComponent.contextmenu", () => {
+            $['contextMenu']({
+                selector: ".var-data-wrapper .var_data_ref",
+                items: this.contextmenu_items
+            });
+        });
     }
 
     private async destroyed() {
@@ -288,17 +318,24 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (var_param || this.var_param) {
-            await VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(
+                [var_param ? var_param : this.var_param],
+                this.varUpdateCallbacks
+            );
 
             if (this.show_import_aggregated) {
-                await ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                await ModuleVar.getInstance().getAggregatedVarDatas(
+                    (var_param ? var_param : this.var_param)
+                ).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
                     let aggregated_var_param = null;
+
                     for (let var_data_index in datas) {
                         if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
                             aggregated_var_param = cloneDeep(datas[var_data_index]);
                             break;
                         }
                     }
+
                     this.aggregated_var_param = aggregated_var_param;
                 });
             }
@@ -313,7 +350,10 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.var_data = null;
 
         if (var_param || this.var_param) {
-            await VarsClientController.getInstance().unRegisterParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(
+                [var_param ? var_param : this.var_param],
+                this.varUpdateCallbacks
+            );
         }
     }
 
@@ -360,26 +400,31 @@ export default class VarDataRefComponent extends VueComponentBase {
     private set_var_data_value() {
         if (!this.var_data) {
             this.var_data_value = null;
+            this.$emit('set_var_data_value', null);
             return;
         }
 
         if (!this.var_value_callback) {
             this.var_data_value = this.var_data.value;
+            this.$emit('set_var_data_value', this.var_data_value);
             return;
         }
 
         this.var_data_value = this.var_value_callback(this.var_data, this);
+        this.$emit('set_var_data_value', this.var_data_value);
     }
 
     private set_filtered_value() {
 
         if (!this.var_data) {
             this.filtered_value = null;
+            this.$emit('set_filtered_value', null);
             return;
         }
 
         if (!this.filter) {
             this.filtered_value = this.var_data_value;
+            this.$emit('set_filtered_value', this.filtered_value);
             return;
         }
 
@@ -390,16 +435,17 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         this.filtered_value = this.filter.apply(null, params);
+        this.$emit('set_filtered_value', this.filtered_value);
     }
 
     private set_var_conf() {
         if ((!this.var_param) || (!this.var_param.var_id) ||
-            (!VarsController.getInstance().var_conf_by_id) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
+            (!VarsController.var_conf_by_id) || (!VarsController.var_conf_by_id[this.var_param.var_id])) {
             this.var_conf = null;
             return;
         }
 
-        this.var_conf = VarsController.getInstance().var_conf_by_id[this.var_param.var_id];
+        this.var_conf = VarsController.var_conf_by_id[this.var_param.var_id];
     }
 
     private set_editable_field() {
@@ -561,7 +607,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_tooltip;
+        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_tooltip;
     }
 
     /**
@@ -572,7 +618,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id);
+        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id);
     }
 
     get is_selected_var(): boolean {
@@ -580,5 +626,204 @@ export default class VarDataRefComponent extends VueComponentBase {
             return false;
         }
         return this.getDescSelectedVarParam.index == this.var_param.index;
+    }
+
+    get contextmenu_items(): any {
+        let contextmenu_items: any = {};
+
+        if (this.can_explain_var) {
+            // contextmenu_items['explain_var'] = {
+            //     name: this.label('VarDataRefComponent.contextmenu.explain_var'),
+            //     disabled: function (key, opt) {
+            //         let elt = opt.$trigger[0];
+
+            //         if (!elt) {
+            //             return true;
+            //         }
+
+            //         return elt.getAttribute('var_param_index') == null;
+            //     },
+            //     callback: async (key, opt) => {
+            //         let elt = opt.$trigger[0];
+
+            //         if (!elt) {
+            //             return;
+            //         }
+
+            //         // let raw_value = elt.getAttribute('var_data_raw_copyable_value');
+            //         // if (!raw_value) {
+            //         //     return;
+            //         // }
+
+            //         let var_param_index = elt.getAttribute('var_param_index');
+            //         if (!var_param_index) {
+            //             return;
+            //         }
+
+            //         ConsoleHandler.log(await ModuleVar.getInstance().explain_var(var_param_index));
+            //     }
+            // };
+        }
+
+        contextmenu_items['copy_raw_value'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_raw_value'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_data_raw_copyable_value') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let raw_value = elt.getAttribute('var_data_raw_copyable_value');
+                if (!raw_value) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(raw_value.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['copy_formatted_value'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_formatted_value'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_data_formatted_copyable_value') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let formatted_value = elt.getAttribute('var_data_formatted_copyable_value');
+                if (!formatted_value) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(formatted_value.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['copy_var_param_index'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_var_param_index'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_param_index') == null;
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                let var_param_index = elt.getAttribute('var_param_index');
+                if (!var_param_index) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(var_param_index.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['sep1'] = "---------";
+
+        contextmenu_items['clearimport'] = {
+            name: this.label('VarDataRefComponent.contextmenu.clearimport'),
+            disabled: function (key, opt) {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return (elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true');
+            },
+            callback: async (key, opt) => {
+                let elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                if ((elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true')) {
+                    return;
+                }
+
+                let var_param_index = elt.getAttribute('var_param_index');
+
+                if (!var_param_index) {
+                    return;
+                }
+
+                let param = VarDataBaseVO.from_index(var_param_index);
+
+                await query(param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, var_param_index).delete_vos();
+                await this.$snotify.success(this.label('VarDataRefComponent.contextmenu.importcleared'));
+            }
+        };
+
+
+        return contextmenu_items;
+    }
+
+    get var_data_formatted_copyable_value() {
+        let res = '';
+
+        if ((!!this.var_data) && ((this.var_data_value != 0) || (!this.consider_zero_value_as_null)) && ((this.var_data_value != null) || this.null_value_replacement)) {
+            if (!!this.prefix) {
+                res += this.prefix;
+            }
+
+            if ((this.var_data_value === 0) && this.zero_value_replacement) {
+                res += this.zero_value_replacement;
+            } else if ((this.var_data_value === null) && this.null_value_replacement) {
+                res += this.null_value_replacement;
+            }
+
+            if ((this.var_data_value !== 0) || ((this.var_data_value === 0) && (!this.zero_value_replacement))) {
+                if (this.filter) {
+                    res += this.filtered_value;
+                } else {
+                    res += this.var_data_value;
+                }
+            }
+
+            if (!!this.suffix) {
+                res += this.suffix;
+            }
+        } else {
+            if (!this.is_being_updated) {
+                res += this.null_value_replacement;
+            }
+        }
+        return res;
+    }
+
+    get var_data_raw_copyable_value() {
+        return this.var_data_value;
     }
 }

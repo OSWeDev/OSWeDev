@@ -11,6 +11,7 @@ export default class ModuleRequest extends Module {
     public static METHOD_GET: string = "GET";
     public static METHOD_POST: string = "POST";
     public static METHOD_DELETE: string = "DELETE";
+    public static METHOD_PATCH: string = "PATCH";
 
     public static APINAME_sendRequestFromApp = "send_request_from_app";
 
@@ -47,6 +48,7 @@ export default class ModuleRequest extends Module {
         result_headers?: {},
         nojsonparse?: boolean,
         add_content_length_to_headers?: boolean,
+        json_stringify_posts?: boolean,
     ) => Promise<any> = APIControllerWrapper.sah(ModuleRequest.APINAME_sendRequestFromApp);
 
     private constructor() {

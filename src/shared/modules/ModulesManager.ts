@@ -9,6 +9,9 @@ import DefaultTranslation from './Translation/vos/DefaultTranslation';
 
 export default class ModulesManager {
 
+    public static isGenerator: boolean = false;
+    public static isServerSide: boolean = false;
+
     public static MODULE_PARAM_TABLE_PREFIX: string = "module_";
 
     public static getInstance(): ModulesManager {
@@ -24,7 +27,6 @@ export default class ModulesManager {
      * Local thread cache -----
      */
 
-    public isServerSide: boolean = false;
     public modules_by_name: { [key: string]: ModuleWrapper } = {};
 
     /**

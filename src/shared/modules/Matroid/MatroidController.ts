@@ -12,21 +12,10 @@ import MatroidCutResult from './vos/MatroidCutResult';
 
 export default class MatroidController {
 
-    public static getInstance(): MatroidController {
-        if (!MatroidController.instance) {
-            MatroidController.instance = new MatroidController();
-        }
-        return MatroidController.instance;
+    public static async initialize() {
     }
 
-    private static instance: MatroidController = null;
-
-    private constructor() { }
-
-    public async initialize() {
-    }
-
-    public check_bases_not_max_ranges(matroid: IMatroid): boolean {
+    public static check_bases_not_max_ranges(matroid: IMatroid): boolean {
         let matroid_bases = this.getMatroidBases(matroid);
 
         for (let i in matroid_bases) {
@@ -47,7 +36,7 @@ export default class MatroidController {
      * On définit le cardinal du matroid par la multiplication des cardinaux des bases
      * @param matroid
      */
-    public get_cardinal(matroid: IMatroid): number {
+    public static get_cardinal(matroid: IMatroid): number {
 
         if (!matroid) {
             return 0;
@@ -66,7 +55,7 @@ export default class MatroidController {
         return (res != null) ? res : 0;
     }
 
-    public getIndex<T extends IMatroid>(matroid: T): string {
+    public static getIndex<T extends IMatroid>(matroid: T): string {
 
         if (!matroid) {
             return null;
@@ -89,7 +78,7 @@ export default class MatroidController {
     //  on regarde si on trouve des matroids identiques, on ignore le second,
     //  si on trouve des matroids qui n'ont qu'une base différente, on fait une union des bases sur le premier et on ignore le second,
     //  si on trouve plus d'une base différente
-    public union<T extends IMatroid>(matroids: T[]): T[] {
+    public static union<T extends IMatroid>(matroids: T[]): T[] {
         let res: T[] = [];
 
         if ((!matroids) || (!matroids.length)) {
@@ -153,6 +142,7 @@ export default class MatroidController {
 
             if (matroid['_index']) {
                 matroid['_index'] = null;
+                matroid['_is_pixel'] = null;
             }
         }
 
@@ -162,7 +152,7 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public getMatroidFields(api_type_id: string): Array<ModuleTableField<any>> {
+    public static getMatroidFields(api_type_id: string): Array<ModuleTableField<any>> {
         let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!moduleTable) {
@@ -197,7 +187,7 @@ export default class MatroidController {
      * FIXME TODO ASAP WITH TU
      * @param sort Sorts by cardinal
      */
-    public getMatroidBases(matroid: IMatroid, sort: boolean = false, sort_asc: boolean = false): MatroidBase[] {
+    public static getMatroidBases(matroid: IMatroid, sort: boolean = false, sort_asc: boolean = false): MatroidBase[] {
 
         if (!matroid) {
             return null;
@@ -230,7 +220,7 @@ export default class MatroidController {
      * FIXME TODO ASAP WITH TU
      * Renvoie les bases qui diffèrent entre a et b (qu'elles intersectent ou pas)
      */
-    public get_different_field_ids(a: IMatroid, b: IMatroid): string[] {
+    public static get_different_field_ids(a: IMatroid, b: IMatroid): string[] {
 
         let res: string[] = [];
 
@@ -271,14 +261,14 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public matroid_intersects_matroid(a: IMatroid, b: IMatroid, fields_mapping: { [matroid_a_field_id: string]: string } = null): boolean {
+    public static matroid_intersects_matroid(a: IMatroid, b: IMatroid, fields_mapping: { [matroid_a_field_id: string]: string } = null, ignore_var_id_check: boolean = false): boolean {
         // On part du principe que l'on peut affirmer qu'un matroid intersecte un autre matroid
         //  dès que toutes les bases intersectent. Il faut pour cela avoir les mêmes formats de matroid, le même _type sur le matroid
         //  On utilise les fields du matroid pour identifier également des champs qui seraient non définis mais
         //  qui seraient définis sur la structure de données, et qui indique un non filtrage, donc une intersection obligatoire
         //  à moins que l'autre matroid soit vide (cardinal = 0).
 
-        // if ((!a) || (!MatroidController.getInstance().get_cardinal(a)) || (!b) || (!MatroidController.getInstance().get_cardinal(b))) {
+        // if ((!a) || (!MatroidController.get_cardinal(a)) || (!b) || (!MatroidController.get_cardinal(b))) {
         //     return false;
         // }
 
@@ -295,6 +285,13 @@ export default class MatroidController {
             // si le mapping est undefined, on va prendre les champs avec le nom identique et si on échoue on renvoit false
             //  et si le mapping est null, alors on peut pas comparer et on considère que ça intersecte jamais.
             if (fields_mapping === null) {
+                return false;
+            }
+        }
+
+        // On vérifie le cas des vars, et de leur var_id. 2 matroids de var_id différents ne peut pas intersecter (sauf à vouloir ignorer ce check de façon explicite)
+        if (!ignore_var_id_check) {
+            if (((!!a['var_id']) && (!!b['var_id'])) && (a['var_id'] != b['var_id'])) {
                 return false;
             }
         }
@@ -348,7 +345,7 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public matroid_intersects_any_matroid(a: IMatroid, bs: IMatroid[]): boolean {
+    public static matroid_intersects_any_matroid(a: IMatroid, bs: IMatroid[]): boolean {
         for (let i in bs) {
             if (this.matroid_intersects_matroid(a, bs[i])) {
                 return true;
@@ -361,7 +358,7 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public matroids_intersect_themselves_at_least_once(matroids: IMatroid[]): boolean {
+    public static matroids_intersect_themselves_at_least_once(matroids: IMatroid[]): boolean {
 
         if (!matroids) {
             return false;
@@ -380,7 +377,7 @@ export default class MatroidController {
         return false;
     }
 
-    public cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
+    public static cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
 
         let res: Array<MatroidCutResult<T>> = [];
         for (let i in matroids_to_cut) {
@@ -398,7 +395,7 @@ export default class MatroidController {
         return res;
     }
 
-    public matroids_cut_matroids_get_remainings<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): T[] {
+    public static matroids_cut_matroids_get_remainings<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): T[] {
 
         let remaining_matroids: T[] = [];
         remaining_matroids = matroids_to_cut;
@@ -422,7 +419,7 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public matroids_cut_matroids<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): MatroidCutResult<T> {
+    public static matroids_cut_matroids<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): MatroidCutResult<T> {
 
         let res: MatroidCutResult<T> = new MatroidCutResult<T>([], this.cloneFromRanges(matroids_to_cut));
 
@@ -445,7 +442,7 @@ export default class MatroidController {
         return res;
     }
 
-    public cut_matroid<T extends IMatroid>(matroid_cutter: T, matroid_to_cut: T): MatroidCutResult<T> {
+    public static cut_matroid<T extends IMatroid>(matroid_cutter: T, matroid_to_cut: T): MatroidCutResult<T> {
 
         if (!matroid_to_cut) {
             return null;
@@ -530,7 +527,7 @@ export default class MatroidController {
      * Clones the type and segment_type. The bases are left undefined
      * @param from
      */
-    public createEmptyFrom<T extends IMatroid>(from: T): T {
+    public static createEmptyFrom<T extends IMatroid>(from: T): T {
         let res: T = {
             _type: from._type,
             id: undefined
@@ -543,7 +540,7 @@ export default class MatroidController {
      * Clones all but id and value, value_type, value_ts for vars
      * @param from
      */
-    public cloneFrom<T extends IMatroid, U extends IMatroid>(from: T, to_type: string = null, clone_fields: boolean = true): U {
+    public static cloneFrom<T extends IMatroid, U extends IMatroid>(from: T, to_type: string = null, clone_fields: boolean = true): U {
 
         if (!from) {
             return null;
@@ -577,7 +574,7 @@ export default class MatroidController {
         //     throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");
         // }
 
-        let to_fields = MatroidController.getInstance().getMatroidFields(_type);
+        let to_fields = MatroidController.getMatroidFields(_type);
         for (let to_fieldi in to_fields) {
             let to_field = to_fields[to_fieldi];
 
@@ -625,6 +622,7 @@ export default class MatroidController {
 
         if (res['_index']) {
             res['_index'] = null;
+            res['_is_pixel'] = null;
         }
         return res;
     }
@@ -634,7 +632,7 @@ export default class MatroidController {
      * Clones all but id
      * @param from
      */
-    public cloneFromRanges<T extends IMatroid>(from: T[]): T[] {
+    public static cloneFromRanges<T extends IMatroid>(from: T[]): T[] {
 
         if (!from) {
             return null;
@@ -648,4 +646,6 @@ export default class MatroidController {
 
         return res;
     }
+
+    private constructor() { }
 }

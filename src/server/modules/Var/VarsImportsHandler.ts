@@ -1,10 +1,12 @@
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
+import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
 
 export default class VarsImportsHandler {
@@ -41,13 +43,13 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         FOR_TU_imports: VarDataBaseVO[] = null) {
 
-        let imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null);
+        let imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
 
         if ((!imports) || (!imports.length)) {
             return;
         }
 
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
         await this.split_nodes(node, imports, controller.optimization__has_only_atomic_imports);
     }
 
@@ -82,7 +84,43 @@ export default class VarsImportsHandler {
         }
 
         // on cut par les imports, et pour chaque résultat on crée un noeud fils du noeud actuel, et le noeud actuel devient un aggrégateur
-        let cut_result: VarDataBaseVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
+        let cut_result: VarDataBaseVO[] = MatroidController.matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
+
+        // Attention le cut_result est mis dans le aggregated_datas, qui est considéré comme déjà testé de load depuis la DB...
+        //  donc là faut check le cut_result.
+        let params_indexes_by_api_type_id: { [api_type_id: number]: string[] } = {};
+
+        for (let i in cut_result) {
+            let param = cut_result[i];
+
+            let var_conf = VarsController.var_conf_by_id[param.var_id];
+            if (!var_conf) {
+                ConsoleHandler.error('VarsImportsHandler:split_nodes:var_conf not found for param:' + param.index);
+                continue;
+            }
+
+            if (!params_indexes_by_api_type_id[var_conf.var_data_vo_type]) {
+                params_indexes_by_api_type_id[var_conf.var_data_vo_type] = [];
+            }
+
+            params_indexes_by_api_type_id[var_conf.var_data_vo_type].push(param.index);
+        }
+
+        let found: { [index: string]: VarDataBaseVO } = {};
+        let not_found_indexes: string[] = [];
+        await VarsDatasProxy.get_exact_params_from_bdd(params_indexes_by_api_type_id, found, not_found_indexes);
+
+        for (let i in cut_result) {
+            let param = cut_result[i];
+
+            if (!param) {
+                continue;
+            }
+
+            if (found[param.index]) {
+                param.id = found[param.index].id;
+            }
+        }
 
         // Pour chaque noeud restant, un fils à calculer, pour chaque noeud importé, un fils avec la valeur de l'import
         await this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result);
@@ -95,17 +133,17 @@ export default class VarsImportsHandler {
      */
     public get_selection_imports(ordered_imports: VarDataBaseVO[], var_data: VarDataBaseVO): VarDataBaseVO[] {
 
-        if (!VarsController.getInstance().var_conf_by_id[var_data.var_id]) {
+        if (!VarsController.var_conf_by_id[var_data.var_id]) {
             throw new Error('VarsImportsHandler:get_selection_imports:Unknown var_data.var_id:' + var_data.var_id);
         }
 
-        let cardinal_max = MatroidController.getInstance().get_cardinal(var_data);
+        let cardinal_max = MatroidController.get_cardinal(var_data);
         let imports_valides: VarDataBaseVO[] = [];
 
         let i = 0;
 
         let tested_import = ordered_imports[i];
-        cardinal_max -= MatroidController.getInstance().get_cardinal(tested_import);
+        cardinal_max -= MatroidController.get_cardinal(tested_import);
         imports_valides.push(tested_import);
 
         /**
@@ -129,10 +167,10 @@ export default class VarsImportsHandler {
                 throw new Error('VarsImportsHandler:get_selection_imports:Import var_id different from var_data.var_id:' + tested_import.var_id + ':' + var_data.var_id);
             }
 
-            let tested_cardinal = MatroidController.getInstance().get_cardinal(tested_import);
+            let tested_cardinal = MatroidController.get_cardinal(tested_import);
 
-            if ((tested_cardinal <= cardinal_max) && (!MatroidController.getInstance().matroid_intersects_any_matroid(tested_import, imports_valides))) {
-                cardinal_max -= MatroidController.getInstance().get_cardinal(tested_import);
+            if ((tested_cardinal <= cardinal_max) && (!MatroidController.matroid_intersects_any_matroid(tested_import, imports_valides))) {
+                cardinal_max -= MatroidController.get_cardinal(tested_import);
                 imports_valides.push(tested_import);
             }
             i++;
@@ -181,8 +219,8 @@ export default class VarsImportsHandler {
      * @param b
      */
     private sort_matroids_per_cardinal_desc(a: VarDataBaseVO, b: VarDataBaseVO): number {
-        let card_a = MatroidController.getInstance().get_cardinal(a);
-        let card_b = MatroidController.getInstance().get_cardinal(b);
+        let card_a = MatroidController.get_cardinal(a);
+        let card_b = MatroidController.get_cardinal(b);
 
         return card_b - card_a;
     }

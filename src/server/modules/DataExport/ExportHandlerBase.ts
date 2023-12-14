@@ -64,10 +64,10 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
             let envParam: EnvParam = ConfigurationService.node_configuration;
 
-            let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+            let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
             let user: UserVO = null;
             if (user_id == exhi.export_to_uid) {
-                user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+                user = await ModuleAccessPolicyServer.getSelfUser();
             } else {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
                 if (!user) {

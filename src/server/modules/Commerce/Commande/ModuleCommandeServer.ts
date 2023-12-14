@@ -19,6 +19,7 @@ import ModuleProduitServer from '../Produit/ModuleProduitServer';
 
 export default class ModuleCommandeServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleCommandeServer.instance) {
             ModuleCommandeServer.instance = new ModuleCommandeServer();
@@ -32,6 +33,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         super(ModuleCommande.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleCommande.APINAME_getCommandesUser, this.getCommandesUser.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleCommande.APINAME_getLignesCommandeByCommandeId, this.getLignesCommandeByCommandeId.bind(this));
@@ -49,7 +51,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async creationPanier(): Promise<CommandeVO> {
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getInstance().getLoggedUserId());
+        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
         let panier: CommandeVO = new CommandeVO();
         panier.client_id = (client) ? client.id : null;
         panier.date = Dates.now();
@@ -87,7 +89,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
             return null;
         }
 
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getInstance().getLoggedUserId());
+        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
         let ligne: LigneCommandeVO = new LigneCommandeVO();
         ligne.commande_id = commande.id;
         ligne.informations_id = (client) ? client.informations_id : null;

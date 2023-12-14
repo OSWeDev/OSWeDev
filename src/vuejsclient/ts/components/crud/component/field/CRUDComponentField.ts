@@ -3,7 +3,7 @@ import { watch } from 'fs';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
-import Vue from 'vue';
+import Vue, { nextTick } from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -323,8 +323,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -343,7 +348,7 @@ export default class CRUDComponentField extends VueComponentBase
 
     @Watch('inline_input_read_value', { immediate: true })
     private onchange_inline_input_read_value() {
-        if (!this.inline_input_mode) {
+        if ((!this.inline_input_mode) || (!this.field)) {
             return;
         }
         let tmp = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
@@ -353,6 +358,11 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private async reload_field_value() {
+
+        if (!this.field) {
+            this.$nextTick(() => this.reload_field_value()); // On décale si on a pas encore le field
+            return;
+        }
 
         if (this.is_readonly != (this.field.is_readonly || this.is_disabled)) {
             this.is_readonly = this.field.is_readonly || this.is_disabled;
@@ -450,6 +460,11 @@ export default class CRUDComponentField extends VueComponentBase
 
     private getInputValue(input: any): any {
 
+        if (!this.field) {
+            this.$nextTick(() => this.getInputValue(input)); // On décale si on a pas encore le field
+            return null;
+        }
+
         let input_value: any = null;
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
@@ -539,8 +554,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -558,13 +578,23 @@ export default class CRUDComponentField extends VueComponentBase
         // if (!this.inline_input_mode) {
         //     return;
         // }
-
+        let is_input_html_null = false;
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_html)) {
-            input = input.root.innerHTML;
+
+            // Si le champ est vide, on le met à null
+            if (input.root.innerText == "\n" || input.root.innerText.trim().length == 0) {
+                is_input_html_null = true;
+            } else {
+                input = input.root.innerHTML;
+            }
         }
 
         let tmp = input ? this.getInputValue(input) : this.field_value;
+        if (is_input_html_null) {
+            tmp = null;
+        }
+
         if (this.field_value != tmp) {
             this.field_value = tmp;
         }
@@ -576,8 +606,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onEndOfChange) {
-            this.field.onEndOfChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onEndOfChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         // Si je ne suis pas en inline edit, j'appelle le onchangevo
@@ -617,8 +652,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -636,8 +676,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -809,6 +854,12 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private async prepare_select_options() {
+
+        if (!this.field) {
+            this.$nextTick(() => this.prepare_select_options()); // On décale si on a pas encore le field
+            return;
+        }
+
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
@@ -1154,8 +1205,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -1182,8 +1238,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();
@@ -1343,8 +1404,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            await this.field.onChange(this.vo);
-            this.datatable.refresh();
+            if (await this.field.onChange(this.vo)) {
+                if (this.field_value != this.vo[this.field.datatable_field_uid]) {
+                    this.field_value = this.vo[this.field.datatable_field_uid];
+                }
+            } else {
+                this.datatable.refresh();
+            }
         }
 
         this.debounced_onchangevo_emitter();

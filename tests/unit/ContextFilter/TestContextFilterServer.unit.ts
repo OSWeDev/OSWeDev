@@ -33,7 +33,7 @@ test('ContextFilterServer: test updates_jointures - User => Lang', async () => {
     let tables_aliases_by_type: { [vo_type: string]: string } = {
         user: 't0'
     };
-    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+    aliases_n = await ContextFilterServerController.updates_jointures(
         null, //todo
         '',
         jointures,
@@ -75,7 +75,7 @@ test('ContextFilterServer: test updates_jointures - Lang => User', async () => {
     let tables_aliases_by_type = {
         [LangVO.API_TYPE_ID]: 't0'
     };
-    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+    aliases_n = await ContextFilterServerController.updates_jointures(
         null, //todo
         '',
         jointures,
@@ -117,7 +117,7 @@ test('ContextFilterServer: test updates_jointures - User => Role', async () => {
     let tables_aliases_by_type = {
         [UserVO.API_TYPE_ID]: 't0'
     };
-    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+    aliases_n = await ContextFilterServerController.updates_jointures(
         null, //todo
         '',
         jointures,
@@ -163,7 +163,7 @@ test('ContextFilterServer: test updates_jointures - UserRole => Role & User', as
     let tables_aliases_by_type = {
         [UserRoleVO.API_TYPE_ID]: 't0'
     };
-    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+    aliases_n = await ContextFilterServerController.updates_jointures(
         null, //todo
         '',
         jointures,
@@ -189,7 +189,7 @@ test('ContextFilterServer: test updates_jointures - UserRole => Role & User', as
     expect(aliases_n).toStrictEqual(2);
 
     // étape 2
-    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+    aliases_n = await ContextFilterServerController.updates_jointures(
         null, //todo
         '',
         jointures,
@@ -235,7 +235,7 @@ test('ContextFilterServer: test updates_jointures - UserRoleVO => AnonymizationF
     let tables_aliases_by_type = {
         [UserRoleVO.API_TYPE_ID]: 't0'
     };
-    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+    aliases_n = await ContextFilterServerController.updates_jointures(
         null, //todo
         '',
         jointures,
@@ -286,7 +286,7 @@ test('ContextFilterServer: test updates_jointures - RoleVO => AnonymizationField
     let tables_aliases_by_type = {
         [RoleVO.API_TYPE_ID]: 't0'
     };
-    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+    aliases_n = await ContextFilterServerController.updates_jointures(
         null, //todo
         '',
         jointures,

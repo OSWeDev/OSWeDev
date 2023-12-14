@@ -31,7 +31,7 @@ import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/Module
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
-import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
@@ -242,7 +242,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private calendar_date: string = DateHandler.getInstance().formatDayForIndex(Dates.now());
     private viewname: string = 'timelineWeek';
 
-    private reset_targets = ThrottleHelper.getInstance().declare_throttle_without_args(
+    private reset_targets = ThrottleHelper.declare_throttle_without_args(
         this.reset_targets_throttled.bind(this),
         100,
         {
@@ -697,11 +697,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                 self.set_targets_facilitators_by_ids(
                     VOsTypesManager.vosArray_to_vosByIds(
-                        await ModuleDAO.getInstance().getVosByRefFieldsIds<IPlanTargetFacilitator>(
-                            this.program_plan_shared_module.target_facilitator_type_id,
-                            'target_id', targets_ids,
-                            'facilitator_id', facilitators_ids
-                        ))
+                        await query(this.program_plan_shared_module.target_facilitator_type_id)
+                            .filter_by_num_has(field_names<IPlanTargetFacilitator>().target_id, targets_ids)
+                            .filter_by_num_has(field_names<IPlanTargetFacilitator>().facilitator_id, facilitators_ids)
+                            .select_vos<IPlanTargetFacilitator>()
+                    )
                 );
             })());
         }
@@ -759,7 +759,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
     private getResourceName(first_name, name) {
-        return ProgramPlanTools.getResourceName(first_name, name);
+        const resource_name = ProgramPlanTools.getResourceName(first_name, name);
+        return resource_name;
     }
 
     get planningResources() {
@@ -1093,6 +1094,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                             let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+                                .filter_is_false(field_names<IPlanRDV>().archived)
                                 .filter_by_num_eq('target_id', rdv.target_id)
                                 .select_vos<IPlanRDV>();
 
@@ -1297,6 +1299,14 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return this.get_tasks_by_ids[this.selected_rdv.task_id].is_facilitator_specific;
     }
 
+    private async reload_rdvs() {
+        this.setRdvsByIds(
+            VOsTypesManager.vosArray_to_vosByIds(
+                await this.program_plan_shared_module.getRDVsOfProgramSegment(this.program_id, this.fcSegment)
+            )
+        );
+    }
+
     @Watch('fcSegment', { deep: true, immediate: true })
     private async onChangeFCSegment() {
 
@@ -1307,13 +1317,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // Sont chargés lors du changement de segment consulté
         if (this.program_plan_controller.load_rdv_on_segment_change) {
 
-            promises.push((async () => {
-                self.setRdvsByIds(
-                    VOsTypesManager.vosArray_to_vosByIds(
-                        await this.program_plan_shared_module.getRDVsOfProgramSegment(self.program_id, self.fcSegment)
-                    )
-                );
-            })());
+            promises.push(this.reload_rdvs());
         }
 
         if (!!this.program_plan_shared_module.rdv_prep_type_id) {
@@ -1418,6 +1422,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                             let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+                                .filter_is_false(field_names<IPlanRDV>().archived)
                                 .filter_by_num_eq('target_id', rdv.target_id)
                                 .select_vos<IPlanRDV>();
 
@@ -1659,6 +1664,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                 let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+                    .filter_is_false(field_names<IPlanRDV>().archived)
                     .filter_by_num_eq('target_id', this.selected_rdv.target_id)
                     .select_vos<IPlanRDV>();
 
@@ -1839,6 +1845,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let self = this;
 
         let rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
+            .filter_is_false(field_names<IPlanRDV>().archived)
             .filter_by_num_eq('target_id', this.selected_rdv.target_id)
             .select_vos<IPlanRDV>();
 

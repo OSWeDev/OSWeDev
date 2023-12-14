@@ -3,7 +3,6 @@
 import { IDatabase } from 'pg-promise';
 import VarsServerController from '../../../server/modules/Var/VarsServerController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220713ChangeVarCacheType1To0 implements IGeneratorWorker {
@@ -24,13 +23,5 @@ export default class Patch20220713ChangeVarCacheType1To0 implements IGeneratorWo
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        for (let i in VarsServerController.getInstance().varcacheconf_by_var_ids) {
-            let varcacheconf = VarsServerController.getInstance().varcacheconf_by_var_ids[i];
-
-            if (varcacheconf.cache_startegy == VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_NONE) {
-                varcacheconf.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS;
-                await ModuleDAO.getInstance().insertOrUpdateVO(varcacheconf);
-            }
-        }
     }
 }

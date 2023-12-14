@@ -5,13 +5,20 @@ export default abstract class DAGNodeBase {
 
     /**
      * Les dépendances ascendantes.
+     * On peut avoir plusieurs dépendances ascendantes avec le même nom de dep, car en fait
+     *  le nom de la dep est défini unique à la descente du noeud, et non à la montée
+     * Donc on a un tableau de dep ascendantes, et non une seule, par nom de dep
      */
-    public incoming_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> } = {};
+    public incoming_deps: { [dep_name: string]: Array<DAGNodeDep<DAGNodeBase>> } = {};
 
     /**
      * Les dépendances descendantes.
      */
     public outgoing_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> } = {};
+
+    public tags: { [tag_name: string]: boolean } = {};
+
+    protected constructor() { }
 
     /**
      * @returns true si le noeuds à des deps descendantes, false sinon => dans ce cas on parle de noeud feuille/leaf

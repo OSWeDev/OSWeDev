@@ -39,19 +39,14 @@ export default class VarCtrlDAGNode extends DAGNodeBase {
             return;
         }
 
-        let dep: DAGNodeDep<VarCtrlDAGNode> = new DAGNodeDep(dep_name, outgoing_node);
+        let dep: DAGNodeDep<VarCtrlDAGNode> = new DAGNodeDep(dep_name, this, outgoing_node);
 
-        dep.incoming_node = this;
-
-        if (!this.outgoing_deps) {
-            this.outgoing_deps = {};
-        }
         this.outgoing_deps[dep.dep_name] = dep;
 
-        if (!dep.outgoing_node.incoming_deps) {
-            dep.outgoing_node.incoming_deps = {};
+        if (!dep.outgoing_node.incoming_deps[dep.dep_name]) {
+            dep.outgoing_node.incoming_deps[dep.dep_name] = [];
         }
-        dep.outgoing_node.incoming_deps[dep.dep_name] = dep;
+        dep.outgoing_node.incoming_deps[dep.dep_name].push(dep);
 
         if (!!this.dag.roots[dep.outgoing_node.var_controller.varConf.id]) {
             delete this.dag.roots[dep.outgoing_node.var_controller.varConf.id];

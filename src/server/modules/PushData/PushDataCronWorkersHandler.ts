@@ -7,6 +7,7 @@ import CleanOldNotifsCronWorker from './workers/CleanOldNotifs/CleanOldNotifsCro
 
 export default class PushDataCronWorkersHandler {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PushDataCronWorkersHandler.instance) {
             PushDataCronWorkersHandler.instance = new PushDataCronWorkersHandler();

@@ -2,13 +2,10 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDocument from '../../../shared/modules/Document/ModuleDocument';
 import DocumentLangVO from '../../../shared/modules/Document/vos/DocumentLangVO';
 import DocumentRoleVO from '../../../shared/modules/Document/vos/DocumentRoleVO';
@@ -20,15 +17,12 @@ import DocumentVO from '../../../shared/modules/Document/vos/DocumentVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import FileHandler from '../../../shared/tools/FileHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
@@ -39,6 +33,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleDocumentServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleDocumentServer.instance) {
             ModuleDocumentServer.instance = new ModuleDocumentServer();
@@ -48,10 +43,12 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     private static instance: ModuleDocumentServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDocument.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDocument.POLICY_GROUP;
@@ -81,6 +78,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -156,6 +154,10 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Besoin d'infos" },
             'document_handler.need_info.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aucun document disponible" },
+            'document_handler_component.no_document.___LABEL___')
+        );
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
@@ -167,9 +169,11 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_document_path_from_file_changed);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
     }
 
+    // istanbul ignore next: cannot test registerAccessHooks
     public registerAccessHooks(): void {
 
         APIControllerWrapper.registerServerApiHandler(ModuleDocument.APINAME_get_ds_by_user_lang, this.get_ds_by_user_lang.bind(this));
@@ -228,7 +232,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
                 // Techniquement, en faisant cette modif avec le DAO ça fait lancer le trigger preupdate du doc et donc recalc le field... mais bon
                 //  on est en post update du file donc ça marche ...
                 doc.document_url = url;
-                await ModuleDAO.getInstance().insertOrUpdateVO(doc);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(doc);
             }
         }
     }
@@ -236,7 +240,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
         let main_query = query(DocumentVO.API_TYPE_ID);
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         return await main_query
             .filter_by_num_eq('lang_id', user.lang_id, DocumentLangVO.API_TYPE_ID)
             .add_filters([
@@ -249,12 +253,12 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        let user = await ModuleAccessPolicyServer.getSelfUser();
         return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 }

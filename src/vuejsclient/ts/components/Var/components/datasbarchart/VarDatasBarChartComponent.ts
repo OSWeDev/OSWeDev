@@ -42,7 +42,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     // private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
-    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
     private debounced_var_datas_updater = debounce(this.var_datas_updater.bind(this), 500);
 
     private current_chart_data: any = null;
@@ -184,7 +184,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         let old_var_params = this.get_all_datas(old_datasets);
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+        if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
             return;
         }
 
@@ -301,7 +301,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             if (!!var_dataset_descriptor.label_translatable_code) {
                 dataset['label'] = this.t(var_dataset_descriptor.label_translatable_code);
             } else {
-                dataset['label'] = this.t(VarsController.getInstance().get_translatable_name_code(var_dataset_descriptor.var_name));
+                dataset['label'] = this.t(VarsController.get_translatable_name_code(var_dataset_descriptor.var_name));
             }
 
             if (!!var_dataset_descriptor.bg_color) {

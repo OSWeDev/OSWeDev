@@ -60,8 +60,8 @@ export default class FeedbackVO implements IVersionedVO {
     // Routes fullpaths
     public routes_fullpaths: string[];
 
-    // Every api requests, formatted as LightWeightSendableRequestVO, and in json
-    public apis_log_json: string;
+    // // Every api requests, formatted as LightWeightSendableRequestVO, and in json
+    // public apis_log_json: string;
 
     // Every console_logs we could get
     public console_logs: string[];

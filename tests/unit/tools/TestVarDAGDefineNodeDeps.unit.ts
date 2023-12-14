@@ -25,7 +25,7 @@
 
 
 //     it('test clear_node_deps', () => {
-//         VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
+//         VarsController.registerVar(varConf, FakeVarController.getInstance());
 
 //         VarDAGDefineNodeDeps.clear_node_deps(null, null);
 
@@ -177,7 +177,7 @@
 
 //     it('test add_node_deps', () => {
 
-//         VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
+//         VarsController.registerVar(varConf, FakeVarController.getInstance());
 
 //         let index1: string = "1_2019-01-01_1_1";
 //         let index2: string = "1_2019-01-02_1_1";

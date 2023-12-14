@@ -1,8 +1,7 @@
 import VarServerControllerBase from '../../../../../src/server/modules/Var/VarServerControllerBase';
 import VarsServerController from '../../../../../src/server/modules/Var/VarsServerController';
-import VarDAGNode from '../../../../../src/shared/modules/Var/graph/VarDAGNode';
+import VarDAGNode from '../../../../../src/server/modules/Var/vos/VarDAGNode';
 import VarsController from '../../../../../src/shared/modules/Var/VarsController';
-import VarCacheConfVO from '../../../../../src/shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../../src/shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import FakeDataVO from './../vos/FakeDataVO';
@@ -29,13 +28,6 @@ export default class FakeVarControllerCyclB extends VarServerControllerBase<Fake
         );
 
         this.optimization__has_no_imports = true;
-    }
-
-    public getVarCacheConf(): VarCacheConfVO {
-        let res: VarCacheConfVO = new VarCacheConfVO();
-        res.id = 11;
-        res.var_id = this.varConf.id;
-        return res;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
@@ -65,7 +57,7 @@ export default class FakeVarControllerCyclB extends VarServerControllerBase<Fake
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_CyclA = VarsServerController.getInstance().get_outgoing_deps_sum(varDAGNode, FakeVarControllerCyclB.DEP_CyclA, 0);
+        let DEP_CyclA = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerCyclB.DEP_CyclA, 0);
 
         return DEP_CyclA;
     }

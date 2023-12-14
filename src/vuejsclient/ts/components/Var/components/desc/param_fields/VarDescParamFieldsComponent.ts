@@ -23,7 +23,7 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
     }
 
     private get_card_field_code(field: ModuleTableField<any>) {
-        return '{' + VarsController.getInstance().get_card_field_code(field.field_id) + '}';
+        return '{' + VarsController.get_card_field_code(field.field_id) + '}';
     }
 
     get ts_range_type(): number {
@@ -53,6 +53,6 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
             return null;
         }
 
-        return MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        return MatroidController.getMatroidFields(this.var_param._type);
     }
 }

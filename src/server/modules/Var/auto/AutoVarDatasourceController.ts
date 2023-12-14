@@ -15,7 +15,7 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
 
             for (let i in varconf.auto_param_context_api_type_ids) {
                 let api_type_id = varconf.auto_param_context_api_type_ids[i];
-                let path = ContextFieldPathServerController.getInstance().get_path_between_types(
+                let path = ContextFieldPathServerController.get_path_between_types(
                     varconf.auto_param_context_discarded_field_paths,
                     varconf.auto_param_context_use_technical_field_versioning,
                     varconf.auto_param_context_api_type_ids,
@@ -57,7 +57,7 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
 
     public async get_data(param: VarDataBaseVO): Promise<number> {
 
-        let varconf: VarConfVO = VarsServerController.getInstance().getVarConfById(param.var_id);
+        let varconf: VarConfVO = VarsServerController.getVarConfById(param.var_id);
 
         let query_res = await query(varconf.auto_vofieldref_api_type_id)
             .field(varconf.auto_vofieldref_field_id, 'ds_result', varconf.auto_vofieldref_api_type_id, varconf.aggregator, varconf.auto_vofieldref_modifier)

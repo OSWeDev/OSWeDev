@@ -14,6 +14,7 @@ import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeCon
 
 export default class ModuleStatsServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleStatsServer.instance) {
             ModuleStatsServer.instance = new ModuleStatsServer();
@@ -23,21 +24,28 @@ export default class ModuleStatsServer extends ModuleServerBase {
 
     private static instance: ModuleStatsServer = null;
 
+    // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleStats.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleStats.APINAME_register_client_stats, this.register_client_stats.bind(this));
     }
 
+    // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
     }
 
+    // istanbul ignore next: cannot test configure
     public async configure() {
         await this.configure_vars();
-        ModuleBGThreadServer.getInstance().registerBGThread(StatsInvalidatorBGThread.getInstance());
-        ModuleBGThreadServer.getInstance().registerBGThread(StatsUnstackerBGThread.getInstance());
+
+        if (StatsController.ACTIVATED) {
+            ModuleBGThreadServer.getInstance().registerBGThread(StatsInvalidatorBGThread.getInstance());
+            ModuleBGThreadServer.getInstance().registerBGThread(StatsUnstackerBGThread.getInstance());
+        }
     }
 
     private async configure_vars() {

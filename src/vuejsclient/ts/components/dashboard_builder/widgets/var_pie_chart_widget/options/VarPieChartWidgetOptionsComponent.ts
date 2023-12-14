@@ -39,9 +39,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private get_custom_filters: string[];
 
     private next_update_options: VarPieChartWidgetOptions = null;
-    private throttled_reload_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
-    private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
+    private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
 
     private tmp_selected_var_name_1: string = null;
     private tmp_selected_var_name_2: string = null;
@@ -407,11 +407,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     get fields_that_could_get_custom_filter_1(): string[] {
         let res: string[] = [];
 
-        if (!this.widget_options || (!this.widget_options.var_id_1) || (!VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1])) {
+        if (!this.widget_options || (!this.widget_options.var_id_1) || (!VarsController.var_conf_by_id[this.widget_options.var_id_1])) {
             return null;
         }
 
-        let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].var_data_vo_type;
+        let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id_1].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -443,7 +443,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_2].var_data_vo_type;
+        let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id_2].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -497,9 +497,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
         let res: string[] = [];
 
-        for (let i in VarsController.getInstance().var_conf_by_name) {
-            let var_conf = VarsController.getInstance().var_conf_by_name[i];
-            res.push(var_conf.id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(var_conf.id)));
+        for (let i in VarsController.var_conf_by_name) {
+            let var_conf = VarsController.var_conf_by_name[i];
+            res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
         res.sort((a, b) => {
@@ -734,11 +734,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[this.widget_options.dimension_custom_filter_segment_type];
         }
 
-        if (this.tmp_selected_var_name_1 != (this.widget_options.var_id_1 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_1)))) {
-            this.tmp_selected_var_name_1 = this.widget_options.var_id_1 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_1));
+        if (this.tmp_selected_var_name_1 != (this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1)))) {
+            this.tmp_selected_var_name_1 = this.widget_options.var_id_1 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_1));
         }
-        if (this.tmp_selected_var_name_2 != (this.widget_options.var_id_2 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_2)))) {
-            this.tmp_selected_var_name_2 = this.widget_options.var_id_2 + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id_2));
+        if (this.tmp_selected_var_name_2 != (this.widget_options.var_id_2 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_2)))) {
+            this.tmp_selected_var_name_2 = this.widget_options.var_id_2 + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id_2));
         }
         if (this.custom_filter_names_1 != (this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {})) {
             this.custom_filter_names_1 = this.widget_options.filter_custom_field_filters_1 ? cloneDeep(this.widget_options.filter_custom_field_filters_1) : {};

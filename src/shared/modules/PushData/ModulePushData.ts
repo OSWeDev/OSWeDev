@@ -1,13 +1,13 @@
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import UserVO from '../AccessPolicy/vos/UserVO';
+import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import APINotifTypeResultVO from './vos/APINotifTypeResultVO';
 import NotificationVO from './vos/NotificationVO';
-import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
-import { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 
 export default class ModulePushData extends Module {
 
@@ -56,6 +56,11 @@ export default class ModulePushData extends Module {
         this.fields = [];
         this.datatables = [];
 
+        this.init_NotificationVO();
+        this.init_APIResultVO();
+    }
+
+    private init_NotificationVO() {
         let user_id: ModuleTableField<number> = new ModuleTableField<number>('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, false);
         let datatable_fields = [
             new ModuleTableField('notification_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, NotificationVO.TYPE_NOTIF_SIMPLE).setEnumValues(NotificationVO.TYPE_NAMES),
@@ -89,6 +94,15 @@ export default class ModulePushData extends Module {
         ];
         let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        this.datatables.push(datatable);
+    }
+
+    private init_APIResultVO() {
+        let datatable_fields = [
+            new ModuleTableField('api_call_id', ModuleTableField.FIELD_TYPE_int, 'api_call_id', true),
+            new ModuleTableField('res', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'res', false)
+        ];
+        let datatable = new ModuleTable(this, APINotifTypeResultVO.API_TYPE_ID, () => new APINotifTypeResultVO(), datatable_fields, null, "APIRes");
         this.datatables.push(datatable);
     }
 }

@@ -4,7 +4,9 @@ import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/Modul
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import DashboardWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardWidgetVOManager';
+import DashboardPageVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageVOManager';
+import DashboardVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardVOManager';
+import WidgetOptionsVOManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -15,6 +17,9 @@ import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
+import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
+import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -25,18 +30,47 @@ import './DashboardViewerComponent.scss';
 })
 export default class DashboardViewerComponent extends VueComponentBase {
 
+    @ModuleDashboardPageAction
+    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
+
+    @ModuleDashboardPageAction
+    private set_dashboard_api_type_ids: (dashboard_api_type_ids: string[]) => void;
+
+    @ModuleDashboardPageAction
+    private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
+
     @ModuleDashboardPageGetter
     private get_page_history: DashboardPageVO[];
 
     @ModuleDashboardPageAction
     private add_page_history: (page_history: DashboardPageVO) => void;
+
+    @ModuleDashboardPageAction
+    private set_dashboard_navigation_history: (
+        dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number }
+    ) => void;
+
     @ModuleDashboardPageAction
     private set_page_history: (page_history: DashboardPageVO[]) => void;
+
     @ModuleDashboardPageAction
     private pop_page_history: (fk) => void;
 
     @ModuleDashboardPageAction
     private clear_active_field_filters: () => void;
+
+    @ModuleDashboardPageGetter
+    private get_dashboard_navigation_history: { current_dashboard_id: number, previous_dashboard_id: number };
+
+    @ModuleDashboardPageGetter
+    private get_active_field_filters: FieldFiltersVO;
+
+    @ModuleDashboardPageAction
+    private set_active_field_filters: (param: FieldFiltersVO) => void;
+
+
+    // @ModuleDashboardPageAction
+    // private add_shared_filters_to_map: (shared_filters: SharedFiltersVO[]) => void;
 
     @Prop({ default: null })
     private dashboard_id: number;
@@ -88,6 +122,12 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return res;
     }
 
+    private async init_api_type_ids_and_discarded_field_paths() {
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
+        this.set_dashboard_api_type_ids(api_type_ids);
+        this.set_discarded_field_paths(discarded_field_paths);
+    }
+
     /**
      * Quand on change de dahsboard, on supprime les filtres contextuels existants (en tout cas par défaut)
      *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
@@ -103,17 +143,30 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return;
         }
 
-        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardVO.API_TYPE_ID);
-        const has_dashboard_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+        // Update the dashboard navigation history
+        DashboardVOManager.update_dashboard_navigation_history(
+            this.dashboard_id,
+            this.get_dashboard_navigation_history,
+            this.set_dashboard_navigation_history
+        );
+
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
+            DashboardVO.API_TYPE_ID
+        );
+
+        const has_dashboard_access = await ModuleAccessPolicy.getInstance().testAccess(
+            access_policy_name
+        );
 
         if (!has_dashboard_access) {
             this.loading = false;
             return;
         }
 
-        this.dashboard = await query(DashboardVO.API_TYPE_ID)
-            .filter_by_id(this.dashboard_id)
-            .select_vo<DashboardVO>();
+        this.dashboard = await DashboardVOManager.find_dashboard_by_id(
+            this.dashboard_id
+        );
 
         if (!this.dashboard) {
             this.can_edit = false;
@@ -121,15 +174,21 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return;
         }
 
-        this.clear_active_field_filters();
+        await this.init_api_type_ids_and_discarded_field_paths();
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard.id)
-            .set_sorts([
-                new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true),
-                new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]
-            )
-            .select_vos<DashboardPageVO>();
+        // // FIXME : JNE pour MDU : Je remets le clear en place, en le supprimant tu as juste partagé tous les filtres de tous les dashboards entre eux,
+        // // ya aucune notion de paramétrage associée... donc je remets dans l'état inital et on corrigera le partage par la suite...
+        // this.clear_active_field_filters();
+
+        const shared_filters: SharedFiltersVO[] = await DashboardVOManager.load_shared_filters_with_dashboard_id(
+            this.dashboard.id,
+        );
+
+        this.add_shared_filters_to_map(shared_filters);
+
+        this.pages = await this.load_dashboard_pages_by_dashboard_id(
+            this.dashboard.id
+        );
 
         if (!this.pages) {
             this.isLoading = false;
@@ -137,13 +196,43 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return;
         }
 
-        DashboardWidgetVOManager.getInstance().initialize();
+        WidgetOptionsVOManager.getInstance().initialize();
 
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
 
-        this.can_edit = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_BO_ACCESS);
+        this.can_edit = await ModuleAccessPolicy.getInstance().testAccess(
+            ModuleDashboardBuilder.POLICY_BO_ACCESS
+        );
+
         this.loading = false;
+    }
+
+    /**
+     * load_dashboard_pages_by_dashboard_id
+     * - Load the dashboard pages by dashboard id and sort them by weight
+     *
+     * @param {number} [dashboard_id]
+     * @param {boolean} [options.refresh]
+     * @returns {Promise<DashboardVO[]>}
+     */
+    private async load_dashboard_pages_by_dashboard_id(
+        dashboard_id: number,
+        options?: { refresh?: boolean }
+    ): Promise<DashboardPageVO[]> {
+
+        const dashboard_pages = await DashboardPageVOManager.find_dashboard_pages_by_dashboard_id(
+            dashboard_id,
+            {
+                sorts: [
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                ]
+            },
+            options
+        );
+
+        return dashboard_pages;
     }
 
     private select_page(page: DashboardPageVO) {
@@ -175,6 +264,18 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
         return res;
     }
+
+    @Watch("dashboard", { immediate: true })
+    private async onchange_dashboard() {
+        // We should load the shared_filters with the current dashboard
+        await DashboardVOManager.load_shared_filters_with_dashboard(
+            this.dashboard,
+            this.get_dashboard_navigation_history,
+            this.get_active_field_filters,
+            this.set_active_field_filters
+        );
+    }
+
 
     // private mounted() {
     //     let body = document.getElementById('page-top');

@@ -30,7 +30,7 @@ export default class DefaultTranslationsServerManager {
         }
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max);
+        let promise_pipeline = new PromisePipeline(max, 'DefaultTranslationsServerManager.saveDefaultTranslations');
         let registered_default_translations = this.clean_registered_default_translations();
 
         let langs: LangVO[] = null;
@@ -64,7 +64,7 @@ export default class DefaultTranslationsServerManager {
         });
 
         await promise_pipeline.end();
-        promise_pipeline = new PromisePipeline(max);
+        promise_pipeline = new PromisePipeline(max, 'DefaultTranslationsServerManager.saveDefaultTranslations');
 
         for (let i in registered_default_translations) {
 

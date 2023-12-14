@@ -32,7 +32,7 @@ export default class ModuleFeedback extends Module {
 
     private static instance: ModuleFeedback = null;
 
-    public feedback: (feedback: FeedbackVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleFeedback.APINAME_feedback);
+    public feedback: (feedback: FeedbackVO) => Promise<FeedbackVO> = APIControllerWrapper.sah(ModuleFeedback.APINAME_feedback);
 
     private constructor() {
 
@@ -42,7 +42,7 @@ export default class ModuleFeedback extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, FeedbackVO>(
             ModuleFeedback.POLICY_FO_ACCESS,
             ModuleFeedback.APINAME_feedback,
             [FeedbackVO.API_TYPE_ID],
@@ -118,7 +118,7 @@ export default class ModuleFeedback extends Module {
 
             new ModuleTableField('routes_fullpaths', ModuleTableField.FIELD_TYPE_string, 'Routes - Fullpath', true).hide_from_datatable(),
 
-            new ModuleTableField('apis_log_json', ModuleTableField.FIELD_TYPE_string, 'APIs Log - JSON', true).hide_from_datatable(),
+            // new ModuleTableField('apis_log_json', ModuleTableField.FIELD_TYPE_string, 'APIs Log - JSON', true).hide_from_datatable(),
 
             new ModuleTableField('console_logs', ModuleTableField.FIELD_TYPE_string_array, 'Console Logs', false).hide_from_datatable(),
             new ModuleTableField('wish_be_called', ModuleTableField.FIELD_TYPE_boolean, 'Je souhaite être rappelé', false).hide_from_datatable(),

@@ -27,6 +27,7 @@ export default class PasswordInitialisation {
 
     public static MAILCATEGORY_PasswordInitialisation = 'MAILCATEGORY.PasswordInitialisation';
 
+    // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!PasswordInitialisation.instance) {
             PasswordInitialisation.instance = new PasswordInitialisation();

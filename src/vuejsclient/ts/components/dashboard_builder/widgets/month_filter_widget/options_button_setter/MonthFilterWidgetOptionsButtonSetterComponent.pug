@@ -1,0 +1,90 @@
+.month_filter_widget_options_button_setter_component
+    .row 
+        .col-md-12
+            .widget_title {{ label('month_filter_widget_component.button_setter_widget_title')}} : 
+                template(v-if='is_vo_field_ref')
+                    .label {{ input_label }}
+                template(v-else-id='!!custom_filter_name')
+                    .custom_filter_name {{ custom_filter_name }}
+    .row 
+        .col-md-6
+            .month_filter_input_wrapper
+                Monthfilterinputcomponent(
+                    mode='configuration'
+                    :months='months' 
+                    :selected_months='selected_months' 
+                    :is_months_selectionnable='false'
+                    :can_use_month_cumulated='true'
+                    :can_select_all='true' 
+                    :is_month_cumulated_selected='is_month_cumulated_selected' 
+                    :is_all_months_selected='is_all_months_selected' 
+                    :is_vo_field_ref='is_vo_field_ref' 
+                    :custom_filter_name='custom_filter_name' 
+                    :input_label='vo_field_ref_label' 
+                    @onchange_all_months_selected='handle_all_months_selected_change'
+                    @onchange_month_cumulated='handle_month_cumulated_change' 
+                    @onchange_selected_month='handle_selected_month_change' 
+                )
+        .col-md-6
+            .month_filter_summary_wrapper
+                //- Read & display the configurations to human readable
+                .widget_title {{ label('month_filter_widget_component.configurations_summary_title')}}
+
+                div {{ label('month_filter_widget_component.is_all_months_selected') }} : 
+                    template(v-if='is_all_months_selected')
+                        span {{ label('crud.field.boolean.true') }}
+                    template(v-else)
+                        span {{ label('crud.field.boolean.false') }}
+
+                div {{ label('month_filter_widget_component.is_month_cumulated_selected') }} : 
+                    template(v-if='is_month_cumulated_selected')
+                        span {{ label('crud.field.boolean.true') }}
+                    template(v-else)
+                        span {{ label('crud.field.boolean.false') }}
+
+                div {{ label('month_filter_widget_component.auto_select_month_relative_mode') }} : 
+                    template(v-if='auto_select_month_relative_mode')
+                        span {{ label('month_filter_widget_component.auto_select_month_relative_mode.data') }}
+                    template(v-else)
+                        span {{ label('month_filter_widget_component.auto_select_month_relative_mode.value') }}
+
+                div.toggle_input_group
+                    .input_wrapper
+                        toggle-button(
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            name="can_configure_auto_select_month_relative_mode"
+                            @change="toggle_can_configure_auto_select_month_relative_mode" 
+                            :value="can_configure_auto_select_month_relative_mode" 
+                            :sync="true"
+                            :width="60"
+                        )
+                    .input_label {{ label('month_filter_widget_component.configure_auto_select_month_relative_mode') }}
+
+                template(v-if='can_configure_auto_select_month_relative_mode')
+                    .auto_select_month_min(v-tooltip='(auto_select_month_relative_mode && is_relative_to_other_filter) ? label("month_filter_widget_component.auto_select_month.is_relative_to_other_filter.tooltip") : null')
+                        .input_label {{ label('month_filter_widget_component.auto_select_month_min') }}
+                        .input_wrapper
+                            input(
+                                type="number"
+                                v-model="auto_select_month_min"
+                            )
+
+                    .auto_select_month_max(v-tooltip='(auto_select_month_relative_mode && is_relative_to_other_filter) ? label("month_filter_widget_component.auto_select_month.is_relative_to_other_filter.tooltip") : null')
+                        .input_label {{ label('month_filter_widget_component.auto_select_month_max') }}
+                        .input_wrapper
+                            input(
+                                type="number"
+                                v-model="auto_select_month_max"
+                            )
+
+
+                template(v-if='is_relative_to_other_filter')
+                    div {{ label('month_filter_widget_component.is_relative_to_other_filter') }}
+                        
+                    template(v-if='relative_to_other_filter_id')
+                        span {{ label('month_filter_widget_component.relative_to_other_filter_id') }} :
+                        span {{ other_filters_by_name[relative_to_other_filter_id].name }}
+                    
+                    span {{ label('month_filter_widget_component.auto_select_month_min') }}
+                    
+                    span {{ label('month_filter_widget_component.auto_select_month_max') }}
