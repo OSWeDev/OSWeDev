@@ -311,6 +311,18 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         $('#' + this.base_filter + old_id.toString()).click();
     }
 
+    private change_value_tsrange(ts_range: TSRange) {
+        if (this.widget_options?.refuse_left_open && RangeHandler.is_left_open(ts_range)) {
+            return;
+        }
+
+        if (this.widget_options?.refuse_right_open && RangeHandler.is_right_open(ts_range)) {
+            return;
+        }
+
+        this.tmp_ts_range = ts_range;
+    }
+
     get vo_field_ref_label(): string {
         if ((!this.widget_options) || (!this.vo_field_ref)) {
             return null;
@@ -335,6 +347,9 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                     options.opts,
                     options.is_checkbox,
                     options.default_value,
+                    options.hide_opts,
+                    options.refuse_left_open,
+                    options.refuse_right_open,
                 ) : null;
             }
         } catch (error) {
@@ -384,6 +399,12 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         let options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         return options.is_checkbox;
+    }
+
+    get hide_opts(): boolean {
+        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+
+        return options.hide_opts;
     }
 
     get default_value(): AdvancedDateFilterOptDescVO {

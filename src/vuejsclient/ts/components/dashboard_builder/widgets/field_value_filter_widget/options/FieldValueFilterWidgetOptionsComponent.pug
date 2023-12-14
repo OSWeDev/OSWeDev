@@ -42,20 +42,20 @@
                     :value="hide_filter" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
 
         .field_has_other_ref_api_type_id
-                .input_label {{ label('field_value_filter_widget_component.has_other_ref_api_type_id') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_has_other_ref_api_type_id" 
-                        :value="has_other_ref_api_type_id" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    )
-        
+            .input_label {{ label('field_value_filter_widget_component.has_other_ref_api_type_id') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_has_other_ref_api_type_id" 
+                    :value="has_other_ref_api_type_id" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                )
+
         template(v-if='has_other_ref_api_type_id')
             .field_other_ref_api_type_id 
                 .input_label {{ label('field_value_filter_widget_component.other_ref_api_type_id') }}
@@ -91,7 +91,7 @@
                     :value="no_inter_filter" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
 
         .autovalidate_advanced_filter
@@ -102,7 +102,7 @@
                     :value="autovalidate_advanced_filter" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
 
         template(v-if="autovalidate_advanced_filter")
@@ -114,9 +114,9 @@
                         :value="active_field_on_autovalidate_advanced_filter" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
- 
+
         .add_is_null_selectable
             .input_label {{ label('field_value_filter_widget_component.add_is_null_selectable') }}
             .input_wrapper
@@ -125,10 +125,10 @@
                     :value="add_is_null_selectable" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
 
-        .is_button
+        .is_button(v-if="!is_type_date")
             .input_label {{ label('field_value_filter_widget_component.is_button') }}
             .input_wrapper
                 toggle-button(
@@ -136,7 +136,7 @@
                     :value="is_button" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
 
         template(v-if="is_type_string || is_type_number || is_type_enum || is_type_date || is_type_boolean || is_type_ref_field")
@@ -148,7 +148,7 @@
                         :value="advanced_mode" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     ) 
 
         template(v-if="is_type_string || is_type_enum")
@@ -160,7 +160,7 @@
                         :value="can_select_all" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     ) 
 
         template(v-if="is_type_string || is_type_enum || is_type_ref_field")
@@ -172,7 +172,7 @@
                         :value="can_select_none" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     ) 
 
             .default_advanced_string_filter_type(v-if="is_type_string || is_type_enum")
@@ -191,7 +191,7 @@
                         :searchable="false"
                         :internal-search="false"
                         :hide-selected="false"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -230,7 +230,7 @@
                         :value="hide_btn_switch_advanced" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     ) 
 
             .placeholder_advanced_string_filter
@@ -250,7 +250,7 @@
                         :value="hide_advanced_string_filter_type" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     ) 
             .hide_advanced_ref_field_filter_type(v-if="is_type_ref_field")
                 .input_label {{ label('field_value_filter_widget_component.hide_advanced_ref_field_filter_type') }}
@@ -288,7 +288,7 @@
                         :value="is_checkbox" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
 
             template(v-if="is_checkbox")
@@ -308,7 +308,7 @@
                             :searchable="false"
                             :internal-search="false"
                             :hide-selected="false"
-                            
+
                             :select-label='label("multiselect.selectLabel")'
                             :select-group-label='label("multiselect.selectGroupLabel")'
                             :selected-label='label("multiselect.selectedLabel")'
@@ -325,7 +325,7 @@
                             :sync="false"
                             :width="60"
                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
-                            
+
                 .separation_active_filter 
                     .input_label {{ label('field_value_filter_widget_component.separation_active_filter') }}
                     .input_wrapper
@@ -335,7 +335,7 @@
                             :sync="false"
                             :width="60"
                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
-                            
+
                 .field_ref_lvl2
                     .input_label {{ label('field_value_filter_widget_component.vo_field_ref_lvl2') }}
                     .input_wrapper
@@ -345,7 +345,7 @@
                         )
 
                 template(v-if="vo_field_ref_lvl2")
-                
+
                     .field_sort_lvl2
                         .input_label {{ label('field_value_filter_widget_component.vo_field_sort_lvl2') }}
                         .input_wrapper
@@ -362,10 +362,30 @@
                                 :value="hide_lvl2_if_lvl1_not_selected" 
                                 :sync="false"
                                 :width="60"
-                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                             )
-        
+
         template(v-if="is_type_date")
+            .auto_select_date 
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_auto_select_date" 
+                        :value="auto_select_date" 
+                        :sync="false"
+                        :width="150"
+                        :labels="{checked: label('field_value_filter_widget_component.auto_select_date.data'), unchecked: label('field_value_filter_widget_component.auto_select_date.value')}")
+
+            .auto_select_date_relative_mode 
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date_relative_mode') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_auto_select_date_relative_mode" 
+                        :value="auto_select_date_relative_mode" 
+                        :sync="false"
+                        :width="150"
+                        :labels="{checked: label('field_value_filter_widget_component.auto_select_date_relative_mode.data'), unchecked: label('field_value_filter_widget_component.auto_select_date_relative_mode.value')}")
+
             .segmentation_type 
                 .input_label {{ label('field_value_filter_widget_component.segmentation_type') }}
                 .input_wrapper
@@ -382,7 +402,7 @@
                         :internal-search="false"
 
                         track-by="id"
-                                    
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -390,6 +410,21 @@
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
+            .auto_select_date_min(v-tooltip='(auto_select_date_relative_mode && relative_to_other_filter_id) ? label("field_value_filter_widget_component.auto_select_date.is_relative_to_other_filter.tooltip") : null')
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date_min') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="auto_select_date_min"
+                    )
+
+            .auto_select_date_max(v-tooltip='(auto_select_date_relative_mode && relative_to_other_filter_id) ? label("field_value_filter_widget_component.auto_select_date.is_relative_to_other_filter.tooltip") : null')
+                .input_label {{ label('field_value_filter_widget_component.auto_select_date_max') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="auto_select_date_max"
+                    )
 
         .default_showed_filter_opt_values 
             .input_label {{ label('field_value_filter_widget_component.default_showed_filter_opt_values') }}
@@ -442,9 +477,9 @@
                         :hide-selected="true"
 
                         track-by="text_uid"
-                        
+
                         :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -453,14 +488,14 @@
 
                         @search-change="query_update_visible_options"
                     )
-                    
-                template(v-if="is_type_date")
+
+                template(v-if="is_type_date && !auto_select_date_relative_mode")
                     Tsrangeinputcomponent(
                         v-model="tmp_default_ts_range_values"
                         :field="field"
                         :segmentation_type="segmentation_type"
                     )
-                    
+
                 template(v-if="is_type_boolean")
                     multiselect(
                         :preselect-first="false"
@@ -478,7 +513,7 @@
                         :hide-selected="true"
 
                         :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -504,9 +539,9 @@
                         :hide-selected="true"
 
                         track-by="text_uid"
-                        
+
                         :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -515,8 +550,8 @@
 
                         @search-change="query_update_visible_options"
                     )
-                    
-                template(v-if="is_type_date")
+
+                template(v-if="is_type_date && !auto_select_date_relative_mode")
                     Tsrangeinputcomponent(
                         v-model="tmp_exclude_ts_range_values"
                         :field="field"
@@ -532,9 +567,9 @@
                         :value="show_count_value" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
-                    
+
             .force_filter_by_all_api_type_ids
                 .input_label {{ label('field_value_filter_widget_component.force_filter_by_all_api_type_ids') }}
                 .input_wrapper
@@ -543,7 +578,7 @@
                         :value="force_filter_by_all_api_type_ids" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
 
             .btn.btn-primary(@click="toggle_show_hide_enum_color_options") {{ label('field_value_filter_widget_component.show_hide_enum_color_options') }}
@@ -566,5 +601,5 @@
                 .fg_color_text
                     .explication {{ label("field_value_filter_widget_component.fg_color_text") }}
                     color-picker(v-model="fg_color_text" @change='handle_colors_change')
-                    
+
                 .preview(:style='{background: bg_color, color: fg_color_text}') {{ t(translatable_name_code_text) }}

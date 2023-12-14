@@ -39,6 +39,9 @@ export default class AdvancedDateFilterWidgetOptions implements IExportableWidge
         public opts: AdvancedDateFilterOptDescVO[],
         public is_checkbox: boolean,
         public default_value: AdvancedDateFilterOptDescVO,
+        public hide_opts: boolean,
+        public refuse_left_open: boolean,
+        public refuse_right_open: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

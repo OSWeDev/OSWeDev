@@ -3,6 +3,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import Filters from '../../../../../../../../shared/tools/Filters';
 import VueComponentBase from '../../../../../VueComponentBase';
 import AmountFilterOptionsComponent from './amount/AmountFilterOptionsComponent';
+import HourFilterOptionsComponent from './hour/HourFilterOptionsComponent';
 import PercentFilterOptionsComponent from './percent/PercentFilterOptionsComponent';
 import ToFixedFilterOptionsComponent from './toFixed/ToFixedFilterOptionsComponent';
 import ToFixedCeilFilterOptionsComponent from './toFixedCeil/ToFixedCeilFilterOptionsComponent';
@@ -14,6 +15,7 @@ import './WidgetFilterOptionsComponent.scss';
     template: require('./WidgetFilterOptionsComponent.pug'),
     components: {
         Amountfilteroptionscomponent: AmountFilterOptionsComponent,
+        Hourfilteroptionscomponent: HourFilterOptionsComponent,
         Tofixedfloorfilteroptionscomponent: ToFixedFloorFilterOptionsComponent,
         Tofixedceilfilteroptionscomponent: ToFixedCeilFilterOptionsComponent,
         Tofixedfilteroptionscomponent: ToFixedFilterOptionsComponent,
@@ -38,6 +40,7 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
         Filters.FILTER_TYPE_toFixedCeil,
         Filters.FILTER_TYPE_toFixedFloor,
         Filters.FILTER_TYPE_tstz,
+        Filters.FILTER_TYPE_hour,
     ];
 
     get filter_names(): { [filter_uid: string]: string } {

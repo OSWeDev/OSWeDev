@@ -7,7 +7,6 @@ import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/Dashboar
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -24,6 +23,7 @@ import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/Var
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
@@ -320,7 +320,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             AdvancedDateFilter,
-            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null),
+            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false),
             AdvancedDateFilterWidgetOptions.get_selected_fields
         );
 
