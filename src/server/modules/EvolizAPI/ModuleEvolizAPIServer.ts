@@ -19,6 +19,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import EvolizAPIToken from './vos/EvolizAPIToken';
 import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -71,6 +72,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+        this.configureTraductions();
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -352,5 +354,24 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    private configureTraductions(): void {
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Contrat effectué'
+        }, 'evoliz_devis.status_contrat_effectue.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Proposition effectuée'
+        }, 'evoliz_devis.status_proposition_effectuee.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Négociation'
+        }, 'evoliz_devis.status_negociation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmée'
+        }, 'evoliz_devis.status_confirmee.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Perdue'
+        }, 'evoliz_devis.status_perdue.___LABEL___'));
     }
 }

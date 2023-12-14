@@ -1,6 +1,76 @@
 export default class EvolizDevisVO {
     public static API_TYPE_ID: string = "evoliz_devis";
 
+    public static STATUS_CONTRAT_EFFECTUE: number = 0;
+    public static STATUS_PROPOSITION_EFFECTUEE: number = 1;
+    public static STATUS_NEGOCITATION: number = 2;
+    public static STATUS_CONFIRMEE: number = 3;
+    public static STATUS_PERDUE: number = 4;
+
+    public static STATUS_CONTRAT_EFFECTUE_LABEL: string = 'evoliz_devis.status_contrat_effectue.___LABEL___';
+    public static STATUS_PROPOSITION_EFFECTUEE_LABEL: string = 'evoliz_devis.status_proposition_effectuee.___LABEL___';
+    public static STATUS_NEGOCITATION_LABEL: string = 'evoliz_devis.status_negociation.___LABEL___';
+    public static STATUS_CONFIRMEE_LABEL: string = 'evoliz_devis.status_confirmee.___LABEL___';
+    public static STATUS_PERDUE_LABEL: string = 'evoliz_devis.status_perdue.___LABEL___';
+
+    public static STATE_LABELS: { [id: number]: string } = {
+        [EvolizDevisVO.STATUS_CONTRAT_EFFECTUE]: EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL,
+        [EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE]: EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE_LABEL,
+        [EvolizDevisVO.STATUS_NEGOCITATION]: EvolizDevisVO.STATUS_NEGOCITATION_LABEL,
+        [EvolizDevisVO.STATUS_CONFIRMEE]: EvolizDevisVO.STATUS_CONFIRMEE_LABEL,
+        [EvolizDevisVO.STATUS_PERDUE]: EvolizDevisVO.STATUS_PERDUE_LABEL,
+    };
+
+    public static getStatus(status_code: number): number {
+        if (!status_code) {
+            return null;
+        }
+
+        switch (status_code) {
+            case 0:
+            case 1:
+            case 2:
+                return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE;
+            case 4:
+                return EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE;
+            case 8:
+            case 12:
+            case 16:
+            case 20:
+            case 24:
+                return EvolizDevisVO.STATUS_CONFIRMEE;
+            case -1:
+                return EvolizDevisVO.STATUS_PERDUE;
+            default:
+                return null;
+        }
+    }
+
+    public static getStatusLabel(status_code: number): string {
+        if (!status_code) {
+            return null;
+        }
+
+        switch (status_code) {
+            case 0:
+            case 1:
+            case 2:
+                return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL;
+            case 4:
+                return EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE_LABEL;
+            case 8:
+            case 12:
+            case 16:
+            case 20:
+            case 24:
+                return EvolizDevisVO.STATUS_CONFIRMEE_LABEL;
+            case -1:
+                return EvolizDevisVO.STATUS_PERDUE_LABEL;
+            default:
+                return null;
+        }
+    }
+
     public id: number;
     public _type: string = EvolizDevisVO.API_TYPE_ID;
 
@@ -58,6 +128,16 @@ export default class EvolizDevisVO {
         net_to_pay: number
     };
     // Document status code
+    // 1: filled => First state of a quote, document is now a draft with a temporary document_number
+    // 2: create => In this state the document document_number is now definitive
+    // 4: sent => A document that has been sent to a client or marked as sent
+    // 0: wait => A document that has been marked as waiting
+    // 8: accept => A document that has been marked as accepted
+    // -1: reject => A document that has been marked as rejected
+    // 12: corder => A document that has a related sale order
+    // 16: delivery => A document that has a related delivery
+    // 20: invoice => A document that has a related invoice
+    // 24: close => A document that has been marked as closed
     public status_code: number;
     // Document status
     public status: string;
