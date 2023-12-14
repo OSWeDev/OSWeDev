@@ -21,6 +21,8 @@ import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ContextFilterVOManager from '../manager/ContextFilterVOManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
 import { query } from '../vos/ContextQueryVO';
+import ContextQueryFieldVO from '../vos/ContextQueryFieldVO';
+import VarConfVO from '../../Var/vos/VarConfVO';
 
 /**
  * ContextFilterVOHandler
@@ -296,7 +298,7 @@ export default class ContextFilterVOHandler {
     }
 
     public static async get_datatable_row_field_data_async(
-        raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>
+        raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>, context_query_field: ContextQueryFieldVO
     ): Promise<any> {
 
         try {
@@ -314,67 +316,29 @@ export default class ContextFilterVOHandler {
                         simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_id :
                         simpleField.moduleTableField.field_id;
 
-                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                    // On doit gérer le cas des champs aggrégés en divisant la valeur et en refaisant l'aggrégation par la suite
+                    // FIXME : Est-ce qu'on ne devrait pas gérer ce cas aussi pour les COMPUTED_FIELD_TYPE, COMPONENT_FIELD_TYPE, FILE_FIELD_TYPE, MANY_TO_ONE_FIELD_TYPE, ... ?
+                    if ((context_query_field.aggregator != VarConfVO.NO_AGGREGATOR) && (context_query_field.aggregator != VarConfVO.IS_NULLABLE_AGGREGATOR)) {
+
                         let raw_value = raw_data[module_table_field_id + '__raw'];
-                        resData[field.datatable_field_uid] = RangeHandler.humanizeRanges(raw_value);
-                        break;
-                    }
+                        if (raw_value && Array.isArray(raw_value)) {
 
-                    let value = field.dataToReadIHM(raw_data[module_table_field_id], raw_data);
-                    // Limite à 300 cars si c'est du html et strip html
-                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
-
-                        if (value) {
-                            try {
-                                value = value.replace(/&nbsp;/gi, ' ');
-                                value = value.replace(/<\/div>/gi, '\n');
-                                value = value.replace(/<\/span>/gi, '\n');
-                                value = value.replace(/<\/ul>/gi, '\n');
-                                value = value.replace(/<\/li>/gi, '\n');
-                                value = value.replace(/<\/p>/gi, '\n');
-                                value = value.replace(/<br>/gi, '\n');
-                                value = value.replace(/<(?:.|\n)*?>/gm, '');
-                                // value = $("<p>" + value + "</p>").text();
-                            } catch (error) {
-                                value = value;
+                            let res_data = [];
+                            let saved_raw_data_field = raw_value;
+                            for (let i in raw_value) {
+                                let value = raw_value[i];
+                                raw_data[module_table_field_id + '__raw'] = value;
+                                res_data.push(ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_id, raw_data));
                             }
 
-                            if (value.length > 300) {
-                                value = value.substring(0, 300) + '...';
-                            }
+                            raw_data[module_table_field_id + '__raw'] = saved_raw_data_field;
+                            resData[field.datatable_field_uid] = res_data;
+
+                            break;
                         }
                     }
 
-                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
-
-                        for (let vi in value) {
-                            let v = value[vi];
-
-                            try {
-
-                                v = v.replace(/&nbsp;/gi, ' ');
-                                v = v.replace(/<\/div>/gi, '\n');
-                                v = v.replace(/<\/span>/gi, '\n');
-                                v = v.replace(/<\/ul>/gi, '\n');
-                                v = v.replace(/<\/li>/gi, '\n');
-                                v = v.replace(/<\/p>/gi, '\n');
-                                v = v.replace(/<br>/gi, '\n');
-                                v = v.replace(/<(?:.|\n)*?>/gm, '');
-                                // v = $("<p>" + v + "</p>").text();
-                            } catch (error) {
-                                v = v;
-                            }
-
-                            if (v.length > 300) {
-                                v = v.substring(0, 300) + '...';
-                            }
-
-                            value[vi] = v;
-                        }
-                    }
-
-
-                    resData[field.datatable_field_uid] = value;
+                    resData[field.datatable_field_uid] = ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_id, raw_data);
                     break;
 
                 case DatatableField.COMPUTED_FIELD_TYPE:
@@ -1321,5 +1285,67 @@ export default class ContextFilterVOHandler {
                     return false;
             }
         }
+    }
+
+    private static get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_id: string, raw_data: IDistantVOBase) {
+        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+            let raw_value = raw_data[module_table_field_id + '__raw'];
+            return RangeHandler.humanizeRanges(raw_value);
+        }
+
+        let value = simpleField.dataToReadIHM(raw_data[module_table_field_id], raw_data);
+        // Limite à 300 cars si c'est du html et strip html
+        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
+
+            if (value) {
+                try {
+                    value = value.replace(/&nbsp;/gi, ' ');
+                    value = value.replace(/<\/div>/gi, '\n');
+                    value = value.replace(/<\/span>/gi, '\n');
+                    value = value.replace(/<\/ul>/gi, '\n');
+                    value = value.replace(/<\/li>/gi, '\n');
+                    value = value.replace(/<\/p>/gi, '\n');
+                    value = value.replace(/<br>/gi, '\n');
+                    value = value.replace(/<(?:.|\n)*?>/gm, '');
+                    // value = $("<p>" + value + "</p>").text();
+                } catch (error) {
+                    value = value;
+                }
+
+                if (value.length > 300) {
+                    value = value.substring(0, 300) + '...';
+                }
+            }
+        }
+
+        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+
+            for (let vi in value) {
+                let v = value[vi];
+
+                try {
+
+                    v = v.replace(/&nbsp;/gi, ' ');
+                    v = v.replace(/<\/div>/gi, '\n');
+                    v = v.replace(/<\/span>/gi, '\n');
+                    v = v.replace(/<\/ul>/gi, '\n');
+                    v = v.replace(/<\/li>/gi, '\n');
+                    v = v.replace(/<\/p>/gi, '\n');
+                    v = v.replace(/<br>/gi, '\n');
+                    v = v.replace(/<(?:.|\n)*?>/gm, '');
+                    // v = $("<p>" + v + "</p>").text();
+                } catch (error) {
+                    v = v;
+                }
+
+                if (v.length > 300) {
+                    v = v.substring(0, 300) + '...';
+                }
+
+                value[vi] = v;
+            }
+        }
+
+        return value;
     }
 }

@@ -394,7 +394,8 @@ export default class ContextQueryServerController {
                         query_res[i] = await ContextFilterVOHandler.get_datatable_row_field_data_async(
                             row,
                             row,
-                            fields[field_id]
+                            fields[field_id],
+                            field
                         );
                     });
                 }
