@@ -299,7 +299,7 @@ export default class PushDataVueModule extends VueModuleBase {
             let notification = notifications[i];
 
             let content = notification.simple_notif_json_params ?
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, notification.simple_notif_json_params) :
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             VueAppBase.instance_.vueInstance.snotify.prompt(content, {
                 timeout: 60000,
@@ -335,7 +335,7 @@ export default class PushDataVueModule extends VueModuleBase {
             let notification = notifications[i];
 
             let content = notification.simple_notif_json_params ?
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, notification.simple_notif_json_params) :
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
                 case NotificationVO.SIMPLE_SUCCESS:
@@ -366,7 +366,7 @@ export default class PushDataVueModule extends VueModuleBase {
             let notification = notifications[i];
 
             let content = notification.simple_notif_json_params ?
-                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, notification.simple_notif_json_params) :
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
                 case NotificationVO.SIMPLE_SUCCESS:
