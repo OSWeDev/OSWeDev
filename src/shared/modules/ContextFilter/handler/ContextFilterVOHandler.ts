@@ -318,7 +318,7 @@ export default class ContextFilterVOHandler {
 
                     // On doit gérer le cas des champs aggrégés en divisant la valeur et en refaisant l'aggrégation par la suite
                     // FIXME : Est-ce qu'on ne devrait pas gérer ce cas aussi pour les COMPUTED_FIELD_TYPE, COMPONENT_FIELD_TYPE, FILE_FIELD_TYPE, MANY_TO_ONE_FIELD_TYPE, ... ?
-                    if ((context_query_field.aggregator != VarConfVO.NO_AGGREGATOR) && (context_query_field.aggregator != VarConfVO.IS_NULLABLE_AGGREGATOR)) {
+                    if (context_query_field && (context_query_field.aggregator != VarConfVO.NO_AGGREGATOR) && (context_query_field.aggregator != VarConfVO.IS_NULLABLE_AGGREGATOR)) {
 
                         let raw_value = raw_data[module_table_field_id + '__raw'];
                         if (raw_value && Array.isArray(raw_value)) {

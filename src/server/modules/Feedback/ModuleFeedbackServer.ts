@@ -17,6 +17,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
 import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
@@ -430,7 +431,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             );
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
-            await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
+            let mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
+            feedback.confirmation_mail_id = mail ? mail.id : null;
 
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
@@ -474,7 +476,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 uid,
                 'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
-                'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+                'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' +
+                'Formattes le message en HTML pour être le plus lisible / synthétique / efficace possible. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
                 'Ci-après les éléments constituant le formulaire de contact client : {' +
                 ' - Titre du formulaire : ' + feedback.title + ' ' +
                 ' - Message : ' + feedback.message + ' ' +

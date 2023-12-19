@@ -60,6 +60,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -2223,9 +2224,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async send_session_share_email(mail_category: string, url: string, email: string) {
+    private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
         let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
-        await SendInBlueMailServerController.getInstance().sendWithTemplate(
+        return await SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),
             SEND_IN_BLUE_TEMPLATE_ID,

@@ -1,10 +1,18 @@
-
+import { Request, Response } from 'express';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleActionURL from '../../../shared/modules/ActionURL/ModuleActionURL';
+import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
 import ActionURLUserVO from '../../../shared/modules/ActionURL/vos/ActionURLUserVO';
 import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModulesManager from '../../../shared/modules/ModulesManager';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -32,11 +40,29 @@ export default class ModuleActionURLServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> { }
 
     // istanbul ignore next: cannot test configure
-    public async configure() { }
+    public async configure() {
+        ModuleDAOServer.getInstance().registerContextAccessHook(ActionURLVO.API_TYPE_ID, this, this.filterActionURLVOContextAccessHook);
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Cette action n'existe pas ou vous n'y avez pas accès."
+        }, 'action_url.not_found.___LABEL___'));
+
+    }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleActionURL.APINAME_action_url, this.action_url.bind(this));
+    }
+
+    private async filterActionURLVOContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        let res: ContextQueryVO = query(ActionURLVO.API_TYPE_ID);
+
+        if (!uid) {
+            return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
+        }
+
+        return query(ActionURLVO.API_TYPE_ID).field(field_names<ActionURLVO>().id).filter_by_num_eq(field_names<ActionURLUserVO>().user_id, uid, ActionURLUserVO.API_TYPE_ID).exec_as_server();
     }
 
     /**
@@ -99,7 +125,18 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             }
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
 
-            await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
+            let action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
+
+            if (action_cr) {
+                action_cr.action_url_id = action_url.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_cr);
+            }
+
+            if (!res.headersSent) {
+                // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
+                res.redirect('/action_url_cr/' + action_url.id);
+            }
+
         } catch (error) {
             ConsoleHandler.error('Error in action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name + ': error:' + error);
         }

@@ -8,6 +8,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import ActionURLCRVO from './vos/ActionURLCRVO';
 import ActionURLUserVO from './vos/ActionURLUserVO';
 import ActionURLVO from './vos/ActionURLVO';
 
@@ -49,19 +50,42 @@ export default class ModuleActionURL extends Module {
 
         this.initializeActionURL();
         this.initializeActionURLUserVO();
+        this.initializeActionURLCRVO();
+    }
+
+    private initializeActionURLCRVO() {
+        let action_url_id = new ModuleTableField(field_names<ActionURLCRVO>().action_url_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Action URL', true);
+        let translatable_cr = new ModuleTableField(field_names<ActionURLCRVO>().translatable_cr, ModuleTableField.FIELD_TYPE_html, 'CR', false);
+        let translation_params_json = new ModuleTableField(field_names<ActionURLCRVO>().translation_params_json, ModuleTableField.FIELD_TYPE_string, 'Params de traduction (JSON)', false);
+        let ts = new ModuleTableField(field_names<ActionURLCRVO>().ts, ModuleTableField.FIELD_TYPE_tstz, 'Date', true);
+        let cr_type = new ModuleTableField(field_names<ActionURLCRVO>().cr_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, ActionURLCRVO.CR_TYPE_INFO).setEnumValues(ActionURLCRVO.CR_TYPE_LABELS);
+
+        let fields = [
+            action_url_id,
+            translatable_cr,
+            translation_params_json,
+            ts,
+            cr_type,
+        ];
+
+        let table = new ModuleTable(this, ActionURLCRVO.API_TYPE_ID, () => new ActionURLCRVO(), fields, null, 'CR URLs d\'action');
+        this.datatables.push(table);
+
+        action_url_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ActionURLVO.API_TYPE_ID]);
     }
 
     private initializeActionURL() {
-        let label = new ModuleTableField('action_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label = new ModuleTableField(field_names<ActionURLVO>().action_name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         let fields = [
-            new ModuleTableField('valid_ts_range', ModuleTableField.FIELD_TYPE_tsrange, 'Période de validité', true),
-            new ModuleTableField('action_code', ModuleTableField.FIELD_TYPE_string, 'Code', true),
+            new ModuleTableField(field_names<ActionURLVO>().valid_ts_range, ModuleTableField.FIELD_TYPE_tsrange, 'Période de validité', true),
+            new ModuleTableField(field_names<ActionURLVO>().action_code, ModuleTableField.FIELD_TYPE_string, 'Code', true),
             label,
-            new ModuleTableField('action_callback_module_name', ModuleTableField.FIELD_TYPE_string, 'Module de callback', true),
-            new ModuleTableField('action_callback_function_name', ModuleTableField.FIELD_TYPE_string, 'Fonction de callback', true),
-            new ModuleTableField('params_json', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
-            new ModuleTableField('action_remaining_counter', ModuleTableField.FIELD_TYPE_int, 'Nombre d\'utilisations restantes', true, true, 1),
+            new ModuleTableField(field_names<ActionURLVO>().state, ModuleTableField.FIELD_TYPE_enum, 'Etat', true, true, ActionURLVO.STATE_ACTIVATED).setEnumValues(ActionURLVO.STATE_LABELS),
+            new ModuleTableField(field_names<ActionURLVO>().action_callback_module_name, ModuleTableField.FIELD_TYPE_string, 'Module de callback', true),
+            new ModuleTableField(field_names<ActionURLVO>().action_callback_function_name, ModuleTableField.FIELD_TYPE_string, 'Fonction de callback', true),
+            new ModuleTableField(field_names<ActionURLVO>().params_json, ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
+            new ModuleTableField(field_names<ActionURLVO>().action_remaining_counter, ModuleTableField.FIELD_TYPE_int, 'Nombre d\'utilisations restantes', true, true, 1),
         ];
 
         let table = new ModuleTable(this, ActionURLVO.API_TYPE_ID, () => new ActionURLVO(), fields, null, 'URLs d\'action');

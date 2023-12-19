@@ -1,0 +1,23 @@
+.ActionURLCRComponent {
+
+    .action_cr_wrapper {
+
+        color: white;
+
+        &.cr_type_0 {
+            background-color: royalblue;
+        }
+
+        &.cr_type_2 {
+            background-color: $danger_color;
+        }
+
+        &.cr_type_1 {
+            background-color: $button_warning_color;
+        }
+
+        &.cr_type_3 {
+            background-color: $success_color;
+        }
+    }
+}
