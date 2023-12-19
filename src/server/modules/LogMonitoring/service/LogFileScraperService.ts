@@ -92,7 +92,7 @@ export default class LogFileScraperService {
             log.message = '';
         }
 
-        const with_level_rgx = /^(?<level>\w+) -- (?<file_id>\d+):(?<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) - (?<message>.*)/;
+        const with_level_rgx = /^(?<level>\w+).*(?<separator_1>--).*(?<file_id>\d+):(?<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) - (?<message>.*)/;
         const message_rgx = /(?<message>.*)/;
 
         const with_level_match = line.match(with_level_rgx);
@@ -103,7 +103,7 @@ export default class LogFileScraperService {
             log.date = new Date(with_level_match.groups.date).getTime();
             log.message = with_level_match.groups.message;
         } else if (message_match) {
-            log.message += message_match.groups.message;
+            log.message += '\n' + message_match.groups.message;
         }
 
         return log;

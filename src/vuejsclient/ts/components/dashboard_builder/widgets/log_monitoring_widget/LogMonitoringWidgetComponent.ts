@@ -50,15 +50,7 @@ export default class LogMonitoringWidgetComponent extends VueComponentBase {
 
     private log_file_select_options: FileVO[] = [];
     private log_file: FileVO = null;
-    private items: LogVO[] = [
-        { id: 1, message: 'test', level: 'DEBUG', date: 1, filename: 'test' } as any,
-        { id: 1, message: 'test', level: 'DEBUG', date: 1, filename: 'test' } as any,
-        { id: 1, message: 'test', level: 'DEBUG', date: 1, filename: 'test' } as any,
-        { id: 1, message: 'test', level: 'DEBUG', date: 1, filename: 'test' } as any,
-        { id: 1, message: 'test', level: 'DEBUG', date: 1, filename: 'test' } as any,
-        { id: 1, message: 'test', level: 'DEBUG', date: 1, filename: 'test' } as any,
-        { id: 1, message: 'test', level: 'DEBUG', date: 1, filename: 'test' } as any,
-    ];
+    private items: LogVO[] = [];
 
     /**
      * mounted

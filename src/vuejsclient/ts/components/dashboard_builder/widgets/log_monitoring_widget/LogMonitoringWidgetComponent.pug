@@ -43,14 +43,12 @@ include ../../../../../views/mixins/loading.pug
                 table.table-hover
                     thead
                         tr
-                            th {{ label('log_monitoring_widget_component.table.id') }}
                             th {{ label('log_monitoring_widget_component.table.level') }}
-                            th {{ label('log_monitoring_widget_component.table.message') }}
                             th {{ label('log_monitoring_widget_component.table.date') }}
+                            th {{ label('log_monitoring_widget_component.table.message') }}
                     tbody
                         template(v-for="row in items")
                             tr(:class="'level_' + row.level")
-                                td {{ row.id }}
                                 td {{ row.level }}
-                                td {{ row.message }}
                                 td {{ row.date }}
+                                td {{ row.message }}
