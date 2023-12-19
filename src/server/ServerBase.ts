@@ -64,6 +64,7 @@ import { IClient } from 'pg-promise/typescript/pg-subset';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
+import ModuleLogMonitoringController from './modules/LogMonitoring/ModuleLogMonitoringController';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -694,6 +695,7 @@ export default abstract class ServerBase {
                                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                                 async () => {
 
+                                    await ModuleLogMonitoringController.getInstance().unregisterSession(session);
                                     await PushDataServerController.getInstance().unregisterSession(session);
                                     session.destroy(() => {
                                         ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -721,6 +723,7 @@ export default abstract class ServerBase {
                             await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                             async () => {
 
+                                await ModuleLogMonitoringController.getInstance().unregisterSession(session);
                                 await PushDataServerController.getInstance().unregisterSession(session);
                                 session.destroy(() => {
                                     ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -731,6 +734,7 @@ export default abstract class ServerBase {
                     }
                 }
 
+                ModuleLogMonitoringController.getInstance().registerSession(session);
                 PushDataServerController.getInstance().registerSession(session);
 
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
@@ -1022,6 +1026,7 @@ export default abstract class ServerBase {
                         await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => {
 
+                            await ModuleLogMonitoringController.getInstance().unregisterSession(session);
                             await PushDataServerController.getInstance().unregisterSession(session);
                             session.destroy(() => {
                                 ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -1031,6 +1036,7 @@ export default abstract class ServerBase {
                 }
                 session.last_check_blocked_or_expired = Dates.now();
 
+                ModuleLogMonitoringController.getInstance().registerSession(session);
                 PushDataServerController.getInstance().registerSession(session);
 
                 // On stocke le log de connexion en base
@@ -1207,19 +1213,21 @@ export default abstract class ServerBase {
             // io.set('log level', 1);
             // define interactions with client
             io.on('connection', function (socket: socketIO.Socket) {
-                let session: IServerUserSession = socket.handshake['session'];
+                const session: IServerUserSession = socket.handshake['session'];
 
                 if (!session) {
                     ConsoleHandler.error('Impossible de charger la session dans SocketIO');
                     return;
                 }
 
+                ModuleLogMonitoringController.getInstance().registerSocket(session, socket);
                 PushDataServerController.getInstance().registerSocket(session, socket);
             }.bind(ServerBase.getInstance()));
 
             io.on('disconnect', function (socket: socketIO.Socket) {
-                let session: IServerUserSession = socket.handshake['session'];
+                const session: IServerUserSession = socket.handshake['session'];
 
+                ModuleLogMonitoringController.getInstance().unregisterSocket(session, socket);
                 PushDataServerController.getInstance().unregisterSocket(session, socket);
             });
 

@@ -25,6 +25,7 @@ import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import LogMonitoringWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/LogMonitoringWidgetOptionsVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -124,6 +125,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_SaveFavoritesFilters();
 
         await this.initializeWidget_ShowFavoritesFilters();
+
+        await this.initializeWidget_LogMonitoring();
     }
 
     private async initializeWidget_BulkOps() {
@@ -542,6 +545,29 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
         Vue.component('Favoritesfilterswidgetoptionscomponent', () => import('./widgets/favorites_filters_widget/options/FavoritesFiltersWidgetOptionsComponent'));
         Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import('./widgets/favorites_filters_widget/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
+    }
+
+    private async initializeWidget_LogMonitoring() {
+        const LogMonitoring = new DashboardWidgetVO();
+
+        LogMonitoring.default_height = 5;
+        LogMonitoring.default_width = 2;
+        LogMonitoring.name = DashboardWidgetVO.WIDGET_NAME_logmonitoring;
+        LogMonitoring.widget_component = 'Logmonitoringwidgetcomponent';
+        LogMonitoring.options_component = 'Logmonitoringwidgetoptionscomponent';
+        LogMonitoring.weight = 3;
+        LogMonitoring.default_background = '#f5f5f5';
+        LogMonitoring.icon_component = 'Logmonitoringwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            LogMonitoring,
+            () => new LogMonitoringWidgetOptionsVO(),
+            null
+        );
+
+        Vue.component('Logmonitoringwidgetcomponent', () => import('./widgets/log_monitoring_widget/LogMonitoringWidgetComponent'));
+        Vue.component('Logmonitoringwidgetoptionscomponent', () => import('./widgets/log_monitoring_widget/options/LogMonitoringWidgetOptionsComponent'));
+        Vue.component('Logmonitoringwidgeticoncomponent', () => import('./widgets/log_monitoring_widget/icon/LogMonitoringWidgetIconComponent'));
     }
 
     private async initializeWidget_ResetFilters() {

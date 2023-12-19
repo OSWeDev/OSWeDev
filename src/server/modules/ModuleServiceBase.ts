@@ -127,6 +127,8 @@ import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
+import ModuleLogMonitoring from '../../shared/modules/LogMonitoring/ModuleLogMonitoring';
+import ModuleLogMonitoringServer from './LogMonitoring/ModuleLogMonitoringServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -135,6 +137,7 @@ export default abstract class ModuleServiceBase {
     public static getInstance(): ModuleServiceBase {
         return ModuleServiceBase.instance;
     }
+
     private static instance: ModuleServiceBase;
 
     /**
@@ -639,6 +642,7 @@ export default abstract class ModuleServiceBase {
             ModuleGPT.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
             ModuleActionURL.getInstance(),
+            ModuleLogMonitoring.getInstance(),
         ];
     }
 
@@ -701,6 +705,7 @@ export default abstract class ModuleServiceBase {
             ModuleGPTServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
             ModuleActionURLServer.getInstance(),
+            ModuleLogMonitoringServer.getInstance(),
         ];
     }
 

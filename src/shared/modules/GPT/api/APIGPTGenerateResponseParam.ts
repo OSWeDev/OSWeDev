@@ -20,7 +20,9 @@ export default class APIGPTGenerateResponseParam implements IAPIParamTranslator<
 
     public constructor(
         public conversation: GPTConversationVO,
-        public newPrompt: GPTMessageVO) {
+        public newPrompt: GPTMessageVO
+    ) {
+
     }
 }
 

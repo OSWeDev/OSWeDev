@@ -1,0 +1,47 @@
+.log_monitoring_widget_options_component
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('log_monitoring_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :default_translation="default_title_translation"
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+            )
+
+    .limit
+        .input_label {{ label('log_monitoring_widget_options_component.limit') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model.number="limit"
+            )
+
+    .refresh_button
+        .input_label {{ label('log_monitoring_widget_options_component.refresh_button') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_refresh_button" 
+                :value="refresh_button" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('log_monitoring_widget_options_component.refresh_button.visible'), unchecked: label('log_monitoring_widget_options_component.refresh_button.hidden')}"
+            )
+
+    .auto_refresh
+        .input_label {{ label('log_monitoring_widget_options_component.auto_refresh') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_auto_refresh" 
+                :value="auto_refresh" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('log_monitoring_widget_options_component.auto_refresh.visible'), unchecked: label('log_monitoring_widget_options_component.auto_refresh.hidden')}"
+            )
+
+    .auto_refresh_seconds(v-if="widget_options && widget_options.auto_refresh")
+        .input_label {{ label('log_monitoring_widget_options_component.auto_refresh_seconds') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model.number="auto_refresh_seconds"
+            )

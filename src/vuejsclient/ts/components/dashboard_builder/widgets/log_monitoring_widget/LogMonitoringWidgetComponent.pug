@@ -1,0 +1,56 @@
+include ../../../../../views/mixins/loading.pug
+
+.log_monitoring_widget_component
+
+    .row
+        .filters.col-md-12
+            .pull-right.log_files.col-md-2
+                .input_label {{ label('log_monitoring_widget_component.log_files') }}
+
+                .log_files_select
+                    .input_wrapper
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="true"
+                            v-model="log_file"
+                            :placeholder="label('log_monitoring_widget_component.log_files_select')"
+                            :options="log_file_select_options"
+                            :custom-label="log_file_select_label"
+                            :allow-empty="true",
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            id="log_files_select"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+        .col-md-12
+            .upper_pagination.mb-2
+                Tablepaginationcomponent(
+                    :pagination_offset='pagination_offset'
+                    :pagination_count='pagination_count'
+                    :pagination_pagesize='limit'
+                    @change_offset='change_offset'
+                )
+
+            .table_wrapper
+                table.table-hover
+                    thead
+                        tr
+                            th {{ label('log_monitoring_widget_component.table.id') }}
+                            th {{ label('log_monitoring_widget_component.table.level') }}
+                            th {{ label('log_monitoring_widget_component.table.message') }}
+                            th {{ label('log_monitoring_widget_component.table.date') }}
+                    tbody
+                        template(v-for="row in items")
+                            tr(:class="'level_' + row.level")
+                                td {{ row.id }}
+                                td {{ row.level }}
+                                td {{ row.message }}
+                                td {{ row.date }}

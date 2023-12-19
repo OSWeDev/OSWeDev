@@ -75,6 +75,50 @@ export default class FileServerController {
         });
     }
 
+    /**
+     * readdir
+     * - Read a directory
+     * - Returns a promise that resolves with the list of files in the directory
+     * - Returns a promise that rejects with an error if the directory does not exist
+     *
+     * @param {string} filepath
+     * @returns {Promise<string[]>}
+     */
+    public async readdir(filepath: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            fs.readdir(filepath, (err, files) => {
+                // handling error
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(files);
+            });
+        });
+    }
+
+    /**
+     * fileStat
+     * - Get the stats of a file
+     *
+     * @param {string} filepath
+     * @returns {Promise<fs.Stats>}
+     */
+    public async fileStat(filepath: string): Promise<fs.Stats> {
+        return new Promise((resolve, reject) => {
+            fs.stat(filepath, (err, stats) => {
+
+                // handling error
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                resolve(stats);
+            });
+        });
+    }
+
     public async dirCreate(filepath: string) {
         return new Promise((resolve, reject) => {
             fs.mkdir(filepath, (res) => {
@@ -97,7 +141,14 @@ export default class FileServerController {
         });
     }
 
-    public async readFile(filepath: string): Promise<string> {
+    /**
+     * readFile
+     *  - Read a file and return its content
+     *
+     * @param {string} filepath
+     * @returns {Promise<string>}
+     */
+    public async readFile(filepath: string, log_console: boolean = true): Promise<string> {
         return new Promise((resolve, reject) => {
             fs.readFile(filepath, ConfigurationService.node_configuration.SERVER_ENCODING, function (err, data: string) {
                 if (err) {
@@ -105,7 +156,11 @@ export default class FileServerController {
                     resolve(null);
                     return;
                 }
-                console.log("File read : " + filepath);
+
+                if (log_console) {
+                    console.log("File read : " + filepath);
+                }
+
                 resolve(data);
             });
         });
@@ -122,6 +177,31 @@ export default class FileServerController {
                 }
                 resolve(null);
             });
+        });
+    }
+
+    /**
+     * watchFile
+     * - Watch a file for changes (infinity loop)
+     * - TODO: maybe add options to the watchFile function
+     *
+     * @param {string} filepath
+     * @param {Function} callback
+     * @param {number} interval
+     * @returns {Promise<void>} a promise that resolves when the file throws an error
+     */
+    public async watchFile(filepath: string, callback: (curr: fs.Stats, prev: fs.Stats) => void, interval: number = 500): Promise<void> {
+        // There is no resolve or reject here, because the callback is called each time the file is modified
+        return new Promise((resolve, reject) => {
+            try {
+                fs.watchFile(
+                    filepath,
+                    { interval },
+                    callback
+                );
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 

@@ -26,6 +26,7 @@ export default class SupervisionTypeWidgetOptionsVO extends AbstractVO {
         if (!page_widget_id) {
             return null;
         }
+
         return SupervisionTypeWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 

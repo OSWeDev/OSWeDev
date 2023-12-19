@@ -39,12 +39,13 @@ import AlertComponent from './ts/components/alert/AlertComponent';
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 import DroppableVoFieldsController from "./ts/components/dashboard_builder/droppable_vo_fields/DroppableVoFieldsController";
 import DocumentStore from './ts/components/document_handler/store/DocumentStore';
-import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
 import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
+import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 import IVueModule from './ts/modules/IVueModule';
+import LogMonitoringVueModule from "./ts/modules/LogMonitoring/LogMonitoringVueModule";
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
@@ -112,6 +113,7 @@ export default abstract class VueAppBase {
 
         await all_promises(promises);
 
+        LogMonitoringVueModule.getInstance();
         PushDataVueModule.getInstance();
         StatsVueModule.getInstance();
 

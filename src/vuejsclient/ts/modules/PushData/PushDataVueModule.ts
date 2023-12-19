@@ -34,7 +34,8 @@ export default class PushDataVueModule extends VueModuleBase {
     private static instance: PushDataVueModule = null;
 
     public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
-        this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
+        this.notifications_handler.bind(this), 100, { leading: true, trailing: true }
+    );
     protected socket;
 
     private constructor() {

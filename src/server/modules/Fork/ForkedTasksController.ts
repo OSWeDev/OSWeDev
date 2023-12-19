@@ -4,7 +4,6 @@ import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
-import ModuleForkServer from './ModuleForkServer';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwardToBGThreadForkMessage';
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
