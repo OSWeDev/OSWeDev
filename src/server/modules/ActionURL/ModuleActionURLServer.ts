@@ -86,12 +86,28 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         let action_url = await query(ActionURLVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<ActionURLUserVO>().user_id, uid, ActionURLUserVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<ActionURLVO>().action_code, code)
-            .filter_by_num_not_eq(field_names<ActionURLVO>().action_remaining_counter, 0)
             .exec_as_server()
             .select_vo<ActionURLVO>();
 
         if (!action_url) {
-            ConsoleHandler.error('No action_url found for code:' + code + ': or this user does not have access to it:' + uid + ': or this action_url has no remaining counter.');
+            ConsoleHandler.error('No action_url found for code:' + code + ': or this user does not have access to it:' + uid + ':');
+            return;
+        }
+
+        try {
+            await this.do_action_url(action_url, code, uid, req, res);
+            if (!res.headersSent) {
+                // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
+                res.redirect('/action_url_cr/' + action_url.id);
+            }
+        } catch (error) {
+            ConsoleHandler.error('Error in action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name + ': error:' + error);
+        }
+    }
+
+    private async do_action_url(action_url: ActionURLVO, code: string, uid: number, req: Request, res: Response) {
+        if (action_url.action_remaining_counter <= 0) {
+            ConsoleHandler.error('action_url code :' + code + ': uid :' + uid + ': this action_url has no remaining counter.');
             return;
         }
 
@@ -117,28 +133,17 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             return;
         }
 
-        try {
+        // Si -1, infini
+        if (action_url.action_remaining_counter > 0) {
+            action_url.action_remaining_counter--;
+        }
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
 
-            // Si -1, infini
-            if (action_url.action_remaining_counter > 0) {
-                action_url.action_remaining_counter--;
-            }
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+        let action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
 
-            let action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
-
-            if (action_cr) {
-                action_cr.action_url_id = action_url.id;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_cr);
-            }
-
-            if (!res.headersSent) {
-                // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
-                res.redirect('/action_url_cr/' + action_url.id);
-            }
-
-        } catch (error) {
-            ConsoleHandler.error('Error in action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name + ': error:' + error);
+        if (action_cr) {
+            action_cr.action_url_id = action_url.id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_cr);
         }
     }
 }

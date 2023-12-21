@@ -28,6 +28,21 @@ export default class TextHandler {
             ç: 'c',
         };
 
+    public static html_accents_replacements: { [src: string]: string } =
+        {
+            é: '&eacute;',
+            è: '&egrave;',
+            ê: '&ecirc;',
+            à: '&agrave;',
+            ò: '&ograve;',
+            ô: '&ocirc;',
+            ù: '&ugrave;',
+            ì: '&igrave;',
+            î: '&icirc;',
+            û: '&ucirc;',
+            ç: '&ccedil;',
+        };
+
     /** istanbul ignore next: nothing to test here */
     public static getInstance(): TextHandler {
         if (!TextHandler.instance) {
@@ -67,6 +82,32 @@ export default class TextHandler {
         return sanitized_res;
     }
 
+    /*
+     * remplace les accents de la chaine de caracteres src par des codes html
+     */
+    public encode_accents(src: string): string {
+
+        if (!src) {
+            return null;
+        }
+
+        let sanitized_res: string = '';
+        let length: number = src.length;
+
+        for (let i = 0; i < length; i++) {
+            let c = src[i];
+
+            if (!!TextHandler.html_accents_replacements[c]) {
+                sanitized_res += TextHandler.html_accents_replacements[c];
+                continue;
+            }
+
+            sanitized_res += c;
+        }
+
+        return sanitized_res;
+    }
+
     /**
      * On supprime tous les accents récursivement
      * @param object
@@ -82,6 +123,26 @@ export default class TextHandler {
 
             if (typeof field === 'object') {
                 object[field_id] = this.sanityze_object(object[field_id]);
+            }
+        }
+        return object;
+    }
+
+    /**
+     * On encode vers un format HTML récursivement
+     * @param object
+     */
+    public encode_object(object: any) {
+        for (let field_id in object) {
+            let field = object[field_id];
+
+            if (TypesHandler.getInstance().isString(field)) {
+                object[field_id] = this.encode_accents(field);
+                continue;
+            }
+
+            if (typeof field === 'object') {
+                object[field_id] = this.encode_object(object[field_id]);
             }
         }
         return object;

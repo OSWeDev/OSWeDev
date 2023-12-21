@@ -2933,7 +2933,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 await promise_pipeline.push(async () => {
 
                     vo.id = parseInt(results[i].id.toString());
-                    await DAOServerController.post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+
+                    try {
+                        await DAOServerController.post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                    } catch (error) {
+                        ConsoleHandler.error('post_create_trigger_hook :' + vo._type + ':' + vo.id + ':' + error);
+                    }
                     InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(vo.id));
                 });
             }

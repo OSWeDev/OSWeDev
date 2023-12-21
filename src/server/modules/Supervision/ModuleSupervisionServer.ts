@@ -326,7 +326,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
-        message.title = 'Supervision - Nouvelle ERREUR';
+        message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Supervision - Nouvelle ERREUR';
         message.summary = 'ERREUR : ' + supervised_item.name;
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
@@ -371,7 +371,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
-        message.title = 'Supervision - Retour a la normale';
+        message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Supervision - Retour a la normale';
         message.summary = 'OK : ' + supervised_item.name;
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')

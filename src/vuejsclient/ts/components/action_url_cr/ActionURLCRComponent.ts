@@ -47,6 +47,6 @@ export default class ActionURLCRComponent extends VueComponentBase {
         }
 
         this.action_url = action_url;
-        this.action_crs = await query(ActionURLCRVO.API_TYPE_ID).filter_by_id(action_url.id, ActionURLCRVO.API_TYPE_ID).set_sort(new SortByVO(ActionURLCRVO.API_TYPE_ID, field_names<ActionURLCRVO>().ts, false)).select_vos<ActionURLCRVO>();
+        this.action_crs = await query(ActionURLCRVO.API_TYPE_ID).filter_by_id(action_url.id, ActionURLVO.API_TYPE_ID).set_sort(new SortByVO(ActionURLCRVO.API_TYPE_ID, field_names<ActionURLCRVO>().ts, false)).select_vos<ActionURLCRVO>();
     }
 }

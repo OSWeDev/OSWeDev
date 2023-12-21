@@ -7,9 +7,6 @@ import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleRequestServer extends ModuleServerBase {
 
-    public static METHOD_GET: string = "GET";
-    public static METHOD_POST: string = "POST";
-
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleRequestServer.instance) {
@@ -53,7 +50,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
         result_headers: {} = null,
         nojsonparse: boolean = false,
         add_content_length_to_headers: boolean = false,
-        json_stringify_posts: boolean = true,
+        json_stringify_posts: boolean = true
     ): Promise<any> {
 
         return new Promise((resolve, reject) => {

@@ -2244,7 +2244,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'session_share');
     }
 
-    private get_my_sid(res: Response) {
+    private get_my_sid(req: Request, res: Response) {
         // let session = StackContext.get('SESSION');
         // if (!session) {
         //     return null;

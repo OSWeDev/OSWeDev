@@ -29,7 +29,8 @@ export default class TeamsAPIServerController {
         }
 
         let TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
-        let msg = TextHandler.getInstance().sanityze_object(message);
+        // let msg = TextHandler.getInstance().sanityze_object(message);
+        let msg = TextHandler.getInstance().encode_object(message);
 
         await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,

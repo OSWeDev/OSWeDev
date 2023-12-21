@@ -198,17 +198,17 @@ export default class PromisePipeline {
         }
 
         if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
-            ConsoleHandler.log('PromisePipeline.do_cb():BEFORECB:' + this.uid + ':cb_name:' + cb.name + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
+            ConsoleHandler.log('PromisePipeline.do_cb():BEFORECB:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         try {
             await cb();
         } catch (error) {
-            ConsoleHandler.error('PromisePipeline.do_cb():ERROR:' + error + ':cb_name:' + cb.name + ':' + cb_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
+            ConsoleHandler.error('PromisePipeline.do_cb():ERROR:' + error + ':' + cb_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
-            ConsoleHandler.log('PromisePipeline.do_cb():AFTERCB:' + this.uid + ':cb_name:' + cb.name + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
+            ConsoleHandler.log('PromisePipeline.do_cb():AFTERCB:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         this.nb_running_promises--;
@@ -230,7 +230,7 @@ export default class PromisePipeline {
         if ((this.nb_running_promises === 0) && this.end_promise_resolve) {
 
             if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
-                ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':cb_name:' + cb.name + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
+                ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
             let end_promise = this.end_promise_resolve;
