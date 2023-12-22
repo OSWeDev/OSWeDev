@@ -427,7 +427,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             feedback.id = ires.id;
 
-            await this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
+            // On n'attend pas la réponse pour Teams, à cause des temps d'interaction avec GPT
+            this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
                 // , api_logs
             );
 
