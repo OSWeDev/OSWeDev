@@ -950,6 +950,11 @@ export default class CRUDComponentField extends VueComponentBase
                 if (!!this.isLoadingOptions) {
                     this.isLoadingOptions = false;
                 }
+
+                if (simpleField.triFiltrageEnum) {
+                    newOptions = simpleField.triFiltrageEnum(newOptions);
+                }
+
                 this.select_options = newOptions;
             }
         }
@@ -1045,6 +1050,11 @@ export default class CRUDComponentField extends VueComponentBase
         if (!!this.isLoadingOptions) {
             this.isLoadingOptions = false;
         }
+
+        if (simpleField.triFiltrageEnum) {
+            newOptions = simpleField.triFiltrageEnum(newOptions);
+        }
+
         this.select_options = newOptions;
     }
 
