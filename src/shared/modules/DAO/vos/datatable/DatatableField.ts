@@ -116,10 +116,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
     //definit comment trier le field si besoin
     public sort: (vos: IDistantVOBase[]) => void;
+    public sortEnum: (opts: number[]) => void;
 
     //definit la fonction qui permet de filtrer
     public sieve: (vos: IDistantVOBase[]) => IDistantVOBase[];
     public sieveCondition: (e: any) => boolean;
+    public sieveEnum: (opts: number[]) => number[];
 
     public semaphore_auto_update_datatable_field_uid_with_vo_type: boolean = false;
 
@@ -253,6 +255,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
+    public setSortEnum(fonctionComparaison: (opts: number[]) => void): DatatableField<T, U> {
+        this.sortEnum = fonctionComparaison;
+
+        return this;
+    }
+
     /**
      * permet de definir une fonction de filtrage sur les elts à afficher (sieve: passer au tamis)
      * par defaut laisse tout passer (pas de tri)
@@ -269,6 +277,13 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
             this.sieve = (vos: P[]): P[] => vos.filter(condition);
             this.sieveCondition = condition;
         }
+
+        return this;
+    }
+
+    public setSieveEnum(condition: (opts: number[]) => number[]): DatatableField<T, U> {
+
+        this.sieveEnum = condition;
 
         return this;
     }
@@ -299,6 +314,18 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
             optionsArray = this.sieve(optionsArray);
         }
         return optionsArray;
+    }
+
+    public triFiltrageEnum(opts: number[]): number[] {
+        if (this.sortEnum) {
+            this.sortEnum(opts);
+        }
+
+        if (this.sieveEnum) {
+            opts = this.sieveEnum(opts);
+        }
+
+        return opts;
     }
 
     public setValidator(validator: (data: any) => string): this {

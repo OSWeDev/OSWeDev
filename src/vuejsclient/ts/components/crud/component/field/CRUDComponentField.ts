@@ -3,7 +3,7 @@ import { watch } from 'fs';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
-import Vue, { nextTick } from 'vue';
+import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -966,6 +966,11 @@ export default class CRUDComponentField extends VueComponentBase
                 if (!!this.isLoadingOptions) {
                     this.isLoadingOptions = false;
                 }
+
+                if (simpleField.triFiltrageEnum) {
+                    newOptions = simpleField.triFiltrageEnum(newOptions);
+                }
+
                 this.select_options = newOptions;
             }
         }
@@ -1061,6 +1066,11 @@ export default class CRUDComponentField extends VueComponentBase
         if (!!this.isLoadingOptions) {
             this.isLoadingOptions = false;
         }
+
+        if (simpleField.triFiltrageEnum) {
+            newOptions = simpleField.triFiltrageEnum(newOptions);
+        }
+
         this.select_options = newOptions;
     }
 
