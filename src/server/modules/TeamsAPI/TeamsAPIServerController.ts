@@ -1,5 +1,5 @@
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
@@ -129,8 +129,8 @@ export default class TeamsAPIServerController {
                 if (ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE) {
                     try {
 
-                        let response: GPTMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
-                            GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+                        let response: GPTCompletionAPIMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+                            GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                             null,
                             'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
                         ));

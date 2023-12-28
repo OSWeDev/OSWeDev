@@ -1,5 +1,4 @@
 
-import NumRange from '../../DataRender/vos/NumRange';
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
@@ -26,7 +25,6 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
 
     public role_type: number;
     public user_id: number;
-    public file_ids: NumRange[];
     public assistant_id: number;
     public run_id: number;
 

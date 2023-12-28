@@ -3,7 +3,7 @@ import IDistantVOBase from '../../IDistantVOBase';
 
 export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVOBase {
 
-    public static API_TYPE_ID: string = "gpt_assistant_thread_msg";
+    public static API_TYPE_ID: string = "gpt_assistant_thread_msg_content";
 
     public static TYPE_LABELS: string[] = [
         'image_file',
@@ -15,7 +15,7 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
     public id: number;
     public _type: string = GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID;
 
-    public message_id: number;
+    public thread_message_id: number;
     public weight: number;
 
     // Dans le cas d'une image, le fichier GPT qui contient l'image

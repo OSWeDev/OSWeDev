@@ -2,14 +2,14 @@
 
 import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
-import GPTConversationVO from '../vos/GPTConversationVO';
-import GPTMessageVO from '../vos/GPTMessageVO';
+import GPTCompletionAPIConversationVO from '../vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../vos/GPTCompletionAPIMessageVO';
 
 export default class APIGPTGenerateResponseParam implements IAPIParamTranslator<APIGPTGenerateResponseParam> {
 
     public static fromParams(
-        conversation: GPTConversationVO,
-        newPrompt: GPTMessageVO): APIGPTGenerateResponseParam {
+        conversation: GPTCompletionAPIConversationVO,
+        newPrompt: GPTCompletionAPIMessageVO): APIGPTGenerateResponseParam {
 
         return new APIGPTGenerateResponseParam(conversation, newPrompt);
     }
@@ -19,8 +19,8 @@ export default class APIGPTGenerateResponseParam implements IAPIParamTranslator<
     }
 
     public constructor(
-        public conversation: GPTConversationVO,
-        public newPrompt: GPTMessageVO) {
+        public conversation: GPTCompletionAPIConversationVO,
+        public newPrompt: GPTCompletionAPIMessageVO) {
     }
 }
 

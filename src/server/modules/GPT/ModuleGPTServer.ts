@@ -19,6 +19,8 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -46,6 +48,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
+
         if (!ConfigurationService.node_configuration.OPEN_API_API_KEY) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
             return;
@@ -54,6 +60,11 @@ export default class ModuleGPTServer extends ModuleServerBase {
         ModuleGPTServer.openai = new OpenAI({
             apiKey: ConfigurationService.node_configuration.OPEN_API_API_KEY
         });
+    }
+
+    public async handleTriggerPreCreateGPTCompletionAPIConversationVO(vo: GPTCompletionAPIConversationVO): Promise<boolean> {
+        vo.date = Dates.now();
+        return true;
     }
 
     /**

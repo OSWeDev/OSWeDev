@@ -7,4 +7,6 @@ export default class GPTCompletionAPIConversationVO implements IDistantVOBase {
 
     public id: number;
     public _type: string = GPTCompletionAPIConversationVO.API_TYPE_ID;
+
+    public date: number;
 }

@@ -238,7 +238,9 @@ export default class ModuleTableDBService {
         } else {
 
             // On doit entre autre ajouter la table en base qui gère les fields
-            if (moduleTable.get_fields() && (moduleTable.get_fields().length > 0)) {
+            if ((!moduleTable.get_fields()) || (!moduleTable.get_fields().length)) {
+                ConsoleHandler.error('ModuleTableDBService: no fields for table - DB declaration is impossible without fields:' + moduleTable.full_name);
+            } else {
                 await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name, null);
             }
         }

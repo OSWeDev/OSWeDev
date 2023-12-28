@@ -1,8 +1,12 @@
 
+import VarDAG from '../../../server/modules/Var/vos/VarDAG';
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -12,7 +16,11 @@ import ManualTasksController from '../../../shared/modules/Cron/ManualTasksContr
 import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -20,19 +28,19 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarsInitController from '../../../shared/modules/Var/VarsInitController';
-import VarDAG from '../../../server/modules/Var/vos/VarDAG';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -73,15 +81,6 @@ import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -1734,7 +1733,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         prompt += "L'explication doit avoir au maximum 100 mots, et expliquer clairement la valeur actuelle de la variable, en utilisant les éléments ci-dessus.\n";
         ConsoleHandler.log('prompt', prompt);
 
-        let gpt_msg = await ModuleGPT.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, user_id, prompt));
+        let gpt_msg = await ModuleGPT.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER, user_id, prompt));
 
         return gpt_msg?.content;
     }

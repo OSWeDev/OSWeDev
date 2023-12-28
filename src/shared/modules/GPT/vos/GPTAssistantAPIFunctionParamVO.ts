@@ -27,9 +27,13 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase {
     public id: number;
     public _type: string = GPTAssistantAPIFunctionParamVO.API_TYPE_ID;
 
+    public function_id: number;
+
+    public required: boolean;
+
     public type: number;
-    public name: string;
-    public description: string;
+    public gpt_funcparam_name: string;
+    public gpt_funcparam_description: string;
 
     public string_enum: string[];
     public number_enum: number[];
@@ -42,7 +46,7 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase {
 
         let res: FunctionParameters = {
             type: GPTAssistantAPIFunctionParamVO.TYPE_LABELS[this.type],
-            description: this.description,
+            description: this.gpt_funcparam_description,
         };
 
         if ((this.type == GPTAssistantAPIFunctionParamVO.TYPE_STRING) && this.string_enum) {
@@ -59,7 +63,7 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase {
             for (let i in this.object_fields) {
                 let field: GPTAssistantAPIFunctionParamVO = this.object_fields[i];
 
-                fields[field.name] = field.to_GPT_FunctionParameters();
+                fields[field.gpt_funcparam_name] = field.to_GPT_FunctionParameters();
             }
 
             res['properties'] = fields;

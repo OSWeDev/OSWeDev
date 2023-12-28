@@ -15,8 +15,8 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
@@ -473,8 +473,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // };
 
 
-            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
-                GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+                GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                 uid,
                 'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +

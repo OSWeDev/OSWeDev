@@ -27,6 +27,7 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 import { Uploadable } from 'openai/uploads';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
+import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -88,7 +89,7 @@ export default class GPTAssistantAPIServerController {
         return null;
     }
 
-    public static async get_thread(thread_id: string = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
+    public static async get_thread(user_id: number, thread_id: string = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
 
         try {
 
@@ -104,7 +105,7 @@ export default class GPTAssistantAPIServerController {
             }
 
             // On crée le thread en base si il n'existe pas, sinon on le charge simplement pour faire le lien avec les messages
-            let thread_vo = await GPTAssistantAPIServerController.check_or_create_thread_vo(thread_gpt);
+            let thread_vo = await GPTAssistantAPIServerController.check_or_create_thread_vo(thread_gpt, user_id);
             return { thread_gpt, thread_vo };
 
         } catch (error) {
@@ -205,7 +206,7 @@ export default class GPTAssistantAPIServerController {
         return assistant_vo;
     }
 
-    public static async check_or_create_thread_vo(thread_gpt: Thread): Promise<GPTAssistantAPIThreadVO> {
+    public static async check_or_create_thread_vo(thread_gpt: Thread, user_id: number): Promise<GPTAssistantAPIThreadVO> {
 
         if (!thread_gpt) {
             return null;
@@ -218,6 +219,7 @@ export default class GPTAssistantAPIServerController {
 
         thread_vo = new GPTAssistantAPIThreadVO();
         thread_vo.gpt_thread_id = thread_gpt.id;
+        thread_vo.user_id = user_id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
 
         return thread_vo;
@@ -298,7 +300,7 @@ export default class GPTAssistantAPIServerController {
                         let image_message_content = new GPTAssistantAPIThreadMessageContentVO();
                         let assistant_file = await GPTAssistantAPIServerController.get_file(content.image_file.file_id);
                         image_message_content.assistant_file_id = assistant_file.assistant_file_vo.id;
-                        image_message_content.message_id = message_vo.id;
+                        image_message_content.thread_message_id = message_vo.id;
                         image_message_content.weight = weight++;
                         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(image_message_content);
                         break;
@@ -308,7 +310,7 @@ export default class GPTAssistantAPIServerController {
                         let text_message_content = new GPTAssistantAPIThreadMessageContentVO();
                         text_message_content.value = content.text.value;
                         text_message_content.annotations = []; // TODO FIXME : content.text.annotations;
-                        text_message_content.message_id = message_vo.id;
+                        text_message_content.thread_message_id = message_vo.id;
                         text_message_content.weight = weight++;
                         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_message_content);
                         break;
@@ -369,11 +371,17 @@ export default class GPTAssistantAPIServerController {
     /**
      *
      * @param assistant_id
+     * @param thread_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
      * @param message
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
      * @returns
      */
-    public static async askAssistant(assistant_id: string, message: MessageCreateParams, files: FileVO[]): Promise<string> {
+    public static async askAssistant(
+        assistant_id: string,
+        thread_id: string,
+        message: MessageCreateParams,
+        files: FileVO[],
+        user_id: number): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         let assistant: { assistant_gpt: Assistant, assistant_vo: GPTAssistantAPIAssistantVO } = await GPTAssistantAPIServerController.get_assistant(assistant_id);
 
@@ -384,18 +392,33 @@ export default class GPTAssistantAPIServerController {
 
         // On récupère les fonctions configurées sur cet assistant
         let availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO } = {};
+        let availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] } = {};
         let functions: GPTAssistantAPIFunctionVO[] = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
             .filter_by_id(assistant.assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
             .exec_as_server()
             .select_vos<GPTAssistantAPIFunctionVO>();
+        let functions_params: GPTAssistantAPIFunctionParamVO[] = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_id(assistant.assistant_vo.id, GPTAssistantAPIAssistantVO.API_TYPE_ID).using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID).using(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIFunctionParamVO>();
+
+        for (let i in functions_params) {
+            let function_param = functions_params[i];
+
+            if (!availableFunctionsParameters[function_param.function_id]) {
+                availableFunctionsParameters[function_param.function_id] = [];
+            }
+
+            availableFunctionsParameters[function_param.function_id].push(function_param);
+        }
 
         for (let i in functions) {
             let functionVO = functions[i];
 
-            availableFunctions[functionVO.name] = functionVO;
+            availableFunctions[functionVO.gpt_function_name] = functionVO;
         }
 
-        let thread: { thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread();
+        let thread: { thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(user_id, thread_id);
 
         if ((!thread) || (!thread.thread_gpt) || (!thread.thread_vo)) {
             ConsoleHandler.error('GPTAssistantAPIServerController.askAssistant: thread (gpt or vo) not created');
@@ -453,7 +476,12 @@ export default class GPTAssistantAPIServerController {
                                     let function_vo: GPTAssistantAPIFunctionVO = availableFunctions[tool_call.function.name];
                                     let function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
                                     let function_args = JSON.parse(tool_call.function.arguments);
-                                    function_response = await function_to_call.call(null, function_vo.ordered_function_params_from_GPT_arguments(function_args));
+                                    function_response = await function_to_call.call(null, function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread.thread_vo, function_args, availableFunctionsParameters[function_vo.id]));
+
+                                    if (!function_response) {
+                                        ConsoleHandler.warn('GPTAssistantAPIServerController.askAssistant: run requires_action - submit_tool_outputs - function_response null or undefined. Simulating SUCCESS response.');
+                                        function_response = "{ \"success\": true }";
+                                    }
                                 } catch (error) {
                                     ConsoleHandler.error('GPTAssistantAPIServerController.askAssistant: run requires_action - submit_tool_outputs - error: ' + error);
                                 }
@@ -503,12 +531,12 @@ export default class GPTAssistantAPIServerController {
             after: asking_message.message_gpt.id
         });
 
-        let res: string = "";
+        let res: GPTAssistantAPIThreadMessageVO[] = [];
 
         for (let i in thread_messages.data) {
             let thread_message: ThreadMessage = thread_messages.data[i];
 
-            await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread.thread_vo);
+            res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread.thread_vo));
         }
 
         return res;
