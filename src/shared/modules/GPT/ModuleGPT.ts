@@ -1,13 +1,14 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import APIGPTAskAssistantParam, { APIGPTAskAssistantParamStatic } from './api/APIGPTAskAssistantParam';
 import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
 import GPTAssistantAPIAssistantFunctionVO from './vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from './vos/GPTAssistantAPIAssistantVO';
@@ -29,6 +30,7 @@ export default class ModuleGPT extends Module {
     public static PARAM_NAME_MODEL_ID: string = 'PARAM_NAME_MODEL_ID';
 
     public static APINAME_generate_response: string = "modulegpt_generate_response";
+    public static APINAME_ask_assistant: string = "modulegpt_ask_assistant";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleGPT.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";
@@ -50,6 +52,24 @@ export default class ModuleGPT extends Module {
     ) => Promise<GPTCompletionAPIMessageVO> = APIControllerWrapper.sah<APIGPTGenerateResponseParam, GPTCompletionAPIMessageVO>(
         ModuleGPT.APINAME_generate_response);
 
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param assistant_id id de l'assistant au sens de l'API GPT
+     * @param thread_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param content contenu text du nouveau message
+     * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
+     * @returns
+     */
+    public ask_assistant: (
+        assistant_id: string,
+        thread_id: string,
+        content: string,
+        files: FileVO[],
+        user_id: number
+    ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(
+        ModuleGPT.APINAME_ask_assistant);
+
+
     private constructor() {
 
         super("gpt", ModuleGPT.MODULE_NAME);
@@ -58,11 +78,25 @@ export default class ModuleGPT extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIGPTGenerateResponseParam, GPTCompletionAPIMessageVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APIGPTGenerateResponseParam, GPTCompletionAPIMessageVO>(
             null,
             ModuleGPT.APINAME_generate_response,
-            null,
+            [GPTCompletionAPIConversationVO.API_TYPE_ID, GPTCompletionAPIMessageVO.API_TYPE_ID],
             APIGPTGenerateResponseParamStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(
+            null,
+            ModuleGPT.APINAME_ask_assistant,
+            [
+                GPTAssistantAPIFileVO.API_TYPE_ID,
+                GPTAssistantAPIRunVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageFileVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                GPTAssistantAPIThreadVO.API_TYPE_ID
+            ],
+            APIGPTAskAssistantParamStatic
         ));
     }
 
@@ -130,15 +164,17 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIFunctionVO() {
 
+        let label = new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, ModuleTableField.FIELD_TYPE_string, 'GPT - Nom', true).unique();
+
         let fields = [
+            label,
             new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleTableField.FIELD_TYPE_string, 'Module', true),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().module_function, ModuleTableField.FIELD_TYPE_string, 'Fonction', true),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().gpt_function_description, ModuleTableField.FIELD_TYPE_string, 'GPT - Description', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, ModuleTableField.FIELD_TYPE_string, 'GPT - Nom', true).unique(),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().prepend_thread_vo, ModuleTableField.FIELD_TYPE_boolean, 'Thread VO en 1er param', true, true, true),
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionVO(), fields, null, 'GPT Assistant API - Fonction');
+        let table = new ModuleTable(this, GPTAssistantAPIFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionVO(), fields, label, 'GPT Assistant API - Fonction');
         this.datatables.push(table);
     }
 
@@ -191,6 +227,7 @@ export default class ModuleGPT extends Module {
             new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, ModuleTableField.FIELD_TYPE_string, 'Nom du paramètre', true),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_description, ModuleTableField.FIELD_TYPE_string, 'Description', true),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().required, ModuleTableField.FIELD_TYPE_boolean, 'Requis', true, true, true),
+            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().string_enum, ModuleTableField.FIELD_TYPE_string_array, 'Options string enum', false),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().number_enum, ModuleTableField.FIELD_TYPE_float_array, 'Options numebr enum', false),
             new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().object_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Champs (type objet)', false),
@@ -299,7 +336,7 @@ export default class ModuleGPT extends Module {
             new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().value, ModuleTableField.FIELD_TYPE_string, 'Contenu', false),
             new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().annotations, ModuleTableField.FIELD_TYPE_string_array, 'Annotations', false),
-
+            new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().content_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT).setEnumValues(GPTAssistantAPIThreadMessageContentVO.TYPE_LABELS),
         ];
 
         let table = new ModuleTable(this, GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageContentVO(), fields, null, 'GPT Assistant API - Thread Message Content');

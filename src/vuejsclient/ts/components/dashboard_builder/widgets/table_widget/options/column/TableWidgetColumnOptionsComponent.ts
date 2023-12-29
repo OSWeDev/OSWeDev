@@ -647,6 +647,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.readonly = true;
         new_column.exportable = true;
         new_column.hide_from_table = false;
+        new_column.sortable = true;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
         new_column.do_not_user_filter_active_ids = [];
@@ -680,6 +681,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.readonly = true;
         new_column.exportable = true;
         new_column.hide_from_table = false;
+        new_column.sortable = true;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
         new_column.do_not_user_filter_active_ids = [];
@@ -731,6 +733,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.readonly = true;
         new_column.exportable = true;
         new_column.hide_from_table = false;
+        new_column.sortable = true;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
         new_column.do_not_user_filter_active_ids = [];
@@ -776,6 +779,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.readonly = true;
         new_column.exportable = true;
         new_column.hide_from_table = false;
+        new_column.sortable = true;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
         new_column.do_not_user_filter_active_ids = [];
@@ -887,6 +891,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.column.hide_from_table = !this.column.hide_from_table;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_sortable() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.sortable = !this.column.sortable;
         this.$emit('update_column', this.column);
     }
 

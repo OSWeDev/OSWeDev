@@ -1,0 +1,91 @@
+.celia_thread_widget_component
+    template(v-if='too_many_threads')
+        .too_many_threads.bg-primary
+            i.fa-duotone.fa-filters
+            | {{ label('celia_thread_widget_component.too_many_threads') }}
+
+    template(v-if='has_access_to_thread')
+        template(v-if='is_loading_thread')
+            .is_loading_thread
+                i.fa-duotone.fa-spinner-third.fa-spin
+
+        template(v-else)
+            .thread_container(ref='thread_container')
+                .update_button 
+                    button.btn.btn-sm.btn-primary(v-on:click='throttle_load_thread')
+                        i.fa-duotone.fa-sync
+                template(v-if='(!thread_messages) || (!thread_messages.length)')
+                    .no_messages
+                        i.fa-duotone.fa-comments
+                        | {{ label('celia_thread_widget_component.no_messages') }}
+                .thread_messages
+                    template(v-for='thread_message in thread_messages')
+                        .thread_message
+                            .thread_message_header
+                                .thread_message_header_left
+                                    template(v-if='thread_message.role_type == role_assistant')
+                                        .thread_message_header_left_avatar
+                                            img(:src='role_assistant_avatar_url')
+                                        .thread_message_header_left_username
+                                            | {{ label('celia_thread_widget_component.thread_message_header_left_username.celia') }}
+                                    template(v-else-if='thread_message.role_type == role_system')
+                                        .thread_message_header_left_avatar
+                                            img(:src='role_system_avatar_url')
+                                        .thread_message_header_left_username
+                                            | {{ label('celia_thread_widget_component.thread_message_header_left_username.system') }}
+                                    template(v-else-if='thread_message.role_type == role_tool')
+                                        .thread_message_header_left_avatar
+                                            img(:src='role_tool_avatar_url')
+                                        .thread_message_header_left_username
+                                            | {{ label('celia_thread_widget_component.thread_message_header_left_username.tool') }}
+                                    template(v-else-if='thread_message.role_type == role_function')
+                                        .thread_message_header_left_avatar
+                                            img(:src='role_function_avatar_url')
+                                        .thread_message_header_left_username
+                                            | {{ label('celia_thread_widget_component.thread_message_header_left_username.function') }}
+                                    template(v-else-if='thread_message.role_type == role_user')
+                                        .thread_message_header_left_avatar
+                                            img(:src='avatar_urls[thread_message.user_id]')
+                                        .thread_message_header_left_username
+                                            template(v-if='is_self_user(thread_message.user_id)')
+                                                | {{ label('celia_thread_widget_component.thread_message_header_left_username.me') }}
+                                            template(v-else)
+                                                | {{ user_names[thread_message.user_id] }}
+                                .thread_message_header_right
+                                    .thread_message_header_right_date
+                                        | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
+
+                            .thread_message_body
+                                template(v-for='message_content in thread_message_contents_by_message_id[thread_message.id]')
+                                    .thread_message_body_content
+                                        template(v-if='message_content.content_type == message_content_type_text')
+                                            .thread_message_body_text
+                                                | {{ message_content.value }}
+                                        //- TODO
+                                        //- template(v-else-if='message_content.content_type == message_content_type_image')
+                                        //-     .thread_message_body_image
+                                        //-         img(:src='message_content.assistant_file_id')
+
+                            //- .thread_message_footer => on peut vouloir compléter cette partie pour modifier et rerun un message iso l'interface openai
+    
+                .thread_message_input
+                    .thread_message_input_textarea
+                        textarea(v-model='new_message_text' rows="4")
+                    .thread_message_input_send
+                        template(v-if='too_many_assistants')
+                            .too_many_assistants.bg-warning
+                                i.fa-duotone.fa-comments-question
+                                | {{ label('celia_thread_widget_component.too_many_assistants') }}
+                        template(v-else-if='!can_run_assistant')
+                            .no_assistant.bg-danger
+                                i.fa-duotone.fa-comments-question
+                                | {{ label('celia_thread_widget_component.no_assistant') }}
+                        template(v-else)
+                            button.btn.btn-primary(v-on:click='send_message()' :disabled='assistant_is_busy || !new_message_text')
+                                i.fa-duotone.fa-paper-plane
+                                | {{ label('celia_thread_widget_component.send_message') }}
+
+    template(v-else)
+        .no_access.bg-warning
+            i.fa-duotone.fa-user-lock.fa-beat-fade(style='--fa-animation-iteration-count: 3')
+            | {{ label('celia_thread_widget_component.no_access') }}

@@ -15,6 +15,8 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
     public id: number;
     public _type: string = GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID;
 
+    public content_type: number;
+
     public thread_message_id: number;
     public weight: number;
 

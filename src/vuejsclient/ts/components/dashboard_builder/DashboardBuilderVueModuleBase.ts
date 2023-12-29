@@ -25,6 +25,7 @@ import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import CeliaThreadWidgetOptions from './widgets/celia_thread_widget/options/CeliaThreadWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -124,6 +125,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_SaveFavoritesFilters();
 
         await this.initializeWidget_ShowFavoritesFilters();
+
+        await this.initializeWidget_CeliaThread();
     }
 
     private async initializeWidget_BulkOps() {
@@ -223,6 +226,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
         Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
     }
+
+    private async initializeWidget_CeliaThread() {
+        let widget = new DashboardWidgetVO();
+
+        widget.default_height = 35;
+        widget.default_width = 6;
+        widget.name = DashboardWidgetVO.WIDGET_NAME_celiathread;
+        widget.widget_component = 'Celiathreadwidgetcomponent';
+        widget.options_component = 'Celiathreadwidgetoptionscomponent';
+        widget.weight = 99;
+        widget.default_background = '#f5f5f5';
+        widget.icon_component = 'Celiathreadwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new CeliaThreadWidgetOptions(), CeliaThreadWidgetOptions.get_selected_fields);
+
+        Vue.component('Celiathreadwidgetcomponent', () => import('./widgets/celia_thread_widget/CeliaThreadWidgetComponent'));
+        Vue.component('Celiathreadwidgetoptionscomponent', () => import('./widgets/celia_thread_widget/options/CeliaThreadWidgetOptionsComponent'));
+        Vue.component('Celiathreadwidgeticoncomponent', () => import('./widgets/celia_thread_widget/icon/CeliaThreadWidgetIconComponent'));
+    }
+
 
     private async initializeWidget_ValueTable() {
         let Table = new DashboardWidgetVO();

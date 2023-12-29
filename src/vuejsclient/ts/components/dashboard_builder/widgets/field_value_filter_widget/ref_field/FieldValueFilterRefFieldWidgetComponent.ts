@@ -121,6 +121,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
     private old_widget_options: FieldValueFilterWidgetOptionsVO = null;
 
     private last_calculation_cpt: number = 0;
+    private already_loaded_query_params: boolean = false;
 
     private debounced_query_update_visible_options_checkbox = debounce(this.query_update_visible_options_checkbox.bind(this), 300);
 
@@ -136,6 +137,54 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
     ];
 
     private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
+
+    @Watch('filter_visible_options', { deep: true, immediate: true })
+    private async try_apply_query_params() {
+
+        if (this.already_loaded_query_params) {
+            return;
+        }
+
+        /**
+         * Try apply query params
+         */
+        let update_tmp_active_filter_options: boolean = false;
+        let updated_tmp_active_filter_options: DataFilterOption[] = [];
+
+        // get all search params (including ?)
+        const queryString = window.location.search;
+        // it will look like this: ?product=shirt&color=blue&newuser&size=m
+
+        // parse the query string's paramters
+        const urlParams = new URLSearchParams(queryString);
+
+        // To get a parameter simply write something like the follwing
+        let param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
+        const filter_value_str: string = urlParams.get(param_name);
+        if (filter_value_str != null) {
+            const filter_value_number: number = parseInt(filter_value_str);
+
+            // On doit retrouver la valeur dans les options disponibles
+            let filter_value: DataFilterOption = null;
+            for (let i in this.filter_visible_options) {
+                let filter_opt = this.filter_visible_options[i];
+                if (filter_opt.numeric_value == filter_value_number) {
+                    filter_value = filter_opt;
+                    break;
+                }
+            }
+
+            if (filter_value) {
+                update_tmp_active_filter_options = true;
+                updated_tmp_active_filter_options.push(filter_value);
+            }
+        }
+
+        if (update_tmp_active_filter_options) {
+            this.tmp_active_filter_options = updated_tmp_active_filter_options;
+            this.already_loaded_query_params = true;
+        }
+    }
 
     private async mounted() {
         ResetFiltersWidgetController.getInstance().register_reseter(

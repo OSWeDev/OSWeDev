@@ -6,8 +6,10 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -17,10 +19,11 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -44,6 +47,17 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
+    }
+
+    public async ask_assistant(
+        assistant_id: string,
+        thread_id: string,
+        content: string,
+        files: FileVO[],
+        user_id: number
+    ): Promise<GPTAssistantAPIThreadMessageVO[]> {
+        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, content, files, user_id);
     }
 
     // istanbul ignore next: cannot test configure

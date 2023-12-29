@@ -42,6 +42,8 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase {
 
     public array_items_type: number;
 
+    public weight: number;
+
     public to_GPT_FunctionParameters(): FunctionParameters {
 
         let res: FunctionParameters = {

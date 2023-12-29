@@ -457,7 +457,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
 
             // //TODO FIXME simple test remplacer par un assistant dédié ( et lié au projet ) en gérant correctement les fichiers / captures, ou juste revenir à l'ancienne version
-            // let gtp_4_brief_msg = await GPTServerController.askAssistant(
+            // let gtp_4_brief_msg = await GPTServerController.ask_assistant(
             //     'g-4dPuTN6RY-celia-c-dms-mail-writer',
             //     'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
             //     // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +

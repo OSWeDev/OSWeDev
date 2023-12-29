@@ -186,6 +186,56 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Non'
         }, 'table_widget_options_component.kanban_use_weight.false.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Titre'
+        }, 'celia_thread_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Envoi du message...'
+        }, 'CeliaThreadWidgetComponent.send_message.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Message envoyé'
+        }, 'CeliaThreadWidgetComponent.send_message.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de l\'envoi du message'
+        }, 'CeliaThreadWidgetComponent.send_message.failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Envoyer le message à Célia'
+        }, 'celia_thread_widget_component.send_message.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Aucun assistant disponible pour cette discussion'
+        }, 'celia_thread_widget_component.no_assistant.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Vous devez choisir un assistant'
+        }, 'celia_thread_widget_component.too_many_assistants.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Discussion avec Célia'
+        }, 'dashboards.widgets.icons_tooltips.celiathread.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélectionner une discussion pour démarrer'
+        }, 'celia_thread_widget_component.too_many_threads.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cette discussion est introuvable. Vous n\'avez peut-être pas les droits nécessaires pour y accéder.'
+        }, 'celia_thread_widget_component.no_access.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pour débuter la discussion, utilisez le champ de saisie ci-dessous et validez avec la touche Entrée'
+        }, 'celia_thread_widget_component.no_messages.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Célia'
+        }, 'celia_thread_widget_component.thread_message_header_left_username.celia.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Système'
+        }, 'celia_thread_widget_component.thread_message_header_left_username.system.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utilisation d\'un outil'
+        }, 'celia_thread_widget_component.thread_message_header_left_username.tool.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Vous'
+        }, 'celia_thread_widget_component.thread_message_header_left_username.me.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Appel de fonction'
+        }, 'celia_thread_widget_component.thread_message_header_left_username.function.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Exportable'
@@ -199,6 +249,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cacher'
         }, 'table_widget_column_conf.editable_column.hide_from_table.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Tri visible'
+        }, 'table_widget_column_conf.editable_column.sortable.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Tri masqué'
+        }, 'table_widget_column_conf.editable_column.unsortable.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modification en cours...'

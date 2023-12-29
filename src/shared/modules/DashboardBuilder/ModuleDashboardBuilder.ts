@@ -329,6 +329,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().exportable, ModuleTableField.FIELD_TYPE_boolean, "Exportable", false, true, true),
             new ModuleTableField(field_names<TableColumnDescVO>().hide_from_table, ModuleTableField.FIELD_TYPE_boolean, "Masquer de la table", false, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().can_filter_by, ModuleTableField.FIELD_TYPE_boolean, "Filtrable", false, true, true),
+            new ModuleTableField(field_names<TableColumnDescVO>().sortable, ModuleTableField.FIELD_TYPE_boolean, "Triable", true, true, true),
 
             new ModuleTableField(field_names<TableColumnDescVO>().column_width, ModuleTableField.FIELD_TYPE_int, 'Largeur de la colonne', false),
             new ModuleTableField(field_names<TableColumnDescVO>().default_sort_field, ModuleTableField.FIELD_TYPE_int, 'Default Sort Field', false),

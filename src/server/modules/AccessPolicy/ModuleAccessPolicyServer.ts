@@ -975,6 +975,38 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID, this.BEGIN_RECOVER_UID.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID, this.BEGIN_RECOVER_SMS_UID.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_NAME, this.get_avatar_name.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_URL, this.get_avatar_url.bind(this));
+    }
+
+    public async get_avatar_name(uid: number): Promise<string> {
+        if (!uid) {
+            return null;
+        }
+
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+        if (!user) {
+            return null;
+        }
+
+        return user.name;
+    }
+
+    public async get_avatar_url(uid: number): Promise<string> {
+        if (!uid) {
+            return null;
+        }
+
+        return '/vuejsclient/public/img/avatars/unknown.png';
+        // TODO
+        // let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+        // if (!user) {
+        //     return null;
+        // }
+
+        // return user.avatar_url;
     }
 
     public async logout() {

@@ -419,6 +419,13 @@ export default class VueComponentBase extends Vue
         }
     }
 
+    protected format_date(date: number, format: string): string {
+        if (date == null) {
+            return null;
+        }
+        return Dates.format(date, format);
+    }
+
     protected formatNumber_nodecimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_nodecimal(

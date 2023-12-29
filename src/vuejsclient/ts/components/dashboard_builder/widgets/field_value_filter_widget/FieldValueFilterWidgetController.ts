@@ -10,6 +10,10 @@ import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
 export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {
 
+    public static get_query_param_filter_name(api_type_id: string, field_id: string): string {
+        return 'FILTER__' + api_type_id + '__' + field_id;
+    }
+
     public static getInstance(): FieldValueFilterWidgetController {
         if (!this.instance) {
             this.instance = new FieldValueFilterWidgetController();
