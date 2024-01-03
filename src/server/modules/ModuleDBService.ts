@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import Module from '../../shared/modules/Module';
 import ModuleParamChange from '../../shared/modules/ModuleParamChange';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
@@ -243,7 +244,7 @@ export default class ModuleDBService {
         for (let i = 0; i < module.fields.length; i++) {
             let field = module.fields[i];
 
-            if (field.field_value != params[field.field_id]) {
+            if (!isEqual(field.field_value, params[field.field_id])) {
                 paramsChanged.push(
                     new ModuleParamChange<any>(field.field_id,
                         field.field_value,
