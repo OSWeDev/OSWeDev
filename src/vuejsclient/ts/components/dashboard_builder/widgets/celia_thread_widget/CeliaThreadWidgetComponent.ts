@@ -28,13 +28,18 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './CeliaThreadWidgetComponent.scss';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import CeliaThreadMessageActionURLComponent from './CeliaThreadMessageActionURL/CeliaThreadMessageActionURLComponent';
+import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
+import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 
 @Component({
     template: require('./CeliaThreadWidgetComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Datatablecomponentfield: DatatableComponentField,
-        Tablepaginationcomponent: TablePaginationComponent
+        Tablepaginationcomponent: TablePaginationComponent,
+        Celiathreadmessageactionurlcomponent: CeliaThreadMessageActionURLComponent,
+        Mailideventscomponent: MailIDEventsComponent
     }
 })
 export default class CeliaThreadWidgetComponent extends VueComponentBase {
@@ -88,6 +93,17 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
     @Watch('get_discarded_field_paths', { deep: true })
     @Watch('page_widget')
     private async on_change_filters_or_page_widget() {
+        this.throttle_load_thread();
+    }
+
+    private async force_reload() {
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([
+            GPTAssistantAPIThreadVO.API_TYPE_ID,
+            GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+            GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
+            GPTAssistantAPIAssistantVO.API_TYPE_ID
+        ]);
+
         this.throttle_load_thread();
     }
 
@@ -329,6 +345,14 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
 
     get message_content_type_image() {
         return GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
+    }
+
+    get message_content_type_action_url() {
+        return GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
+    }
+
+    get message_content_type_email() {
+        return GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL;
     }
 
     private async send_message() {

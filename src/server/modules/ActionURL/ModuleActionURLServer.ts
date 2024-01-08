@@ -47,6 +47,17 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             'fr-fr': "Cette action n'existe pas ou vous n'y avez pas accès."
         }, 'action_url.not_found.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "En cours..."
+        }, 'CeliaThreadMessageActionURLComponent.execute_action_url.encours.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Echec de l'action"
+        }, 'CeliaThreadMessageActionURLComponent.execute_action_url.failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Action effectuée avec succès"
+        }, 'CeliaThreadMessageActionURLComponent.execute_action_url.ok.___LABEL___'));
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers

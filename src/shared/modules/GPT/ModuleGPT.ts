@@ -3,7 +3,9 @@ import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import ActionURLVO from '../ActionURL/vos/ActionURLVO';
 import FileVO from '../File/vos/FileVO';
+import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -328,6 +330,8 @@ export default class ModuleGPT extends Module {
 
         let thread_message_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Message', true);
         let assistant_file_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().assistant_file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier/image', false);
+        let action_url_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().action_url_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Action URL', false);
+        let email_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().email_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Email', false);
 
         let fields = [
             thread_message_id,
@@ -337,12 +341,17 @@ export default class ModuleGPT extends Module {
             new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().value, ModuleTableField.FIELD_TYPE_string, 'Contenu', false),
             new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().annotations, ModuleTableField.FIELD_TYPE_string_array, 'Annotations', false),
             new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().content_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT).setEnumValues(GPTAssistantAPIThreadMessageContentVO.TYPE_LABELS),
+
+            action_url_id,
+            email_id
         ];
 
         let table = new ModuleTable(this, GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageContentVO(), fields, null, 'GPT Assistant API - Thread Message Content');
         this.datatables.push(table);
         thread_message_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIThreadMessageVO.API_TYPE_ID]);
         assistant_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIFileVO.API_TYPE_ID]);
+        action_url_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ActionURLVO.API_TYPE_ID]);
+        email_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailVO.API_TYPE_ID]);
     }
 
 }

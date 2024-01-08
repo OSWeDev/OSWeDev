@@ -636,9 +636,9 @@ export default abstract class ModuleServiceBase {
             ModuleExpressDBSessions.getInstance(),
             ModuleUserLogVars.getInstance(),
             ModulePlayWright.getInstance(),
+            ModuleActionURL.getInstance(),
             ModuleGPT.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
-            ModuleActionURL.getInstance(),
         ];
     }
 
@@ -698,9 +698,9 @@ export default abstract class ModuleServiceBase {
             ModuleExpressDBSessionServer.getInstance(),
             ModuleUserLogVarsServer.getInstance(),
             ModulePlayWrightServer.getInstance(),
+            ModuleActionURLServer.getInstance(),
             ModuleGPTServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
-            ModuleActionURLServer.getInstance(),
         ];
     }
 

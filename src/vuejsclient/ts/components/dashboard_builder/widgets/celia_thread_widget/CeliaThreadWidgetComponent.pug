@@ -12,7 +12,7 @@
         template(v-else)
             .thread_container(ref='thread_container')
                 .update_button 
-                    button.btn.btn-sm.btn-primary(v-on:click='throttle_load_thread')
+                    button.btn.btn-sm.btn-primary(v-on:click='force_reload')
                         i.fa-duotone.fa-sync
                 template(v-if='(!thread_messages) || (!thread_messages.length)')
                     .no_messages
@@ -59,8 +59,14 @@
                                 template(v-for='message_content in thread_message_contents_by_message_id[thread_message.id]')
                                     .thread_message_body_content
                                         template(v-if='message_content.content_type == message_content_type_text')
-                                            .thread_message_body_text
-                                                | {{ message_content.value }}
+                                            .thread_message_body_text(v-html='message_content.value')
+                                        template(v-else-if='message_content.content_type == message_content_type_action_url')
+                                            .thread_message_body_action_url
+                                                Celiathreadmessageactionurlcomponent(:action_url_id='message_content.action_url_id')
+                                        template(v-else-if='message_content.content_type == message_content_type_email')
+                                            .thread_message_body_email
+                                                Celiathreadmessageemailcomponent(:mail_id='message_content.email_id')
+
                                         //- TODO
                                         //- template(v-else-if='message_content.content_type == message_content_type_image')
                                         //-     .thread_message_body_image

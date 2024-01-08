@@ -26,6 +26,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -303,14 +304,42 @@ export default class DatatableComponentField extends VueComponentBase {
                 }
 
                 if (!isArray(this.vo[this.field.datatable_field_uid + '__raw'])) {
-                    return this.label(this.vo[this.field.datatable_field_uid + '__raw']);
+
+                    if (!!this.field.moduleTableField.translatable_params_field_id) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_id]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                        return this.label(this.vo[this.field.datatable_field_uid + '__raw'], params);
+                    } else {
+                        return this.label(this.vo[this.field.datatable_field_uid + '__raw']);
+                    }
                 }
 
                 if (this.vo[this.field.datatable_field_uid + '__raw'].length == 0) {
                     return null;
                 }
 
-                return this.vo[this.field.datatable_field_uid + '__raw'].map((e: string) => this.label(e)).join(', ');
+                let res = [];
+                for (let i in this.vo[this.field.datatable_field_uid + '__raw']) {
+                    let translatable_text = this.vo[this.field.datatable_field_uid + '__raw'][i];
+
+                    if (!!this.field.moduleTableField.translatable_params_field_id) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_id][i]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                        res.push(this.label(translatable_text, params));
+                    } else {
+                        res.push(this.label(translatable_text));
+                    }
+                }
+
+                return res.join(', ');
             }
         }
 

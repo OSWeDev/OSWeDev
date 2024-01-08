@@ -1,3 +1,4 @@
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
@@ -61,36 +62,36 @@ export default class ModulePushData extends Module {
     }
 
     private init_NotificationVO() {
-        let user_id: ModuleTableField<number> = new ModuleTableField<number>('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, false);
+        let user_id: ModuleTableField<number> = new ModuleTableField<number>(field_names<NotificationVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, false);
         let datatable_fields = [
-            new ModuleTableField('notification_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, NotificationVO.TYPE_NOTIF_SIMPLE).setEnumValues(NotificationVO.TYPE_NAMES),
+            new ModuleTableField(field_names<NotificationVO>().notification_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, NotificationVO.TYPE_NOTIF_SIMPLE).setEnumValues(NotificationVO.TYPE_NAMES),
             user_id,
-            new ModuleTableField('simple_notif_type', ModuleTableField.FIELD_TYPE_enum, 'Msg Type').setEnumValues({
+            new ModuleTableField(field_names<NotificationVO>().simple_notif_type, ModuleTableField.FIELD_TYPE_enum, 'Msg Type').setEnumValues({
                 [NotificationVO.SIMPLE_SUCCESS]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_SUCCESS],
                 [NotificationVO.SIMPLE_INFO]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_INFO],
                 [NotificationVO.SIMPLE_WARN]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_WARN],
                 [NotificationVO.SIMPLE_ERROR]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_ERROR]
             }),
-            new ModuleTableField('simple_notif_label', ModuleTableField.FIELD_TYPE_translatable_text, 'Msg Translatable'),
-            new ModuleTableField('simple_notif_json_params', ModuleTableField.FIELD_TYPE_string, 'Params JSON', false, true, null),
-            new ModuleTableField('simple_downloadable_link', ModuleTableField.FIELD_TYPE_string, 'Lien téléchargeable', false, true, null),
+            new ModuleTableField(field_names<NotificationVO>().simple_notif_label, ModuleTableField.FIELD_TYPE_translatable_text, 'Msg Translatable').set_translatable_params_field_id(field_names<NotificationVO>().simple_notif_json_params),
+            new ModuleTableField(field_names<NotificationVO>().simple_notif_json_params, ModuleTableField.FIELD_TYPE_string, 'Params JSON', false, true, null),
+            new ModuleTableField(field_names<NotificationVO>().simple_downloadable_link, ModuleTableField.FIELD_TYPE_string, 'Lien téléchargeable', false, true, null),
 
-            new ModuleTableField('dao_notif_type', ModuleTableField.FIELD_TYPE_enum, 'Dao Type').setEnumValues({
+            new ModuleTableField(field_names<NotificationVO>().dao_notif_type, ModuleTableField.FIELD_TYPE_enum, 'Dao Type').setEnumValues({
                 [NotificationVO.DAO_GET_VO_BY_ID]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VO_BY_ID],
                 [NotificationVO.DAO_GET_VOS]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VOS]
             }),
-            new ModuleTableField('prompt_uid', ModuleTableField.FIELD_TYPE_int, 'Prompt UID'),
-            new ModuleTableField('prompt_result', ModuleTableField.FIELD_TYPE_string, 'Prompt Result'),
-            new ModuleTableField('client_tab_id', ModuleTableField.FIELD_TYPE_string, 'ID Tab Client'),
-            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API Type ID'),
-            new ModuleTableField('dao_notif_vo_id', ModuleTableField.FIELD_TYPE_int, 'Dao Vo Id'),
-            new ModuleTableField('read', ModuleTableField.FIELD_TYPE_boolean, 'Lu', false),
-            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true),
-            new ModuleTableField('read_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de lecture', false),
-            new ModuleTableField('vos', ModuleTableField.FIELD_TYPE_string, 'vos', false),
-            new ModuleTableField('notif_route', ModuleTableField.FIELD_TYPE_string, 'Route pour redirection', false),
-            new ModuleTableField('notif_route_params_name', ModuleTableField.FIELD_TYPE_string_array, 'Paramètres d\'URL', false),
-            new ModuleTableField('notif_route_params_values', ModuleTableField.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),
+            new ModuleTableField(field_names<NotificationVO>().prompt_uid, ModuleTableField.FIELD_TYPE_int, 'Prompt UID'),
+            new ModuleTableField(field_names<NotificationVO>().prompt_result, ModuleTableField.FIELD_TYPE_string, 'Prompt Result'),
+            new ModuleTableField(field_names<NotificationVO>().client_tab_id, ModuleTableField.FIELD_TYPE_string, 'ID Tab Client'),
+            new ModuleTableField(field_names<NotificationVO>().api_type_id, ModuleTableField.FIELD_TYPE_string, 'API Type ID'),
+            new ModuleTableField(field_names<NotificationVO>().dao_notif_vo_id, ModuleTableField.FIELD_TYPE_int, 'Dao Vo Id'),
+            new ModuleTableField(field_names<NotificationVO>().read, ModuleTableField.FIELD_TYPE_boolean, 'Lu', false),
+            new ModuleTableField(field_names<NotificationVO>().creation_date, ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true),
+            new ModuleTableField(field_names<NotificationVO>().read_date, ModuleTableField.FIELD_TYPE_tstz, 'Date de lecture', false),
+            new ModuleTableField(field_names<NotificationVO>().vos, ModuleTableField.FIELD_TYPE_string, 'vos', false),
+            new ModuleTableField(field_names<NotificationVO>().notif_route, ModuleTableField.FIELD_TYPE_string, 'Route pour redirection', false),
+            new ModuleTableField(field_names<NotificationVO>().notif_route_params_name, ModuleTableField.FIELD_TYPE_string_array, 'Paramètres d\'URL', false),
+            new ModuleTableField(field_names<NotificationVO>().notif_route_params_values, ModuleTableField.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),
         ];
         let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
@@ -99,8 +100,8 @@ export default class ModulePushData extends Module {
 
     private init_APIResultVO() {
         let datatable_fields = [
-            new ModuleTableField('api_call_id', ModuleTableField.FIELD_TYPE_int, 'api_call_id', true),
-            new ModuleTableField('res', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'res', false)
+            new ModuleTableField(field_names<APINotifTypeResultVO>().api_call_id, ModuleTableField.FIELD_TYPE_int, 'api_call_id', true),
+            new ModuleTableField(field_names<APINotifTypeResultVO>().res, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'res', false)
         ];
         let datatable = new ModuleTable(this, APINotifTypeResultVO.API_TYPE_ID, () => new APINotifTypeResultVO(), datatable_fields, null, "APIRes");
         this.datatables.push(datatable);

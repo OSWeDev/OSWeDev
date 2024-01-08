@@ -104,11 +104,25 @@
                     }
                 }
 
-                .thread_message_body_text {
-                    margin-left: 3em;
-                    background: white;
-                    padding: 1em;
-                    border-radius: 1em;
+                .thread_message_body {
+                    text-align: right;
+
+                    .thread_message_body_content {
+                        display: inline-flex;
+
+                        .thread_message_body_text {
+                            margin-left: 3em;
+                            background: white;
+                            padding: 1em;
+                            border-radius: 1em;
+                            clear: both;
+                            text-align: left;
+                        }
+
+                        .thread_message_body_action_url {
+                            margin: 1em 0em 1em 1em;
+                        }
+                    }
                 }
             }
         }
