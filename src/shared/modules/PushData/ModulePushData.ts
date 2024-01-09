@@ -1,6 +1,7 @@
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import Module from '../Module';
@@ -14,6 +15,8 @@ export default class ModulePushData extends Module {
 
     public static APINAME_set_prompt_result: string = 'set_prompt_result';
     public static APINAME_get_app_version: string = 'get_app_version';
+    public static APINAME_join_io_room: string = 'join_io_room';
+    public static APINAME_leave_io_room: string = 'leave_io_room';
     public static PARAM_TECH_DISCONNECT_URL: string = 'TECH_DISCONNECT_URL';
 
     public static getInstance(): ModulePushData {
@@ -30,6 +33,9 @@ export default class ModulePushData extends Module {
     ) => Promise<any> = APIControllerWrapper.sah(ModulePushData.APINAME_set_prompt_result);
 
     public get_app_version: () => Promise<string> = APIControllerWrapper.sah(ModulePushData.APINAME_get_app_version);
+
+    public join_io_room: (room: string) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_join_io_room);
+    public leave_io_room: (room: string) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_leave_io_room);
 
     private constructor() {
 
@@ -49,6 +55,17 @@ export default class ModulePushData extends Module {
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
             null,
             ModulePushData.APINAME_get_app_version,
+            []
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+            null,
+            ModulePushData.APINAME_join_io_room,
+            []
+        ));
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+            null,
+            ModulePushData.APINAME_leave_io_room,
             []
         ));
     }
@@ -75,6 +92,7 @@ export default class ModulePushData extends Module {
             new ModuleTableField(field_names<NotificationVO>().simple_notif_label, ModuleTableField.FIELD_TYPE_translatable_text, 'Msg Translatable').set_translatable_params_field_id(field_names<NotificationVO>().simple_notif_json_params),
             new ModuleTableField(field_names<NotificationVO>().simple_notif_json_params, ModuleTableField.FIELD_TYPE_string, 'Params JSON', false, true, null),
             new ModuleTableField(field_names<NotificationVO>().simple_downloadable_link, ModuleTableField.FIELD_TYPE_string, 'Lien téléchargeable', false, true, null),
+            new ModuleTableField(field_names<NotificationVO>().auto_read_if_connected, ModuleTableField.FIELD_TYPE_boolean, 'Lecture auto si connecté', false),
 
             new ModuleTableField(field_names<NotificationVO>().dao_notif_type, ModuleTableField.FIELD_TYPE_enum, 'Dao Type').setEnumValues({
                 [NotificationVO.DAO_GET_VO_BY_ID]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VO_BY_ID],
@@ -92,6 +110,8 @@ export default class ModulePushData extends Module {
             new ModuleTableField(field_names<NotificationVO>().notif_route, ModuleTableField.FIELD_TYPE_string, 'Route pour redirection', false),
             new ModuleTableField(field_names<NotificationVO>().notif_route_params_name, ModuleTableField.FIELD_TYPE_string_array, 'Paramètres d\'URL', false),
             new ModuleTableField(field_names<NotificationVO>().notif_route_params_values, ModuleTableField.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),
+
+            new ModuleTableField(field_names<NotificationVO>().room_id, ModuleTableField.FIELD_TYPE_string, 'Room ID', false),
         ];
         let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);

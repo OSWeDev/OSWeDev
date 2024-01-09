@@ -31,6 +31,8 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import CeliaThreadMessageActionURLComponent from './CeliaThreadMessageActionURL/CeliaThreadMessageActionURLComponent';
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import VOEventRegistrationKey from '../../../../modules/PushData/VOEventRegistrationKey';
+import PushDataVueModule from '../../../../modules/PushData/PushDataVueModule';
 
 @Component({
     template: require('./CeliaThreadWidgetComponent.pug'),
@@ -87,6 +89,8 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
 
     private new_message_text: string = null;
 
+    private vo_events_registration_keys: VOEventRegistrationKey[] = [];
+
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 100);
 
     @Watch('get_active_field_filters', { immediate: true, deep: true })
@@ -107,6 +111,21 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         this.throttle_load_thread();
     }
 
+    private async beforeDestroy() {
+        await this.unregister_all_vo_event_callbacks();
+    }
+
+    private async unregister_all_vo_event_callbacks() {
+        let promises = [];
+        for (let i in this.vo_events_registration_keys) {
+            let vo_event_registration_key = this.vo_events_registration_keys[i];
+
+            promises.push(PushDataVueModule.unregister_vo_event_callback(vo_event_registration_key));
+        }
+        await all_promises(promises);
+        this.vo_events_registration_keys = [];
+    }
+
     private async load_thread() {
 
         this.is_loading_thread = true;
@@ -121,6 +140,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         this.thread_messages = [];
         this.thread_message_contents_by_message_id = {};
         this.assistant = null;
+        await this.unregister_all_vo_event_callbacks();
 
         if (!this.page_widget) {
 
@@ -249,6 +269,73 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         }
 
         this.thread = thread;
+
+        // Si le thread est delete ou updated directement, on recharge le composant
+        await this.register_thread_vo_updates_and_thread_messages_vo_updates();
+    }
+
+    private async register_thread_vo_updates_and_thread_messages_vo_updates() {
+        await this.register_thread_vo_updates();
+        await this.register_thread_messages_vo_updates();
+    }
+
+    private async register_thread_vo_updates() {
+        let vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
+            JSON.stringify({
+                [field_names<GPTAssistantAPIThreadVO>()._type]: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadVO>().id]: this.thread.id
+            }),
+            async (deleted_vo: GPTAssistantAPIThreadVO) => {
+                this.force_reload();
+            }
+        );
+        this.vo_events_registration_keys.push(vo_event_registration_key);
+
+        vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
+            JSON.stringify({
+                [field_names<GPTAssistantAPIThreadVO>()._type]: GPTAssistantAPIThreadVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadVO>().id]: this.thread.id
+            }),
+            async (updated_vo: GPTAssistantAPIThreadVO) => {
+                this.force_reload();
+            }
+        );
+        this.vo_events_registration_keys.push(vo_event_registration_key);
+    }
+
+    private async register_thread_messages_vo_updates() {
+        let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
+            JSON.stringify({
+                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+            }),
+            async (created_vo: GPTAssistantAPIThreadMessageVO) => {
+                this.force_reload(); // TODO on devrait pas tout recharger là typiquement
+            }
+        );
+        this.vo_events_registration_keys.push(vo_event_registration_key);
+
+        vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
+            JSON.stringify({
+                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+            }),
+            async (deleted_vo: GPTAssistantAPIThreadMessageVO) => {
+                this.force_reload(); // TODO on devrait pas tout recharger là typiquement
+            }
+        );
+        this.vo_events_registration_keys.push(vo_event_registration_key);
+
+        vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
+            JSON.stringify({
+                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+            }),
+            async (updated_vo: GPTAssistantAPIThreadMessageVO) => {
+                this.force_reload(); // TODO on devrait pas tout recharger là typiquement
+            }
+        );
+        this.vo_events_registration_keys.push(vo_event_registration_key);
     }
 
     private async set_assistant() {
@@ -384,7 +471,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
 
                     self.new_message_text = null;
 
-                    self.throttle_load_thread();
+                    // self.throttle_load_thread();
 
                     resolve({
                         body: self.label('CeliaThreadWidgetComponent.send_message.ok'),

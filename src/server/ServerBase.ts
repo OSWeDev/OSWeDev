@@ -64,6 +64,7 @@ import { IClient } from 'pg-promise/typescript/pg-subset';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
+import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -80,6 +81,7 @@ export default abstract class ServerBase {
 
     public csrfProtection;
     public version;
+    public io;
 
     protected db: IDatabase<any>;
     protected spawn;
@@ -1196,7 +1198,23 @@ export default abstract class ServerBase {
 
             let server = require('http').Server(ServerBase.getInstance().app);
             let io = require('socket.io')(server);
+            ServerBase.getInstance().io = io;
             io.use(sharedsession(ServerBase.getInstance().session));
+
+            io.of('/').adapter.on('create-room', (room) => {
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+                ModulePushDataServer.getInstance().on_create_room(room);
+            });
+            io.of('/').adapter.on('delete-room', (room) => {
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+                ModulePushDataServer.getInstance().on_delete_room(room);
+            });
 
             server.listen(ServerBase.getInstance().port);
             // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
@@ -1206,6 +1224,7 @@ export default abstract class ServerBase {
             //turn off debug
             // io.set('log level', 1);
             // define interactions with client
+
             io.on('connection', function (socket: socketIO.Socket) {
                 let session: IServerUserSession = socket.handshake['session'];
 

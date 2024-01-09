@@ -20,6 +20,7 @@ import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
+import ServerBase from '../../ServerBase';
 
 export default class PushDataServerController {
 
@@ -61,6 +62,11 @@ export default class PushDataServerController {
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
     public static TASK_NAME_notifyDownloadFile: string = 'PushDataServerController' + '.notifyDownloadFile';
+
+    public static TASK_NAME_notify_vo_creation: string = 'PushDataServerController' + '.notify_vo_creation';
+    public static TASK_NAME_notify_vo_update: string = 'PushDataServerController' + '.notify_vo_update';
+    public static TASK_NAME_notify_vo_deletion: string = 'PushDataServerController' + '.notify_vo_deletion';
+
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
     public static getInstance(): PushDataServerController {
@@ -393,6 +399,75 @@ export default class PushDataServerController {
             res = res.concat(this.getUserSockets(parseInt(userId.toString())));
         }
         return res;
+    }
+
+    /**
+     * On notifie une room IO, avec le vo créé
+     * @param room_id
+     * @param vo
+     */
+    public async notify_vo_creation(room_id: string, vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_creation, room_id, vo)) {
+            return;
+        }
+
+        let create_vo_notif: NotificationVO = new NotificationVO();
+        create_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
+        create_vo_notif.room_id = room_id;
+        create_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            vo
+        ]));
+
+        await ServerBase.getInstance().io.to(room_id).emit(create_vo_notif);
+    }
+
+    /**
+     * On notifie une room IO, avec le vo updaté (pré et post update)
+     * @param room_id
+     * @param pre_update_vo
+     * @param post_update_vo
+     */
+    public async notify_vo_update(room_id: string, pre_update_vo: any, post_update_vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_update, room_id, pre_update_vo, post_update_vo)) {
+            return;
+        }
+
+        let update_vo_notif: NotificationVO = new NotificationVO();
+        update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
+        update_vo_notif.room_id = room_id;
+        update_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            pre_update_vo,
+            post_update_vo
+        ]));
+
+        await ServerBase.getInstance().io.to(room_id).emit(update_vo_notif);
+    }
+
+
+    /**
+     * On notifie une room IO, avec le vo supprimé
+     * @param room_id
+     * @param vo
+     */
+    public async notify_vo_deletion(room_id: string, vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_deletion, room_id, vo)) {
+            return;
+        }
+
+        let delete_vo_notif: NotificationVO = new NotificationVO();
+        delete_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_DELETED;
+        delete_vo_notif.room_id = room_id;
+        delete_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            vo
+        ]));
+
+        await ServerBase.getInstance().io.to(room_id).emit(delete_vo_notif);
     }
 
     /**
