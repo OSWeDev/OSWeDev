@@ -82,7 +82,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @param code
      * @returns
      */
-    private async action_url(code: string, req: Request, res: Response): Promise<void> {
+    private async action_url(code: string, do_not_redirect: boolean = false, req: Request, res: Response): Promise<boolean> {
 
         let uid = ModuleAccessPolicyServer.getLoggedUserId();
 
@@ -91,7 +91,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
          */
         if (!uid) {
             ConsoleHandler.error('Anonymous user cannot use action_url:' + code);
-            return;
+            return false;
         }
 
         let action_url = await query(ActionURLVO.API_TYPE_ID)
@@ -102,46 +102,49 @@ export default class ModuleActionURLServer extends ModuleServerBase {
 
         if (!action_url) {
             ConsoleHandler.error('No action_url found for code:' + code + ': or this user does not have access to it:' + uid + ':');
-            return;
+            return false;
         }
 
         try {
-            await this.do_action_url(action_url, code, uid, req, res);
-            if (!res.headersSent) {
+            let action_res = await this.do_action_url(action_url, code, uid, req, res);
+            if ((!res.headersSent) && (!do_not_redirect)) {
                 // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
                 res.redirect('/action_url_cr/' + action_url.id);
             }
+
+            return action_res;
         } catch (error) {
             ConsoleHandler.error('Error in action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name + ': error:' + error);
         }
+        return false;
     }
 
-    private async do_action_url(action_url: ActionURLVO, code: string, uid: number, req: Request, res: Response) {
+    private async do_action_url(action_url: ActionURLVO, code: string, uid: number, req: Request, res: Response): Promise<boolean> {
         if (action_url.action_remaining_counter <= 0) {
             ConsoleHandler.error('action_url code :' + code + ': uid :' + uid + ': this action_url has no remaining counter.');
-            return;
+            return false;
         }
 
         if (!action_url.action_callback_module_name) {
             ConsoleHandler.error('No action_callback_module_name found for action_url:' + code);
-            return;
+            return false;
         }
 
         let module_instance = ModulesManager.getInstance().getModuleByNameAndRole(action_url.action_callback_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
 
         if (!module_instance) {
             ConsoleHandler.error('No module found for action_url:' + code + ': module_name:' + action_url.action_callback_module_name);
-            return;
+            return false;
         }
 
         if (!module_instance[action_url.action_callback_function_name]) {
             ConsoleHandler.error('No function found for action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name);
-            return;
+            return false;
         }
 
         if (action_url.action_remaining_counter == 0) {
             ConsoleHandler.error('No more remaining counter for action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name);
-            return;
+            return false;
         }
 
         // Si -1, infini
@@ -156,5 +159,9 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             action_cr.action_url_id = action_url.id;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_cr);
         }
+
+        return (!action_cr) ||
+            (action_cr.cr_type == ActionURLCRVO.CR_TYPE_SUCCESS) ||
+            (action_cr.cr_type == ActionURLCRVO.CR_TYPE_INFO);
     }
 }

@@ -1,8 +1,7 @@
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import StringAndBooleanParamVO, { StringAndBooleanParamVOStatic } from '../API/vos/apis/StringAndBooleanParamVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -27,7 +26,7 @@ export default class ModuleActionURL extends Module {
 
     private static instance: ModuleActionURL = null;
 
-    public action_url: (code: string) => Promise<void> = APIControllerWrapper.sah<StringParamVO, void>(ModuleActionURL.APINAME_action_url);
+    public action_url: (code: string, do_not_redirect: boolean) => Promise<boolean> = APIControllerWrapper.sah<StringAndBooleanParamVO, boolean>(ModuleActionURL.APINAME_action_url);
 
     private constructor() {
 
@@ -37,11 +36,11 @@ export default class ModuleActionURL extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringAndBooleanParamVO, boolean>(
             null,
             ModuleActionURL.APINAME_action_url,
             [ActionURLVO.API_TYPE_ID],
-            StringParamVOStatic
+            StringAndBooleanParamVOStatic
         ));
     }
 

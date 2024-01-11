@@ -71,7 +71,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
 
                 let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, query_, ignore_self_filter);
 
-                if (count_segmentations > 20) {
+                if (count_segmentations > 25) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + ') pour la table segmentée ' + has_segmented_too_much_options_api_type_id + ', on ne filtre pas sur cette table');
                     has_segmented_too_much_options = true;
                     has_segmented_too_much_options_api_type_id = api_type_id;

@@ -4,6 +4,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
+import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -34,8 +35,8 @@ export default class ModulePushData extends Module {
 
     public get_app_version: () => Promise<string> = APIControllerWrapper.sah(ModulePushData.APINAME_get_app_version);
 
-    public join_io_room: (room: string) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_join_io_room);
-    public leave_io_room: (room: string) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_leave_io_room);
+    public join_io_room: (room_fields: string[]) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_join_io_room);
+    public leave_io_room: (room_fields: string[]) => Promise<void> = APIControllerWrapper.sah(ModulePushData.APINAME_leave_io_room);
 
     private constructor() {
 
@@ -58,12 +59,12 @@ export default class ModulePushData extends Module {
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<string[], void>(
             null,
             ModulePushData.APINAME_join_io_room,
             []
         ));
-        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<string[], void>(
             null,
             ModulePushData.APINAME_leave_io_room,
             []

@@ -325,9 +325,11 @@ export default class ContextFilterVOHandler {
 
                             let res_data = [];
                             let saved_raw_data_field = raw_value;
+                            // let saved_data_field = raw_data[module_table_field_id];
                             for (let i in raw_value) {
                                 let value = raw_value[i];
                                 raw_data[module_table_field_id + '__raw'] = value;
+                                raw_data[module_table_field_id] = value;
                                 res_data.push(ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_id, raw_data));
                             }
 

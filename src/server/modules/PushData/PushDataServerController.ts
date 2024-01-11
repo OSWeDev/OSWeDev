@@ -21,6 +21,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
 import ServerBase from '../../ServerBase';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class PushDataServerController {
 
@@ -420,7 +421,14 @@ export default class PushDataServerController {
             vo
         ]));
 
-        await ServerBase.getInstance().io.to(room_id).emit(create_vo_notif);
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_creation:' + room_id + ':' + vo._type + ':' + vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[create_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
     /**
@@ -444,7 +452,14 @@ export default class PushDataServerController {
             post_update_vo
         ]));
 
-        await ServerBase.getInstance().io.to(room_id).emit(update_vo_notif);
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_update:' + room_id + ':' + pre_update_vo._type + ':' + pre_update_vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[update_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
 
@@ -467,7 +482,14 @@ export default class PushDataServerController {
             vo
         ]));
 
-        await ServerBase.getInstance().io.to(room_id).emit(delete_vo_notif);
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_deletion:' + room_id + ':' + vo._type + ':' + vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[delete_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
     /**

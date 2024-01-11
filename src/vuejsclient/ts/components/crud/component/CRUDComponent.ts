@@ -838,8 +838,19 @@ export default class CRUDComponent extends VueComponentBase {
                         if ((!this.getStoredDatas[field.targetModuleTable.vo_type]) || (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
                             continue;
                         }
-                        this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
-                        need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+
+                        if (field.destField.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+                            if (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
+                                this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
+                            }
+                            if (!RangeHandler.elt_intersects_any_range(db_vo.id, this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id])) {
+                                this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
+                            }
+                            need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                        } else {
+                            this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
+                            need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                        }
                     }
                 }
 

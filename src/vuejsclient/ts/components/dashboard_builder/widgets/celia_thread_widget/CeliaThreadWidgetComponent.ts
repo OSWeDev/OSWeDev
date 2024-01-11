@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -13,26 +12,26 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIAssistantVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
-import GPTAssistantAPIThreadMessageContentVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../VueAppController';
+import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import PushDataVueModule from '../../../../modules/PushData/PushDataVueModule';
+import VOEventRegistrationKey from '../../../../modules/PushData/VOEventRegistrationKey';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
+import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
-import './CeliaThreadWidgetComponent.scss';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import CeliaThreadMessageComponent from './CeliaThreadMessage/CeliaThreadMessageComponent';
 import CeliaThreadMessageActionURLComponent from './CeliaThreadMessageActionURL/CeliaThreadMessageActionURLComponent';
-import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
-import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import VOEventRegistrationKey from '../../../../modules/PushData/VOEventRegistrationKey';
-import PushDataVueModule from '../../../../modules/PushData/PushDataVueModule';
+import './CeliaThreadWidgetComponent.scss';
 
 @Component({
     template: require('./CeliaThreadWidgetComponent.pug'),
@@ -41,7 +40,8 @@ import PushDataVueModule from '../../../../modules/PushData/PushDataVueModule';
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
         Celiathreadmessageactionurlcomponent: CeliaThreadMessageActionURLComponent,
-        Mailideventscomponent: MailIDEventsComponent
+        Mailideventscomponent: MailIDEventsComponent,
+        Celiathreadmessagecomponent: CeliaThreadMessageComponent
     }
 })
 export default class CeliaThreadWidgetComponent extends VueComponentBase {
@@ -82,16 +82,12 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
     private assistant: GPTAssistantAPIAssistantVO = null;
     private thread: GPTAssistantAPIThreadVO = null;
     private thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
-    private thread_message_contents_by_message_id: { [message_id: number]: GPTAssistantAPIThreadMessageContentVO[] } = {};
-
-    private avatar_urls: { [user_id: number]: string } = {};
-    private user_names: { [user_id: number]: string } = {};
 
     private new_message_text: string = null;
 
     private vo_events_registration_keys: VOEventRegistrationKey[] = [];
 
-    private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 100);
+    private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
 
     @Watch('get_active_field_filters', { immediate: true, deep: true })
     @Watch('get_discarded_field_paths', { deep: true })
@@ -104,7 +100,6 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([
             GPTAssistantAPIThreadVO.API_TYPE_ID,
             GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-            GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
             GPTAssistantAPIAssistantVO.API_TYPE_ID
         ]);
 
@@ -138,7 +133,6 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
 
         this.thread = null;
         this.thread_messages = [];
-        this.thread_message_contents_by_message_id = {};
         this.assistant = null;
         await this.unregister_all_vo_event_callbacks();
 
@@ -150,6 +144,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         }
 
         await all_promises([this.set_assistant(), this.set_thread()]);
+        await this.register_thread_vo_updates();
 
         // On check qu'on a un assistant et un seul
         if (!!this.assistant) {
@@ -164,31 +159,18 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        await this.register_thread_messages_vo_updates();
         // On récupère les messages du thread
         let thread_messages: GPTAssistantAPIThreadMessageVO[] = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
             .filter_by_id(this.thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
             .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().id, true))
             .select_vos<GPTAssistantAPIThreadMessageVO>();
-        let thread_messages_contents: GPTAssistantAPIThreadMessageContentVO[] = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
-            .filter_by_id(this.thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
-            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
-
-        this.thread_messages = thread_messages;
-        this.thread_message_contents_by_message_id = {};
-
-        for (let i in thread_messages_contents) {
-            let thread_message_content = thread_messages_contents[i];
-
-            if (!this.thread_message_contents_by_message_id[thread_message_content.thread_message_id]) {
-                this.thread_message_contents_by_message_id[thread_message_content.thread_message_id] = [];
+        for (let i in thread_messages) {
+            let thread_message = thread_messages[i];
+            if (this.thread_messages.findIndex((vo) => vo.id == thread_message.id) < 0) {
+                this.thread_messages.push(thread_message);
             }
-
-            this.thread_message_contents_by_message_id[thread_message_content.thread_message_id].push(thread_message_content);
         }
-
-        await this.load_avatar_urls_and_user_names();
 
         this.is_loading_thread = false;
         this.is_loading_assistant = false;
@@ -199,38 +181,11 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         });
     }
 
-    private async load_avatar_urls_and_user_names() {
-        let avatar_urls: { [user_id: number]: string } = {};
-        let user_names: { [user_id: number]: string } = {};
-
-        let user_ids: { [uid: number]: number } = {};
-        for (let i in this.thread_messages) {
-            let thread_message = this.thread_messages[i];
-
-            if (thread_message.user_id) {
-                user_ids[thread_message.user_id] = thread_message.user_id;
-            }
-        }
-
-        user_ids[VueAppController.getInstance().data_user.id] = VueAppController.getInstance().data_user.id;
-
-        let promises = [];
-        for (let i in user_ids) {
-            let user_id = user_ids[i];
-
-            promises.push((async () => {
-                let avatar_name: string = await ModuleAccessPolicy.getInstance().get_avatar_name(user_id);
-                user_names[user_id] = avatar_name;
-            })());
-            promises.push((async () => {
-                let avatar_url: string = await ModuleAccessPolicy.getInstance().get_avatar_url(user_id);
-                avatar_urls[user_id] = avatar_url;
-            })());
-        }
-        await all_promises(promises);
-
-        this.avatar_urls = avatar_urls;
-        this.user_names = user_names;
+    private thread_message_updated() {
+        //TODO fixme, on devrait redécaler en bas peut-etre que si on était déjà en bas.
+        this.$nextTick(() => {
+            this.scroll_to_bottom();
+        });
     }
 
     private async set_thread() {
@@ -269,33 +224,29 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         }
 
         this.thread = thread;
-
-        // Si le thread est delete ou updated directement, on recharge le composant
-        await this.register_thread_vo_updates_and_thread_messages_vo_updates();
-    }
-
-    private async register_thread_vo_updates_and_thread_messages_vo_updates() {
-        await this.register_thread_vo_updates();
-        await this.register_thread_messages_vo_updates();
     }
 
     private async register_thread_vo_updates() {
+        let room_vo = {
+            [field_names<GPTAssistantAPIThreadVO>()._type]: GPTAssistantAPIThreadVO.API_TYPE_ID,
+            [field_names<GPTAssistantAPIThreadVO>().id]: this.thread.id
+        };
         let vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
-            JSON.stringify({
-                [field_names<GPTAssistantAPIThreadVO>()._type]: GPTAssistantAPIThreadVO.API_TYPE_ID,
-                [field_names<GPTAssistantAPIThreadVO>().id]: this.thread.id
-            }),
+            room_vo,
+            JSON.stringify(room_vo),
             async (deleted_vo: GPTAssistantAPIThreadVO) => {
                 this.force_reload();
             }
         );
         this.vo_events_registration_keys.push(vo_event_registration_key);
 
+        room_vo = {
+            [field_names<GPTAssistantAPIThreadVO>()._type]: GPTAssistantAPIThreadVO.API_TYPE_ID,
+            [field_names<GPTAssistantAPIThreadVO>().id]: this.thread.id
+        };
         vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
-            JSON.stringify({
-                [field_names<GPTAssistantAPIThreadVO>()._type]: GPTAssistantAPIThreadVO.API_TYPE_ID,
-                [field_names<GPTAssistantAPIThreadVO>().id]: this.thread.id
-            }),
+            room_vo,
+            JSON.stringify(room_vo),
             async (updated_vo: GPTAssistantAPIThreadVO) => {
                 this.force_reload();
             }
@@ -304,35 +255,50 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async register_thread_messages_vo_updates() {
+        let room_vo = {
+            [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+            [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+        };
         let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
-            JSON.stringify({
-                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
-            }),
+            room_vo,
+            JSON.stringify(room_vo),
             async (created_vo: GPTAssistantAPIThreadMessageVO) => {
-                this.force_reload(); // TODO on devrait pas tout recharger là typiquement
+                let index = this.thread_messages.findIndex((vo) => vo.id == created_vo.id);
+                if (index < 0) {
+                    this.thread_messages.push(created_vo);
+                }
             }
         );
         this.vo_events_registration_keys.push(vo_event_registration_key);
 
+        room_vo = {
+            [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+            [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+        };
         vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
-            JSON.stringify({
-                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
-            }),
+            room_vo,
+            JSON.stringify(room_vo),
             async (deleted_vo: GPTAssistantAPIThreadMessageVO) => {
-                this.force_reload(); // TODO on devrait pas tout recharger là typiquement
+                let index = this.thread_messages.findIndex((vo) => vo.id == deleted_vo.id);
+                if (index >= 0) {
+                    this.thread_messages.splice(index, 1);
+                }
             }
         );
         this.vo_events_registration_keys.push(vo_event_registration_key);
 
+        room_vo = {
+            [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+            [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+        };
         vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
-            JSON.stringify({
-                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
-            }),
-            async (updated_vo: GPTAssistantAPIThreadMessageVO) => {
-                this.force_reload(); // TODO on devrait pas tout recharger là typiquement
+            room_vo,
+            JSON.stringify(room_vo),
+            async (pre_update_vo: GPTAssistantAPIThreadMessageVO, post_update_vo: GPTAssistantAPIThreadMessageVO) => {
+                let index = this.thread_messages.findIndex((vo) => vo.id == post_update_vo.id);
+                if (index >= 0) {
+                    this.thread_messages.splice(index, 1, post_update_vo);
+                }
             }
         );
         this.vo_events_registration_keys.push(vo_event_registration_key);
@@ -383,63 +349,6 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         }
 
         thread_container_el.scrollTop = thread_container_el.scrollHeight;
-    }
-
-    get role_assistant() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
-    }
-    get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/celia.png';
-    }
-
-    get role_system() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_SYSTEM;
-    }
-    get role_system_avatar_url() {
-        return '/vuejsclient/public/img/avatars/system.png';
-    }
-
-    get role_tool() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_TOOL;
-    }
-    get role_tool_avatar_url() {
-        return '/vuejsclient/public/img/avatars/tool.png';
-    }
-
-    get role_function() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_FUNCTION;
-    }
-    get role_function_avatar_url() {
-        return '/vuejsclient/public/img/avatars/function.png';
-    }
-
-    get role_user() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER;
-    }
-
-    private is_self_user(user_id: number) {
-
-        if (!user_id) {
-            return false;
-        }
-
-        return user_id == VueAppController.getInstance().data_user.id;
-    }
-
-    get message_content_type_text() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-    }
-
-    get message_content_type_image() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
-    }
-
-    get message_content_type_action_url() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
-    }
-
-    get message_content_type_email() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL;
     }
 
     private async send_message() {

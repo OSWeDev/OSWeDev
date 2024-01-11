@@ -1201,11 +1201,39 @@ export default abstract class ServerBase {
             ServerBase.getInstance().io = io;
             io.use(sharedsession(ServerBase.getInstance().session));
 
-            io.of('/').adapter.on('create-room', (room) => {
+            io.of('/').adapter.on('join-room', (room) => {
                 // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
                 if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
                     return;
                 }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:join-room: ' + room);
+                }
+            });
+
+            io.of('/').adapter.on('leave-room', (room) => {
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:leave-room: ' + room);
+                }
+            });
+
+            io.of('/').adapter.on('create-room', (room) => {
+
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:create-room: ' + room);
+                }
+
                 ModulePushDataServer.getInstance().on_create_room(room);
             });
             io.of('/').adapter.on('delete-room', (room) => {
@@ -1213,6 +1241,11 @@ export default abstract class ServerBase {
                 if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
                     return;
                 }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:delete-room: ' + room);
+                }
+
                 ModulePushDataServer.getInstance().on_delete_room(room);
             });
 

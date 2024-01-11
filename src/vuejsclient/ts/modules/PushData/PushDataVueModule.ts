@@ -26,18 +26,25 @@ export default class PushDataVueModule extends VueModuleBase {
 
 
     public static async register_vo_create_callback(
+        room_vo: any,
         room_id: string,
         cb: (created_vo: IDistantVOBase) => void): Promise<VOEventRegistrationKey> {
 
+        let room_fields: string[] = [];
+        for (let i in room_vo) {
+            room_fields.push(i);
+            room_fields.push(JSON.stringify(room_vo[i]));
+        }
+
         if (!PushDataVueModule.registered_vo_create_callbacks[room_id]) {
             PushDataVueModule.registered_vo_create_callbacks[room_id] = {};
-            ModulePushData.getInstance().join_io_room(room_id);
+            ModulePushData.getInstance().join_io_room(room_fields);
         }
 
         let cb_id: number = PushDataVueModule.VO_EVENTS_CB_ID++;
         PushDataVueModule.registered_vo_create_callbacks[room_id][cb_id] = cb;
 
-        return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_CREATION, room_id, cb_id);
+        return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_CREATION, room_vo, room_fields, room_id, cb_id);
     }
 
     public static async unregister_vo_event_callback(registration_key: VOEventRegistrationKey) {
@@ -64,38 +71,52 @@ export default class PushDataVueModule extends VueModuleBase {
 
         if (!ObjectHandler.hasAtLeastOneAttribute(map_instance[registration_key.room_id])) {
             delete map_instance[registration_key.room_id];
-            await ModulePushData.getInstance().leave_io_room(registration_key.room_id);
+            await ModulePushData.getInstance().leave_io_room(registration_key.room_fields);
         }
     }
 
     public static async register_vo_update_callback(
+        room_vo: any,
         room_id: string,
         cb: (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => void): Promise<VOEventRegistrationKey> {
 
+        let room_fields: string[] = [];
+        for (let i in room_vo) {
+            room_fields.push(i);
+            room_fields.push(JSON.stringify(room_vo[i]));
+        }
+
         if (!PushDataVueModule.registered_vo_update_callbacks[room_id]) {
             PushDataVueModule.registered_vo_update_callbacks[room_id] = {};
-            await ModulePushData.getInstance().join_io_room(room_id);
+            await ModulePushData.getInstance().join_io_room(room_fields);
         }
 
         let cb_id: number = PushDataVueModule.VO_EVENTS_CB_ID++;
         PushDataVueModule.registered_vo_update_callbacks[room_id][cb_id] = cb;
 
-        return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_UPDATE, room_id, cb_id);
+        return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_UPDATE, room_vo, room_fields, room_id, cb_id);
     }
 
     public static async register_vo_delete_callback(
+        room_vo: any,
         room_id: string,
         cb: (deleted_vo: IDistantVOBase) => void): Promise<VOEventRegistrationKey> {
 
+        let room_fields: string[] = [];
+        for (let i in room_vo) {
+            room_fields.push(i);
+            room_fields.push(JSON.stringify(room_vo[i]));
+        }
+
         if (!PushDataVueModule.registered_vo_delete_callbacks[room_id]) {
             PushDataVueModule.registered_vo_delete_callbacks[room_id] = {};
-            await ModulePushData.getInstance().join_io_room(room_id);
+            await ModulePushData.getInstance().join_io_room(room_fields);
         }
 
         let cb_id: number = PushDataVueModule.VO_EVENTS_CB_ID++;
         PushDataVueModule.registered_vo_delete_callbacks[room_id][cb_id] = cb;
 
-        return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_DELETION, room_id, cb_id);
+        return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_DELETION, room_vo, room_fields, room_id, cb_id);
     }
 
     public static getInstance(): PushDataVueModule {
@@ -399,7 +420,9 @@ export default class PushDataVueModule extends VueModuleBase {
 
             for (let j in PushDataVueModule.registered_vo_create_callbacks[notification.room_id]) {
                 let vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
-                PushDataVueModule.registered_vo_create_callbacks[notification.room_id][j](vos[0]);
+                let vo = vos[0];
+
+                PushDataVueModule.registered_vo_create_callbacks[notification.room_id][j](vo);
             }
         }
     }

@@ -108,6 +108,7 @@ export default class ModuleTableDBService {
                             return;
                         }
 
+                        // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
                         let datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
                         for (let i in datas) {
                             let data = datas[i];

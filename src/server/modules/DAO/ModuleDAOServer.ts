@@ -60,9 +60,7 @@ import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
-import ModuleVarServer from '../Var/ModuleVarServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
-import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import LogDBPerfServerController from './LogDBPerfServerController';
 import ThrottledQueryServerController from './ThrottledQueryServerController';
@@ -698,7 +696,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
-        DAOCronWorkersHandler.getInstance();
     }
 
     /**

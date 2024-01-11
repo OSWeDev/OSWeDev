@@ -29,6 +29,8 @@ export default interface IEnvParam {
     MAX_SIZE_PER_QUERY?: number;
     MAX_UNION_ALL_PER_QUERY?: number;
 
+    MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean;
+
     DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     DEBUG_SLOW_QUERIES?: boolean;
     DEBUG_PARAM_QUERIES?: boolean;
@@ -50,6 +52,8 @@ export default interface IEnvParam {
     DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean;
     DEBUG_DB_FULL_QUERY_PERF?: boolean;
     DEBUG_INTERTHREADS_MESSAGES?: boolean;
+    DEBUG_IO_ROOMS?: boolean;
+    DEBUG_VO_EVENTS?: boolean;
 
     DEBUG_PROMISE_PIPELINE?: boolean;
     DEBUG_PROMISE_PIPELINE_WORKER_STATS?: boolean;

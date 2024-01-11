@@ -140,7 +140,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
         this.throttle_broadcast_unregistered_rooms({ [room_id]: true });
     }
 
-    private async register_io_rooms(room_ids: string[]) {
+    private async register_io_rooms(msg: RegisterIORoomsThreadMessage) {
+        let room_ids: string[] = msg.message_content;
         try {
             for (let i in room_ids) {
                 let room_id = room_ids[i];
@@ -152,7 +153,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
     }
 
-    private async unregister_io_rooms(room_ids: string[]) {
+    private async unregister_io_rooms(msg: UnRegisterIORoomsThreadMessage) {
+        let room_ids: string[] = msg.message_content;
         for (let i in room_ids) {
             let room_id = room_ids[i];
             delete this.registered_rooms[room_id];
@@ -275,16 +277,42 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
     }
 
-    private join_io_room(room: string) {
+    private join_io_room(room_vo_fields: string[]) {
+
+        if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
+            return;
+        }
+
+        let room: string = null;
+        let room_vo: any = null;
+        try {
+            for (let i = 0; i < room_vo_fields.length; i += 2) {
+                let field_id = room_vo_fields[i];
+                let field_value = room_vo_fields[i + 1];
+
+                if (i == 0) {
+                    room = '{';
+                } else {
+                    room += ',';
+                }
+
+                room += '"' + field_id + '":' + field_value;
+            }
+            room += '}';
+            room_vo = JSON.parse(room);
+        } catch (error) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room);
+        }
+
+        if (!room) {
+            ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
+            return;
+        }
 
         if (!this.registered_rooms[room]) {
 
-            try {
-                this.registered_rooms[room] = JSON.parse(room);
-            } catch (error) {
-                ConsoleHandler.error('Impossible de parser la room IO:' + room);
-                return;
-            }
+            this.registered_rooms[room] = room_vo;
         }
 
         let uid = StackContext.get('UID');
@@ -302,7 +330,39 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
     }
 
-    private leave_io_room(room: string) {
+    private leave_io_room(room_vo_fields: string[]) {
+
+        if ((!room_vo_fields) || (!room_vo_fields.length) || (room_vo_fields.length % 2 == 1)) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room_vo_fields);
+            return;
+        }
+
+        let room: string = null;
+        let room_vo: any = null;
+        try {
+            for (let i = 0; i < room_vo_fields.length; i += 2) {
+                let field_id = room_vo_fields[i];
+                let field_value = room_vo_fields[i + 1];
+
+                if (i == 0) {
+                    room = '{';
+                } else {
+                    room += ',';
+                }
+
+                room += '"' + field_id + '":' + field_value;
+            }
+            room += '}';
+            room_vo = JSON.parse(room);
+        } catch (error) {
+            ConsoleHandler.error('Impossible de parser la room IO:' + room);
+        }
+
+        if (!room) {
+            ConsoleHandler.error('Impossible de récuperer la room IO:' + room);
+            return;
+        }
+
         let uid = StackContext.get('UID');
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
