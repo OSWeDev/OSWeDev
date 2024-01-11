@@ -78,6 +78,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_devis, this.list_devis.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_get_devis, this.get_devis.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
@@ -129,9 +130,66 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // DEVIS
     public async list_devis(): Promise<EvolizDevisVO[]> {
         try {
-            let invoices: EvolizDevisVO[] = await this.get_all_pages('/api/v1/quotes') as EvolizDevisVO[];
+            // let devis: EvolizDevisVO[] = await this.get_all_pages('/api/v1/quotes') as EvolizDevisVO[];
 
-            return invoices;
+            // return devis;
+            let token: EvolizAPIToken = await this.getToken();
+
+            let res: EvolizDevisVO[] = [];
+            let has_more: boolean = true;
+            let page: number = 1;
+
+            while (has_more) {
+                let elts: { data: any[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+                    ModuleRequest.METHOD_GET,
+                    ModuleEvolizAPI.EvolizAPI_BaseURL,
+                    ('/api/v1/quotes') + ModuleRequest.getInstance().get_params_url({
+                        per_page: '100',
+                        page: page.toString(),
+                        period: 'custom',
+                        date_min: '1900-01-01',
+                        date_max: '2999-12-31',
+                    }),
+                    null,
+                    {
+                        Authorization: 'Bearer ' + token.access_token
+                    },
+                    true,
+                    null,
+                    false,
+                );
+
+                res = res.concat(elts.data);
+                page++;
+
+                has_more = page <= elts.meta.last_page;
+            }
+
+            return res;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    public async get_devis(evoliz_id: string): Promise<EvolizDevisVO> {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let devis: EvolizDevisVO = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                ('/api/v1/quotes/' + evoliz_id),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+            );
+
+            return devis;
+
         } catch (error) {
             console.error(error);
         }

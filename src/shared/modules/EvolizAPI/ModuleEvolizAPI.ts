@@ -14,6 +14,7 @@ import EvolizContactProspectVO from './vos/contact_prospects/EvolizContactProspe
 import EvolizInvoiceVO from './vos/invoices/EvolizInvoiceVO';
 import EvolizProspectVO from './vos/prospects/EvolizProspectVO';
 import EvolizDevisVO from './vos/devis/EvolizDevisVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -22,6 +23,7 @@ export default class ModuleEvolizAPI extends Module {
 
     public static EvolizAPI_BaseURL: string = 'www.evoliz.io';
     public static APINAME_list_devis: string = "list_devis";
+    public static APINAME_get_devis: string = "get_devis";
     public static APINAME_list_invoices: string = "list_invoices";
     public static APINAME_create_invoice: string = "create_invoice";
     public static APINAME_list_clients: string = "list_clients";
@@ -49,6 +51,7 @@ export default class ModuleEvolizAPI extends Module {
     private static instance: ModuleEvolizAPI = null;
 
     public list_devis: () => Promise<EvolizDevisVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_devis);
+    public get_devis: (evoliz_id: string) => Promise<EvolizDevisVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_get_devis);
     public list_invoices: () => Promise<EvolizInvoiceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_invoices);
     public create_invoice: (invoice: EvolizInvoiceVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoice);
     public list_clients: () => Promise<EvolizClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_clients);
@@ -70,6 +73,13 @@ export default class ModuleEvolizAPI extends Module {
             null,
             ModuleEvolizAPI.APINAME_list_devis,
             []
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, EvolizDevisVO[]>(
+            null,
+            ModuleEvolizAPI.APINAME_get_devis,
+            [],
+            StringParamVOStatic,
         ));
 
         APIControllerWrapper.registerApi(new GetAPIDefinition<null, EvolizInvoiceVO[]>(
