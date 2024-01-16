@@ -126,6 +126,10 @@ export default class DatatableComponentField extends VueComponentBase {
         return this.getCRUDUpdateLink(api_type_id, vo_id);
     }
 
+    private refresh() {
+        this.$emit('refresh');
+    }
+
     get simple_field(): SimpleDatatableFieldVO<any, any> {
         return (this.field as SimpleDatatableFieldVO<any, any>);
     }

@@ -73,6 +73,7 @@
                     :param="vo[field.parameter_datatable_field_uid]" 
                     :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']"
                     :dashboard_page="dashboard_page"
+                    @refresh="refresh"
                 )
 
             template(v-else-if="field.type == 'FILE'")
