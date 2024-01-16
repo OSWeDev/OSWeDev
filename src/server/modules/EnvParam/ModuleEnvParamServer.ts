@@ -42,6 +42,13 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
             'fr-fr': "Paramètre modifié avec succès."
         }, 'EnvParamsComponent.on_edit_field.ok.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Static Env Params"
+        }, 'menu.menuelements.admin.EnvParams.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Static Env Params"
+        }, 'menu.menuelements.admin.EnvParamsAdminVueModule.___LABEL___'));
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers

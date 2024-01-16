@@ -7,6 +7,7 @@ import './EnvParamsComponent.scss';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./EnvParamsComponent.pug'),
@@ -23,8 +24,25 @@ export default class EnvParamsComponent extends VueComponentBase {
         this.throttle_get_env_params();
     }
 
+    get module_table() {
+        return VOsTypesManager.moduleTables_by_voType[EnvParamsVO.API_TYPE_ID];
+    }
+
     get env_params_fields(): Array<ModuleTableField<any>> {
-        return VOsTypesManager.moduleTables_by_voType[EnvParamsVO.API_TYPE_ID].get_fields();
+        return this.module_table.get_fields();
+    }
+
+    get editable_fields(): { [field_id: string]: SimpleDatatableFieldVO<any, any> } {
+
+        if (!this.env_params_fields || !this.env_params_fields.length) {
+            return {};
+        }
+
+        let res: { [field_id: string]: SimpleDatatableFieldVO<any, any> } = {};
+        for (let i in this.env_params_fields) {
+            res[this.env_params_fields[i].field_id] = SimpleDatatableFieldVO.createNew(this.env_params_fields[i].field_id).setModuleTable(this.module_table);
+        }
+        return res;
     }
 
     private async get_env_params() {

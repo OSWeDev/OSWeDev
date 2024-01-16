@@ -127,6 +127,8 @@ import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
+import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
+import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -589,6 +591,7 @@ export default abstract class ModuleServiceBase {
             ModuleImage.getInstance(),
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
+            ModuleEnvParam.getInstance(),
             ModuleDataSource.getInstance(),
             ModuleContextFilter.getInstance(),
             ModuleVar.getInstance(),
@@ -653,6 +656,7 @@ export default abstract class ModuleServiceBase {
             ModuleImageServer.getInstance(),
             ModuleTriggerServer.getInstance(),
             ModuleCronServer.getInstance(),
+            ModuleEnvParamServer.getInstance(),
             ModuleContextFilterServer.getInstance(),
             ModuleVarServer.getInstance(),
             ModulePushDataServer.getInstance(),

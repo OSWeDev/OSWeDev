@@ -135,73 +135,73 @@ export default class ModuleEnvParam extends Module {
             new ModuleTableField(field_names<EnvParamsVO>().MAX_UNION_ALL_PER_QUERY, ModuleTableField.FIELD_TYPE_int, 'Max union all per query', false),
 
             // MUTE__NO_SORT_BY_BUT_QUERY_LIMIT ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().MUTE__NO_SORT_BY_BUT_QUERY_LIMIT, ModuleTableField.FIELD_TYPE_boolean, 'Mute no sort by but query limit', false),
+            new ModuleTableField(field_names<EnvParamsVO>().MUTE__NO_SORT_BY_BUT_QUERY_LIMIT, ModuleTableField.FIELD_TYPE_boolean, 'Mute no sort by but query limit', true),
 
             // DEBUG_SLOW_QUERIES_MS_LIMIT ?: number;
             new ModuleTableField(field_names<EnvParamsVO>().DEBUG_SLOW_QUERIES_MS_LIMIT, ModuleTableField.FIELD_TYPE_int, 'Debug slow queries ms limit', false),
             // DEBUG_SLOW_QUERIES ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_SLOW_QUERIES, ModuleTableField.FIELD_TYPE_boolean, 'Debug slow queries', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_SLOW_QUERIES, ModuleTableField.FIELD_TYPE_boolean, 'Debug slow queries', true),
             // DEBUG_PARAM_QUERIES ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_PARAM_QUERIES, ModuleTableField.FIELD_TYPE_boolean, 'Debug param queries', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_PARAM_QUERIES, ModuleTableField.FIELD_TYPE_boolean, 'Debug param queries', true),
             // DEBUG_DB_QUERY_PERF ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DB_QUERY_PERF, ModuleTableField.FIELD_TYPE_boolean, 'Debug DB query perf', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DB_QUERY_PERF, ModuleTableField.FIELD_TYPE_boolean, 'Debug DB query perf', true),
             // DEBUG_DB_QUERY_add_activated_many_to_many ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DB_QUERY_add_activated_many_to_many, ModuleTableField.FIELD_TYPE_boolean, 'Debug DB query add activated many to many', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DB_QUERY_add_activated_many_to_many, ModuleTableField.FIELD_TYPE_boolean, 'Debug DB query add activated many to many', true),
             // DEBUG_convert_varparamfields_to_vardatas ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_convert_varparamfields_to_vardatas, ModuleTableField.FIELD_TYPE_boolean, 'Debug convert varparamfields to vardatas', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_convert_varparamfields_to_vardatas, ModuleTableField.FIELD_TYPE_boolean, 'Debug convert varparamfields to vardatas', true),
             // DEBUG_FORKS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_FORKS, ModuleTableField.FIELD_TYPE_boolean, 'Debug forks', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_FORKS, ModuleTableField.FIELD_TYPE_boolean, 'Debug forks', true),
             // DEBUG_VARS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars', true),
             // DEBUG_VARS_PROCESSES ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_PROCESSES, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars processes', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_PROCESSES, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars processes', true),
             // DEBUG_VARS_INVALIDATION ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_INVALIDATION, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars invalidation', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_INVALIDATION, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars invalidation', true),
             // DEBUG_VARS_CURRENT_TREE ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_CURRENT_TREE, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars current tree', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_CURRENT_TREE, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars current tree', true),
             // DEBUG_VARS_DB_PARAM_BUILDER ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_DB_PARAM_BUILDER, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars DB param builder', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_DB_PARAM_BUILDER, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars DB param builder', true),
             // DEBUG_VARS_SERVER_SUBS_CBS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_SERVER_SUBS_CBS, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars server subs cbs', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_SERVER_SUBS_CBS, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars server subs cbs', true),
             // DEBUG_START_SERVER ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_START_SERVER, ModuleTableField.FIELD_TYPE_boolean, 'Debug start server', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_START_SERVER, ModuleTableField.FIELD_TYPE_boolean, 'Debug start server', true),
             // DEBUG_IMPORTS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_IMPORTS, ModuleTableField.FIELD_TYPE_boolean, 'Debug imports', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_IMPORTS, ModuleTableField.FIELD_TYPE_boolean, 'Debug imports', true),
             // DEBUG_EXPORTS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORTS, ModuleTableField.FIELD_TYPE_boolean, 'Debug exports', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORTS, ModuleTableField.FIELD_TYPE_boolean, 'Debug exports', true),
             // DEBUG_DELETEVOS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DELETEVOS, ModuleTableField.FIELD_TYPE_boolean, 'Debug deletevos', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DELETEVOS, ModuleTableField.FIELD_TYPE_boolean, 'Debug deletevos', true),
             // DEBUG_THROTTLED_SELECT ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_THROTTLED_SELECT, ModuleTableField.FIELD_TYPE_boolean, 'Debug throttled select', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_THROTTLED_SELECT, ModuleTableField.FIELD_TYPE_boolean, 'Debug throttled select', true),
             // DEBUG_SELECT_DATATABLE_ROWS_query_res ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_SELECT_DATATABLE_ROWS_query_res, ModuleTableField.FIELD_TYPE_boolean, 'Debug select datatable rows query res', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_SELECT_DATATABLE_ROWS_query_res, ModuleTableField.FIELD_TYPE_boolean, 'Debug select datatable rows query res', true),
             // DEBUG_DB_FULL_QUERY_PERF ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DB_FULL_QUERY_PERF, ModuleTableField.FIELD_TYPE_boolean, 'Debug DB full query perf', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_DB_FULL_QUERY_PERF, ModuleTableField.FIELD_TYPE_boolean, 'Debug DB full query perf', true),
             // DEBUG_INTERTHREADS_MESSAGES ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_INTERTHREADS_MESSAGES, ModuleTableField.FIELD_TYPE_boolean, 'Debug interthreads messages', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_INTERTHREADS_MESSAGES, ModuleTableField.FIELD_TYPE_boolean, 'Debug interthreads messages', true),
             // DEBUG_IO_ROOMS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_IO_ROOMS, ModuleTableField.FIELD_TYPE_boolean, 'Debug IO rooms', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_IO_ROOMS, ModuleTableField.FIELD_TYPE_boolean, 'Debug IO rooms', true),
             // DEBUG_VO_EVENTS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VO_EVENTS, ModuleTableField.FIELD_TYPE_boolean, 'Debug VO events', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VO_EVENTS, ModuleTableField.FIELD_TYPE_boolean, 'Debug VO events', true),
 
             // DEBUG_PROMISE_PIPELINE ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_PROMISE_PIPELINE, ModuleTableField.FIELD_TYPE_boolean, 'Debug promise pipeline', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_PROMISE_PIPELINE, ModuleTableField.FIELD_TYPE_boolean, 'Debug promise pipeline', true),
             // DEBUG_PROMISE_PIPELINE_WORKER_STATS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_PROMISE_PIPELINE_WORKER_STATS, ModuleTableField.FIELD_TYPE_boolean, 'Debug promise pipeline worker stats', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_PROMISE_PIPELINE_WORKER_STATS, ModuleTableField.FIELD_TYPE_boolean, 'Debug promise pipeline worker stats', true),
 
             // DEBUG_AZURE_MEMORY_CHECK ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_AZURE_MEMORY_CHECK, ModuleTableField.FIELD_TYPE_boolean, 'Debug azure memory check', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_AZURE_MEMORY_CHECK, ModuleTableField.FIELD_TYPE_boolean, 'Debug azure memory check', true),
 
             // DEBUG_CONTEXT_QUERY_build_select_query_not_count ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_CONTEXT_QUERY_build_select_query_not_count, ModuleTableField.FIELD_TYPE_boolean, 'Debug context query build select query not count', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_CONTEXT_QUERY_build_select_query_not_count, ModuleTableField.FIELD_TYPE_boolean, 'Debug context query build select query not count', true),
             // DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx datas', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx datas', true),
             // DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx datas with vars', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx datas with vars', true),
             // DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx translated datas', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx translated datas', true),
             // DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx xlsx datas', false),
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS, ModuleTableField.FIELD_TYPE_boolean, 'Debug export context query to xlsx xlsx datas', true),
 
             // START_MAINTENANCE_ACCEPTATION_CODE: string;
             new ModuleTableField(field_names<EnvParamsVO>().START_MAINTENANCE_ACCEPTATION_CODE, ModuleTableField.FIELD_TYPE_string, 'Code d\'acceptation de la maintenance', true),
@@ -210,13 +210,13 @@ export default class ModuleEnvParam extends Module {
             // CODE_GOOGLE_ANALYTICS: string;
             new ModuleTableField(field_names<EnvParamsVO>().CODE_GOOGLE_ANALYTICS, ModuleTableField.FIELD_TYPE_string, 'Code Google Analytics', true),
             // LAUNCH_INIT ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().LAUNCH_INIT, ModuleTableField.FIELD_TYPE_boolean, 'Lancer l\'init', false),
+            new ModuleTableField(field_names<EnvParamsVO>().LAUNCH_INIT, ModuleTableField.FIELD_TYPE_boolean, 'Lancer l\'init', true),
             // ACTIVATE_PWA: boolean;
             new ModuleTableField(field_names<EnvParamsVO>().ACTIVATE_PWA, ModuleTableField.FIELD_TYPE_boolean, 'Activer PWA', true),
             // RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION, ModuleTableField.FIELD_TYPE_boolean, 'Réessayer les imports fast track avec les imports normaux', false),
+            new ModuleTableField(field_names<EnvParamsVO>().RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION, ModuleTableField.FIELD_TYPE_boolean, 'Réessayer les imports fast track avec les imports normaux', true),
             // ZOOM_AUTO ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().ZOOM_AUTO, ModuleTableField.FIELD_TYPE_boolean, 'Zoom auto', false),
+            new ModuleTableField(field_names<EnvParamsVO>().ZOOM_AUTO, ModuleTableField.FIELD_TYPE_boolean, 'Zoom auto', true),
 
             // IS_MAIN_PROD_ENV: boolean;
             new ModuleTableField(field_names<EnvParamsVO>().IS_MAIN_PROD_ENV, ModuleTableField.FIELD_TYPE_boolean, 'Environnement principal', true),
@@ -238,10 +238,10 @@ export default class ModuleEnvParam extends Module {
             // TEAMS_WEBHOOK__MESSAGE_MAX_SIZE ?: number;
             new ModuleTableField(field_names<EnvParamsVO>().TEAMS_WEBHOOK__MESSAGE_MAX_SIZE, ModuleTableField.FIELD_TYPE_int, 'Taille max des messages Teams', false),
             // TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE, ModuleTableField.FIELD_TYPE_boolean, 'Auto summarize Teams', false),
+            new ModuleTableField(field_names<EnvParamsVO>().TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE, ModuleTableField.FIELD_TYPE_boolean, 'Auto summarize Teams', true),
 
             // BLOCK_TEAMS_MESSAGES ?: boolean;
-            new ModuleTableField(field_names<EnvParamsVO>().BLOCK_TEAMS_MESSAGES, ModuleTableField.FIELD_TYPE_boolean, 'Bloquer les messages Teams', false),
+            new ModuleTableField(field_names<EnvParamsVO>().BLOCK_TEAMS_MESSAGES, ModuleTableField.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true),
         ];
 
         let table = new ModuleTable(this, EnvParamsVO.API_TYPE_ID, () => new EnvParamsVO(), fields, null, 'Static Env Params');
