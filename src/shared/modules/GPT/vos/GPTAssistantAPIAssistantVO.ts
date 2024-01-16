@@ -9,4 +9,6 @@ export default class GPTAssistantAPIAssistantVO implements IDistantVOBase {
     public _type: string = GPTAssistantAPIAssistantVO.API_TYPE_ID;
 
     public gpt_assistant_id: string;
+    public nom: string;
+    public description: string;
 }

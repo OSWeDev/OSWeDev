@@ -31,7 +31,8 @@ import './CeliaThreadMessageComponent.scss';
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
         Celiathreadmessageactionurlcomponent: CeliaThreadMessageActionURLComponent,
-        Mailideventscomponent: MailIDEventsComponent
+        Mailideventscomponent: MailIDEventsComponent,
+        Celiathreadmessageemailcomponent: MailIDEventsComponent
     }
 })
 export default class CeliaThreadMessageComponent extends VueComponentBase {

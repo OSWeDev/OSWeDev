@@ -178,7 +178,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
     }
 
     /**
-     *
+     * TODO FIXME revoir toute cette logique, pour faire un filtrage par env plutôt que de tout accepter ou refuser...
      * @param address
      * @param whitelisted_emails ne doit pas être null
      */
@@ -190,6 +190,19 @@ export default class ModuleMailerServer extends ModuleServerBase {
         }
 
         if (TypesHandler.getInstance().isString(address)) {
+            if ((address as string).indexOf(',') >= 0) {
+                let addresses = (address as string).split(',');
+                for (let i in addresses) {
+                    let e = addresses[i];
+
+                    if (!this.check_adresses_whitelist(e, whitelisted_emails)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             return whitelisted_emails.indexOf(address as string) >= 0;
         }
 

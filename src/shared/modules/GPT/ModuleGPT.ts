@@ -157,7 +157,9 @@ export default class ModuleGPT extends Module {
         let label = new ModuleTableField(field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, ModuleTableField.FIELD_TYPE_string, 'GPT ID', true).unique();
 
         let fields = [
-            label
+            label,
+            new ModuleTableField(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableField.FIELD_TYPE_string, 'Nom', false),
+            new ModuleTableField(field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableField.FIELD_TYPE_string, 'Description', false),
         ];
 
         let table = new ModuleTable(this, GPTAssistantAPIAssistantVO.API_TYPE_ID, () => new GPTAssistantAPIAssistantVO(), fields, label, 'GPT Assistant API - Assistant');
