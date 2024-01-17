@@ -268,6 +268,10 @@ export default class DatatableComponentField extends VueComponentBase {
         return RangeHandler.getSegmentedMin(range);
     }
 
+    private refresh() {
+        this.$emit('refresh');
+    }
+
     get field_value(): any {
 
         // if (this.vo[this.field.datatable_field_uid] == null) {

@@ -175,6 +175,7 @@ include ../../../../../../views/mixins/loading.pug
                                                             :page_widget="page_widget"
                                                             :with_style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
                                                             :explicit_html="column.explicit_html"
+                                                            @refresh="refresh"
                                                         )
                                                     template(v-else)
                                                         template(v-if="column.type != 5")
@@ -195,8 +196,8 @@ include ../../../../../../views/mixins/loading.pug
                                                                 :filter='get_column_filter(column)'
                                                                 :filter_additional_params='get_column_filter_additional_params(column)'
                                                                 :table_is_busy="is_busy"
-                                                                :editable="true"
                                                                 :explicit_html="column.explicit_html"
+                                                                @refresh="refresh"
                                                             )
 
                                                 template(v-else)
@@ -221,6 +222,7 @@ include ../../../../../../views/mixins/loading.pug
                                                             :table_is_busy="is_busy"
                                                             :editable="true"
                                                             :explicit_html="column.explicit_html"
+                                                            @refresh="refresh"
                                                         )
 
                                                     template(v-else)
@@ -267,6 +269,7 @@ include ../../../../../../views/mixins/loading.pug
                                                         :filter_additional_params='get_column_filter_additional_params(column)'
                                                         :table_is_busy="is_busy"
                                                         :explicit_html="column.explicit_html"
+                                                        @refresh="refresh"
                                                     )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(
