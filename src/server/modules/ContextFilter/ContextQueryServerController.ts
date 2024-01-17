@@ -1870,6 +1870,11 @@ export default class ContextQueryServerController {
                     aggregator_suffix = ')';
                     force_query_distinct = true;
                     break;
+                case VarConfVO.AVG_AGGREGATOR:
+                    aggregator_prefix = 'AVG(';
+                    aggregator_suffix = ')';
+                    force_query_distinct = true;
+                    break;
 
                 case VarConfVO.OR_AGGREGATOR:
                 case VarConfVO.AND_AGGREGATOR:
