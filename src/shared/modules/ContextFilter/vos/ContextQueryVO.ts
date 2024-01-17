@@ -681,6 +681,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @param field_id le field qu'on veut filtrer
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     * @param ignore_case si true, on ignore la casse. Par défaut false
      */
     public filter_by_text_has(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has(text, ignore_case)]);
@@ -691,6 +692,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @param field_id le field qu'on veut filtrer
      * @param text le texte à filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     * @param ignore_case si true, on ignore la casse. Par défaut false
      */
     public filter_by_text_has_none(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_none(text, ignore_case)]);
@@ -701,6 +703,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @param field_id le field qu'on veut filtrer
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     * @param ignore_case si true, on ignore la casse. Par défaut false
      */
     public filter_by_text_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq(text, ignore_case)]);
@@ -711,6 +714,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @param field_id le field qu'on veut filtrer
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     * @param ignore_case si true, on ignore la casse. Par défaut false
      */
     public filter_by_text_not_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_none(text, ignore_case)]);
@@ -721,6 +725,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @param field_id le field qu'on veut filtrer
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     * @param ignore_case si true, on ignore la casse. Par défaut true
      */
     public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = true): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with, ignore_case)]);
