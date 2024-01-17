@@ -302,7 +302,9 @@ export default abstract class GeneratorBase {
 
             // Sinon on le lance et on stocke l'info en base
             try {
+                console.log('Patch :' + worker.uid + ': Exécution du patch... EN COURS');
                 await worker.work(db);
+                console.log('Patch :' + worker.uid + ': Exécution du patch... OK');
 
                 await db.none('CREATE SCHEMA IF NOT EXISTS generator;');
                 await db.none('CREATE TABLE IF NOT EXISTS generator.workers (' +
