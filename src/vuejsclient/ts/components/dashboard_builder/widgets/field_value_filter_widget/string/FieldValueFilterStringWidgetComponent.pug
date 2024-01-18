@@ -181,7 +181,7 @@
                                     div.option__tag(v-tooltip="label(props.option.label)") {{ label(props.option.label) }}
                                 template(v-else)
                                     div.option__tag(v-tooltip="props.option.label") {{ props.option.label }}
-                                i.fa-solid.fa-times(@click='props.remove(props.option)')
+                                i.fa-solid.fa-square-x(@click='props.remove(props.option)')
 
                     template
                         template(v-if="can_select_all")
