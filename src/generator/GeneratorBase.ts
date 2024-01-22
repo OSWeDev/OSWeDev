@@ -75,6 +75,11 @@ import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20
 import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch20231117AddUniqCookieNamePopup';
 import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch20231120AddUniqCronPlanificationUID';
 import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
+import VarConfVO from '../shared/modules/Var/vos/VarConfVO';
+import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ObjectHandler, { field_names } from '../shared/tools/ObjectHandler';
+import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import VarsServerController from '../server/modules/Var/VarsServerController';
 
 export default abstract class GeneratorBase {
 
@@ -258,6 +263,11 @@ export default abstract class GeneratorBase {
         // Derniers chargements
         await this.modulesService.late_server_modules_configurations(true);
 
+        // On va faire le ménage dans les varconf qui sont pas initialisés
+        console.log("Clean varconf non initialisés...");
+        await this.clean_varconfs();
+        console.log("Clean varconf non initialisés DONE");
+
         /**
          * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet
          */
@@ -318,5 +328,27 @@ export default abstract class GeneratorBase {
         }
 
         return true;
+    }
+
+    /**
+     * On va faire le ménage dans les varconf qui sont pas initialisés
+     */
+    private async clean_varconfs() {
+        let varconfs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>();
+
+        let todelete: VarConfVO[] = [];
+
+        for (let i in varconfs) {
+            let varconf: VarConfVO = varconfs[i];
+
+            if (!VarsServerController.registered_vars_controller_by_var_id[varconf.id]) {
+                todelete.push(varconf);
+                console.log("Clean varconf - Suppression du varconf " + varconf.name + " car non initialisé");
+            }
+        }
+
+        if (todelete?.length > 0) {
+            await ModuleDAO.getInstance().deleteVOs(todelete);
+        }
     }
 }

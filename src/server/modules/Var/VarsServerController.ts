@@ -29,7 +29,7 @@ export default class VarsServerController {
     public static varcontrollers_dag_depths: { [var_id: number]: number } = null;
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
-    public static registered_vars_controller_by_var_id: { [name: string]: VarServerControllerBase<any> } = {};
+    public static registered_vars_controller_by_var_id: { [var_id: number]: VarServerControllerBase<any> } = {};
     public static registered_vars_controller: { [name: string]: VarServerControllerBase<any> } = {};
     public static registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
