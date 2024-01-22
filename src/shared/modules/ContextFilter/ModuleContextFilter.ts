@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -262,23 +263,26 @@ export default class ModuleContextFilter extends Module {
     }
 
     private init_ContextFilterVO() {
-
         let datatable_fields = [
-            new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'API TYPE ID', true),
-            new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'FIELD ID', true),
-            new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true).setEnumValues(ContextFilterVO.TYPE_LABELS),
-            new ModuleTableField('param_text', ModuleTableField.FIELD_TYPE_string, 'param_text', false),
-            new ModuleTableField('param_numeric', ModuleTableField.FIELD_TYPE_float, 'param_numeric', false),
-            new ModuleTableField('param_numeric_array', ModuleTableField.FIELD_TYPE_int_array, 'param_numeric_array', false),
-            new ModuleTableField('param_textarray', ModuleTableField.FIELD_TYPE_string_array, 'param_textarray', false),
-            new ModuleTableField('param_tsranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'param_tsranges', false),
-            new ModuleTableField('param_numranges', ModuleTableField.FIELD_TYPE_numrange_array, 'param_numranges', false),
-            new ModuleTableField('param_hourranges', ModuleTableField.FIELD_TYPE_hourrange_array, 'param_hourranges', false),
+            new ModuleTableField(field_names<ContextFilterVO>().vo_type, ModuleTableField.FIELD_TYPE_string, 'API TYPE ID', true),
+            new ModuleTableField(field_names<ContextFilterVO>().field_id, ModuleTableField.FIELD_TYPE_string, 'FIELD ID', true),
+            new ModuleTableField(field_names<ContextFilterVO>().filter_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true).setEnumValues(ContextFilterVO.TYPE_LABELS),
+            new ModuleTableField(field_names<ContextFilterVO>().param_text, ModuleTableField.FIELD_TYPE_string, 'param_text', false),
+            new ModuleTableField(field_names<ContextFilterVO>().param_numeric, ModuleTableField.FIELD_TYPE_float, 'param_numeric', false),
+            new ModuleTableField(field_names<ContextFilterVO>().param_numeric_array, ModuleTableField.FIELD_TYPE_int_array, 'param_numeric_array', false),
+            new ModuleTableField(field_names<ContextFilterVO>().param_textarray, ModuleTableField.FIELD_TYPE_string_array, 'param_textarray', false),
+            new ModuleTableField(field_names<ContextFilterVO>().param_tsranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'param_tsranges', false),
+            new ModuleTableField(field_names<ContextFilterVO>().param_numranges, ModuleTableField.FIELD_TYPE_numrange_array, 'param_numranges', false),
+            new ModuleTableField(field_names<ContextFilterVO>().param_hourranges, ModuleTableField.FIELD_TYPE_hourrange_array, 'param_hourranges', false),
 
-            new ModuleTableField('left_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false),
-            new ModuleTableField('right_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false),
+            new ModuleTableField(field_names<ContextFilterVO>().left_hook, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false),
+            new ModuleTableField(field_names<ContextFilterVO>().right_hook, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false),
 
-            new ModuleTableField('sub_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
+            new ModuleTableField(field_names<ContextFilterVO>().text_ignore_case, ModuleTableField.FIELD_TYPE_boolean, 'text_ignore_case', true, true, true),
+            // new ModuleTableField(field_names<ContextFilterVO>().text_trim, ModuleTableField.FIELD_TYPE_boolean, 'text_trim', true, true, false),
+            new ModuleTableField(field_names<ContextFilterVO>().param_alias, ModuleTableField.FIELD_TYPE_string, 'alias', false),
+
+            new ModuleTableField(field_names<ContextFilterVO>().sub_query, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
         ];
 
         let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");

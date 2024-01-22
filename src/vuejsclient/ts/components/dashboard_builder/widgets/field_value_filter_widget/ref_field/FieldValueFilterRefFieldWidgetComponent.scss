@@ -1,4 +1,4 @@
-@import "../../../../../../scss/base/skin.scss";
+@import "skin-variables.scss";
 
 .field_value_filter_ref_field_widget_component {
     height: -webkit-fill-available;
@@ -92,20 +92,6 @@
 
     .vo_field_ref_filter {
         height: -webkit-fill-available;
-
-        .multiselect .pill_wrapper {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: smaller;
-            margin-right: 0.5rem;
-            color: white;
-
-            i.fa-solid.fa-times {
-                cursor: pointer;
-                margin-left: 8px;
-            }
-        }
 
         .container_filter_opt {
             height: 100%;
