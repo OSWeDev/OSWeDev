@@ -18,6 +18,7 @@ import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filte
 import RangeHandler from '../../../../tools/RangeHandler';
 import Dates from '../../../FormatDatesNombres/Dates/Dates';
 import DatatableField from './DatatableField';
+import { isArray } from 'lodash';
 
 export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 

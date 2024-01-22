@@ -1,17 +1,13 @@
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import { cloneDeep } from 'lodash';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersionedVO';
 import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
 import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
+import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersionedVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
-import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
@@ -145,24 +141,20 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             return false;
         }
 
+        let pre_cloned_vo: IVersionedVO = cloneDeep(vo);
+        let post_cloned_vo: IVersionedVO = cloneDeep(vo);
+
         // On crée une nouvelle version pour garder trace de la date + utilisateur qui a fait la suppression
-        vo.trashed = true;
-        await query(vo._type).filter_by_id(vo.id).exec_as_server().update_vos<IVersionedVO>({
-            [field_names<IVersionedVO>().trashed]: vo.trashed,
-        });
+        post_cloned_vo.trashed = true;
+        await this.handleTriggerVOPreUpdate(new DAOUpdateVOHolder<IVersionedVO>(pre_cloned_vo, post_cloned_vo));
 
-        let cloned: IVersionedVO = await query(vo._type).filter_by_id(vo.id).exec_as_server().select_vo();
+        let cloned_deleted_vo: IVersionedVO = cloneDeep(post_cloned_vo);
+        cloned_deleted_vo._type = VersionedVOController.getInstance().getTrashedVoType(cloned_deleted_vo._type);
+        cloned_deleted_vo.id = null;
 
-        if (!cloned) {
-            return false;
-        }
-
-        cloned._type = VersionedVOController.getInstance().getTrashedVoType(vo._type);
-        cloned.id = null;
-
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
-        if (!cloned.id) {
-            ConsoleHandler.error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(cloned));
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned_deleted_vo);
+        if (!cloned_deleted_vo.id) {
+            ConsoleHandler.error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(cloned_deleted_vo));
             return false;
         }
 
@@ -176,10 +168,11 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
             cloned_version._type = VersionedVOController.getInstance().getTrashedVersionedVoType(vo._type);
             cloned_version.id = null;
-            cloned_version.parent_id = cloned.id;
+            cloned_version.parent_id = cloned_deleted_vo.id;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned_version);
         }
+
         await versions_query.delete_vos();
 
         return true;
