@@ -11,4 +11,5 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
     public user_id: number;
 
     public gpt_thread_id: string;
+    public current_default_assistant_id: number;
 }

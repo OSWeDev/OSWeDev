@@ -42,7 +42,42 @@ export default class VarsServerCallBackSubsController {
     }
 
     public static async get_var_data<T extends VarDataBaseVO>(param_index: string): Promise<T> {
-        return this.get_var_data_indexed<T>(param_index, param_index);
+
+        try {
+
+            let var_data = await this.get_var_data_indexed<T>(param_index, param_index);
+
+            if (var_data) {
+                return var_data;
+            }
+        } catch (error) {
+
+            // Dans le cas d'un timeout, on retente automatiquement
+            let msg = error.message ? error.message : error;
+            msg = msg.toLowerCase();
+            if ((msg.indexOf('timeout') > -1) || (msg.indexOf('timedout') > -1)) {
+                let retries = 3;
+                ConsoleHandler.warn('VarsServerCallBackSubsController.get_var_data: timeout for index: ' + param_index + ' error: ' + error + ' retries: ' + retries);
+
+                while (retries) {
+                    retries--;
+
+                    try {
+                        let var_data = await this.get_var_data_indexed<T>(param_index, param_index);
+
+                        if (var_data) {
+                            return var_data;
+                        }
+                    } catch (error) {
+                        ConsoleHandler.warn('VarsServerCallBackSubsController.get_var_data: timeout for index: ' + param_index + ' error: ' + error + ' retries: ' + retries);
+                    }
+                }
+
+                ConsoleHandler.error('VarsServerCallBackSubsController.get_var_data: timeout for index: ' + param_index + ' error: ' + error + ' no more retries');
+            } else {
+                ConsoleHandler.error('VarsServerCallBackSubsController.get_var_data: error for index: ' + param_index + ' error: ' + error);
+            }
+        }
     }
 
     public static async get_vars_datas<T extends VarDataBaseVO>(params_indexes: string[]): Promise<{ [index: string]: T }> {

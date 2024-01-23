@@ -98,10 +98,42 @@ export default class VarsDatasProxy {
             let params_index = params_indexes[i];
 
             promises.push((async () => {
-                let var_data = await this.get_var_data_or_ask_to_bgthread<T>(params_index, params_index);
 
-                if (var_data) {
-                    result.push(var_data);
+                try {
+
+                    let var_data = await this.get_var_data_or_ask_to_bgthread<T>(params_index, params_index);
+
+                    if (var_data) {
+                        result.push(var_data);
+                    }
+                } catch (error) {
+
+                    // Dans le cas d'un timeout, on retente automatiquement
+                    let msg = error.message ? error.message : error;
+                    msg = msg.toLowerCase();
+                    if ((msg.indexOf('timeout') > -1) || (msg.indexOf('timedout') > -1)) {
+                        let retries = 3;
+                        ConsoleHandler.warn('VarsDatasProxy.get_var_datas_or_ask_to_bgthread: timeout for index: ' + params_index + ' error: ' + error + ' retries: ' + retries);
+
+                        while (retries) {
+                            retries--;
+
+                            try {
+                                let var_data = await this.get_var_data_or_ask_to_bgthread<T>(params_index, params_index);
+
+                                if (var_data) {
+                                    result.push(var_data);
+                                    return;
+                                }
+                            } catch (error) {
+                                ConsoleHandler.warn('VarsDatasProxy.get_var_datas_or_ask_to_bgthread: timeout for index: ' + params_index + ' error: ' + error + ' retries: ' + retries);
+                            }
+                        }
+
+                        ConsoleHandler.error('VarsDatasProxy.get_var_datas_or_ask_to_bgthread: timeout for index: ' + params_index + ' error: ' + error + ' no more retries');
+                    } else {
+                        ConsoleHandler.error('VarsDatasProxy.get_var_datas_or_ask_to_bgthread: error for index: ' + params_index + ' error: ' + error);
+                    }
                 }
             })());
         }

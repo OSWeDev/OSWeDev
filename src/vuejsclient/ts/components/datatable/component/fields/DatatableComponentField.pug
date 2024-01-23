@@ -40,7 +40,7 @@
                     span(:class="transliterate_enum_value_to_class_name") {{ field_value }}
                 
                 template(v-else-if="is_custom_field_type && custom_field_types.read_component")
-                    .custom_read_field_component(:is="custom_field_types.read_component" :row='vo' :value='field_value')
+                    .custom_read_field_component(:is="custom_field_types.read_component" :row='vo' :value='field_value' :key="component_key")
                 template(v-else-if="field_type == 'textarea'")
                     pre {{ field_value }}
                 template(v-else-if="field.field_type == 'translatable_text'")
@@ -76,6 +76,7 @@
                     :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']"
                     :dashboard_page="dashboard_page"
                     :page_widget='page_widget'
+                    :key="component_key"
                 )
 
             template(v-else-if="field.type == 'FILE'")

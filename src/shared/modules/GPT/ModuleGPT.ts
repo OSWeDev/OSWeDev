@@ -249,16 +249,19 @@ export default class ModuleGPT extends Module {
 
         let user_id = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
         let label = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, ModuleTableField.FIELD_TYPE_string, 'GPT ID', true).unique();
+        let current_default_assistant_id = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().current_default_assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant par défaut', false);
 
         let fields = [
             user_id,
             label,
+            current_default_assistant_id
         ];
 
         let table = new ModuleTable(this, GPTAssistantAPIThreadVO.API_TYPE_ID, () => new GPTAssistantAPIThreadVO(), fields, label, 'GPT Assistant API - Thread');
         this.datatables.push(table);
 
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        current_default_assistant_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIAssistantVO.API_TYPE_ID]);
     }
 
     private initializeGPTAssistantAPIRunVO() {

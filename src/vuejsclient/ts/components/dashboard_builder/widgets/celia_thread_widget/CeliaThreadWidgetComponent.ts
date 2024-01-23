@@ -143,13 +143,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
-        await all_promises([this.set_assistant(), this.set_thread()]);
-        await this.register_thread_vo_updates();
-
-        // On check qu'on a un assistant et un seul
-        if (!!this.assistant) {
-            this.can_run_assistant = true;
-        }
+        await this.set_thread();
 
         // On check qu'on a un thread et un seul
         if (!this.thread) {
@@ -157,6 +151,14 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
             this.is_loading_thread = false;
             this.is_loading_assistant = false;
             return;
+        }
+
+        await this.set_assistant();
+        await this.register_thread_vo_updates();
+
+        // On check qu'on a un assistant et un seul
+        if (!!this.assistant) {
+            this.can_run_assistant = true;
         }
 
         await this.register_thread_messages_vo_updates();
@@ -308,6 +310,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
 
         // On check qu'on a un assistant et un seul
         //  Si on a 1 assistant, on peut avancer. Sinon on doit indiquer soit qu'il faut restreindre la query à un assistant (>1), soit que le assistant est introuvable (0)
+        //  Sauf si on a un current_default_assistant enregistré dans le thread, auquel cas on peut avancer
         let context_query_select: ContextQueryVO = query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
@@ -318,6 +321,22 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         let context_query_count: ContextQueryVO = cloneDeep(context_query_select);
 
         let nb_assistants = await context_query_count.select_count();
+
+        if (((!nb_assistants) || (nb_assistants > 1)) && (!this.thread.current_default_assistant_id)) {
+            let default_assistant: GPTAssistantAPIAssistantVO = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_id(this.thread.current_default_assistant_id)
+                .select_vo<GPTAssistantAPIAssistantVO>();
+
+            this.is_loading_assistant = false;
+
+            if (!default_assistant) {
+                return;
+            }
+
+            this.assistant = default_assistant;
+            return;
+        }
+
 
         if (!nb_assistants) {
             this.is_loading_assistant = false;

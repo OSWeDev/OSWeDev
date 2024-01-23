@@ -1833,6 +1833,7 @@ export default class ContextQueryServerController {
             }
 
             let field_alias = ((alias && context_field.field_id) ? " as " + alias : '');
+            let handled = false;
 
             switch (context_field.aggregator) {
                 case VarConfVO.IS_NULLABLE_AGGREGATOR:
@@ -1872,6 +1873,17 @@ export default class ContextQueryServerController {
                     force_query_distinct = true;
                     break;
 
+                case VarConfVO.MEAN_AGGREGATOR:
+                    SELECT +=
+                        'CASE ' +
+                        '   WHEN COUNT(' + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) + ') = 0 THEN NULL ' +
+                        '   ELSE SUM(' + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) + ') / NULLIF(COUNT(' + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) + '), 0) ' +
+                        'END ' +
+                        field_alias + ' ';
+                    handled = true;
+                    force_query_distinct = true;
+                    break;
+
                 case VarConfVO.OR_AGGREGATOR:
                 case VarConfVO.AND_AGGREGATOR:
                 case VarConfVO.TIMES_AGGREGATOR:
@@ -1886,9 +1898,12 @@ export default class ContextQueryServerController {
              *  - aggregator_prefix && aggregator_suffix: rempli par le serveur et si infos étranges, throw
              *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
              */
-            SELECT += aggregator_prefix + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) +
-                aggregator_suffix +
-                field_alias + ' ';
+            if (!handled) {
+                SELECT += aggregator_prefix + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) +
+                    aggregator_suffix +
+                    field_alias + ' ';
+                handled = true;
+            }
 
             query_wrapper.fields.push(parameterizedQueryWrapperField);
         }

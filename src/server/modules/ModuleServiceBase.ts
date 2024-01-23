@@ -426,59 +426,39 @@ export default abstract class ModuleServiceBase {
         retry_hook_func_params: any[] = null) {
 
         let res = null;
+        let sleep_id = 'ModuleServiceBase.handle_errors.'; // + func_name;
+        let compteur_id = null; // func_name;
         if (error &&
             ((error['message'] == 'Connection terminated unexpectedly') ||
                 (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-            StatsController.register_stat_COMPTEUR(func_name, 'error', 'connect_error');
-            ConsoleHandler.error(error + ' - retrying in 100 ms');
+            sleep_id += 'connect_error';
+            compteur_id = 'connect_error';
+        } else if (error && (error['message'] == 'canceling statement due to statement timeout')) {
 
-            return new Promise(async (resolve, reject) => {
-
-                await ThreadHandler.sleep(100, 'ModuleServiceBase.handle_errors.too_many_clients', true);
-                if (DBDisconnectionManager.instance) {
-                    await DBDisconnectionManager.instance.wait_for_reconnection();
-                }
-
-                try {
-                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
-                    resolve(res_);
-                } catch (error2) {
-                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                    reject(error2);
-                }
-            });
+            sleep_id += 'statement_timeout';
+            compteur_id = 'statement_timeout';
         } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-            StatsController.register_stat_COMPTEUR(func_name, 'error', 'too_many_clients');
-            ConsoleHandler.error(error + ' - retrying in 100 ms');
-
-            return new Promise(async (resolve, reject) => {
-
-                await ThreadHandler.sleep(100, 'ModuleServiceBase.handle_errors.too_many_clients', true);
-                if (DBDisconnectionManager.instance) {
-                    await DBDisconnectionManager.instance.wait_for_reconnection();
-                }
-
-                try {
-                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
-                    resolve(res_);
-                } catch (error2) {
-                    ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
-                    reject(error2);
-                }
-            });
+            sleep_id += 'too_many_clients';
+            compteur_id = 'too_many_clients';
         } else if ((error['code'] == 'ENOTFOUND') && (error['errno'] == -3008)) {
 
-            StatsController.register_stat_COMPTEUR(func_name, 'error', 'connect_error');
-            ConsoleHandler.error(error + ' - waiting for reconnection');
+            sleep_id += 'connect_error';
+            compteur_id = 'connect_error';
 
             if (DBDisconnectionManager.instance) {
                 DBDisconnectionManager.instance.mark_as_disconnected();
             }
+        }
+
+        if (compteur_id && sleep_id) {
+            StatsController.register_stat_COMPTEUR(func_name, 'error', compteur_id);
+            ConsoleHandler.error(error + ' - retrying in 100 ms');
 
             return new Promise(async (resolve, reject) => {
 
+                await ThreadHandler.sleep(100, sleep_id, true);
                 if (DBDisconnectionManager.instance) {
                     await DBDisconnectionManager.instance.wait_for_reconnection();
                 }
@@ -495,7 +475,8 @@ export default abstract class ModuleServiceBase {
 
         ConsoleHandler.error(error);
         StatsController.register_stat_COMPTEUR(func_name, 'error', 'others');
-        return res;
+        // On ne résoud rien donc on throw l'erreur
+        throw error;
     }
 
     protected abstract getChildModules(): Module[];
