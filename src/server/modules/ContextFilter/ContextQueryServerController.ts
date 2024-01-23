@@ -1878,17 +1878,6 @@ export default class ContextQueryServerController {
                     force_query_distinct = true;
                     break;
 
-                case VarConfVO.MEAN_AGGREGATOR:
-                    SELECT +=
-                        'CASE ' +
-                        '   WHEN COUNT(' + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) + ') = 0 THEN NULL ' +
-                        '   ELSE SUM(' + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) + ') / NULLIF(COUNT(' + ContextQueryFieldServerController.apply_modifier(context_field, field_full_name) + '), 0) ' +
-                        'END ' +
-                        field_alias + ' ';
-                    handled = true;
-                    force_query_distinct = true;
-                    break;
-
                 case VarConfVO.OR_AGGREGATOR:
                 case VarConfVO.AND_AGGREGATOR:
                 case VarConfVO.TIMES_AGGREGATOR:

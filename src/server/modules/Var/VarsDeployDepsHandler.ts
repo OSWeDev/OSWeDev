@@ -254,7 +254,7 @@ export default class VarsDeployDepsHandler {
          *  - soit on peut utiliser les pixels connus, soit non, et dans ce cas on redemande tous les pixels et on fait l'aggrégat gloabl ensuite
          *  - soit on doit identifier les pixels qui sont déjà connus pour pas les refaire et en déduire ceux qui manquent
          */
-        let can_not_use_known_pixels = (varconf.aggregator == VarConfVO.MEAN_AGGREGATOR);
+        let can_not_use_known_pixels = (varconf.aggregator == VarConfVO.AVG_AGGREGATOR);
 
         if (can_not_use_known_pixels) {
             await this.do_not_use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
