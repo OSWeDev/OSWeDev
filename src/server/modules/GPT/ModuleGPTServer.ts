@@ -55,7 +55,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         thread_id: string,
         content: string,
         files: FileVO[],
-        user_id: number
+        user_id: number = null
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
         return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, content, files, user_id);
     }

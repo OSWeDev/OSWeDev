@@ -29,6 +29,7 @@ import { Uploadable } from 'openai/uploads';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 
 export default class GPTAssistantAPIServerController {
 
@@ -90,7 +91,7 @@ export default class GPTAssistantAPIServerController {
         return null;
     }
 
-    public static async get_thread(user_id: number, thread_id: string = null, current_default_assistant_id: number = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
+    public static async get_thread(user_id: number = null, thread_id: string = null, current_default_assistant_id: number = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
 
         try {
 
@@ -242,7 +243,7 @@ export default class GPTAssistantAPIServerController {
         return assistant_vo;
     }
 
-    public static async check_or_create_thread_vo(thread_gpt: Thread, user_id: number, current_default_assistant_id: number = null): Promise<GPTAssistantAPIThreadVO> {
+    public static async check_or_create_thread_vo(thread_gpt: Thread, user_id: number = null, current_default_assistant_id: number = null): Promise<GPTAssistantAPIThreadVO> {
 
         if (!thread_gpt) {
             return null;
@@ -261,7 +262,7 @@ export default class GPTAssistantAPIServerController {
 
         thread_vo = new GPTAssistantAPIThreadVO();
         thread_vo.gpt_thread_id = thread_gpt.id;
-        thread_vo.user_id = user_id;
+        thread_vo.user_id = user_id ? user_id : await ModuleVersionedServer.getInstance().get_robot_user_id();
         thread_vo.current_default_assistant_id = current_default_assistant_id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
 
@@ -426,7 +427,7 @@ export default class GPTAssistantAPIServerController {
         thread_id: string,
         content: string,
         files: FileVO[],
-        user_id: number): Promise<GPTAssistantAPIThreadMessageVO[]> {
+        user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         let assistant: { assistant_gpt: Assistant, assistant_vo: GPTAssistantAPIAssistantVO } = await GPTAssistantAPIServerController.get_assistant(assistant_id);
 

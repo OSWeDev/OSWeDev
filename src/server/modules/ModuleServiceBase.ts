@@ -793,7 +793,7 @@ export default abstract class ModuleServiceBase {
 
         if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
             (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
-            ConsoleHandler.error('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
+            ConsoleHandler.warn('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
         } else if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
             (duration > ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
             ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);

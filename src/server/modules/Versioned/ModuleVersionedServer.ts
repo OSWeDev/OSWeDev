@@ -57,7 +57,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         }
     }
 
-    private async get_robot_user_id(): Promise<number> {
+    public async get_robot_user_id(): Promise<number> {
         let robot_user_id: number = await ModuleParamsServer.getInstance().getParamValueAsInt(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, null, 3600000);
 
         if (!robot_user_id) {
