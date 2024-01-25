@@ -126,6 +126,17 @@ export default class DatatableComponentField extends VueComponentBase {
         this.is_load = true;
     }
 
+    get component_key(): string {
+        let key = this.field.datatable_field_uid + '__';
+
+        if (this.vo && this.vo.id) {
+            key += this.vo.id;
+            return key;
+        }
+
+        return key + this.vo['__crud_actions'];
+    }
+
     @Watch('with_style', { immediate: true })
     @Watch('var_value')
     private async onchange_var_value() {

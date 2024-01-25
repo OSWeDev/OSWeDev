@@ -1,23 +1,27 @@
 /* istanbul ignore file: really difficult tests : not willing to test this part. Maybe divide this in smaller chunks, but I don't see any usefull test */
 
-import pg_promise from 'pg-promise';
-import { IDatabase } from 'pg-promise';
+import pg_promise, { IDatabase } from 'pg-promise';
+import FileLoggerHandler from '../server/FileLoggerHandler';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
-import FileLoggerHandler from '../server/FileLoggerHandler';
 import ModuleAccessPolicyServer from '../server/modules/AccessPolicy/ModuleAccessPolicyServer';
-import ModulesClientInitializationDatasGenerator from './ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
+import VarsServerController from '../server/modules/Var/VarsServerController';
+import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModulesManager from '../shared/modules/ModulesManager';
 import StatsController from '../shared/modules/Stats/StatsController';
+import VarConfVO from '../shared/modules/Var/vos/VarConfVO';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
+import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import IGeneratorWorker from './IGeneratorWorker';
+import ModulesClientInitializationDatasGenerator from './ModulesClientInitializationDatasGenerator';
 import AddMaintenanceCreationPolicy from './inits/postmodules/AddMaintenanceCreationPolicy';
 import AddPwdCryptTrigger from './inits/postmodules/AddPwdCryptTrigger';
-import ChangeResetPWDMailContent from './inits/postmodules/ChangeResetPWDMailContent';
 import CHECKEnvParamsForMDPRecovery from './inits/postmodules/CHECKEnvParamsForMDPRecovery';
+import ChangeResetPWDMailContent from './inits/postmodules/ChangeResetPWDMailContent';
 import CreateDefaultAdminAccountIfNone from './inits/postmodules/CreateDefaultAdminAccountIfNone';
 import CreateDefaultLangFRIfNone from './inits/postmodules/CreateDefaultLangFRIfNone';
 import CreateDefaultRobotUserAccount from './inits/postmodules/CreateDefaultRobotUserAccount';
@@ -50,6 +54,9 @@ import Patch20221217ParamBlockVos from './patchs/postmodules/Patch20221217ParamB
 import Patch20230428FavoriteWidgetsAreNotFilters from './patchs/postmodules/Patch20230428FavoriteWidgetsAreNotFilters';
 import Patch20230517InitParamsStats from './patchs/postmodules/Patch20230517InitParamsStats';
 import Patch20230519AddRightsFeedbackStateVO from './patchs/postmodules/Patch20230519AddRightsFeedbackStateVO';
+import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
+import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
+import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
@@ -58,28 +65,20 @@ import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch2022
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import Patch20220822ChangeTypeRecurrCron from './patchs/premodules/Patch20220822ChangeTypeRecurrCron';
 import Patch20230209AddColumnFormatDatesNombres from './patchs/premodules/Patch20230209AddColumnFormatDatesNombres';
+import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
 import Patch20230512DeleteAllStats from './patchs/premodules/Patch20230512DeleteAllStats';
 import Patch20230517DeleteAllStats from './patchs/premodules/Patch20230517DeleteAllStats';
-import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
-import VersionUpdater from './version_updater/VersionUpdater';
-import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
-import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
-import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
 import Patch20231003ForceUnicityCodeText from './patchs/premodules/Patch20231003ForceUnicityCodeText';
-import Patch20231010ForceUnicityVarConfName from './patchs/premodules/Patch20231010ForceUnicityVarConfName';
-import Patch20231010ForceUnicityVarCacheConfVarID from './patchs/premodules/Patch20231010ForceUnicityVarCacheConfVarID';
 import Patch20231010ForceUnicityParamName from './patchs/premodules/Patch20231010ForceUnicityParamName';
+import Patch20231010ForceUnicityVarCacheConfVarID from './patchs/premodules/Patch20231010ForceUnicityVarCacheConfVarID';
+import Patch20231010ForceUnicityVarConfName from './patchs/premodules/Patch20231010ForceUnicityVarConfName';
 import Patch20231030FilePathUnique from './patchs/premodules/Patch20231030FilePathUnique';
 import Patch20231030ImagePathUnique from './patchs/premodules/Patch20231030ImagePathUnique';
 import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20231116AddUniqPhoneUserConstraint';
 import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch20231117AddUniqCookieNamePopup';
 import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch20231120AddUniqCronPlanificationUID';
-import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
-import VarConfVO from '../shared/modules/Var/vos/VarConfVO';
-import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ObjectHandler, { field_names } from '../shared/tools/ObjectHandler';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
-import VarsServerController from '../server/modules/Var/VarsServerController';
+import Patch20240123ForceUnicityOnGeneratorWorkersUID from './patchs/premodules/Patch20240123ForceUnicityOnGeneratorWorkersUID';
+import VersionUpdater from './version_updater/VersionUpdater';
 
 export default abstract class GeneratorBase {
 
@@ -136,6 +135,7 @@ export default abstract class GeneratorBase {
         ];
 
         this.pre_modules_workers = [
+            Patch20240123ForceUnicityOnGeneratorWorkersUID.getInstance(),
             Patch20231003ForceUnicityCodeText.getInstance(),
             Patch20231010ForceUnicityVarConfName.getInstance(),
             Patch20231010ForceUnicityVarCacheConfVarID.getInstance(),

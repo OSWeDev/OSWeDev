@@ -90,7 +90,7 @@ export default class GPTAssistantAPIServerController {
         return null;
     }
 
-    public static async get_thread(user_id: number, thread_id: string = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
+    public static async get_thread(user_id: number, thread_id: string = null, current_default_assistant_id: number = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
 
         try {
 
@@ -106,7 +106,7 @@ export default class GPTAssistantAPIServerController {
             }
 
             // On crée le thread en base si il n'existe pas, sinon on le charge simplement pour faire le lien avec les messages
-            let thread_vo = await GPTAssistantAPIServerController.check_or_create_thread_vo(thread_gpt, user_id);
+            let thread_vo = await GPTAssistantAPIServerController.check_or_create_thread_vo(thread_gpt, user_id, current_default_assistant_id);
             return { thread_gpt, thread_vo };
 
         } catch (error) {
@@ -242,7 +242,7 @@ export default class GPTAssistantAPIServerController {
         return assistant_vo;
     }
 
-    public static async check_or_create_thread_vo(thread_gpt: Thread, user_id: number): Promise<GPTAssistantAPIThreadVO> {
+    public static async check_or_create_thread_vo(thread_gpt: Thread, user_id: number, current_default_assistant_id: number = null): Promise<GPTAssistantAPIThreadVO> {
 
         if (!thread_gpt) {
             return null;
@@ -250,12 +250,19 @@ export default class GPTAssistantAPIServerController {
 
         let thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, thread_gpt.id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>();
         if (!!thread_vo) {
+
+            if (thread_vo.current_default_assistant_id != current_default_assistant_id) {
+                thread_vo.current_default_assistant_id = current_default_assistant_id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+            }
+
             return thread_vo;
         }
 
         thread_vo = new GPTAssistantAPIThreadVO();
         thread_vo.gpt_thread_id = thread_gpt.id;
         thread_vo.user_id = user_id;
+        thread_vo.current_default_assistant_id = current_default_assistant_id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
 
         return thread_vo;
@@ -457,7 +464,7 @@ export default class GPTAssistantAPIServerController {
             availableFunctions[functionVO.gpt_function_name] = functionVO;
         }
 
-        let thread: { thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(user_id, thread_id);
+        let thread: { thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(user_id, thread_id, assistant.assistant_vo.id);
 
         if ((!thread) || (!thread.thread_gpt) || (!thread.thread_vo)) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: thread (gpt or vo) not created');

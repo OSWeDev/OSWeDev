@@ -1,3 +1,4 @@
+import ConsoleHandler from './ConsoleHandler';
 import PromisePipeline from './PromisePipeline/PromisePipeline';
 import { all_promises } from './PromiseTools';
 
@@ -56,6 +57,11 @@ export default class ThrottlePipelineHelper {
                 }
                 ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id] = resolve;
 
+                if (!ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID]) {
+                    ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID] = {};
+                }
+                ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id] = reject;
+
                 if (!ThrottlePipelineHelper.throttled_pipeline_stack_args[UID]) {
                     ThrottlePipelineHelper.throttled_pipeline_stack_args[UID] = {
                         [call_id]: param
@@ -77,6 +83,7 @@ export default class ThrottlePipelineHelper {
     // L'index n'est pas unique c'est pourquoi on utilise le call_id pour retrouver le resolver
     protected static throttled_pipeline_index_by_call_id: { [throttle_id: number]: { [call_id: number]: number | string } } = {};
     protected static throttled_pipeline_call_resolvers_by_call_id: { [throttle_id: number]: { [call_id: number]: (a: any) => void } } = {};
+    protected static throttled_pipeline_call_rejecters_by_call_id: { [throttle_id: number]: { [call_id: number]: (a: any) => void } } = {};
 
     /**
      * Copie interne du ThreadHandler.sleep, pour ne pas avoir de dépendance circulaire et sans stats
@@ -150,20 +157,40 @@ export default class ThrottlePipelineHelper {
         params_by_index: { [index: string | number]: ParamType }
     ) {
         await promise_pipeline.push(async () => {
-            let func_result: { [index: string | number]: ResultType } = await func(params_by_index);
 
-            // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
-            let promises = [];
-            for (let i in params_by_call_id) {
-                let call_id = parseInt(i);
-                let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+            try {
+                let func_result: { [index: string | number]: ResultType } = await func(params_by_index);
 
-                promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id](func_result ? func_result[index] : null));
+                // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
+                let promises = [];
+                for (let i in params_by_call_id) {
+                    let call_id = parseInt(i);
+                    let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
 
-                delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
-                delete ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+                    promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id](func_result ? func_result[index] : null));
+
+                    delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
+                    delete ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id];
+                    delete ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+                }
+                await all_promises(promises);
+            } catch (error) {
+
+                ConsoleHandler.error('ThrottlePipelineHelper.handle_throttled_pipeline_call:' + error);
+
+                // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
+                let promises = [];
+                for (let i in params_by_call_id) {
+                    let call_id = parseInt(i);
+
+                    promises.push(ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id](error));
+
+                    delete ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id];
+                    delete ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id];
+                    delete ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+                }
+                await all_promises(promises);
             }
-            await all_promises(promises);
         });
     }
 }

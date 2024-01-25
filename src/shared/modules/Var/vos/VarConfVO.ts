@@ -145,7 +145,7 @@ export default class VarConfVO implements INamedVO {
     public static ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR: number = 11;
     public static ARRAY_AGG_AGGREGATOR_DISTINCT: number = 12; // ARRAY AGRÉGATOR DISTINCT qui permet d'aggréger et de ne pas avoir de doublons
     public static ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR_DISTINCT: number = 13;
-    public static AVG_AGGREGATOR: number = 14;
+    public static AVG_AGGREGATOR: number = 14; // Moyenne : Attention il s'agit d'un aggrégateur non symétrique, on ne peut pas aggréger des sous ensembles, l'aggrégat doit être fait sur l'ensemble des données
 
     public static AGGREGATOR_LABELS: { [id: number]: string } = {
         [VarConfVO.NO_AGGREGATOR]: 'var_conf.aggregator.no',
