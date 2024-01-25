@@ -14,9 +14,6 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
 
     public abstract zero_is_max_range: boolean;
 
-    private nodes_waiting_for_semaphore: { [var_data_index: string]: VarDAGNode } = {};
-    private promises_waiting_for_semaphore: { [var_data_index: string]: any } = {};
-
     public abstract get_data_index(var_data: VarDataBaseVO): { [i: number]: { index: string, ts_ranges: TSRange[] } };
 
     /**
