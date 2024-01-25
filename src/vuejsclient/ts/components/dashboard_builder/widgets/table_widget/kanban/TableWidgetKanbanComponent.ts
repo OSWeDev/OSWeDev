@@ -1150,7 +1150,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         /**
          * On ajoute le contextmenu
          */
-        SemaphoreHandler.semaphore_sync("TableWidgetKanbanComponent.contextmenu", async () => {
+        SemaphoreHandler.do_only_once("TableWidgetKanbanComponent.contextmenu", async () => {
             $['contextMenu']({
                 selector: ".card.kanban_row",
                 items: this.contextmenu_items
