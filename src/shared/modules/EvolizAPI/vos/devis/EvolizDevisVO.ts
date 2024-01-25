@@ -22,9 +22,6 @@ export default class EvolizDevisVO {
     };
 
     public static getStatus(status_code: number): number {
-        if (!status_code) {
-            return null;
-        }
 
         switch (status_code) {
             case 0:
@@ -47,9 +44,6 @@ export default class EvolizDevisVO {
     }
 
     public static getStatusLabel(status_code: number): string {
-        if (!status_code) {
-            return null;
-        }
 
         switch (status_code) {
             case 0:
