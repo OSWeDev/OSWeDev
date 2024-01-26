@@ -555,7 +555,7 @@ export default abstract class ServerBase {
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
 
-            let url = decodeURIComponent(req.url);
+            let url = decodeURIComponent(req.path);
 
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
             if (!fs.existsSync(path.resolve('./dist' + url))) {
