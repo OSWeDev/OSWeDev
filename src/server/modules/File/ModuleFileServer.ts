@@ -74,6 +74,11 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Chemin' },
+            'fields.labels.ref.module_file_file.path.file___path.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Impossible de déclarer un fichier sécurisé sans associer un droit d\'accès' },
             'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing'
         ));

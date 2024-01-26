@@ -102,3 +102,36 @@
                 :deselect-label='label("multiselect.deselectLabel")'
                 :deselect-group-label='label("multiselect.deselectGroupLabel")'
             )
+
+        .hide_opts.mt-2
+            .input_label {{ label('advanced_date_filter_widget_component.hide_opts') }}
+
+            toggle-button(
+                @change="switch_hide_opts" 
+                :value="hide_opts" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )
+
+        .refuse_left_open.mt-2
+            .input_label {{ label('advanced_date_filter_widget_component.refuse_left_open') }}
+
+            toggle-button(
+                @change="switch_refuse_left_open" 
+                :value="refuse_left_open" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )
+
+        .refuse_right_open.mt-2
+            .input_label {{ label('advanced_date_filter_widget_component.refuse_right_open') }}
+
+            toggle-button(
+                @change="switch_refuse_right_open" 
+                :value="refuse_right_open" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )

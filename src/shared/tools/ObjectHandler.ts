@@ -16,6 +16,23 @@ export const field_names: <T extends IDistantVOBase>(obj?: T) => { [P in keyof T
         };
 };
 
+/**
+ * La même chose que field_names au fond mais plus global
+ * @param obj
+ * @returns
+ */
+export const reflect: <T>(obj?: T) => { [P in keyof T]?: P } = <T>(obj?: T): { [P in keyof T]?: P } => {
+
+    return new Proxy({}, {
+        get: (_, prop) => prop,
+        set: () => {
+            throw Error('Set not supported');
+        },
+    }) as {
+            [P in keyof T]?: P;
+        };
+};
+
 export default class ObjectHandler {
 
     /**

@@ -12,6 +12,7 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
 
 export default class ActionURLServerTools extends ModuleServerBase {
 
@@ -47,4 +48,51 @@ export default class ActionURLServerTools extends ModuleServerBase {
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(vos);
     }
 
+    public static create_error_cr(action_url: ActionURLVO, cr_translatable_text: string = null, translation_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_ERROR;
+        res.translatable_cr = cr_translatable_text;
+        res.translation_params_json = translation_params_json;
+        res.ts = Dates.now();
+
+        return res;
+    }
+
+    public static create_info_cr(action_url: ActionURLVO, cr_translatable_text: string = null, translation_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_INFO;
+        res.translatable_cr = cr_translatable_text;
+        res.translation_params_json = translation_params_json;
+        res.ts = Dates.now();
+
+        return res;
+    }
+
+    public static create_warn_cr(action_url: ActionURLVO, cr_translatable_text: string = null, translation_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_WARNING;
+        res.translatable_cr = cr_translatable_text;
+        res.translation_params_json = translation_params_json;
+        res.ts = Dates.now();
+
+        return res;
+    }
+
+    public static create_success_cr(action_url: ActionURLVO, cr_translatable_text: string = null, translation_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_SUCCESS;
+        res.translatable_cr = cr_translatable_text;
+        res.translation_params_json = translation_params_json;
+        res.ts = Dates.now();
+
+        return res;
+    }
 }

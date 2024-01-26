@@ -146,11 +146,6 @@ export default class ModuleAPIServer extends ModuleServerBase {
             let api_call_id = null;
 
             try {
-                if (has_params && params && params.length) {
-                    params.push(res);
-                } else if (res) {
-                    params = [res];
-                }
                 StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name);
                 let date_in_ms = Dates.now_ms();
 
@@ -167,7 +162,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
                 returnvalue = await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                    async () => await api.SERVER_HANDLER(...params, req, res));
+                    async () => (has_params && params && params.length) ? await api.SERVER_HANDLER(...params, req, res) : await api.SERVER_HANDLER(req, res));
                 StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name, Dates.now_ms() - date_in_ms);
             } catch (error) {
                 ConsoleHandler.error(error);

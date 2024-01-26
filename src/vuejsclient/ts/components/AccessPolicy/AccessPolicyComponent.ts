@@ -498,4 +498,21 @@ export default class AccessPolicyComponent extends VueComponentBase {
     private set_display_policy_group(policy_group_id: number) {
         Vue.set(this.display_policy_groups as any, policy_group_id, !this.display_policy_groups[policy_group_id]);
     }
+
+    private select_full_group(policy_group_id: number) {
+
+        for (let i in this.policy_groups_segmentations[policy_group_id]) {
+            let policy_group_segmentation = this.policy_groups_segmentations[policy_group_id][i];
+            Vue.set(this.display_policy_group_segmentations as any, policy_group_segmentation.id, true);
+        }
+    }
+
+    private unselect_full_group(policy_group_id: number) {
+
+        for (let i in this.policy_groups_segmentations[policy_group_id]) {
+            let policy_group_segmentation = this.policy_groups_segmentations[policy_group_id][i];
+            Vue.set(this.display_policy_group_segmentations as any, policy_group_segmentation.id, false);
+        }
+    }
+
 }

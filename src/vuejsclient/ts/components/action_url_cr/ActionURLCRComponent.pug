@@ -1,0 +1,15 @@
+.ActionURLCRComponent
+    template(v-if='!!error_message')
+        .error_message(v-html="error_message")
+    .action_cr(v-for='action_cr in action_crs')
+        .action_cr_wrapper(:class='"cr_type_" + action_cr.cr_type')
+            .action_cr_icon
+                template(v-if='action_cr.cr_type == 2')
+                    i.fa-duotone.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
+                template(v-if='action_cr.cr_type == 1')
+                    i.fa-duotone.fa-exclamation-triangle.fa-fw.type_icon_warn(aria-hidden="true")        
+                template(v-if='action_cr.cr_type == 0')
+                    i.fa-duotone.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
+                template(v-if='action_cr.cr_type == 3')
+                    i.fa-duotone.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
+            .action_cr_message(v-html="t(action_cr.translatable_cr, action_cr.translation_params_json)")

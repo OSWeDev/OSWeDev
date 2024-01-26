@@ -1,13 +1,17 @@
 import OpenAI from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources';
+import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
-import GPTAPIMessage from '../../../shared/modules/GPT/api/GPTAPIMessage';
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -15,11 +19,15 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import APIControllerWrapper from "../../../shared/modules/API/APIControllerWrapper";
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
+
+    public static openai: OpenAI = null;
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -31,8 +39,6 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private static instance: ModuleGPTServer = null;
 
-    public openai = null;
-
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleGPT.getInstance().name);
@@ -41,18 +47,38 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
+    }
+
+    public async ask_assistant(
+        assistant_id: string,
+        thread_id: string,
+        content: string,
+        files: FileVO[],
+        user_id: number
+    ): Promise<GPTAssistantAPIThreadMessageVO[]> {
+        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, content, files, user_id);
     }
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
+
         if (!ConfigurationService.node_configuration.OPEN_API_API_KEY) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
             return;
         }
 
-        this.openai = new OpenAI({
+        ModuleGPTServer.openai = new OpenAI({
             apiKey: ConfigurationService.node_configuration.OPEN_API_API_KEY
         });
+    }
+
+    public async handleTriggerPreCreateGPTCompletionAPIConversationVO(vo: GPTCompletionAPIConversationVO): Promise<boolean> {
+        vo.date = Dates.now();
+        return true;
     }
 
     /**
@@ -86,10 +112,18 @@ export default class ModuleGPTServer extends ModuleServerBase {
         POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
             'fr-fr': 'Accès front - GPT'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_ASSISTANT_FILES_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_ASSISTANT_FILES_ACCESS.group_id = group.id;
+        POLICY_ASSISTANT_FILES_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_ASSISTANT_FILES_ACCESS.translatable_name = ModuleGPT.POLICY_ASSISTANT_FILES_ACCESS;
+        POLICY_ASSISTANT_FILES_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_ASSISTANT_FILES_ACCESS, new DefaultTranslation({
+            'fr-fr': 'Accès aux fichiers issus de GPT'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
     // istanbul ignore next: cannot test extern apis
-    public async generate_response(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTMessageVO> {
+    public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
         try {
             const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4", 60000);
             // const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-3.5-turbo", 60000);
@@ -119,20 +153,20 @@ export default class ModuleGPTServer extends ModuleServerBase {
      * @param newPrompt
      * @returns current messages for the API
      */
-    private async prepare_for_api(conversation: GPTConversationVO, newPrompt: GPTMessageVO): Promise<GPTAPIMessage[]> {
+    private async prepare_for_api(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<ChatCompletionMessageParam[]> {
         try {
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");
             }
 
-            // Add the new message to the conversation
-            if (!conversation.messages) {
-                conversation.messages = [];
+            let messages: GPTCompletionAPIMessageVO[] = await query(GPTCompletionAPIMessageVO.API_TYPE_ID).filter_by_id(conversation.id, GPTCompletionAPIConversationVO.API_TYPE_ID).exec_as_server().select_vos<GPTCompletionAPIMessageVO>();
+            if (!messages) {
+                messages = [];
             }
-            conversation.messages.push(newPrompt);
+            messages.push(newPrompt);
 
             // Extract the currentMessages from the conversation
-            return GPTAPIMessage.fromConversation(conversation);
+            return messages.map((m) => m.to_GPT_ChatCompletionMessageParam());
         } catch (err) {
             ConsoleHandler.error(err);
         }
@@ -140,28 +174,28 @@ export default class ModuleGPTServer extends ModuleServerBase {
     }
 
     // istanbul ignore next: cannot test extern apis
-    private async call_api(modelId: string, currentMessages: GPTAPIMessage[]): Promise<any> {
+    private async call_api(modelId: string, currentMessages: ChatCompletionMessageParam[]): Promise<any> {
         try {
-            return await this.openai.chat.completions.create({
+            return await ModuleGPTServer.openai.chat.completions.create({
                 model: modelId,
-                messages: currentMessages,
+                messages: currentMessages as ChatCompletionMessageParam[],
             });
         } catch (err) {
             ConsoleHandler.error(err);
         }
     }
 
-    private async api_response_handler(conversation: GPTConversationVO, result: any): Promise<GPTMessageVO> {
+    private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const responseText = result.choices.shift().message.content;
-            const responseMessage: GPTMessageVO = new GPTMessageVO();
+            let responseText = result.choices.shift().message.content;
+            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
-            responseMessage.role_type = GPTMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+            responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+            responseMessage.conversation_id = conversation.id;
 
             // Add the assistant's response to the conversation
-            conversation.messages.push(responseMessage);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(conversation);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(responseMessage);
 
             return responseMessage;
         } catch (err) {

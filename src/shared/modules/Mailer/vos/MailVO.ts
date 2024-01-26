@@ -14,7 +14,7 @@ export default class MailVO implements IDistantVOBase {
 
     public last_state: number;
 
-    public email: string;
+    public email: string; // Mail destinataire
     public message_id: string;
     public send_date: number;
     public last_up_date: number;

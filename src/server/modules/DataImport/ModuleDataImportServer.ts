@@ -225,6 +225,50 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Fichier importé'
+        }, 'fields.labels.ref.module_data_import_dih.file_id.dih___file_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ID unique'
+        }, 'fields.labels.ref.module_data_import_dih.historic_uid.dih___historic_uid.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modification'
+        }, 'fields.labels.ref.module_data_import_dih.last_up_date.dih___last_up_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nb. de lignes validées'
+        }, 'fields.labels.ref.module_data_import_dih.nb_row_validated.dih___nb_row_validated.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres'
+        }, 'fields.labels.ref.module_data_import_dih.params.dih___params.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Réimport de ...'
+        }, 'fields.labels.ref.module_data_import_dih.reimport_of_dih_id.dih___reimport_of_dih_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Date de démarrage'
+        }, 'fields.labels.ref.module_data_import_dih.start_date.dih___start_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Etat de l\'import'
+        }, 'fields.labels.ref.module_data_import_dih.state.dih___state.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sauvegarde de l\'état pour réimport'
+        }, 'fields.labels.ref.module_data_import_dih.status_before_reimport.dih___status_before_reimport.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Etat du réimport le plus récent'
+        }, 'fields.labels.ref.module_data_import_dih.status_of_last_reimport.dih___status_of_last_reimport.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Poids'
+        }, 'fields.labels.ref.module_data_import_dih.weight.dih___weight.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Date'
+        }, 'fields.labels.ref.module_data_import_dil.date.dil___date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Type'
+        }, 'fields.labels.ref.module_data_import_dil.log_level.dil___log_level.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Message (statique)'
+        }, 'fields.labels.ref.module_data_import_dil.message.dil___message.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Format'
         }, 'fields.labels.ref.module_data_import_difc.___LABEL____data_import_format_id'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

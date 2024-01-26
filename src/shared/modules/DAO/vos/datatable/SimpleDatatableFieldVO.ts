@@ -18,6 +18,7 @@ import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filte
 import RangeHandler from '../../../../tools/RangeHandler';
 import Dates from '../../../FormatDatesNombres/Dates/Dates';
 import DatatableField from './DatatableField';
+import { isArray } from 'lodash';
 
 export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
@@ -56,7 +57,17 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return amountFilter.read(field_value);
 
                 case ModuleTableField.FIELD_TYPE_translatable_text:
-                    return LocaleManager.getInstance().label(field_value);
+                    if (!!this.moduleTableField.translatable_params_field_id) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(vo[this.moduleTableField.translatable_params_field_id]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                        return LocaleManager.getInstance().label(field_value, params);
+                    } else {
+                        return LocaleManager.getInstance().label(field_value);
+                    }
 
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:

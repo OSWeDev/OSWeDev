@@ -3467,7 +3467,18 @@ export default class ContextFilterServerController {
                         if (tables.length == 1) {
                             jointure_table_ref = tables[0];
                         } else {
-                            jointure_table_ref = '(SELECT * FROM ' + tables.join(' UNION ALL SELECT * FROM ') + ')';
+                            // WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
+                            let fields: string = 'id';
+
+                            // Add all fields by default
+                            let table_fields = table.get_fields();
+                            for (const j in table_fields) {
+                                const field = table_fields[j];
+
+                                fields += ', ' + field.field_id;
+                            }
+
+                            jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
                         }
                     } else {
 
@@ -3546,7 +3557,18 @@ export default class ContextFilterServerController {
                         if (tables.length == 1) {
                             jointure_table_ref = tables[0];
                         } else {
-                            jointure_table_ref = '(SELECT * FROM ' + tables.join(' UNION ALL SELECT * FROM ') + ')';
+                            // WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
+                            let fields: string = 'id';
+
+                            // Add all fields by default
+                            let table_fields = table.get_fields();
+                            for (const j in table_fields) {
+                                const field = table_fields[j];
+
+                                fields += ', ' + field.field_id;
+                            }
+
+                            jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
                         }
                     } else {
 
@@ -3645,7 +3667,18 @@ export default class ContextFilterServerController {
                 if (tables.length == 1) {
                     cross_jointure_table_ref = tables[0];
                 } else {
-                    cross_jointure_table_ref = '(SELECT * FROM ' + tables.join(' UNION ALL SELECT * FROM ') + ')';
+                    // WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
+                    let fields: string = 'id';
+
+                    // Add all fields by default
+                    let table_fields = table.get_fields();
+                    for (const j in table_fields) {
+                        const field = table_fields[j];
+
+                        fields += ', ' + field.field_id;
+                    }
+
+                    cross_jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
                 }
             } else {
 

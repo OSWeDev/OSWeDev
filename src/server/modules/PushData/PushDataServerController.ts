@@ -20,8 +20,19 @@ import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
+import ServerBase from '../../ServerBase';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class PushDataServerController {
+
+    /**
+     * Only on main thread (express).
+     */
+    // The goal is to keep track of the last tab id for each user, being the last tab to have sent a request
+    public static last_known_tab_id_by_user_id: { [user_id: number]: string } = {};
+    /**
+     * !!!!!!!!!
+     */
 
     public static NOTIF_INTERVAL_MS: number = 1000;
 
@@ -52,6 +63,11 @@ export default class PushDataServerController {
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
     public static TASK_NAME_notifyDownloadFile: string = 'PushDataServerController' + '.notifyDownloadFile';
+
+    public static TASK_NAME_notify_vo_creation: string = 'PushDataServerController' + '.notify_vo_creation';
+    public static TASK_NAME_notify_vo_update: string = 'PushDataServerController' + '.notify_vo_update';
+    public static TASK_NAME_notify_vo_deletion: string = 'PushDataServerController' + '.notify_vo_deletion';
+
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
     public static getInstance(): PushDataServerController {
@@ -384,6 +400,96 @@ export default class PushDataServerController {
             res = res.concat(this.getUserSockets(parseInt(userId.toString())));
         }
         return res;
+    }
+
+    /**
+     * On notifie une room IO, avec le vo créé
+     * @param room_id
+     * @param vo
+     */
+    public async notify_vo_creation(room_id: string, vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_creation, room_id, vo)) {
+            return;
+        }
+
+        let create_vo_notif: NotificationVO = new NotificationVO();
+        create_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
+        create_vo_notif.room_id = room_id;
+        create_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            vo
+        ]));
+
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_creation:' + room_id + ':' + vo._type + ':' + vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[create_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+    }
+
+    /**
+     * On notifie une room IO, avec le vo updaté (pré et post update)
+     * @param room_id
+     * @param pre_update_vo
+     * @param post_update_vo
+     */
+    public async notify_vo_update(room_id: string, pre_update_vo: any, post_update_vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_update, room_id, pre_update_vo, post_update_vo)) {
+            return;
+        }
+
+        let update_vo_notif: NotificationVO = new NotificationVO();
+        update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
+        update_vo_notif.room_id = room_id;
+        update_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            pre_update_vo,
+            post_update_vo
+        ]));
+
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_update:' + room_id + ':' + pre_update_vo._type + ':' + pre_update_vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[update_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+    }
+
+
+    /**
+     * On notifie une room IO, avec le vo supprimé
+     * @param room_id
+     * @param vo
+     */
+    public async notify_vo_deletion(room_id: string, vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_deletion, room_id, vo)) {
+            return;
+        }
+
+        let delete_vo_notif: NotificationVO = new NotificationVO();
+        delete_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_DELETED;
+        delete_vo_notif.room_id = room_id;
+        delete_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            vo
+        ]));
+
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_deletion:' + room_id + ':' + vo._type + ':' + vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[delete_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
     /**
@@ -889,7 +995,13 @@ export default class PushDataServerController {
         await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
-    // Notifications qui permettent de télécharger un fichier
+    /**
+     * Notifications qui permettent de télécharger un fichier
+     *  On sélectionne la current tab du user pour ne pas envoyer autant de notif que de tabs ouvertes, si la tab n'est pas fournie d'emblée à la fonction
+     * @param user_id
+     * @param client_tab_id
+     * @param full_file_path
+     */
     public async notifyDownloadFile(
         user_id: number,
         client_tab_id: string,
@@ -909,7 +1021,7 @@ export default class PushDataServerController {
         notification.notification_type = NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE;
         notification.read = false;
         notification.user_id = user_id;
-        notification.client_tab_id = client_tab_id;
+        notification.client_tab_id = client_tab_id ? client_tab_id : PushDataServerController.last_known_tab_id_by_user_id[user_id];
         notification.simple_downloadable_link = full_file_path;
         await this.notify(notification);
     }

@@ -92,6 +92,9 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_get_my_sid = "get_my_sid";
     public static APINAME_sendrecapture = "sendrecapture";
 
+    public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + ".get_avatar_url";
+    public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + ".get_avatar_name";
+
     public static APINAME_send_session_share_email = "send_session_share_email";
     public static APINAME_send_session_share_sms = "send_session_share_sms";
 
@@ -156,6 +159,8 @@ export default class ModuleAccessPolicy extends Module {
     public isRole: (role_translatable_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_IS_ROLE);
     public getMyRoles: () => Promise<RoleVO[]> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_MY_ROLES);
     public get_user_roles: (uid: number) => Promise<RoleVO[]> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_USER_ROLES);
+    public get_avatar_url: (uid: number) => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_AVATAR_URL);
+    public get_avatar_name: (uid: number) => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_AVATAR_NAME);
 
     private constructor() {
 
@@ -240,6 +245,20 @@ export default class ModuleAccessPolicy extends Module {
             null,
             ModuleAccessPolicy.APINAME_GET_USER_ROLES,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, string>(
+            null,
+            ModuleAccessPolicy.APINAME_GET_AVATAR_NAME,
+            [UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, string>(
+            null,
+            ModuleAccessPolicy.APINAME_GET_AVATAR_URL,
+            [UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
@@ -404,7 +423,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUser() {
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': 'Langue' }), true);
+        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': 'Langue' }), true, true, 1);
         let label_field = (new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Login' }), true)).unique();
         let datatable_fields = [
             label_field,

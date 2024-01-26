@@ -97,6 +97,11 @@ export default class ModuleTableField<T> {
     public format_localized_time: boolean = false;
 
     /**
+     * Dans le cas d'un translatable text, on indique le nom du champs du même objet qui contient des params pour la trad
+     */
+    public translatable_params_field_id: string = null;
+
+    /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
      * Sur daterange : idem si date fin du range
      */
@@ -212,6 +217,11 @@ export default class ModuleTableField<T> {
         if (!found) {
             this.module_table.uniq_indexes.push([this]);
         }
+    }
+
+    public set_translatable_params_field_id(translatable_params_field_id: string): ModuleTableField<T> {
+        this.translatable_params_field_id = translatable_params_field_id;
+        return this;
     }
 
     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {

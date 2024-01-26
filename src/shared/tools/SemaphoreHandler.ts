@@ -44,5 +44,23 @@ export default class SemaphoreHandler {
         return res;
     }
 
+    /**
+     * En only_once, on peut être appelé plusieurs fois, mais on ne fait le traitement qu'une seule fois
+     * @param key
+     * @param cb
+     * @returns
+     */
+    public static do_only_once(key: string, cb: () => any | Promise<any>): Promise<any> {
+
+        if (SemaphoreHandler.SEMAPHORES[key]) {
+            return null;
+        }
+
+        SemaphoreHandler.SEMAPHORES[key] = true;
+        let res = cb();
+
+        return res;
+    }
+
     private static SEMAPHORES: { [key: string]: boolean } = {};
 }

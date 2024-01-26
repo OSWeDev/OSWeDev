@@ -1,4 +1,4 @@
-@import '../../../../../scss/base/skin.scss';
+@import "skin-variables.scss";
 
 .UserNotifComponent {
 
@@ -27,6 +27,12 @@
 
         .type_icon_success {
             color: $success_color;
+        }
+    }
+
+    .notif_downloadable_link {
+        i {
+            font-size: large !important;
         }
     }
 

@@ -157,6 +157,29 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 );
             await MenuController.getInstance().declare_menu_element(menuelt);
 
+
+            url = "/compare_and_patch_roles";
+            main_route_name = 'AccessPolicyCompareAndPatchComponent';
+
+            this.routes.push({
+                path: url,
+                name: main_route_name,
+                component: () => import('./compare_and_patch/AccessPolicyCompareAndPatchComponent')
+            });
+            menuelt =
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "AccessPolicyCompareAndPatchComponent",
+                    "fa-code-compare",
+                    15,
+                    main_route_name,
+                    true,
+                    accessPolicyMenuBranch.id
+                );
+            await MenuController.getInstance().declare_menu_element(menuelt);
+
+
             await CRUDComponentManager.getInstance().registerCRUD(
                 RolePolicyVO.API_TYPE_ID,
                 null,

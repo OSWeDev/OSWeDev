@@ -19,6 +19,7 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import './FieldValueFilterDateWidgetComponent.scss';
 
 @Component({
@@ -54,6 +55,12 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     private old_widget_options: FieldValueFilterWidgetOptionsVO = null;
 
     private actual_query: string = null;
+
+    private auto_select_date: boolean = null;
+    private auto_select_date_min: number = null;
+    private auto_select_date_max: number = null;
+    private auto_select_date_relative_mode: boolean = null;
+    private relative_to_other_filter_id: number = null;
 
     get vo_field_ref_label(): string {
         if ((!this.widget_options) || (!this.vo_field_ref)) {
@@ -107,7 +114,29 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             return null;
         }
 
-        this.ts_range = options.default_ts_range_values;
+        this.auto_select_date = this.widget_options.auto_select_date;
+        this.auto_select_date_min = this.widget_options.auto_select_date_min;
+        this.auto_select_date_max = this.widget_options.auto_select_date_max;
+        this.auto_select_date_relative_mode = this.widget_options.auto_select_date_relative_mode;
+        this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
+
+        // If it is a auto_select_date widget
+        if (this.auto_select_date) {
+            if (this.auto_select_date_relative_mode) {
+                const now = Dates.now();
+
+                this.ts_range = RangeHandler.createNew(
+                    TSRange.RANGE_TYPE,
+                    Dates.add(now, this.auto_select_date_min, this.segmentation_type),
+                    Dates.add(now, this.auto_select_date_max, this.segmentation_type),
+                    true,
+                    true,
+                    this.segmentation_type
+                );
+            }
+        } else {
+            this.ts_range = options.default_ts_range_values;
+        }
     }
 
     /**
@@ -227,6 +256,13 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get field_date(): SimpleDatatableFieldVO<any, any> {
-        return SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+        let field = SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id)
+            .setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+
+        if (this.segmentation_type != null) {
+            field.segmentation_type = this.segmentation_type;
+        }
+
+        return field;
     }
 }

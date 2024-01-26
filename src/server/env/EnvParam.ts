@@ -35,6 +35,8 @@ export default class EnvParam implements IEnvParam {
     public MAX_SIZE_PER_QUERY?: number = 1000000;
     public MAX_UNION_ALL_PER_QUERY?: number = 1000;
 
+    public MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean = false;
+
     public DEBUG_FORKS?: boolean = false;
     public DEBUG_VARS?: boolean = false;
     public DEBUG_VARS_PROCESSES?: boolean = false;
@@ -47,6 +49,8 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_START_SERVER?: boolean = false;
     public DEBUG_DB_QUERY_add_activated_many_to_many?: boolean = false;
     public DEBUG_convert_varparamfields_to_vardatas?: boolean = false;
+    public DEBUG_IO_ROOMS?: boolean = false;
+    public DEBUG_VO_EVENTS?: boolean = false;
 
     public DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean = false;
 

@@ -85,12 +85,18 @@ test('DAG: test var process', async () => {
 
     // Si on tente un autre process que le notify_start sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
     let promise_pipeline = new PromisePipeline(10, 'test');
-    let did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    let valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    let did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDeployDeps.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessLoadDatas.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyEnd.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessUpdateDB.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
 
     expect(did_something).toBeFalsy();
@@ -130,7 +136,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessNotifyStart.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessNotifyStart.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessNotifyStart.getInstance()['handle_batch_worker'](valid_nodes);
     expect(did_something).toBeTruthy();
 
     expect(node_a.tags).toStrictEqual({
@@ -178,13 +185,19 @@ test('DAG: test var process', async () => {
     });
 
     // Si on tente un autre process que le DEPLOYING sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
-    // did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    // did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline,valid_nodes);
+    valid_nodes = VarsProcessNotifyStart.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessLoadDatas.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyEnd.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessUpdateDB.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
 
     expect(did_something).toBeFalsy();
@@ -226,7 +239,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
+    valid_nodes = VarsProcessDeployDeps.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -269,13 +283,18 @@ test('DAG: test var process', async () => {
     });
 
     // Si on tente un autre process que le DATA_LOADING sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker']();
-    // did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDeployDeps.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyStart.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessNotifyEnd.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessUpdateDB.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
 
     expect(did_something).toBeFalsy();
@@ -319,7 +338,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
+    valid_nodes = VarsProcessLoadDatas.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -367,12 +387,18 @@ test('DAG: test var process', async () => {
 
     // Si on tente un autre process que le COMPUTING sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
     // did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDeployDeps.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyStart.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessLoadDatas.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyEnd.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessUpdateDB.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
 
     expect(did_something).toBeFalsy();
@@ -420,7 +446,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -471,7 +498,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -522,7 +550,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -573,13 +602,18 @@ test('DAG: test var process', async () => {
     });
 
     // Si on tente un autre process que le NOTIFYING_END sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
-    // did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDeployDeps.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyStart.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessLoadDatas.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessUpdateDB.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
 
     expect(did_something).toBeFalsy();
@@ -630,7 +664,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessNotifyEnd.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessNotifyEnd.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -682,13 +717,18 @@ test('DAG: test var process', async () => {
     });
 
     // Si on tente un autre process que le UPDATING_IN_DB sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
-    // did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDeployDeps.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyStart.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessLoadDatas.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyEnd.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
 
     expect(did_something).toBeFalsy();
@@ -741,7 +781,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de notification de début de traitement
-    did_something = await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessUpdateDB.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessUpdateDB.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -796,13 +837,18 @@ test('DAG: test var process', async () => {
     });
 
     // Si on tente un autre process que le DELETING sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
-    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline);
-    // did_something = did_something || await VarsProcessDagCleaner.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline);
-    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker']();
-    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessDeployDeps.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessDeployDeps.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyStart.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyStart.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessLoadDatas.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessLoadDatas.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
+    valid_nodes = VarsProcessNotifyEnd.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessNotifyEnd.getInstance()['handle_batch_worker'](valid_nodes);
+    valid_nodes = VarsProcessUpdateDB.getInstance()['get_valid_nodes']();
+    did_something = did_something || await VarsProcessUpdateDB.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
 
     expect(did_something).toBeFalsy();
@@ -858,7 +904,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de suppression de l'arbre
-    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -899,7 +946,8 @@ test('DAG: test var process', async () => {
     });
 
     // On lance le process de suppression de l'arbre
-    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 
@@ -938,7 +986,8 @@ test('DAG: test var process', async () => {
 
 
     // On lance le process de suppression de l'arbre
-    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker']();
+    valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();
+    did_something = await VarsProcessDagCleaner.getInstance()['handle_batch_worker'](valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
 

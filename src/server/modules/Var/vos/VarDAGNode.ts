@@ -146,6 +146,7 @@ export default class VarDAGNode extends DAGNodeBase {
             throw new Error('VarDAGNode.load_from_db_if_exists :: table.is_segmented not implemented');
         }
 
+        // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
         // let res = await ModuleDAOServer.getInstance().query('select * from ' + table.full_name + ' where _bdd_only_index = $1', [index]);
 
         // // Attention aux injections...
@@ -180,6 +181,7 @@ export default class VarDAGNode extends DAGNodeBase {
             fields += ', t.' + field.field_id;
         }
 
+        // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
         // let parameterized_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(
         //     'select * from ' + table.full_name + ' where _bdd_only_index = $1',
         //     [index],

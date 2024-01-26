@@ -96,7 +96,7 @@ export default class SendInBlueMailServerController {
         return true;
     }
 
-    public async sendWithTemplate(mail_category: string, to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: any } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
+    public async sendWithTemplate(mail_category: string, to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: any } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<MailVO> {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
@@ -107,7 +107,7 @@ export default class SendInBlueMailServerController {
 
             } else {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + templateId);
-                return;
+                return null;
             }
         }
 
@@ -178,22 +178,20 @@ export default class SendInBlueMailServerController {
 
         if (!res || !res.messageId) {
             ConsoleHandler.error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
-            return false;
+            return null;
         }
 
         /**
-         * On stocke le mail en base
+         * On stocke le mail en base et on retourne le MailVO
          */
-        await this.insert_new_mail(to.email, res.messageId, mail_category);
-
-        return true;
+        return await this.insert_new_mail(to.email, res.messageId, mail_category);
     }
 
-    private async insert_new_mail(to_mail: string, message_id: string, mail_category: string) {
+    private async insert_new_mail(to_mail: string, message_id: string, mail_category: string): Promise<MailVO> {
 
         if ((!mail_category) || (!message_id) || (!to_mail)) {
             ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:Failed:paramètres invalides:' + mail_category + ':' + message_id + ':' + to_mail + ':');
-            return;
+            return null;
         }
 
         let category = await ModuleDAO.getInstance().getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, mail_category);
@@ -204,7 +202,7 @@ export default class SendInBlueMailServerController {
             let res_cat = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(category);
             if (!res_cat || !res_cat.id) {
                 ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:Failed:Impossible de créer la nouvelle catégorie de mail:' + mail_category + ':');
-                return;
+                return null;
             }
             category.id = res_cat.id;
         }
@@ -221,7 +219,7 @@ export default class SendInBlueMailServerController {
         let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(mail);
         if ((!res) || (!res.id)) {
             ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:failed inserting new mail:' + JSON.stringify(mail) + ':');
-            return;
+            return null;
         }
 
         // et on insère le premier event qui est interne
@@ -230,6 +228,8 @@ export default class SendInBlueMailServerController {
         first_event.event_date = Dates.now();
         first_event.mail_id = mail.id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(first_event);
+
+        return mail;
     }
 
     private async get_uid_if_exists(email: string) {

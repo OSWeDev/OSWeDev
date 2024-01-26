@@ -100,6 +100,7 @@ export default class ContextFilterVOManager {
             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
                 context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
                 context_filter.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
                 break;

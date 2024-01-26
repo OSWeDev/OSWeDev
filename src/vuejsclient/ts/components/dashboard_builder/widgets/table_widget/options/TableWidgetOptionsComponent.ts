@@ -403,6 +403,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.readonly = true;
                 crud_actions_column.exportable = false;
                 crud_actions_column.hide_from_table = false;
+                crud_actions_column.sortable = true;
                 crud_actions_column.filter_by_access = null;
                 crud_actions_column.enum_bg_colors = null;
                 crud_actions_column.enum_fg_colors = null;
@@ -662,6 +663,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             }
             if (column.hide_from_table == null) {
                 column.hide_from_table = false;
+            }
+            if (column.sortable == null) {
+                column.sortable = true;
             }
             if (column.can_filter_by == null) {
                 column.can_filter_by = column.readonly && (

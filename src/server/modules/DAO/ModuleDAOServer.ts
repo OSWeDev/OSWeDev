@@ -60,9 +60,7 @@ import ModuleTableDBService from '../ModuleTableDBService';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
-import ModuleVarServer from '../Var/ModuleVarServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
-import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import LogDBPerfServerController from './LogDBPerfServerController';
 import ThrottledQueryServerController from './ThrottledQueryServerController';
@@ -698,7 +696,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test registerCrons
     public registerCrons(): void {
-        DAOCronWorkersHandler.getInstance();
     }
 
     /**
@@ -2933,7 +2930,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 await promise_pipeline.push(async () => {
 
                     vo.id = parseInt(results[i].id.toString());
-                    await DAOServerController.post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+
+                    try {
+                        await DAOServerController.post_create_trigger_hook.trigger(vo._type, vo, exec_as_server);
+                    } catch (error) {
+                        ConsoleHandler.error('post_create_trigger_hook :' + vo._type + ':' + vo.id + ':' + error);
+                    }
                     InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(vo.id));
                 });
             }

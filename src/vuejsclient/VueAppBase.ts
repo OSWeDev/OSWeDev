@@ -310,6 +310,15 @@ export default abstract class VueAppBase {
         });
 
         routerOptions.routes.push({
+            path: '/action_url_cr/:action_url_id',
+            name: 'ActionURLCR',
+            component: () => import('./ts/components/action_url_cr/ActionURLCRComponent'),
+            props: (route) => ({
+                action_url_id: route.params.action_url_id,
+            })
+        });
+
+        routerOptions.routes.push({
             path: '*',
             name: '404',
             component: () => import('./ts/components/Error404/component/Error404Component')

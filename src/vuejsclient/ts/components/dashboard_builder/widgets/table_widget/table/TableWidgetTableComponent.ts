@@ -575,16 +575,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return vo.__crud_actions;
     }
 
-    private async callback_action(action: BulkActionVO) {
-        if (!action) {
-            return;
-        }
-
-        await action.callback(this.selected_vos_true);
-
-        this.refresh();
-    }
-
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
     }
@@ -701,7 +691,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             /**
              * On ajoute le contextmenu
              */
-            SemaphoreHandler.semaphore_sync("TableWidgetTableComponent.contextmenu", () => {
+            SemaphoreHandler.do_only_once("TableWidgetTableComponent.contextmenu", () => {
                 $['contextMenu']({
                     selector: ".table_widget_component .table_wrapper table",
                     items: this.contextmenu_items
@@ -2068,6 +2058,17 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         let xlsx_context_query = cloneDeep(this.actual_page_rows_datas_query);
         if (!limit_to_page) {
             xlsx_context_query.set_limit(0, 0);
+
+            // On doit aussi ajuster les sub_queries en jointure dans ce cas
+            for (let i in xlsx_context_query.joined_context_queries) {
+                let joined_context_query = xlsx_context_query.joined_context_queries[i];
+
+                if (!joined_context_query) {
+                    continue;
+                }
+
+                joined_context_query.joined_context_query.set_limit(0, 0);
+            }
         }
 
         let export_name: string = 'Export-';

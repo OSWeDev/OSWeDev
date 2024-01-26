@@ -1150,7 +1150,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         /**
          * On ajoute le contextmenu
          */
-        SemaphoreHandler.semaphore_sync("TableWidgetKanbanComponent.contextmenu", async () => {
+        SemaphoreHandler.do_only_once("TableWidgetKanbanComponent.contextmenu", async () => {
             $['contextMenu']({
                 selector: ".card.kanban_row",
                 items: this.contextmenu_items
@@ -2347,6 +2347,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let context_query = cloneDeep(this.actual_rows_query);
         if (!limit_to_page) {
             context_query.set_limit(0, 0);
+
+            // On doit aussi ajuster les sub_queries en jointure dans ce cas
+            for (let i in context_query.joined_context_queries) {
+                let joined_context_query = context_query.joined_context_queries[i];
+
+                if (!joined_context_query) {
+                    continue;
+                }
+
+                joined_context_query.joined_context_query.set_limit(0, 0);
+            }
         }
 
         let export_name = this.dashboard_page.translatable_name_code_text ?

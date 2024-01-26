@@ -60,6 +60,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -461,6 +462,62 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accordé'
         }, 'access_policy.admin.table.granted.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher tout le groupe : {policy_group_name}'
+        }, 'access_policy.select_full_group.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Masquer tout le groupe : {policy_group_name}'
+        }, 'access_policy.unselect_full_group.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier le rôle {role_id} : {role_name}'
+        }, 'AccessPolicyCompareAndPatchComponent.unselect_role.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Générer le code du patch pour harmoniser les droits de A vers B (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.generate_patch.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ATTENTION : Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ATTENTION : Cette page sert à comparer les droits de 2 rôles et à les harmoniser. Les seuls droits modifiés seront ceux du rôle B. Les droits du rôle A ne seront pas modifiés. Mais rien ne garantie que le patch aura l\'effet désiré puisque l\'on ne regarde pas les droits hérités. Donc si on tente de désactiver un droit hérité, celà n\'aura aucun effet !'
+        }, 'AccessPolicyCompareAndPatchComponent.disclaimer.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer ?'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mise à jour des droits du rôle B : En cours...'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mise à jour des droits du rôle B terminée'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la mise à jour des droits du rôle B'
+        }, 'AccessPolicyCompareAndPatchComponent.do_update.failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Code du Patch'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_patch_code.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Droits dans A, absents de B'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_a_not_in_b.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Droits dans B, absents de A'
+        }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_b_not_in_a.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélectionner le rôle "{role_name}"'
+        }, 'AccessPolicyCompareAndPatchComponent.select_role.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Comparer des rôles'
+        }, 'menu.menuelements.admin.AccessPolicyCompareAndPatchComponent.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
@@ -918,6 +975,38 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID, this.BEGIN_RECOVER_UID.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID, this.BEGIN_RECOVER_SMS_UID.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_NAME, this.get_avatar_name.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_URL, this.get_avatar_url.bind(this));
+    }
+
+    public async get_avatar_name(uid: number): Promise<string> {
+        if (!uid) {
+            return null;
+        }
+
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+        if (!user) {
+            return null;
+        }
+
+        return user.name;
+    }
+
+    public async get_avatar_url(uid: number): Promise<string> {
+        if (!uid) {
+            return null;
+        }
+
+        return '/vuejsclient/public/img/avatars/unknown.png';
+        // TODO
+        // let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+        // if (!user) {
+        //     return null;
+        // }
+
+        // return user.avatar_url;
     }
 
     public async logout() {
@@ -2167,9 +2256,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async send_session_share_email(mail_category: string, url: string, email: string) {
+    private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
         let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
-        await SendInBlueMailServerController.getInstance().sendWithTemplate(
+        return await SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),
             SEND_IN_BLUE_TEMPLATE_ID,
@@ -2187,7 +2276,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'session_share');
     }
 
-    private get_my_sid(res: Response) {
+    private get_my_sid(req: Request, res: Response) {
         // let session = StackContext.get('SESSION');
         // if (!session) {
         //     return null;

@@ -131,6 +131,12 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public can_select_none?: boolean,
         public default_advanced_ref_field_filter_type?: number,
         public hide_advanced_ref_field_filter_type?: boolean,
+        public date_relative_mode?: boolean,
+        public auto_select_date?: boolean,
+        public auto_select_date_relative_mode?: boolean,
+        public relative_to_other_filter_id?: number,
+        public auto_select_date_min?: number,
+        public auto_select_date_max?: number,
     ) {
         super();
     }

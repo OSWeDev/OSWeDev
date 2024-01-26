@@ -1,7 +1,9 @@
-import TrelloNodeApi from 'oswedev-trello-node-api';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ModuleTrelloAPI from '../../../shared/modules/TrelloAPI/ModuleTrelloAPI';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleRequestServer from '../Request/ModuleRequestServer';
 
 export default class ModuleTrelloAPIServer extends ModuleServerBase {
 
@@ -21,7 +23,6 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
     /**
      * Local thread cache -----
      */
-    private trello: TrelloNodeApi = null;
     /**
      * ----- Local thread cache
      */
@@ -35,23 +36,146 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
     public async configure() {
     }
 
-    public async getTrelloAPI(): Promise<TrelloNodeApi> {
+    public async archive_card(card_id: string): Promise<void> {
 
-        if (!!this.trello) {
-            return this.trello;
+        await this.update_card(card_id, {
+            closed: true
+        });
+    }
+
+    public async mv_card_to_list(card_id: string, list_id: string): Promise<void> {
+
+        await this.update_card(card_id, {
+            idList: list_id
+        });
+    }
+
+    public async add_label_to_card(card_id: string, label_id: string): Promise<void> {
+
+        let card = await this.get_card(card_id);
+
+        if (!card) {
+            ConsoleHandler.error('No card found for id ' + card_id);
+            return;
         }
 
-        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME);
-        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME);
+        let new_labels = [];
+        for (let i in card.labels) {
+            let card_label = card.labels[i];
 
-        if ((!!TRELLO_API_KEY) && (!!TRELLO_TOKEN)) {
-            this.trello = new TrelloNodeApi();
-            this.trello.setApiKey(TRELLO_API_KEY);
-            this.trello.setOauthToken(TRELLO_TOKEN);
-        } else {
-            throw new Error('getTrelloAPI needs TRELLO_API_KEY and TRELLO_TOKEN to be set');
+            if (card_label.id != label_id) {
+                new_labels.push(card_label.id);
+            }
         }
+        new_labels.push(label_id);
 
-        return this.trello;
+        try {
+            await this.update_card(card_id, {
+                idLabels: new_labels
+            });
+        } catch (error) {
+            ConsoleHandler.error('Error in add_label_to_card:' + error);
+        }
+    }
+
+    public async update_card(card_id: string, updates: any): Promise<any> {
+
+        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+
+        try {
+            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_PUT,
+                'api.trello.com',
+                '/1/cards/' + card_id + '?key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,
+                updates,
+                {
+                    "Content-Type": 'application/json',
+                    "Accept": 'application/json'
+                },
+                true);
+
+            return response;
+        } catch (error) {
+            ConsoleHandler.error('Error in update_card:' + error);
+        }
+    }
+
+    public async create_card(name: string, desc: string, list_id: string, labels: string[] = null, other_card_elts: any = null): Promise<any> {
+
+        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+
+        try {
+            let post_params = {
+                name: name,
+                desc: desc,
+                idLabels: labels
+            };
+            if (other_card_elts) {
+                Object.assign(post_params, other_card_elts);
+            }
+
+            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                'api.trello.com',
+                '/1/cards?idList=' + list_id + '&key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,
+                post_params,
+                {
+                    "Content-Type": 'application/json',
+                    "Accept": 'application/json'
+                },
+                true);
+
+            return response;
+        } catch (error) {
+            ConsoleHandler.error('Error in create_card:' + error);
+        }
+    }
+
+    public async get_card(card_id: string): Promise<any> {
+
+        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+
+        try {
+
+            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                'api.trello.com',
+                '/1/cards/' + card_id + '?key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,
+                null,
+                {
+                    Accept: 'application/json'
+                },
+                true);
+
+            return response;
+        } catch (error) {
+            ConsoleHandler.error('Error in get_card:' + error);
+        }
+    }
+
+    public async get_label(label_id: string): Promise<any> {
+
+        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+
+        try {
+
+            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                'api.trello.com',
+                '/1/labels/' + label_id + '?key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,
+                null,
+                {
+                    Accept: 'application/json'
+                },
+                true);
+
+            return response;
+        } catch (error) {
+            ConsoleHandler.error('Error in get_label:' + error);
+        }
     }
 }

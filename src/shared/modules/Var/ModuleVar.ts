@@ -619,7 +619,9 @@ export default class ModuleVar extends Module {
         column: TableColumnDescVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         limit_nb_ts_ranges_on_param_by_context_filter: number = 100,
-        accept_max_ranges: boolean = false) {
+        accept_max_ranges: boolean = false,
+        log_refuse_param: boolean = true,
+    ) {
 
         let var_conf = VarsController.var_conf_by_id[column.var_id];
         let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_conf.name);
@@ -650,7 +652,10 @@ export default class ModuleVar extends Module {
                             // Max range étant interdit sur les registers de var, on force un retour null
 
                             if (!refuse_param) {
-                                ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                                if (log_refuse_param) {
+                                    ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                                }
+
                                 refuse_param = true;
                             }
                         } else {
@@ -662,7 +667,10 @@ export default class ModuleVar extends Module {
                     if (!accept_max_ranges) {
 
                         if (!refuse_param) {
-                            ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                            if (log_refuse_param) {
+                                ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                            }
+
                             refuse_param = true;
                         }
                     } else {
@@ -680,7 +688,10 @@ export default class ModuleVar extends Module {
                             if (!accept_max_ranges) {
 
                                 if (!refuse_param) {
-                                    ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                                    if (log_refuse_param) {
+                                        ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                                    }
+
                                     refuse_param = true;
                                 }
 
@@ -695,7 +706,10 @@ export default class ModuleVar extends Module {
                     if (!accept_max_ranges) {
 
                         if (!refuse_param) {
-                            ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                            if (log_refuse_param) {
+                                ConsoleHandler.error('getVarParamForExport: max range not allowed on registers of var');
+                            }
+
                             refuse_param = true;
                         }
 

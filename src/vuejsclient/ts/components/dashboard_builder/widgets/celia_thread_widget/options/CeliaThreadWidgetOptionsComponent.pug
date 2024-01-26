@@ -1,0 +1,8 @@
+.celia_thread_widget_options_component
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('celia_thread_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")

@@ -292,7 +292,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let cloned_raw = cloneDeep(row);
             let cloned_res = cloneDeep(row);
             cloned_raw[this.field_id_selected] = this.new_value;
-            await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field);
+            await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field, null);
             res.push(cloned_res);
         }
 
@@ -396,7 +396,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             for (let j in this.fields) {
                 let field = this.fields[j];
 
-                promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field));
+                promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field, null));
             }
             data_rows.push(resData);
         }

@@ -73,7 +73,7 @@ export default class DailyReportCronWorker implements ICronWorker {
         if (!!TEAMS_WEBHOOK_PARAM_NAME) {
             let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
 
-            message.title = "Bilan quotidien - Supervision";
+            message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + "Bilan quotidien - Supervision";
             message.summary = "Bilan quotidien de supervision de l'application";
 
             message.sections.push(new TeamsWebhookContentSectionVO().set_text("<blockquote>Erreurs : " +

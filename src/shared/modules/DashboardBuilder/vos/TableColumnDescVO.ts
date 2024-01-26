@@ -110,6 +110,11 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public readonly: boolean;
 
     /**
+     * Permet de cacher les boutons de tri
+     */
+    public sortable: boolean;
+
+    /**
      * Permet de cacher des colonnes dans les exports, par exemple les colonnes logAs sur la base des utilisateurs
      */
     public exportable: boolean;

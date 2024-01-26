@@ -159,30 +159,32 @@ test('DAG: test isComputable', async () => {
     expect(node_B.is_computable).toStrictEqual(false);
 
     // Pas de deps, donc computable
+    // DEBUG => Si on a pas fini de déployer les deps, on peut pas encore savoir si on est computable
     expect(node_E.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
-    expect(node_E.is_computable).toStrictEqual(true);
+    expect(node_E.is_computable).toStrictEqual(false);
 
     // Pas de deps, donc computable
+    // DEBUG => Si on a pas fini de déployer les deps, on peut pas encore savoir si on est computable
     expect(node_F.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
     });
-    expect(node_F.is_computable).toStrictEqual(true);
+    expect(node_F.is_computable).toStrictEqual(false);
 
     node_E.remove_tag(VarDAGNode.TAG_0_CREATED);
     node_E.add_tag(VarDAGNode.TAG_4_COMPUTING);
     expect(node_A.is_computable).toStrictEqual(false);
     expect(node_B.is_computable).toStrictEqual(false);
     expect(node_E.is_computable).toStrictEqual(true);
-    expect(node_F.is_computable).toStrictEqual(true);
+    expect(node_F.is_computable).toStrictEqual(false);
 
     node_E.remove_tag(VarDAGNode.TAG_4_COMPUTING);
     node_E.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
     expect(node_A.is_computable).toStrictEqual(false);
     expect(node_B.is_computable).toStrictEqual(false);
     expect(node_E.is_computable).toStrictEqual(true);
-    expect(node_F.is_computable).toStrictEqual(true);
+    expect(node_F.is_computable).toStrictEqual(false);
 
     node_F.remove_tag(VarDAGNode.TAG_0_CREATED);
     node_F.add_tag(VarDAGNode.TAG_4_COMPUTING);

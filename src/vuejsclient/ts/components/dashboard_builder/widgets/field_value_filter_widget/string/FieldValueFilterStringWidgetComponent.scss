@@ -1,4 +1,4 @@
-@import "../../../../../../scss/base/skin.scss";
+@import "skin-variables.scss";
 
 .field_value_filter_string_widget_component {
     height: -webkit-fill-available;
@@ -7,56 +7,6 @@
         font-size: 1.2em;
         margin-bottom: 0.4em;
         line-height: 1em;
-    }
-
-    .multiselect__content {
-        max-width: -webkit-fill-available;
-    }
-
-    .multiselect__element {
-        max-width: -webkit-fill-available;
-    }
-
-    .multiselect__option,
-    .option__tag,
-    .option__title {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: -webkit-fill-available;
-    }
-
-    .pill_wrapper {
-
-        margin: 0.1em;
-
-        .option__tag {
-            max-width: 15em;
-            display: inline-block;
-            vertical-align: middle;
-        }
-
-        i.fa-times {
-            background: white;
-            border-radius: 100px;
-            width: 15px;
-            height: 14px;
-            color: #5cb85c !important;
-            opacity: 1;
-            padding-left: 2px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: bold;
-            display: inline-block;
-            margin-left: 0.5em;
-            transition: all 0.2s ease-in-out;
-            vertical-align: middle;
-
-            &:hover {
-                background: #a9dca9 !important;
-                color: white !important;
-            }
-        }
     }
 
     vertical-align: middle;
@@ -145,20 +95,6 @@
     .vo_field_ref_filter {
         height: -webkit-fill-available;
 
-        .multiselect .pill_wrapper {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: smaller;
-            margin-right: 0.5rem;
-            color: white;
-
-            i.fa-solid.fa-times {
-                cursor: pointer;
-                margin-left: 8px;
-            }
-        }
-
         .container_filter_opt {
             height: 100%;
             overflow-x: auto;
@@ -168,6 +104,7 @@
 
                 label {
                     max-width: calc(100% - 1.4rem);
+                    vertical-align: middle;
                 }
             }
 

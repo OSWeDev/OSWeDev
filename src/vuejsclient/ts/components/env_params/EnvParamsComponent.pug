@@ -1,0 +1,10 @@
+.env_params_component
+    template(v-if='env_params')
+        template(v-for='field in env_params_fields')
+            .env_params_component__param
+                Crudcomponentfield(
+                    @onchangevo='on_edit_field'
+                    :field="editable_fields[field.field_id]"
+                    :vo="env_params"
+                    :auto_update_field_value='false'
+                )
