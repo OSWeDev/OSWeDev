@@ -691,7 +691,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             /**
              * On ajoute le contextmenu
              */
-            SemaphoreHandler.semaphore_sync("TableWidgetTableComponent.contextmenu", () => {
+            SemaphoreHandler.do_only_once("TableWidgetTableComponent.contextmenu", () => {
                 $['contextMenu']({
                     selector: ".table_widget_component .table_wrapper table",
                     items: this.contextmenu_items
