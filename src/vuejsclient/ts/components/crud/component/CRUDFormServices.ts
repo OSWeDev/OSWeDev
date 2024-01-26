@@ -24,8 +24,12 @@ import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
+import { SnotifyToast } from 'vue-snotify';
 
 export default class CRUDFormServices {
+
+    // Pour éviter de mettre 15 snotifys pour un seul formulaire par exemple
+    public static update_ok_snotify_toast: SnotifyToast = null;
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {

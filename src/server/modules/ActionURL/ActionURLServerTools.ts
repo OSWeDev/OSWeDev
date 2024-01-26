@@ -20,7 +20,7 @@ export default class ActionURLServerTools extends ModuleServerBase {
 
     public static get_unique_code_from_text(text: string): string {
         let this_uid = ActionURLServerTools.UID++;
-        let tsms = Dates.now_ms();
+        let tsms = Math.round(Dates.now_ms());
         return createHash('sha256').update(text + this_uid).digest('hex') + tsms.toString() + this_uid.toString();
     }
 

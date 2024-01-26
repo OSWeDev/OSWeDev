@@ -299,6 +299,8 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_UNION);
     }
 
+    private static UID_QUERY_TABLE_PREFIX: number = 0;
+
     private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
         if ((!filters) || (!filters.length)) {
             return null;
@@ -540,7 +542,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * Filter by ID not in (subquery)
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
-    public by_id_not_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+    public by_id_not_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.field_id = 'id';
         this.filter_type = ContextFilterVO.TYPE_NOT_IN;
         this.set_sub_query(query, this_query);
@@ -551,7 +553,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * Filtrer un champ number par un sous-requête : field not in (subquery)
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
-    public by_num_not_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+    public by_num_not_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NOT_IN;
         this.set_sub_query(query, this_query);
         return this;
@@ -561,7 +563,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * Filtrer en fonction d'un sub en exists
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */
-    public by_exists(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+    public by_exists(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_EXISTS;
         this.set_sub_query(query, this_query);
         return this;
@@ -571,7 +573,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * Filtrer en fonction d'un sub en not exists
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */
-    public by_not_exists(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+    public by_not_exists(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NOT_EXISTS;
         this.set_sub_query(query, this_query);
         return this;
@@ -581,7 +583,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * Filter by ID in (subquery)
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
-    public by_id_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+    public by_id_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.field_id = 'id';
         this.filter_type = ContextFilterVO.TYPE_IN;
         this.set_sub_query(query, this_query);
@@ -592,7 +594,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * Filtrer un champ number par un sous-requête : field in (subquery)
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
-    public by_num_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+    public by_num_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_IN;
         this.set_sub_query(query, this_query);
         return this;
@@ -1003,13 +1005,21 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         return this;
     }
 
-    public set_sub_query(sub_query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+    /**
+     *
+     * @param sub_query
+     * @param this_query TODO FIXME : est-ce vraiment utile... pourquoi ça sufirait pas d'avoir toujours un id unique ?
+     * @returns
+     */
+    public set_sub_query(sub_query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
         this.sub_query = sub_query;
         if (!sub_query) {
             return this;
         }
 
-        sub_query.query_tables_prefix = '_' + (this_query.query_tables_prefix ? this_query.query_tables_prefix : '');
+        sub_query.query_tables_prefix = this_query ?
+            ('_' + (this_query.query_tables_prefix ? this_query.query_tables_prefix : '')) :
+            ('_' + ContextFilterVO.UID_QUERY_TABLE_PREFIX++);
         return this;
     }
 

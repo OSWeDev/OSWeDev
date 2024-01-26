@@ -2883,7 +2883,8 @@ export default class ContextFilterServerController {
                 }
 
                 if (qr_TYPE_IN.is_segmented_non_existing_table) {
-                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    // Si la table segmentée n'existe pas, on ne peut pas trouver une valeur dedans, donc on doit retourner false
+                    where_conditions.push('FALSE');
                     break;
                 }
 
@@ -3002,7 +3003,8 @@ export default class ContextFilterServerController {
                 }
 
                 if (qr_TYPE_EXISTS.is_segmented_non_existing_table) {
-                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    // Si la table segmentée n'existe pas, on ne peut pas trouver une valeur dedans, donc on doit retourner false
+                    where_conditions.push('FALSE');
                     break;
                 }
 

@@ -2936,6 +2936,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     } catch (error) {
                         ConsoleHandler.error('post_create_trigger_hook :' + vo._type + ':' + vo.id + ':' + error);
                     }
+
+                    vo.id = parseInt(results[i].id.toString());
                     InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(vo.id));
                 });
             }

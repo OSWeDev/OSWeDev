@@ -521,6 +521,12 @@ export default class GPTAssistantAPIServerController {
                                 try {
 
                                     let function_vo: GPTAssistantAPIFunctionVO = availableFunctions[tool_call.function.name];
+
+                                    if (!function_vo) {
+                                        function_response = "UNKNOWN_FUNCTION : Check the name and retry.";
+                                        throw new Error('function_vo not found: ' + tool_call.function.name);
+                                    }
+
                                     let function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
                                     let function_args = JSON.parse(tool_call.function.arguments);
                                     let ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread.thread_vo, function_args, availableFunctionsParameters[function_vo.id]);

@@ -739,7 +739,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.do_not_user_filter_active_ids = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
-        new_column.can_filter_by = true;
+        new_column.can_filter_by = false;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
         new_column.filter_custom_field_filters = {};

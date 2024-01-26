@@ -857,7 +857,7 @@ export default class PushDataServerController {
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
 
-            if (!usersRoles) {
+            if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
@@ -911,7 +911,7 @@ export default class PushDataServerController {
             }
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
-            if (!usersRoles) {
+            if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
