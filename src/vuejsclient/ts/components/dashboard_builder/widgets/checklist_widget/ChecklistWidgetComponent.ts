@@ -3,21 +3,24 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
 import ICheckListItem from '../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
-import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
 import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckListVO';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import FieldFilterVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -28,19 +31,15 @@ import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import CheckListControllerBase from '../../../CheckList/CheckListControllerBase';
 import CheckListItemComponent from '../../../CheckList/Item/CheckListItemComponent';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
-import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import DAOController from '../../../../../../shared/modules/DAO/DAOController';
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import DashboardBuilderBoardManager from '../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 
 /**
  * Datatable of checklist items
@@ -514,10 +513,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         await this.checklist_controller.component_hook_onAsyncLoading(
             this.getStoredDatas,
-            this.storeDatas,
-            this.checklist,
-            this.checklist_items_by_id,
-            this.checkpoints_by_id
+            this.storeDatas
         );
 
         // Si je ne suis pas sur la dernière demande, je me casse

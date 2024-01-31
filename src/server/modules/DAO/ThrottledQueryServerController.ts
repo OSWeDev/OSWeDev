@@ -117,20 +117,21 @@ export default class ThrottledQueryServerController {
                     nb_union_in_current_group_id = 0;
                 }
 
+                /**
+                 * On ajoute la gestion du cache ici
+                 */
+                if (same_field_labels_param.context_query && same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
+                    ThrottledQueryServerController.handle_load_from_cache(same_field_labels_param)();
+                    continue;
+                }
+                StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');
+
                 let current_promise = new Promise(async (resolve, reject) => {
                     ThrottledQueryServerController.current_promise_resolvers[same_field_labels_param.index] = resolve;
                 });
 
                 ThrottledQueryServerController.current_select_query_promises[same_field_labels_param.parameterized_full_query] = current_promise;
 
-                /**
-                 * On ajoute la gestion du cache ici
-                 */
-                if (same_field_labels_param.context_query && same_field_labels_param.context_query.max_age_ms && DAOCacheHandler.has_cache(same_field_labels_param.parameterized_full_query, same_field_labels_param.context_query.max_age_ms)) {
-                    ThrottledQueryServerController.handle_load_from_cache(same_field_labels_param, ThrottledQueryServerController.current_promise_resolvers[same_field_labels_param.index])();
-                    continue;
-                }
-                StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');
 
                 if (!/^\(?select /i.test(same_field_labels_param.parameterized_full_query)) {
                     ConsoleHandler.error('Only select queries are allowed in shift_select_queries:' + same_field_labels_param.parameterized_full_query);
@@ -232,8 +233,7 @@ export default class ThrottledQueryServerController {
     }
 
     private static handle_load_from_cache(
-        same_field_labels_param: ThrottledSelectQueryParam,
-        current_promise_resolver: (value: unknown) => void
+        same_field_labels_param: ThrottledSelectQueryParam
     ): () => Promise<void> {
         let res = DAOCacheHandler.get_cache(same_field_labels_param.parameterized_full_query);
         if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
@@ -253,7 +253,6 @@ export default class ThrottledQueryServerController {
                     await cb(res);
                 })());
             }
-            promises.push(current_promise_resolver(res));
 
             await all_promises(promises);
             same_field_labels_param.register_postcbs_stats();

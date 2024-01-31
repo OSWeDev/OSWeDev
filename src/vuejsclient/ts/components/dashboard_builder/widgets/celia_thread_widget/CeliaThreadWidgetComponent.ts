@@ -322,7 +322,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
 
         let nb_assistants = await context_query_count.select_count();
 
-        if (((!nb_assistants) || (nb_assistants > 1)) && (!this.thread.current_default_assistant_id)) {
+        if (((!nb_assistants) || (nb_assistants > 1)) && (!!this.thread.current_default_assistant_id)) {
             let default_assistant: GPTAssistantAPIAssistantVO = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                 .filter_by_id(this.thread.current_default_assistant_id)
                 .select_vo<GPTAssistantAPIAssistantVO>();
@@ -330,10 +330,12 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
             this.is_loading_assistant = false;
 
             if (!default_assistant) {
+                this.too_many_assistants = nb_assistants > 1;
                 return;
             }
 
             this.assistant = default_assistant;
+            this.too_many_assistants = false;
             return;
         }
 

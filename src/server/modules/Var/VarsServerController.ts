@@ -259,6 +259,49 @@ export default class VarsServerController {
                 }
 
                 /**
+                 * Si on a changé le type de vo associé, on doit mettre à jour la bdd
+                 */
+                if (daoVarConf.var_data_vo_type != varConf.var_data_vo_type) {
+
+                    ConsoleHandler.warn('On écrase le var_data_vo_type de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.var_data_vo_type:' + daoVarConf.var_data_vo_type +
+                        ':varConf.var_data_vo_type:' + varConf.var_data_vo_type);
+
+                    daoVarConf.var_data_vo_type = varConf.var_data_vo_type;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                /**
+                 * Si la pixellisation a changée, on met à jour la conf en db
+                 */
+                if ((!!daoVarConf.pixel_activated) != (!!varConf.pixel_activated)) {
+
+                    ConsoleHandler.warn('On écrase le pixel_activated de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.pixel_activated:' + daoVarConf.pixel_activated +
+                        ':varConf.pixel_activated:' + varConf.pixel_activated);
+
+                    daoVarConf.pixel_activated = !!varConf.pixel_activated;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                /**
+                 * Si l'aggrégateur a changé, on met à jour la conf en db
+                 */
+                if ((!!daoVarConf.pixel_activated) && (daoVarConf.aggregator != varConf.aggregator)) {
+
+                    ConsoleHandler.warn('On écrase le aggregator de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.aggregator:' + daoVarConf.aggregator +
+                        ':varConf.aggregator:' + varConf.aggregator);
+
+                    daoVarConf.aggregator = varConf.aggregator;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+
+                /**
                  * Idem pour les champs de segmentation, si en base on dit qu'on est pixel, mais qu'on a pas de fields et que les fields existent
                  *  côté appli, on modifie en base
                  */

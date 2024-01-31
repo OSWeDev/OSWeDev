@@ -1,4 +1,10 @@
 .var_desc_explain_imports
-    .row(v-for='aggregated_var_data in aggregated_var_datas')
-        .col-sm-12.imported_var_data_wrapper
-            Vardescexplaindepparamcomponent(:param='aggregated_var_data')
+    .row(v-for='(aggregated_var_data, i) in aggregated_var_datas_array')
+        template(v-if='(i >= 10) && limit_10')
+        template(v-else)
+            .col-sm-12.imported_var_data_wrapper
+                Vardescexplaindepparamcomponent(:param='aggregated_var_data')
+
+    template(v-if='aggregated_var_datas_array && (aggregated_var_datas_array.length > 10) && limit_10')
+        .var_controller_label(@click='limit_10 = false') {{ label('var_desc_explain_dep.limit_10') }}
+

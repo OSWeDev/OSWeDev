@@ -24,6 +24,35 @@ import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOption
  */
 export default class FieldFiltersVOManager {
 
+    public static get_INTERSECTION_field_filters(
+        field_filters: FieldFiltersVO | { [label: string]: IReadableFieldFilters },
+        field_filters_to_intersect: FieldFiltersVO | { [label: string]: IReadableFieldFilters }): FieldFiltersVO | { [label: string]: IReadableFieldFilters } {
+
+        let res: FieldFiltersVO | { [label: string]: IReadableFieldFilters } = {};
+
+        for (let api_type_id in field_filters) {
+            if (!field_filters_to_intersect[api_type_id]) {
+                continue;
+            }
+
+            let fields = {};
+
+            for (let field_id in field_filters[api_type_id]) {
+                if (typeof field_filters_to_intersect[api_type_id][field_id] === 'undefined') {
+                    continue;
+                }
+
+                fields[field_id] = field_filters[api_type_id][field_id];
+            }
+
+            if (Object.keys(fields).length > 0) {
+                res[api_type_id] = fields;
+            }
+        }
+
+        return res;
+    }
+
     /**
      * find_default_field_filters_by_dashboard_page_id
      * - This method is responsible for loading the default field_filters of the given dashboard_page id

@@ -1,6 +1,6 @@
+import DAOCacheParamVO from "../../../shared/modules/DAO/vos/DAOCacheParamVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ThreadHandler from "../../../shared/tools/ThreadHandler";
-import DAOCacheParamVO from "./bgthreads/vos/DAOCacheParamVO";
 
 export default class DAOCacheHandler {
 

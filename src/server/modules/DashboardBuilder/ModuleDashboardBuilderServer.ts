@@ -429,6 +429,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.save_failed.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Suppression en cours...'
+        }, 'dashboard_builder.shared_filters.delete_start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre partagé supprimé avec succès'
+        }, 'dashboard_builder.shared_filters.delete_ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de la suppression du filtre partagé'
+        }, 'dashboard_builder.shared_filters.delete_failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtre caché'
         }, 'dashboard_builder.shared_filters.filter_hidden.___LABEL___'));
 

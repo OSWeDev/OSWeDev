@@ -5,6 +5,7 @@ import SharedFiltersVO from "../vos/SharedFiltersVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import RangeHandler from "../../../tools/RangeHandler";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
+import DashboardPageFieldFiltersVOManager from "./DashboardPageFieldFiltersVOManager";
 
 /**
  * SharedFiltersVOManager
@@ -216,6 +217,11 @@ export default class SharedFiltersVOManager {
      */
     public static async save_shared_filters(shared_filters: SharedFiltersVO): Promise<boolean> {
 
+        /**
+         * On filtre tous les false ici, par ce qu'on veut avoir la conf la plus légère possible
+         */
+        shared_filters = await SharedFiltersVOManager.filter_false_shared_filters(shared_filters);
+
         const res = await ModuleDAO.getInstance().insertOrUpdateVO(
             shared_filters
         );
@@ -250,6 +256,55 @@ export default class SharedFiltersVOManager {
     }
 
     private static instance: SharedFiltersVOManager = null;
+
+    private static async filter_false_shared_filters(shared_filters: SharedFiltersVO): Promise<SharedFiltersVO> {
+
+        const dashboard_pages_field_filters_map = await DashboardPageFieldFiltersVOManager.find_dashboard_pages_field_filters_by_dashboard_ids(
+            RangeHandler.get_array_from_ranges(shared_filters.shared_from_dashboard_ids)
+        );
+
+        const selectionnable_field_filters = DashboardPageFieldFiltersVOManager.get_INTERSECTION_all_dashboard_pages_field_filters(//merge_all_dashboard_pages_field_filters(
+            dashboard_pages_field_filters_map
+        );
+
+
+        let field_filters_to_share = {};
+
+        for (let i in shared_filters.field_filters_to_share) {
+            let field_filter = shared_filters.field_filters_to_share[i];
+
+            let field_filter_to_share = {};
+            for (let j in field_filter) {
+                if (field_filter[j]) {
+                    field_filter_to_share[j] = true;
+                }
+            }
+
+            if (Object.keys(field_filter_to_share).length > 0) {
+                field_filters_to_share[i] = field_filter_to_share;
+            }
+        }
+
+        let selected_field_filters_to_share = {};
+        for (let i in selectionnable_field_filters.field_filters) {
+            let field_filter = selectionnable_field_filters.field_filters[i];
+
+            let field_filter_to_share = {};
+            for (let j in field_filter) {
+                if ((typeof field_filter[j] !== 'undefined') && field_filters_to_share[i] && field_filters_to_share[i][j]) {
+                    field_filter_to_share[j] = true;
+                }
+            }
+
+            if (Object.keys(field_filter_to_share).length > 0) {
+                selected_field_filters_to_share[i] = field_filter_to_share;
+            }
+        }
+
+        shared_filters.field_filters_to_share = selected_field_filters_to_share;
+
+        return shared_filters;
+    }
 
     public shared_filters_with_dashboard_id: { [dashboard_id: number]: SharedFiltersVO[] } = {};
     public shared_filters_from_dashboard_id: { [dashboard_id: number]: SharedFiltersVO[] } = {};

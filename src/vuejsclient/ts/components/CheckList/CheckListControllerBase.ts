@@ -1,4 +1,3 @@
-import ICheckList from '../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
@@ -42,8 +41,7 @@ export default abstract class CheckListControllerBase {
 
     public async component_hook_onAsyncLoading(
         getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
-        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
-        checklist: ICheckList, checklistitems: { [id: number]: ICheckListItem }, checkpoints_by_id: { [id: number]: ICheckPoint }
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
     ) { }
 
     public get_infos_cols_labels(): string[] {
