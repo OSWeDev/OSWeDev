@@ -127,7 +127,8 @@ export default class GPTAssistantAPIServerController {
     public static async push_message(
         thread_vo: GPTAssistantAPIThreadVO,
         content: string,
-        files: FileVO[]): Promise<{ message_gpt: ThreadMessage, message_vo: GPTAssistantAPIThreadMessageVO }> {
+        files: FileVO[],
+        user_id: number = null): Promise<{ message_gpt: ThreadMessage, message_vo: GPTAssistantAPIThreadMessageVO }> {
 
         try {
 
@@ -182,7 +183,7 @@ export default class GPTAssistantAPIServerController {
                     break;
             }
             message_vo.thread_id = thread_vo.id;
-            message_vo.user_id = thread_vo.user_id;
+            message_vo.user_id = user_id ? user_id : thread_vo.user_id;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(message_vo);
 
@@ -301,7 +302,10 @@ export default class GPTAssistantAPIServerController {
         return run_vo;
     }
 
-    public static async check_or_create_message_vo(message_gpt: ThreadMessage, thread_vo: GPTAssistantAPIThreadVO): Promise<GPTAssistantAPIThreadMessageVO> {
+    public static async check_or_create_message_vo(
+        message_gpt: ThreadMessage,
+        thread_vo: GPTAssistantAPIThreadVO,
+        user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO> {
 
         if (!message_gpt) {
             return null;
@@ -329,7 +333,7 @@ export default class GPTAssistantAPIServerController {
         message_vo.run_id = run ? run.id : null;
         message_vo.assistant_id = run ? run.assistant_id : null;
         message_vo.thread_id = thread_vo.id;
-        message_vo.user_id = thread_vo.user_id;
+        message_vo.user_id = user_id ? user_id : thread_vo.user_id;
         message_vo.role_type = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_LABELS.indexOf(message_gpt.role);
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(message_vo);
@@ -478,7 +482,8 @@ export default class GPTAssistantAPIServerController {
         } = await GPTAssistantAPIServerController.push_message(
             thread.thread_vo,
             content,
-            files
+            files,
+            user_id
         );
 
         //  La discussion est en place, on peut demander à l'assistant de répondre
