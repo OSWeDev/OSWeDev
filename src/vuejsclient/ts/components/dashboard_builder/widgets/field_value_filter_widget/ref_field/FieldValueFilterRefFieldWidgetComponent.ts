@@ -158,7 +158,31 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         // parse the query string's paramters
         const urlParams = new URLSearchParams(queryString);
 
-        // To get a parameter simply write something like the follwing
+
+        // // To get a parameter simply write something like the follwing
+        // let param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
+        // const filter_value_str: string = urlParams.get(param_name);
+        // if (filter_value_str != null) {
+        //     const filter_value_number: number = parseInt(filter_value_str);
+
+        //     // On doit retrouver la valeur dans les options disponibles
+        //     let filter_value: DataFilterOption = null;
+        //     for (let i in this.filter_visible_options) {
+        //         let filter_opt = this.filter_visible_options[i];
+        //         if (filter_opt.numeric_value == filter_value_number) {
+        //             filter_value = filter_opt;
+        //             break;
+        //         }
+        //     }
+
+        //     if (filter_value) {
+        //         update_tmp_active_filter_options = true;
+        //         updated_tmp_active_filter_options.push(filter_value);
+        //     }
+        // }
+
+        // On tente de forcer même si on trouve pas dans la liste déjà chargée
+        // Pour l'instant c'est très lié à un type number, à voir comment on adapte par la suite
         let param_name = FieldValueFilterWidgetController.get_query_param_filter_name(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id);
         const filter_value_str: string = urlParams.get(param_name);
         if (filter_value_str != null) {
@@ -177,12 +201,34 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
             if (filter_value) {
                 update_tmp_active_filter_options = true;
                 updated_tmp_active_filter_options.push(filter_value);
+            } else {
+                filter_value = new DataFilterOption(
+                    DataFilterOption.STATE_SELECTED,
+                    filter_value_str,
+                    null,
+                    false,
+                    false,
+                    false,
+                    null,
+                    null,
+                    null,
+                    filter_value_number,
+                    null,
+                    null,
+                    true,
+                    [],
+                    filter_value_str
+                );
+                update_tmp_active_filter_options = true;
+                updated_tmp_active_filter_options.push(filter_value);
+                this.filter_visible_options.push(filter_value);
             }
         }
 
         if (update_tmp_active_filter_options) {
             this.tmp_active_filter_options = updated_tmp_active_filter_options;
             this.already_loaded_query_params = true;
+            this.onchange_tmp_active_filter_options();
         }
     }
 

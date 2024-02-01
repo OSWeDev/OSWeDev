@@ -196,7 +196,7 @@ export default class CeliaThreadMessageActionURLComponent extends VueComponentBa
             return true;
         }
 
-        return this.action_url.action_remaining_counter <= 0;
+        return this.action_url.action_remaining_counter == 0;
     }
 
     get action_url_button_class() {
@@ -208,7 +208,7 @@ export default class CeliaThreadMessageActionURLComponent extends VueComponentBa
             return ActionURLVO.BOOTSTRAP_BUTTON_TYPE_CORRESPONDING_BOOTSTRAP_CLASSNAME[this.action_url.button_bootstrap_type];
         }
 
-        if (this.action_url.action_remaining_counter <= 0) {
+        if (this.action_url.action_remaining_counter == 0) {
             return 'btn-secondary';
         }
 
