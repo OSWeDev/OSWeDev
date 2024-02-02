@@ -103,20 +103,7 @@ export default class CeliaThreadMessageActionURLComponent extends VueComponentBa
             [field_names<ActionURLVO>()._type]: ActionURLVO.API_TYPE_ID,
             [field_names<ActionURLVO>().id]: this.action_url.id
         };
-        let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
-            room_vo,
-            JSON.stringify(room_vo),
-            async (created_vo: ActionURLVO) => {
-                this.action_url = created_vo;
-            }
-        );
-        this.vo_events_registration_keys.push(vo_event_registration_key);
-
-        room_vo = {
-            [field_names<ActionURLVO>()._type]: ActionURLVO.API_TYPE_ID,
-            [field_names<ActionURLVO>().id]: this.action_url.id
-        };
-        vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
+        let vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
             room_vo,
             JSON.stringify(room_vo),
             async (deleted_vo: ActionURLVO) => {

@@ -35,6 +35,8 @@ import './DatatableComponent.scss';
 import DatatableRowController from './DatatableRowController';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
+import ArrayHandler from '../../../../../shared/tools/ArrayHandler';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -905,7 +907,7 @@ export default class DatatableComponent extends VueComponentBase {
             baseDatas = this.datatable.data_set_hook(baseDatas_byid);
         }
 
-        this.datatable_data = [];
+        let datatable_data = [];
 
         let prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } = this.prepare_ref_fields_data_for_update();
 
@@ -928,10 +930,13 @@ export default class DatatableComponent extends VueComponentBase {
                 resData[DatatableRowController.ACTIONS_COLUMN_ID] = true;
             }
 
-            this.datatable_data.push(resData);
+            datatable_data.push(resData);
         }
 
-        this.initializeFilters();
+        if (!ObjectHandler.are_equal(this.datatable_data, datatable_data)) {
+            this.datatable_data = datatable_data;
+            this.initializeFilters();
+        }
     }
 
     private initializeFilters() {

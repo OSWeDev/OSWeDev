@@ -7,6 +7,10 @@ import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../VueComponentBase';
 import './MailIDEventsComponent.scss';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
+import VOEventRegistrationKey from '../../modules/PushData/VOEventRegistrationKey';
+import PushDataVueModule from '../../modules/PushData/PushDataVueModule';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./MailIDEventsComponent.pug'),
@@ -20,8 +24,9 @@ export default class MailIDEventsComponent extends VueComponentBase {
     private mail: MailVO = null;
     private mail_events: MailEventVO[] = null;
 
-    private last_event: MailEventVO = null;
     private is_loading: boolean = true;
+
+    private vo_events_registration_keys: VOEventRegistrationKey[] = [];
 
     private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 200, { leading: false, trailing: true });
 
@@ -33,6 +38,7 @@ export default class MailIDEventsComponent extends VueComponentBase {
     private async update_datas() {
 
         this.is_loading = true;
+        await this.unregister_all_vo_event_callbacks();
 
         if (!this.mail_id) {
             this.is_loading = false;
@@ -42,12 +48,15 @@ export default class MailIDEventsComponent extends VueComponentBase {
         }
 
         this.mail = await query(MailVO.API_TYPE_ID).filter_by_id(this.mail_id).select_vo<MailVO>();
-
-        let last_event = null;
-
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([MailEventVO.API_TYPE_ID]);
-
+        await this.register_vo_updates();
         this.mail_events = await query(MailEventVO.API_TYPE_ID).filter_by_id(this.mail_id, MailVO.API_TYPE_ID).select_vos<MailEventVO>();
+
+
+        this.is_loading = false;
+    }
+
+    get last_event(): MailEventVO {
+        let last_event = null;
 
         for (let e in this.mail_events) {
             let event = this.mail_events[e];
@@ -57,8 +66,87 @@ export default class MailIDEventsComponent extends VueComponentBase {
             }
         }
 
-        this.last_event = last_event;
-        this.is_loading = false;
+        return last_event;
+    }
+
+    private async beforeDestroy() {
+        await this.unregister_all_vo_event_callbacks();
+    }
+
+    private async unregister_all_vo_event_callbacks() {
+        let promises = [];
+        for (let i in this.vo_events_registration_keys) {
+            let vo_event_registration_key = this.vo_events_registration_keys[i];
+
+            promises.push(PushDataVueModule.unregister_vo_event_callback(vo_event_registration_key));
+        }
+        await all_promises(promises);
+        this.vo_events_registration_keys = [];
+    }
+
+    private async register_vo_updates() {
+
+        if (!this.mail) {
+            return;
+        }
+
+        let promises = [];
+
+        promises.push((async () => {
+            let room_vo = {
+                [field_names<MailEventVO>()._type]: MailEventVO.API_TYPE_ID,
+                [field_names<MailEventVO>().mail_id]: this.mail.id
+            };
+            let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
+                room_vo,
+                JSON.stringify(room_vo),
+                async (created_vo: MailEventVO) => {
+                    let index = this.mail_events.findIndex((vo) => vo.id == created_vo.id);
+                    if (index < 0) {
+                        this.mail_events.push(created_vo);
+                    }
+                }
+            );
+            this.vo_events_registration_keys.push(vo_event_registration_key);
+        })());
+
+        promises.push((async () => {
+            let room_vo = {
+                [field_names<MailEventVO>()._type]: MailEventVO.API_TYPE_ID,
+                [field_names<MailEventVO>().mail_id]: this.mail.id
+            };
+            let vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
+                room_vo,
+                JSON.stringify(room_vo),
+                async (deleted_vo: MailEventVO) => {
+                    let index = this.mail_events.findIndex((vo) => vo.id == deleted_vo.id);
+                    if (index >= 0) {
+                        this.mail_events.splice(index, 1);
+                    }
+                }
+            );
+            this.vo_events_registration_keys.push(vo_event_registration_key);
+        })());
+
+        promises.push((async () => {
+            let room_vo = {
+                [field_names<MailEventVO>()._type]: MailEventVO.API_TYPE_ID,
+                [field_names<MailEventVO>().mail_id]: this.mail.id
+            };
+            let vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
+                room_vo,
+                JSON.stringify(room_vo),
+                async (pre_update_vo: MailEventVO, post_update_vo: MailEventVO) => {
+                    let index = this.mail_events.findIndex((vo) => vo.id == post_update_vo.id);
+                    if (index >= 0) {
+                        this.mail_events.splice(index, 1, post_update_vo);
+                    }
+                }
+            );
+            this.vo_events_registration_keys.push(vo_event_registration_key);
+        })());
+
+        await all_promises(promises);
     }
 
     get last_event_class() {

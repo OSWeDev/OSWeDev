@@ -573,7 +573,7 @@ export default class GPTAssistantAPIServerController {
                     break;
             }
 
-            await ThreadHandler.sleep(100, 'GPTAssistantAPIServerController.ask_assistant');
+            await ThreadHandler.sleep(1000, 'GPTAssistantAPIServerController.ask_assistant');
             run = await ModuleGPTServer.openai.beta.threads.runs.retrieve(
                 thread.thread_gpt.id,
                 run.id

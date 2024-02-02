@@ -257,53 +257,64 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async register_thread_messages_vo_updates() {
-        let room_vo = {
-            [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-            [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
-        };
-        let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
-            room_vo,
-            JSON.stringify(room_vo),
-            async (created_vo: GPTAssistantAPIThreadMessageVO) => {
-                let index = this.thread_messages.findIndex((vo) => vo.id == created_vo.id);
-                if (index < 0) {
-                    this.thread_messages.push(created_vo);
-                }
-            }
-        );
-        this.vo_events_registration_keys.push(vo_event_registration_key);
 
-        room_vo = {
-            [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-            [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
-        };
-        vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
-            room_vo,
-            JSON.stringify(room_vo),
-            async (deleted_vo: GPTAssistantAPIThreadMessageVO) => {
-                let index = this.thread_messages.findIndex((vo) => vo.id == deleted_vo.id);
-                if (index >= 0) {
-                    this.thread_messages.splice(index, 1);
-                }
-            }
-        );
-        this.vo_events_registration_keys.push(vo_event_registration_key);
+        let promises = [];
 
-        room_vo = {
-            [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-            [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
-        };
-        vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
-            room_vo,
-            JSON.stringify(room_vo),
-            async (pre_update_vo: GPTAssistantAPIThreadMessageVO, post_update_vo: GPTAssistantAPIThreadMessageVO) => {
-                let index = this.thread_messages.findIndex((vo) => vo.id == post_update_vo.id);
-                if (index >= 0) {
-                    this.thread_messages.splice(index, 1, post_update_vo);
+        promises.push((async () => {
+            let room_vo = {
+                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+            };
+            let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
+                room_vo,
+                JSON.stringify(room_vo),
+                async (created_vo: GPTAssistantAPIThreadMessageVO) => {
+                    let index = this.thread_messages.findIndex((vo) => vo.id == created_vo.id);
+                    if (index < 0) {
+                        this.thread_messages.push(created_vo);
+                    }
                 }
-            }
-        );
-        this.vo_events_registration_keys.push(vo_event_registration_key);
+            );
+            this.vo_events_registration_keys.push(vo_event_registration_key);
+        })());
+
+        promises.push((async () => {
+            let room_vo = {
+                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+            };
+            let vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
+                room_vo,
+                JSON.stringify(room_vo),
+                async (deleted_vo: GPTAssistantAPIThreadMessageVO) => {
+                    let index = this.thread_messages.findIndex((vo) => vo.id == deleted_vo.id);
+                    if (index >= 0) {
+                        this.thread_messages.splice(index, 1);
+                    }
+                }
+            );
+            this.vo_events_registration_keys.push(vo_event_registration_key);
+        })());
+
+        promises.push((async () => {
+            let room_vo = {
+                [field_names<GPTAssistantAPIThreadMessageVO>()._type]: GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+                [field_names<GPTAssistantAPIThreadMessageVO>().thread_id]: this.thread.id
+            };
+            let vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
+                room_vo,
+                JSON.stringify(room_vo),
+                async (pre_update_vo: GPTAssistantAPIThreadMessageVO, post_update_vo: GPTAssistantAPIThreadMessageVO) => {
+                    let index = this.thread_messages.findIndex((vo) => vo.id == post_update_vo.id);
+                    if (index >= 0) {
+                        this.thread_messages.splice(index, 1, post_update_vo);
+                    }
+                }
+            );
+            this.vo_events_registration_keys.push(vo_event_registration_key);
+        })());
+
+        await all_promises(promises);
     }
 
     private async set_assistant() {

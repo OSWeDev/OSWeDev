@@ -172,62 +172,98 @@ export default class ModuleContextFilter extends Module {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<CountValidSegmentationsParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_count_valid_segmentations,
-            null,
+            (params: CountValidSegmentationsParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {
+                    [params.api_type_id]: true
+                };
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             CountValidSegmentationsParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select,
-            null,
+            (params: SelectVosParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectVosParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
             null,
             ModuleContextFilter.APINAME_select_filter_visible_options,
-            null,
+            (params: SelectFilterVisibleOptionsParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectFilterVisibleOptionsParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectDatatableRowsParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_datatable_rows,
-            null,
+            (params: SelectDatatableRowsParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectDatatableRowsParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectCountParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_count,
-            null,
+            (params: SelectCountParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectCountParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_vo_from_unique_field,
-            null,
+            (params: QueryVOFromUniqueFieldContextFiltersParamVO) => {
+                return [params.api_type_id];
+            },
             QueryVOFromUniqueFieldContextFiltersParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
             null,
             ModuleContextFilter.APINAME_build_select_query,
-            null,
+            (params: BuildSelectQueryParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             BuildSelectQueryParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, string>(
             null,
             ModuleContextFilter.APINAME_build_select_query_str,
-            null,
+            (params: BuildSelectQueryParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             BuildSelectQueryParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
             null,
             ModuleContextFilter.APINAME_select_vos,
-            null,
+            (params: SelectVosParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectVosParamVOStatic
         ));
 
@@ -248,6 +284,50 @@ export default class ModuleContextFilter extends Module {
             },
             UpdateVosParamVOStatic
         ));
+    }
+
+    private define_used_api_type_ids_from_query(query_: ContextQueryVO, res: { [api_type_id: string]: boolean }) {
+        res[query_.base_api_type_id] = true;
+
+        if (query_.fields) {
+            for (let i in query_.fields) {
+                res[query_.fields[i].api_type_id] = true;
+            }
+        }
+
+        if (query_.filters) {
+            for (let i in query_.filters) {
+                this.define_used_api_type_ids_from_filter(query_.filters[i], res);
+            }
+        }
+
+        if (query_.union_queries) {
+            for (let i in query_.union_queries) {
+                this.define_used_api_type_ids_from_query(query_.union_queries[i], res);
+            }
+        }
+
+        if (query_.joined_context_queries) {
+            for (let i in query_.joined_context_queries) {
+                this.define_used_api_type_ids_from_query(query_.joined_context_queries[i].joined_context_query, res);
+            }
+        }
+    }
+
+    private define_used_api_type_ids_from_filter(filter_: ContextFilterVO, res: { [api_type_id: string]: boolean }) {
+        res[filter_.vo_type] = true;
+
+        if (filter_.left_hook) {
+            this.define_used_api_type_ids_from_filter(filter_.left_hook, res);
+        }
+
+        if (filter_.right_hook) {
+            this.define_used_api_type_ids_from_filter(filter_.right_hook, res);
+        }
+
+        if (filter_.sub_query) {
+            this.define_used_api_type_ids_from_query(filter_.sub_query, res);
+        }
     }
 
     private init_SortByVO() {

@@ -2,7 +2,6 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
-import IAjaxCacheClientController from './interfaces/IAjaxCacheClientController';
 import LightWeightSendableRequestVO from './vos/LightWeightSendableRequestVO';
 
 
@@ -26,23 +25,10 @@ export default class ModuleAjaxCache extends Module {
 
     private static instance: ModuleAjaxCache = null;
 
-    /**
-     * Local thread cache -----
-     *  And probably misplaced since it refers to client....
-     */
-    private client_controller: IAjaxCacheClientController = null;
-    /**
-     * ----- Local thread cache
-     */
-
     private constructor() {
 
         super("ajax_cache", ModuleAjaxCache.MODULE_NAME);
         this.forceActivationOnInstallation();
-    }
-
-    public setClientController(client_controller: IAjaxCacheClientController) {
-        this.client_controller = client_controller;
     }
 
     public registerApis() {
@@ -56,9 +42,5 @@ export default class ModuleAjaxCache extends Module {
     public initialize() {
         this.fields = [];
         this.datatables = [];
-    }
-
-    public invalidateCachesFromApiTypesInvolved(api_types_involved: string[]) {
-        this.client_controller.invalidateCachesFromApiTypesInvolved(api_types_involved);
     }
 }

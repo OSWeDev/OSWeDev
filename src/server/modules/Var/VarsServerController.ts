@@ -1,11 +1,11 @@
 
 
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -13,10 +13,10 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import VarServerControllerBase from './VarServerControllerBase';
 import VarCtrlDAG from './controllerdag/VarCtrlDAG';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
-import VarServerControllerBase from './VarServerControllerBase';
 
 export default class VarsServerController {
 
@@ -161,6 +161,26 @@ export default class VarsServerController {
         return VarsServerController.registered_vars_controller_by_var_id ? (VarsServerController.registered_vars_controller_by_var_id[var_id] ? VarsServerController.registered_vars_controller_by_var_id[var_id] : null) : null;
     }
 
+    public static async clean_varconfs_without_controller() {
+        let db_var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<VarConfVO>();
+
+        let to_delete_ids: number[] = [];
+        for (let i in db_var_confs) {
+            let db_var_conf = db_var_confs[i];
+
+            if (!VarsServerController.registered_vars_controller[db_var_conf.name]) {
+                to_delete_ids.push(db_var_conf.id);
+            }
+        }
+
+        if (to_delete_ids.length) {
+            ConsoleHandler.warn('clean_varconfs_without_controller:DELETING:' + to_delete_ids.length + ' varconfs from db - no controller exists for these vars in the app:' + JSON.stringify(to_delete_ids));
+            await query(VarConfVO.API_TYPE_ID).filter_by_ids(to_delete_ids).exec_as_server().delete_vos();
+        }
+    }
+
     public static init_varcontrollers_dag() {
 
         let varcontrollers_dag: VarCtrlDAG = new VarCtrlDAG();
@@ -223,6 +243,7 @@ export default class VarsServerController {
             return null;
         }
 
+        varConf.aggregator = varConf.aggregator ? varConf.aggregator : VarConfVO.SUM_AGGREGATOR;
         if (!ModuleVar.getInstance().initializedasync_VarsController) {
             await ModuleVar.getInstance().initializeasync();
         }
