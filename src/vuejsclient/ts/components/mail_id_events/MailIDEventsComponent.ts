@@ -4,7 +4,6 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
-import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../VueComponentBase';
 import './MailIDEventsComponent.scss';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
