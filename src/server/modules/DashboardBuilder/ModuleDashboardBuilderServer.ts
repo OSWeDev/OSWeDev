@@ -2375,6 +2375,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer si filtres actifs" },
+            'table_widget_column.hide_if_any_filter_active.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer si 1 filtre actif" },
+            'table_widget_column_conf.hide_if_any_filter_active.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Filtres" },
             'table_widget_column.show_if_any_filter_active.___LABEL___'
         ));

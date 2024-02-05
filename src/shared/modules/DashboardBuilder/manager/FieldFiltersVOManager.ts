@@ -808,7 +808,7 @@ export default class FieldFiltersVOManager {
                 let page_widget = all_page_widgets_by_id[page_filter_id];
                 if (!page_widget) {
                     column.show_if_any_filter_active = [];
-                    continue;
+                    break;
                 }
                 let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
                 if ((!active_field_filters) ||
@@ -821,6 +821,35 @@ export default class FieldFiltersVOManager {
             }
 
             if (!activated) {
+                return true;
+            }
+        }
+
+        /**
+         * Gestion du check d'absence d'un filtrage
+         */
+        if (column.hide_if_any_filter_active && column.hide_if_any_filter_active.length) {
+
+            let activated = false;
+            for (let j in column.hide_if_any_filter_active) {
+                let page_filter_id = column.hide_if_any_filter_active[j];
+
+                let page_widget = all_page_widgets_by_id[page_filter_id];
+                if (!page_widget) {
+                    column.hide_if_any_filter_active = [];
+                    break;
+                }
+                let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                if ((!active_field_filters) ||
+                    (!active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
+                    (!active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
+                    continue;
+                }
+
+                activated = true;
+            }
+
+            if (activated) {
                 return true;
             }
         }

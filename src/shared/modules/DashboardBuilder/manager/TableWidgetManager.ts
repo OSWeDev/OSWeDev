@@ -432,6 +432,42 @@ export default class TableWidgetManager {
                 }
             }
 
+            if (column.hide_if_any_filter_active?.length > 0) {
+
+                let activated = false;
+
+                for (const j in column.hide_if_any_filter_active) {
+                    const page_filter_id = column.hide_if_any_filter_active[j];
+                    const page_widget = all_page_widgets_by_id[page_filter_id];
+
+                    if (!page_widget) {
+                        column.hide_if_any_filter_active = [];
+                        continue;
+                    }
+
+                    const page_widget_options = JSON.parse(page_widget.json_options);
+
+                    const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                        page_widget_options,
+                    );
+
+                    const is_active_field_filters_empty = FieldFiltersVOHandler.is_field_filters_empty(
+                        vo_field_ref,
+                        active_field_filters
+                    );
+
+                    if (is_active_field_filters_empty) {
+                        continue;
+                    }
+
+                    activated = true;
+                }
+
+                if (activated) {
+                    continue;
+                }
+            }
+
             table_columns.push(new TableColumnDescVO().from(column));
         }
 

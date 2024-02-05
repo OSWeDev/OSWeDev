@@ -235,6 +235,29 @@
                             :deselect-group-label='label("multiselect.deselectGroupLabel")'
                         )
 
+                    .hide_if_any_filter_active(v-tooltip='label("table_widget_column_conf.hide_if_any_filter_active")')
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="true"
+                            v-model="column.hide_if_any_filter_active"
+                            :placeholder="label('table_widget_column.hide_if_any_filter_active')"
+                            :options="show_if_any_active_filter_options"
+                            :custom-label="hide_if_any_filter_active_label"
+                            :allow-empty="true",
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            id="hide_if_any_filter_active"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
                     template(v-if="is_type_var_ref")
                         .do_not_user_filter_active_ids(v-tooltip='label("table_widget_column_conf.do_not_user_filter_active_ids")')
                             multiselect(
