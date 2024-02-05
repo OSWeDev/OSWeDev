@@ -318,7 +318,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private async on_change_kanban_element(evt, originalEvent) {
-        ConsoleHandler.log('on_change_kanban_element', evt, originalEvent);
+        ConsoleHandler.log('on_change_kanban_element:' + evt + ':' + originalEvent);
         return true;
     }
 

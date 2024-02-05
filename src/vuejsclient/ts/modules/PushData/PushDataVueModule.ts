@@ -456,12 +456,12 @@ export default class PushDataVueModule extends VueModuleBase {
             let api_result: APINotifTypeResultVO = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos))[0];
 
             if (!api_result) {
-                ConsoleHandler.error("API result not found for notification:", notification);
+                ConsoleHandler.error("API result not found for notification:" + notification);
                 continue;
             }
 
             if (!api_result.api_call_id) {
-                ConsoleHandler.error("API result not found for notification:", notification);
+                ConsoleHandler.error("API result not found for notification:" + notification);
                 continue;
             }
 

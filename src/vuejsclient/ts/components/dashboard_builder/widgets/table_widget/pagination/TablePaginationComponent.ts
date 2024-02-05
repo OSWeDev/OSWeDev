@@ -76,7 +76,7 @@ export default class TablePaginationComponent extends VueComponentBase {
 
     private async mounted() {
         this.button_primary_bg_color = await ModuleSASSSkinConfigurator.getInstance().get_sass_param_value('button_primary_bg_color');
-        ConsoleHandler.log('button_primary_bg_color', this.button_primary_bg_color);
+        ConsoleHandler.log('button_primary_bg_color:' + this.button_primary_bg_color);
     }
 
     @Watch('new_page_str')
