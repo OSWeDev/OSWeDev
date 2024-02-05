@@ -161,7 +161,13 @@ export default class CeliaThreadMessageComponent extends VueComponentBase {
                     let index = this.thread_message_contents.findIndex((vo) => vo.id == created_vo.id);
                     if (index < 0) {
                         this.thread_message_contents.push(created_vo);
-                        this.thread_message_contents.sort((a, b) => a.weight - b.weight);
+                        this.thread_message_contents.sort((a, b) => {
+                            if (a.weight == b.weight) {
+                                return a.id - b.id;
+                            }
+
+                            return a.weight - b.weight;
+                        });
                     }
                 }
             );
