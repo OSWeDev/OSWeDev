@@ -1,3 +1,11 @@
 .validation_filters_widget_options_component
-    .validation_filters_widget_options_component_wrapper
+    .load_widgets_prevalidation
+        .input_label {{ label('table_widget_options_component.load_widgets_prevalidation') }}
+        toggle-button(
+            @change="switch_load_widgets_prevalidation" 
+            :value="load_widgets_prevalidation" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.load_widgets_prevalidation.visible'), unchecked: label('table_widget_options_component.load_widgets_prevalidation.hidden')}")
+
         
