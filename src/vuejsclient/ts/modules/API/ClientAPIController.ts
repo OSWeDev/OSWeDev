@@ -1,11 +1,9 @@
-import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import CacheInvalidationRulesVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import IAPIController from '../../../../shared/modules/API/interfaces/IAPIController';
 import IAPIParamTranslator from '../../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import APINotifTypeResultVO from '../../../../shared/modules/PushData/vos/APINotifTypeResultVO';
-import EnvHandler from '../../../../shared/tools/EnvHandler';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 
 export default class ClientAPIController implements IAPIController {

@@ -16,12 +16,12 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
-import ServerBase from '../../ServerBase';
-import ConfigurationService from '../../env/ConfigurationService';
 
 export default class PushDataServerController {
 
@@ -166,6 +166,13 @@ export default class PushDataServerController {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
+
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_creation, this.notify_vo_creation.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_update, this.notify_vo_update.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_deletion, this.notify_vo_deletion.bind(this));
     }
 
     public getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {

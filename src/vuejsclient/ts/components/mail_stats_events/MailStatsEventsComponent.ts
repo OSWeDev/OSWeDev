@@ -1,12 +1,12 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailCategoryVO from '../../../../shared/modules/Mailer/vos/MailCategoryVO';
 import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
-import { field_names } from '../../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import PushDataVueModule from '../../modules/PushData/PushDataVueModule';
@@ -20,6 +20,9 @@ import './MailStatsEventsComponent.scss';
 })
 export default class MailStatsEventsComponent extends VueComponentBase {
 
+    public mails: MailVO[] = null;
+    public events_by_mail: { [mail_id: number]: MailEventVO[] } = null;
+
     @Prop({ default: null })
     private category_name: string;
 
@@ -27,8 +30,6 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     private email_to: string;
 
     private category: MailCategoryVO = null;
-    private mails: MailVO[] = null;
-    private events_by_mail: { [mail_id: number]: MailEventVO[] } = null;
 
     private is_loading: boolean = true;
     private force_reload: boolean = true;
@@ -70,13 +71,17 @@ export default class MailStatsEventsComponent extends VueComponentBase {
         }
 
         if (changed_category || this.force_reload) {
-            await this.register_mails_vo_updates();
 
+            let filtres = [filter(MailVO.API_TYPE_ID, field_names<MailVO>().category_id).by_num_eq(this.category.id)];
             if (this.email_to) {
-                this.mails = await query(MailVO.API_TYPE_ID).filter_by_num_eq('category_id', this.category.id).filter_by_text_eq('email', this.email_to).select_vos<MailVO>();
-            } else {
-                this.mails = await query(MailVO.API_TYPE_ID).filter_by_num_eq('category_id', this.category.id).select_vos<MailVO>();
+                filtres.push(filter(MailVO.API_TYPE_ID, field_names<MailVO>().email).by_text_eq(this.email_to));
             }
+
+            await this.register_vo_updates_on_list(
+                MailVO.API_TYPE_ID,
+                reflect<this>().mails,
+                filtres
+            );
 
             await this.throttled_update_datas_mail_events();
         }
@@ -86,22 +91,22 @@ export default class MailStatsEventsComponent extends VueComponentBase {
 
     private async update_datas_mail_events() {
         let promises = [];
-        let events_by_mail: { [mail_id: number]: MailEventVO[] } = {};
-
-        await this.unregister_mailevents_vo_event_callbacks();
-        await this.register_mails_events_vo_updates();
 
         for (let i in this.mails) {
             let mail = this.mails[i];
 
             promises.push((async () => {
-                let events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
-                events_by_mail[mail.id] = events;
+
+                await this.register_vo_updates_on_list(
+                    MailEventVO.API_TYPE_ID,
+                    mail.id.toString(),
+                    [filter(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().mail_id).by_num_eq(mail.id)],
+                    null,
+                    reflect<this>().events_by_mail
+                );
             })());
         }
         await all_promises(promises);
-
-        this.events_by_mail = events_by_mail;
     }
 
     get nb_mails_recus(): number {
@@ -181,192 +186,6 @@ export default class MailStatsEventsComponent extends VueComponentBase {
 
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
-    }
-
-    private async unregister_mailevents_vo_event_callbacks() {
-        let promises = [];
-        let new_vo_events_registration_keys = [];
-        for (let i in this.vo_events_registration_keys) {
-            let vo_event_registration_key = this.vo_events_registration_keys[i];
-
-            if (vo_event_registration_key.room_vo[field_names<MailEventVO>()._type] !== MailEventVO.API_TYPE_ID) {
-                new_vo_events_registration_keys.push(vo_event_registration_key);
-                continue;
-            }
-
-            promises.push(PushDataVueModule.unregister_vo_event_callback(vo_event_registration_key));
-        }
-        this.vo_events_registration_keys = new_vo_events_registration_keys;
-        await all_promises(promises);
-    }
-
-    private async unregister_all_vo_event_callbacks() {
-        let promises = [];
-        for (let i in this.vo_events_registration_keys) {
-            let vo_event_registration_key = this.vo_events_registration_keys[i];
-
-            promises.push(PushDataVueModule.unregister_vo_event_callback(vo_event_registration_key));
-        }
-        await all_promises(promises);
-        this.vo_events_registration_keys = [];
-    }
-
-    private async register_mails_vo_updates() {
-
-        if (!this.category) {
-            return;
-        }
-
-        let promises = [];
-
-        promises.push((async () => {
-            let room_vo = {
-                [field_names<MailVO>()._type]: MailVO.API_TYPE_ID,
-                [field_names<MailVO>().category_id]: this.category.id
-            };
-            let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
-                room_vo,
-                JSON.stringify(room_vo),
-                async (created_vo: MailVO) => {
-
-                    if (this.email_to && (this.email_to != created_vo.email)) {
-                        return;
-                    }
-
-                    let index = this.mails.findIndex((vo) => vo.id == created_vo.id);
-                    if (index < 0) {
-                        this.mails.push(created_vo);
-                    }
-                }
-            );
-            this.vo_events_registration_keys.push(vo_event_registration_key);
-        })());
-
-        promises.push((async () => {
-            let room_vo = {
-                [field_names<MailVO>()._type]: MailVO.API_TYPE_ID,
-                [field_names<MailVO>().category_id]: this.category.id
-            };
-            let vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
-                room_vo,
-                JSON.stringify(room_vo),
-                async (deleted_vo: MailVO) => {
-                    if (this.email_to && (this.email_to != deleted_vo.email)) {
-                        return;
-                    }
-
-                    let index = this.mails.findIndex((vo) => vo.id == deleted_vo.id);
-                    if (index >= 0) {
-                        this.mails.splice(index, 1);
-                    }
-                }
-            );
-            this.vo_events_registration_keys.push(vo_event_registration_key);
-        })());
-
-        promises.push((async () => {
-            let room_vo = {
-                [field_names<MailVO>()._type]: MailVO.API_TYPE_ID,
-                [field_names<MailVO>().category_id]: this.category.id
-            };
-            let vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
-                room_vo,
-                JSON.stringify(room_vo),
-                async (pre_update_vo: MailVO, post_update_vo: MailVO) => {
-                    if (this.email_to && (this.email_to != post_update_vo.email)) {
-                        return;
-                    }
-
-                    let index = this.mails.findIndex((vo) => vo.id == post_update_vo.id);
-                    if (index >= 0) {
-                        this.mails.splice(index, 1, post_update_vo);
-                    }
-                }
-            );
-            this.vo_events_registration_keys.push(vo_event_registration_key);
-        })());
-
-        await all_promises(promises);
-    }
-
-    private async register_mails_events_vo_updates() {
-
-        if ((!this.mails) || (!this.mails.length)) {
-            return;
-        }
-
-        let promises = [];
-        for (let i in this.mails) {
-            let mail = this.mails[i];
-
-            promises.push((async () => {
-                let room_vo = {
-                    [field_names<MailEventVO>()._type]: MailEventVO.API_TYPE_ID,
-                    [field_names<MailEventVO>().mail_id]: mail.id
-                };
-                let vo_event_registration_key = await PushDataVueModule.register_vo_create_callback(
-                    room_vo,
-                    JSON.stringify(room_vo),
-                    async (created_vo: MailEventVO) => {
-                        if (!this.events_by_mail[mail.id]) {
-                            this.events_by_mail[mail.id] = [];
-                        }
-
-                        let index = this.events_by_mail[mail.id].findIndex((vo) => vo.id == created_vo.id);
-                        if (index < 0) {
-                            this.events_by_mail[mail.id].push(created_vo);
-                        }
-                    }
-                );
-                this.vo_events_registration_keys.push(vo_event_registration_key);
-            })());
-
-            promises.push((async () => {
-                let room_vo = {
-                    [field_names<MailEventVO>()._type]: MailEventVO.API_TYPE_ID,
-                    [field_names<MailEventVO>().mail_id]: mail.id
-                };
-                let vo_event_registration_key = await PushDataVueModule.register_vo_delete_callback(
-                    room_vo,
-                    JSON.stringify(room_vo),
-                    async (deleted_vo: MailEventVO) => {
-                        if (!this.events_by_mail[mail.id]) {
-                            this.events_by_mail[mail.id] = [];
-                        }
-
-                        let index = this.events_by_mail[mail.id].findIndex((vo) => vo.id == deleted_vo.id);
-                        if (index >= 0) {
-                            this.events_by_mail[mail.id].splice(index, 1);
-                        }
-                    }
-                );
-                this.vo_events_registration_keys.push(vo_event_registration_key);
-            })());
-
-            promises.push((async () => {
-                let room_vo = {
-                    [field_names<MailEventVO>()._type]: MailEventVO.API_TYPE_ID,
-                    [field_names<MailEventVO>().mail_id]: mail.id
-                };
-                let vo_event_registration_key = await PushDataVueModule.register_vo_update_callback(
-                    room_vo,
-                    JSON.stringify(room_vo),
-                    async (pre_update_vo: MailEventVO, post_update_vo: MailEventVO) => {
-                        if (!this.events_by_mail[mail.id]) {
-                            this.events_by_mail[mail.id] = [];
-                        }
-
-                        let index = this.events_by_mail[mail.id].findIndex((vo) => vo.id == post_update_vo.id);
-                        if (index >= 0) {
-                            this.events_by_mail[mail.id].splice(index, 1, post_update_vo);
-                        }
-                    }
-                );
-                this.vo_events_registration_keys.push(vo_event_registration_key);
-            })());
-        }
-
-        await all_promises(promises);
     }
 
     get last_event_class() {

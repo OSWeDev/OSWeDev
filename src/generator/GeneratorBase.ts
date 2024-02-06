@@ -79,6 +79,7 @@ import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch202311
 import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch20231120AddUniqCronPlanificationUID';
 import Patch20240123ForceUnicityOnGeneratorWorkersUID from './patchs/premodules/Patch20240123ForceUnicityOnGeneratorWorkersUID';
 import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch20240206InitNullFieldsFromWidgets';
 
 export default abstract class GeneratorBase {
 
@@ -155,7 +156,8 @@ export default abstract class GeneratorBase {
             Patch20231030ImagePathUnique.getInstance(),
             Patch20231116AddUniqPhoneUserConstraint.getInstance(),
             Patch20231117AddUniqCookieNamePopup.getInstance(),
-            Patch20231120AddUniqCronPlanificationUID.getInstance()
+            Patch20231120AddUniqCronPlanificationUID.getInstance(),
+            Patch20240206InitNullFieldsFromWidgets.getInstance()
         ];
 
         this.post_modules_workers = [

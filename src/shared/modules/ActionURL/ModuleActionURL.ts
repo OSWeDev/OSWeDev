@@ -54,17 +54,18 @@ export default class ModuleActionURL extends Module {
 
     private initializeActionURLCRVO() {
         let action_url_id = new ModuleTableField(field_names<ActionURLCRVO>().action_url_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Action URL', true);
-        let translatable_cr = new ModuleTableField(field_names<ActionURLCRVO>().translatable_cr, ModuleTableField.FIELD_TYPE_html, 'CR', false);
-        let translation_params_json = new ModuleTableField(field_names<ActionURLCRVO>().translation_params_json, ModuleTableField.FIELD_TYPE_string, 'Params de traduction (JSON)', false);
-        let ts = new ModuleTableField(field_names<ActionURLCRVO>().ts, ModuleTableField.FIELD_TYPE_tstz, 'Date', true);
-        let cr_type = new ModuleTableField(field_names<ActionURLCRVO>().cr_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, ActionURLCRVO.CR_TYPE_INFO).setEnumValues(ActionURLCRVO.CR_TYPE_LABELS);
 
         let fields = [
             action_url_id,
-            translatable_cr,
-            translation_params_json,
-            ts,
-            cr_type,
+
+            new ModuleTableField(field_names<ActionURLCRVO>().translatable_cr_title, ModuleTableField.FIELD_TYPE_html, 'Titre du CR', true, true, ''),
+            new ModuleTableField(field_names<ActionURLCRVO>().translatable_cr_title_params_json, ModuleTableField.FIELD_TYPE_string, 'Params de traduction du titre (JSON)', false),
+
+            new ModuleTableField(field_names<ActionURLCRVO>().translatable_cr_content, ModuleTableField.FIELD_TYPE_html, 'Corps du CR', false),
+            new ModuleTableField(field_names<ActionURLCRVO>().translatable_cr_content_params_json, ModuleTableField.FIELD_TYPE_string, 'Params de traduction du contenu (JSON)', false),
+
+            new ModuleTableField(field_names<ActionURLCRVO>().ts, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
+            new ModuleTableField(field_names<ActionURLCRVO>().cr_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, ActionURLCRVO.CR_TYPE_INFO).setEnumValues(ActionURLCRVO.CR_TYPE_LABELS),
         ];
 
         let table = new ModuleTable(this, ActionURLCRVO.API_TYPE_ID, () => new ActionURLCRVO(), fields, null, 'CR URLs d\'action');

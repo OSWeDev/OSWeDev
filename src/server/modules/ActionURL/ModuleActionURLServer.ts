@@ -109,7 +109,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             let action_res = await this.do_action_url(action_url, code, uid, req, res);
             if ((!res.headersSent) && (!do_not_redirect)) {
                 // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
-                res.redirect('#/action_url_cr/' + action_url.id);
+                res.redirect('/#/action_url_cr/' + action_url.id);
             }
 
             return action_res;
