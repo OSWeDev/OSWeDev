@@ -265,11 +265,11 @@ export default class FieldFiltersVOManager {
             delete field_filter[ContextFilterVO.CUSTOM_FILTERS_TYPE];
         }
 
-        if (options?.should_restrict_to_api_type_id) {
-            // On ajoute un filtrage des filtres incompatibles avec la requête classique
-            // Avoid to have context_filter query on other api_type_id
-            field_filter = FieldFiltersVOManager.filter_field_filters_by_it_own_api_type_id(field_filter);
-        }
+        // if (options?.should_restrict_to_api_type_id) {
+        //     // On ajoute un filtrage des filtres incompatibles avec la requête classique
+        //     // Avoid to have context_filter query on other api_type_id
+        //     field_filter = FieldFiltersVOManager.filter_field_filters_by_it_own_api_type_id(field_filter);
+        // }
 
         return field_filter;
     }
