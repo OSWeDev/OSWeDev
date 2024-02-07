@@ -1556,6 +1556,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 for (let i in lines) {
                     let line: string = lines[i];
+
+                    if (ConfigurationService.node_configuration.DEBUG_var_insert_with_copy) {
+                        if (moduleTable.isMatroidTable) {
+                            ConsoleHandler.log('insert_without_triggers_using_COPY:DEBUG_var_insert_with_copy:line:' + line);
+                        }
+                    }
                     rs.push(line + "\n");
                 }
                 rs.push(null);
@@ -1566,11 +1572,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ConsoleHandler.error('insert_without_triggers_using_COPY:' + error);
 
                     if (error && error.message && error.message.startsWith('duplicate key value violates unique constraint') && error.message.endsWith('__bdd_only_index_key"')) {
-                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index, on tente de retrouver les vars impliquées et de corriger automatiquement');
+                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index, on tente de retrouver les vars impliquées et de corriger automatiquement. (' + vos.length + ' vars impliquées du type ' + moduleTable.vo_type + ')');
+                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + error.message);
+                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des vars impliquées : ' + JSON.stringify(vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
                         let duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
                         if (duplicates && duplicates.length) {
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
+                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des doublons trouvés en base : ' + JSON.stringify(duplicates.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
                             let duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
                             let filtered_not_imported_vos: VarDataBaseVO[] = [];

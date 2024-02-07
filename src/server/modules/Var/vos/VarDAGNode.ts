@@ -244,6 +244,10 @@ export default class VarDAGNode extends DAGNodeBase {
                 }
             }
 
+            if (ConfigurationService.node_configuration.DEBUG_var_get_instance_semaphored_db_loaded_var_data) {
+                ConsoleHandler.log('VarDAGNode.getInstance_semaphored:already_tried_load_cache_complet:' + already_tried_load_cache_complet + ':is_client_sub?' + node.is_client_sub + ':is_server_sub?' + node.is_server_sub + ':TAG_0_CREATED:' + JSON.stringify(node.var_data));
+            }
+
             /**
              * Si on a une valid value, on passe directement à la notification de fin,
              * sinon on indique que le noeud est créé
@@ -766,12 +770,21 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) && this.is_computable) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
-                ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ':TAG_4_IS_COMPUTABLE');
+
+            if (this.tags[VarDAGNode.TAG_4_COMPUTED]) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ' && already TAG_4_COMPUTED: removing TAG_3_DATA_LOADED');
+                }
+            } else {
+                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ':TAG_4_IS_COMPUTABLE');
+                }
+                this.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
             }
 
-            this.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
-            this.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
+            if (this.tags[VarDAGNode.TAG_3_DATA_LOADED]) {
+                this.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
+            }
         }
 
         if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_6_UPDATED_IN_DB]) && this.is_deletable) {

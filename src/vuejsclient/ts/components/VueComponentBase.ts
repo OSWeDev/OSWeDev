@@ -955,10 +955,12 @@ export default class VueComponentBase extends Vue
         let index = list.findIndex((vo) => vo.id == created_vo.id);
         if (index < 0) {
 
-            let insert_index = list.length;
+            let insert_index = 0;
             for (let i in list) {
-                if (sort_function(list[i], created_vo) > 0) {
-                    insert_index = parseInt(i);
+                if (sort_function(created_vo, list[i]) > 0) {
+                    insert_index++;
+                } else {
+                    break;
                 }
             }
             list.splice(insert_index, 0, created_vo);
@@ -1192,7 +1194,7 @@ export default class VueComponentBase extends Vue
 
     private get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id: SortByVO[]): (a, b) => number {
         let sort_function = (a, b) => {
-            if (!simple_sorts_by_on_api_type_id) {
+            if ((!simple_sorts_by_on_api_type_id) || (!simple_sorts_by_on_api_type_id.length)) {
                 return a.id - b.id;
             }
 

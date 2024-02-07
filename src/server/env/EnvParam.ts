@@ -60,6 +60,13 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS?: boolean = false;
     public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS?: boolean = false;
 
+    public DEBUG_var_insert_with_copy?: boolean = false;
+    public DEBUG_var_get_instance_semaphored_db_loaded_var_data?: boolean = false;
+
+    public DEBUG_waiting_registered_task_result_wrappers?: boolean = false;
+    public DEBUG_waiting_registered_task_result_wrappers_threshold?: number = 5;
+    public DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean = false;
+
     /**
      * Activate this to debug SLOW QUERIES in ModuleServiceBase
      */

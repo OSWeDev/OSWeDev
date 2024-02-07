@@ -10,6 +10,7 @@ import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwa
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 
 /**
  * ForkedTasksController
@@ -222,11 +223,34 @@ export default class ForkedTasksController {
     private static handle_fork_message_callback_timeout() {
 
         let to_delete = [];
+
+        let nb_waiting = 0;
+        let time_waiting = 0;
+        let now = Dates.now();
+
         for (let i in ForkedTasksController.registered_task_result_wrappers) {
             let wrapper = ForkedTasksController.registered_task_result_wrappers[i];
 
-            if ((wrapper.creation_time + wrapper.timeout) < Dates.now()) {
+            if ((wrapper.creation_time + wrapper.timeout) < now) {
                 to_delete.push(i);
+            }
+
+            if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers) {
+                if ((wrapper.creation_time + ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers_threshold) < now) {
+                    nb_waiting++;
+                    time_waiting += (now - wrapper.creation_time);
+
+                    if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid) {
+                        ConsoleHandler.warn('Waiting for task result:' + wrapper.task_uid + ' for ' + (now - wrapper.creation_time) + ' s');
+                        continue;
+                    }
+                }
+            }
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers) {
+            if (nb_waiting > 0) {
+                ConsoleHandler.warn('Waiting for task result:' + nb_waiting + ' for ' + Math.round(time_waiting / nb_waiting) + ' s on average');
             }
         }
 

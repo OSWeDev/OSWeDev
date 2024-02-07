@@ -328,4 +328,8 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
                 self.assistant_is_busy = false;
             }));
     }
+
+    get role_assistant_avatar_url() {
+        return '/vuejsclient/public/img/avatars/celia.png';
+    }
 }

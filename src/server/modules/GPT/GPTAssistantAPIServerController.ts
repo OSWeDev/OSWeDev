@@ -476,6 +476,10 @@ export default class GPTAssistantAPIServerController {
             return null;
         }
 
+        // On indique que Célia est en train de travailler sur cette discussion
+        thread.thread_vo.celia_is_running = true;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
+
         let asking_message: {
             message_gpt: ThreadMessage;
             message_vo: GPTAssistantAPIThreadMessageVO;
@@ -502,12 +506,15 @@ export default class GPTAssistantAPIServerController {
                 case "cancelled":
                 case "cancelling":
                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run cancelled');
+                    await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                     return null;
                 case "expired":
                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run expired');
+                    await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                     return null;
                 case "failed":
                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run failed');
+                    await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                     return null;
                 case "requires_action":
 
@@ -564,6 +571,7 @@ export default class GPTAssistantAPIServerController {
 
                     } else {
                         ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - type not supported: ' + run.required_action.type);
+                        await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                         return null;
                     }
 
@@ -581,6 +589,7 @@ export default class GPTAssistantAPIServerController {
 
             if (!run) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run not found');
+                await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                 return null;
             }
         }
@@ -598,6 +607,13 @@ export default class GPTAssistantAPIServerController {
             res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread.thread_vo));
         }
 
+        await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
+
         return res;
+    }
+
+    private static async close_thread_celia(thread_vo: GPTAssistantAPIThreadVO) {
+        thread_vo.celia_is_running = false;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
     }
 }

@@ -452,7 +452,7 @@ export default class PushDataServerController {
         }
 
         let update_vo_notif: NotificationVO = new NotificationVO();
-        update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
+        update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_UPDATED;
         update_vo_notif.room_id = room_id;
         update_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
             pre_update_vo,
