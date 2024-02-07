@@ -49,10 +49,9 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
-    private next_update_options: BlocTextWidgetOptionsVO = null;
     private bloc_text: string = null;
-    private last_calculation_cpt: number = 0;
 
+    private next_update_options: BlocTextWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -79,25 +78,41 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    private async mounted() {
+
+        if (!this.widget_options) {
+
+            this.next_update_options = this.get_default_options();
+        } else {
+
+            this.next_update_options = this.widget_options;
+        }
+
+
+        await this.throttled_update_options();
+    }
+
+    private get_default_options(): BlocTextWidgetOptionsVO {
+        return BlocTextWidgetOptionsVO.createNew(
+            "",
+        );
+    }
+
     private async update_options() {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
             ConsoleHandler.error(error);
         }
+
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
-        // this.set_page_widget(this.page_widget);
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
-
-        const all_widgets_types: DashboardWidgetVO[] = WidgetOptionsVOManager.getInstance().sorted_widgets_types;
-        const widget_type: DashboardWidgetVO = all_widgets_types.find((e) => e.id == this.page_widget.widget_id);
-
-        let name = widget_type?.name;
-
-        const get_selected_fields = WidgetOptionsVOManager.getInstance().widgets_get_selected_fields[name];
-
-        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     get widget_options(): BlocTextWidgetOptionsVO {

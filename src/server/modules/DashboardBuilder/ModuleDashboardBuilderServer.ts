@@ -470,7 +470,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrer une date par mois'
         }, 'dashboards.widgets.icons_tooltips.monthfilter.___LABEL___'));
-
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Insérer un bloc de texte'
+        }, 'dashboards.widgets.icons_tooltips.BlocText.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Min/Max relatifs à l\'année actuelle'
         }, 'year_filter_widget_component.year_relative_mode.___LABEL___'));
