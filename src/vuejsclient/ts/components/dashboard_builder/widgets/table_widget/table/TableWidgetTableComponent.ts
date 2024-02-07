@@ -2954,4 +2954,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             })()
         ]);
     }
+
+    private async callback_action(action: BulkActionVO) {
+        if (!action) {
+            return;
+        }
+
+        await action.callback(this.selected_vos_true);
+
+        this.refresh();
+    }
 }
