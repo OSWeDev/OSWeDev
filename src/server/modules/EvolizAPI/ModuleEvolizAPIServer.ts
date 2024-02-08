@@ -429,6 +429,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             'fr-fr': 'Confirmée'
         }, 'evoliz_devis.status_confirmee.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Facturée'
+        }, 'evoliz_devis.status_facturee.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Perdue'
         }, 'evoliz_devis.status_perdue.___LABEL___'));
     }
