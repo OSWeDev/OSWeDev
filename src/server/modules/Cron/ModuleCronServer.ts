@@ -189,6 +189,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         // Create or load cron worker
         let vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
             .filter_by_text_eq('planification_uid', cronWorkerPlan.planification_uid)
+            .exec_as_server()
             .select_vo<CronWorkerPlanification>();
 
         if (!vo) {

@@ -7,6 +7,11 @@ export default class SortByVO extends AbstractVO implements IDistantVOBase {
     public static MODIFIER_NONE: number = 0;
     public static MODIFIER_LOWER: number = 1;
     public static MODIFIER_UPPER: number = 2;
+    public static MODIFIER_LABELS: string[] = [
+        'SortByVO.MODIFIER_NONE',
+        'SortByVO.MODIFIER_LOWER',
+        'SortByVO.MODIFIER_UPPER'
+    ];
 
     public id: number;
     public _type: string = SortByVO.API_TYPE_ID;

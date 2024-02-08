@@ -1,6 +1,7 @@
 import AdvancedDateFilterOptDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO";
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
+import ObjectHandler from "../../../../../../../shared/tools/ObjectHandler";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
 export default class AdvancedDateFilterWidgetOptions implements IExportableWidgetOptions {
@@ -10,7 +11,7 @@ export default class AdvancedDateFilterWidgetOptions implements IExportableWidge
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: AdvancedDateFilterWidgetOptions = (page_widget && page_widget.json_options) ? JSON.parse(page_widget.json_options) : null;
+        let options: AdvancedDateFilterWidgetOptions = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if ((!options) || (!options.vo_field_ref)) {
             return res;
         }

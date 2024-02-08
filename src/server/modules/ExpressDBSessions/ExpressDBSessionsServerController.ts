@@ -61,7 +61,7 @@ export default class ExpressDBSessionsServerController extends Store {
 
         if (this_session && this_session.sess) {
             try {
-                let sess = (typeof this_session.sess === 'string') ? JSON.parse(this_session.sess) : this_session.sess;
+                let sess = ObjectHandler.try_get_json(this_session.sess);
                 return fn(null, sess);
             } catch {
                 return this.destroy(sid, fn);
@@ -90,7 +90,7 @@ export default class ExpressDBSessionsServerController extends Store {
             ((typeof ExpressDBSessionsServerController.session_cache[sid].sess === 'string') ?
                 JSON.parse(ExpressDBSessionsServerController.session_cache[sid].sess) : ExpressDBSessionsServerController.session_cache[sid].sess) :
             null;
-        let sess_obj = (typeof sess === 'string') ? JSON.parse(sess) : sess;
+        let sess_obj = ObjectHandler.try_get_json(sess);
 
         let do_update = (!ExpressDBSessionsServerController.session_cache[sid]) ||
             (!ExpressDBSessionsServerController.session_cache[sid].expire) ||

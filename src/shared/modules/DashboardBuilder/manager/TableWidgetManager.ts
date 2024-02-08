@@ -1,42 +1,41 @@
+import { cloneDeep } from 'lodash';
+import slug from 'slug';
+import ConsoleHandler from '../../../tools/ConsoleHandler';
+import LocaleManager from '../../../tools/LocaleManager';
 import WeightHandler from '../../../tools/WeightHandler';
+import ContextFilterVOHandler from '../../ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOManager';
+import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
+import CRUD from '../../DAO/vos/CRUD';
+import CRUDActionsDatatableFieldVO from '../../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
+import ComponentDatatableFieldVO from '../../DAO/vos/datatable/ComponentDatatableFieldVO';
+import DatatableField from '../../DAO/vos/datatable/DatatableField';
+import SelectBoxDatatableFieldVO from '../../DAO/vos/datatable/SelectBoxDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
+import VarDatatableFieldVO from '../../DAO/vos/datatable/VarDatatableFieldVO';
+import ExportVarcolumnConfVO from '../../DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import ModuleTable from '../../ModuleTable';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import VarConfVO from '../../Var/vos/VarConfVO';
+import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
+import BulkActionVO from '../vos/BulkActionVO';
+import DashboardPageVO from '../vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../vos/DashboardPageWidgetVO';
+import DashboardVO from '../vos/DashboardVO';
+import DashboardWidgetVO from '../vos/DashboardWidgetVO';
+import FieldFiltersVO from '../vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../vos/FieldValueFilterWidgetOptionsVO';
 import TableColumnDescVO from '../vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../vos/TableWidgetOptionsVO';
-import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
-import DashboardPageWidgetVO from '../vos/DashboardPageWidgetVO';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
-import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
-import ConsoleHandler from '../../../tools/ConsoleHandler';
-import DashboardVO from '../vos/DashboardVO';
-import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOManager';
-import FieldFiltersVOManager from './FieldFiltersVOManager';
-import DatatableField from '../../DAO/vos/datatable/DatatableField';
-import VarConfVO from '../../Var/vos/VarConfVO';
-import ContextQueryFieldVO from '../../ContextFilter/vos/ContextQueryFieldVO';
-import ContextFilterVOHandler from '../../ContextFilter/handler/ContextFilterVOHandler';
-import DashboardWidgetVO from '../vos/DashboardWidgetVO';
-import CRUDActionsDatatableFieldVO from '../../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
-import SelectBoxDatatableFieldVO from '../../DAO/vos/datatable/SelectBoxDatatableFieldVO';
-import CRUD from '../../DAO/vos/CRUD';
-import VarDatatableFieldVO from '../../DAO/vos/datatable/VarDatatableFieldVO';
-import ComponentDatatableFieldVO from '../../DAO/vos/datatable/ComponentDatatableFieldVO';
-import ModuleTable from '../../ModuleTable';
 import DashboardBuilderBoardManager from './DashboardBuilderBoardManager';
 import DashboardPageWidgetVOManager from './DashboardPageWidgetVOManager';
-import WidgetOptionsVOManager from './WidgetOptionsVOManager';
-import LocaleManager from '../../../tools/LocaleManager';
-import ExportVarcolumnConf from '../../DataExport/vos/ExportVarcolumnConf';
-import { cloneDeep } from 'lodash';
-import VarWidgetManager from './VarWidgetManager';
-import IExportOptions from '../../DataExport/interfaces/IExportOptions';
-import DashboardPageVO from '../vos/DashboardPageVO';
-import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
-import BulkActionVO from '../vos/BulkActionVO';
+import FieldFiltersVOManager from './FieldFiltersVOManager';
 import VOFieldRefVOManager from './VOFieldRefVOManager';
-import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
-import FieldFiltersVO from '../vos/FieldFiltersVO';
-import slug from 'slug';
+import VarWidgetManager from './VarWidgetManager';
+import WidgetOptionsVOManager from './WidgetOptionsVOManager';
 
 /**
  * @class TableWidgetManager
@@ -146,7 +145,9 @@ export default class TableWidgetManager {
                 null,
                 null, // get user id
                 null,
-                TableWidgetManager.get_export_options_by_widget_options(widget_options),
+                widget_options.can_export_active_field_filters,
+                widget_options.can_export_vars_indicator,
+                false,
                 await VarWidgetManager.get_exportable_vars_indicator(dashboard_page_id),
             );
         }
@@ -628,15 +629,15 @@ export default class TableWidgetManager {
      * Get Datatable Varcolumn Conf By Widget Options
      *
      * @param {TableWidgetOptions} [widget_options]
-     * @returns {{ [datatable_field_uid: string]: ExportVarcolumnConf }}
+     * @returns {{ [datatable_field_uid: string]: ExportVarcolumnConfVO }}
      */
     public static get_table_varcolumn_conf_by_widget_options(
         widget_options: TableWidgetOptionsVO,
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
-    ): { [datatable_field_uid: string]: ExportVarcolumnConf } {
+    ): { [datatable_field_uid: string]: ExportVarcolumnConfVO } {
 
-        let res: { [datatable_field_uid: string]: ExportVarcolumnConf } = {};
+        let res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
             widget_options,
@@ -651,10 +652,10 @@ export default class TableWidgetManager {
                 continue;
             }
 
-            let varcolumn_conf: ExportVarcolumnConf = {
-                custom_field_filters: column.filter_custom_field_filters,
-                var_id: column.var_id
-            };
+            let varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                column.var_id,
+                column.filter_custom_field_filters,
+            );
 
             res[column.datatable_field_uid] = varcolumn_conf;
         }
@@ -835,20 +836,6 @@ export default class TableWidgetManager {
         }
 
         return columns_by_field_id;
-    }
-
-    /**
-     * Get Export Options By Widget Options
-     *
-     * @param {TableWidgetOptions} [widget_options]
-     * @return {IExportOptions}
-     */
-    public static get_export_options_by_widget_options(widget_options: TableWidgetOptionsVO): IExportOptions {
-
-        return {
-            export_active_field_filters: widget_options.can_export_active_field_filters,
-            export_vars_indicator: widget_options.can_export_vars_indicator
-        };
     }
 
     public static getInstance(): TableWidgetManager {

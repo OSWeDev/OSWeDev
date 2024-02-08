@@ -17,6 +17,7 @@ import FactuProInvoiceVO from './vos/invoices/FactuProInvoiceVO';
 import FactuProProductsLISTParams from './vos/products/FactuProProductsLISTParams';
 import FactuProProductVO from './vos/products/FactuProProductVO';
 import FactuProInvoiceFinaliseVO, { FactuProInvoiceFinaliseVOStatic } from './vos/apis/FactuProInvoiceFinaliseVO';
+import ObjectHandler from '../../tools/ObjectHandler';
 
 export default class ModuleFacturationProAPI extends Module {
 
@@ -157,7 +158,7 @@ export default class ModuleFacturationProAPI extends Module {
             res = res.concat(elts.datas);
             page++;
 
-            let pagination = (elts.headers && elts.headers['x-pagination']) ? JSON.parse(elts.headers['x-pagination']) : null;
+            let pagination = (elts.headers && elts.headers['x-pagination']) ? ObjectHandler.try_get_json(elts.headers['x-pagination']) : null;
             has_more = pagination && pagination['total_pages'] && pagination['current_page'] &&
                 (pagination['current_page'] < pagination['total_pages']);
         }

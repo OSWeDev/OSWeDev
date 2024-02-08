@@ -1093,7 +1093,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     // On a de multiples updates sur un même id, on prend le dernier mais on log tout
                     let length = vos_by_ids[vo_id].length;
                     vos_by_ids[vo_id].forEach((vo) => {
-                        ConsoleHandler.warn('Multiple updates (' + length + ') on the same id, we take the last one but you should check your code :' + vo._type + ':' + vo.id + ':' + JSON.stringify(vo));
+                        ConsoleHandler.warn('Multiple updates (' + length + ') on the same id, we take the last one but you should check your code :' + vo._type + ':' + vo_id + ':' + vo.id + ':' + JSON.stringify(vo));
 
                     });
 
@@ -1225,6 +1225,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         await promise_pipeline.end();
 
+        // FIXME TODO : mais comment on peut avoir du reste à faire ici alors que personne push dans reste_a_faire ?
         if (reste_a_faire && reste_a_faire.length) {
             let reste_a_faire_res = await this.insertOrUpdateVOs_without_triggers(reste_a_faire, max_connections_to_use, exec_as_server);
             if (reste_a_faire_res && reste_a_faire_res.length) {

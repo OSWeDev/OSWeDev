@@ -333,9 +333,11 @@ export default class ModuleContextFilter extends Module {
     private init_SortByVO() {
 
         let datatable_fields = [
+            new ModuleTableField('alias', ModuleTableField.FIELD_TYPE_string, 'Alias'),
             new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'API TYPE ID'),
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'FIELD ID'),
             new ModuleTableField('sort_asc', ModuleTableField.FIELD_TYPE_boolean, 'ASC', true, true, true),
+            new ModuleTableField('modifier', ModuleTableField.FIELD_TYPE_enum, 'Modificateur').setEnumValues(SortByVO.MODIFIER_LABELS),
         ];
 
         let datatable = new ModuleTable(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
@@ -402,8 +404,9 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID du champs', true),
             new ModuleTableField('alias', ModuleTableField.FIELD_TYPE_string, 'Alias', false),
             new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+            new ModuleTableField('modifier', ModuleTableField.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
+            new ModuleTableField('cast_with', ModuleTableField.FIELD_TYPE_string, 'Caster avec', false),
         ];
-
         let datatable = new ModuleTable(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
         this.datatables.push(datatable);
     }
@@ -423,9 +426,12 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
             new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
-            new ModuleTableField('union_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
+            new ModuleTableField('union_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'union_queries', false),
             new ModuleTableField('joined_context_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_queries', false),
             new ModuleTableField('do_count_results', ModuleTableField.FIELD_TYPE_boolean, 'do_count_results', true, true, false),
+            new ModuleTableField('max_age_ms', ModuleTableField.FIELD_TYPE_int, 'max_age_ms', true, true, 0),
+            new ModuleTableField('request_id', ModuleTableField.FIELD_TYPE_int, 'request_id', false),
+            new ModuleTableField('throttle_query_select', ModuleTableField.FIELD_TYPE_boolean, 'throttle_query_select', true, true, true),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");

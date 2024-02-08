@@ -58,6 +58,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
         let planification: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
             .filter_by_text_eq(field_names<CronWorkerPlanification>().planification_uid, supervised_pdv.planification_uid)
             .filter_by_text_eq(field_names<CronWorkerPlanification>().worker_uid, supervised_pdv.worker_uid)
+            .exec_as_server()
             .select_vo<CronWorkerPlanification>();
 
         if (!planification) {

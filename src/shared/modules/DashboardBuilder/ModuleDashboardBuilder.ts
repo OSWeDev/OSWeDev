@@ -343,10 +343,12 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().children, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Enfants"),
             new ModuleTableField(field_names<TableColumnDescVO>().bg_color_header, ModuleTableField.FIELD_TYPE_string, "Header BG color"),
             new ModuleTableField(field_names<TableColumnDescVO>().font_color_header, ModuleTableField.FIELD_TYPE_string, "Header FG color"),
+            new ModuleTableField(field_names<TableColumnDescVO>().kanban_column, ModuleTableField.FIELD_TYPE_boolean, "Colonne Kanban", true, true, false),
+            new ModuleTableField(field_names<TableColumnDescVO>().kanban_use_weight, ModuleTableField.FIELD_TYPE_boolean, "Utiliser le poids pour le kanban", true, true, false),
+            new ModuleTableField(field_names<TableColumnDescVO>().colors_by_value_and_conditions, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Colors by value and conditions"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
-
         var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 

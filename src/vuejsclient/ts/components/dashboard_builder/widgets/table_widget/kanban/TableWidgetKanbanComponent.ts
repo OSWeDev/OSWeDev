@@ -33,7 +33,7 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
-import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
@@ -957,7 +957,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return null;
         }
 
-        return column.filter_additional_params ? JSON.parse(column.filter_additional_params) : undefined;
+        return column.filter_additional_params ? ObjectHandler.try_get_json(column.filter_additional_params) : undefined;
     }
 
     private is_row_filter_active(row: any): boolean {
@@ -2451,8 +2451,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return res;
     }
 
-    get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConf } {
-        let res: { [datatable_field_uid: string]: ExportVarcolumnConf } = {};
+    get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConfVO } {
+        let res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
 
         for (let i in this.columns) {
             let column = this.columns[i];
@@ -2461,10 +2461,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 continue;
             }
 
-            let varcolumn_conf: ExportVarcolumnConf = {
-                custom_field_filters: column.filter_custom_field_filters,
-                var_id: column.var_id
-            };
+            let varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                column.var_id,
+                column.filter_custom_field_filters
+            );
 
             res[column.datatable_field_uid] = varcolumn_conf;
         }

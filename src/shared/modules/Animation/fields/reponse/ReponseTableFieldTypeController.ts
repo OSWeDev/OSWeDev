@@ -1,3 +1,4 @@
+import ObjectHandler from '../../../../tools/ObjectHandler';
 import Datatable from '../../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
@@ -41,7 +42,7 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
 
     public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {
         let res: string = '';
-        let responses: AnimationReponseVO[] = vo[field.datatable_field_uid] ? JSON.parse(vo[field.datatable_field_uid]) : null;
+        let responses: AnimationReponseVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
 
         for (let i in responses) {
             let reponse: AnimationReponseVO = responses[0];

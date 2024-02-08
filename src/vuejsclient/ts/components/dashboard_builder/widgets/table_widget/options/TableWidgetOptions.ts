@@ -2,6 +2,7 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 
 /**
  * @deprecated use TableWidgetOptionsVO instead
@@ -16,7 +17,7 @@ export default class TableWidgetOptions extends TableWidgetOptionsVO {
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: TableWidgetOptions = (page_widget && page_widget.json_options) ? JSON.parse(page_widget.json_options) : null;
+        let options: TableWidgetOptions = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if (!options) {
             return res;
         }

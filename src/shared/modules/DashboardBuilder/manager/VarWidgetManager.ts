@@ -1,10 +1,10 @@
-import ExportVarcolumnConf from "../../DataExport/vos/ExportVarcolumnConf";
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import ExportVarIndicator from "../../DataExport/vos/ExportVarIndicator";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import VarWidgetOptionsVO from "../vos/VarWidgetOptionsVO";
-import FieldFiltersVO from "../vos/FieldFiltersVO";
+import ExportVarIndicatorVO from "../../DataExport/vos/ExportVarIndicatorVO";
+import ExportVarcolumnConfVO from "../../DataExport/vos/ExportVarcolumnConfVO";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import VarWidgetOptionsVO from "../vos/VarWidgetOptionsVO";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
  * @class VarWidgetManager
@@ -56,13 +56,13 @@ export default class VarWidgetManager {
      * Var Exportable Indicator
      *  - All vars indicator on the actual page to be exported
      *
-     * @return {ExportVarIndicator}
+     * @return {ExportVarIndicatorVO}
      */
     public static async get_exportable_vars_indicator(
         dashboard_page_id: number,
-    ): Promise<ExportVarIndicator> {
+    ): Promise<ExportVarIndicatorVO> {
 
-        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConf } = {};
+        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
 
         const var_page_widgets: {
             [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -77,18 +77,18 @@ export default class VarWidgetManager {
             const var_widget_options = new VarWidgetOptionsVO().from(var_page_widget.widget_options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.page_widget_id);
 
-            let conf: ExportVarcolumnConf = {
-                custom_field_filters: var_widget_options.filter_custom_field_filters,
-                filter_additional_params: var_widget_options.filter_additional_params,
-                filter_type: var_widget_options.filter_type,
-                var_id: var_widget_options.var_id
-            };
+            let conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                var_widget_options.var_id,
+                var_widget_options.filter_custom_field_filters,
+                var_widget_options.filter_type,
+                var_widget_options.filter_additional_params
+            );
 
             varcolumn_conf[name] = conf;
         }
 
         // returns ordered_column_list, column_labels and varcolumn_conf
-        return new ExportVarIndicator(
+        return ExportVarIndicatorVO.create_new(
             ['name', 'value'],
             { name: 'Nom', value: 'Valeur' },
             varcolumn_conf

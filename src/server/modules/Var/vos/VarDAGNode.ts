@@ -213,18 +213,22 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     private static async getInstance_semaphored(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
 
+        /**
+         * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
+         */
+        if (!MatroidController.check_bases_not_max_ranges(var_data)) {
+            ConsoleHandler.error('VarDAGNode.getInstance_semaphored:!check_bases_not_max_ranges:' + var_data.index);
+            throw new Error('VarDAGNode.getInstance_semaphored:!check_bases_not_max_ranges:' + var_data.index);
+        }
+
         if (!!var_dag.nodes[var_data.index]) {
             return var_dag.nodes[var_data.index];
         }
 
         return new Promise(async (resolve, reject) => {
 
-            /**
-             * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
-             */
-            if (!MatroidController.check_bases_not_max_ranges(var_data)) {
-                ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
-                reject('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
+            if (!!var_dag.nodes[var_data.index]) {
+                resolve(var_dag.nodes[var_data.index]);
                 return;
             }
 
