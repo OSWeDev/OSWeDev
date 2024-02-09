@@ -24,9 +24,9 @@ export default class ImpersonateComponent extends VueComponentBase {
     private redirect_to: string = "/";
 
     get can_impersonate() {
-        if ((!this.vo) || this.vo.invalidated || this.vo.archived || this.vo.blocked || this.vo['user___invalidated'] || this.vo['user___archived'] || this.vo['user___blocked']) {
-            return false;
-        }
+        // if ((!this.vo) || this.vo.invalidated || this.vo.archived || this.vo.blocked || this.vo['user___invalidated'] || this.vo['user___archived'] || this.vo['user___blocked']) {
+        //     return false;
+        // }
 
         return true;
     }
