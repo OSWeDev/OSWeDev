@@ -450,6 +450,10 @@ export default abstract class ModuleServiceBase {
             if (DBDisconnectionManager.instance) {
                 DBDisconnectionManager.instance.mark_as_disconnected();
             }
+        } else if ((error['code'] == 'ECONNRESET') && (error['errno'] == -4077)) {
+
+            sleep_id += 'e_conn_reset';
+            compteur_id = 'e_conn_reset';
         }
 
         if (compteur_id && sleep_id) {
