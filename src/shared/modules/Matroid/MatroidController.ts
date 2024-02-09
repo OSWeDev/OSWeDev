@@ -141,8 +141,7 @@ export default class MatroidController {
             }
 
             if (matroid['_index']) {
-                matroid['_index'] = null;
-                matroid['_is_pixel'] = null;
+                res['rebuild_index']();
             }
         }
 
@@ -621,8 +620,7 @@ export default class MatroidController {
         }
 
         if (res['_index']) {
-            res['_index'] = null;
-            res['_is_pixel'] = null;
+            res['rebuild_index']();
         }
         return res;
     }

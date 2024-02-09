@@ -265,6 +265,8 @@ export default class VarDataBaseVO implements IMatroid {
     private _index: string;
     private _is_pixel: boolean;
 
+    private rebuilding_index: boolean = false;
+
     public constructor() { }
 
     get var_id(): number { return this._var_id; }
@@ -273,24 +275,79 @@ export default class VarDataBaseVO implements IMatroid {
     }
 
     /**
-     * Pour forcer le rebuild de l'index et avoir un truc propre (à appeler si on change le param après un create new ou un clone from)
+     * on demande le rebuild au prochain accès au getter
      */
     public rebuild_index() {
 
         this._index = null;
-        this._is_pixel = null;
+        Object.defineProperty(this, 'index', {
+            get: this.initial_getter_index,
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
+    }
+
+    public do_rebuild_index() {
+
+        if (this.rebuilding_index) {
+            return;
+        }
+        this.rebuilding_index = true;
+
+        MatroidIndexHandler.normalize_vardata_fields(this);
+        this._index = MatroidIndexHandler.get_normalized_vardata(this);
+        this._is_pixel = MatroidController.get_cardinal(this) == 1;
+
+        this.rebuilding_index = false;
     }
 
     /**
      * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite.
+     *
+     * Suite discussion avec chatgpt... pour booster les perfs de ce truc, on passe par un getter pour le premier appel,
+     * par ce que c'est quand même de loin le plus simple, mais lorsque le getter est appelé, on le remplace par une propriété
+     *
+     *
+     * class A {
+     *   constructor() {}
+     *
+     *   get b() {
+     *     console.log("IN B");
+     *     // Suppression du getter et définition de la propriété avec une valeur fixe
+     *     Object.defineProperty(this, 'b', {
+     *       value: "f",
+     *       writable: true, // Permet de réassigner la valeur plus tard si nécessaire
+     *       configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+     *     });
+     *     return this.b;
+     *   }
+     *
+     *   public e() {
+     *     this.b = "g"; // Réaffectation directe sans supprimer, car 'b' n'est plus un getter
+     *     console.log("IN E");
+     *   }
+     * }
+     *
+     * let a_ = new A();
+     * console.log(a_.b); // Premier appel, affichera "IN B" puis "f"
+     * a_.e(); // Modification de la valeur de 'b'
+     * console.log(a_.b); // Affichera "g" sans passer par le getter
      */
     get index(): string {
 
+        return this.initial_getter_index();
+    }
+
+    private initial_getter_index(): string {
+
         if (!this._index) {
-            MatroidIndexHandler.normalize_vardata_fields(this);
-            this._index = MatroidIndexHandler.get_normalized_vardata(this);
-            this._is_pixel = MatroidController.get_cardinal(this) == 1;
+            this.do_rebuild_index();
         }
+
+        Object.defineProperty(this, 'index', {
+            value: this._index,
+            writable: true, // Permet de réassigner la valeur plus tard si nécessaire
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
 
         return this._index;
     }
