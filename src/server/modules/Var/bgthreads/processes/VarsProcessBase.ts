@@ -14,6 +14,11 @@ import VarsComputationHole from './VarsComputationHole';
 export default abstract class VarsProcessBase {
 
     /**
+     * Quand on sélectionne trop de noeuds et qu'on timeout, on les met en attente pour le prochain run
+     */
+    protected waiting_valid_nodes: { [node_name: string]: VarDAGNode } = null;
+
+    /**
      * Si on a 0 workers, on ne fait pas de traitement en parallèle on part du principe que le traitement est synchrone (donc sans await, sans pipeline, ...)
      * @param TAG_BY_PASS_NAME Tag qui permet de dire que si le noeud est valide pour execution, on ne le traite pas et on pose le tag out directement
      */
@@ -49,7 +54,8 @@ export default abstract class VarsProcessBase {
             // Particularité on doit s'enregistrer sur le main thread pour dire qu'on est en vie puisque le bgthread lui est plus vraiment adapté pour le faire
             BGThreadServerController.register_alive_on_main_thread(VarsBGThreadNameHolder.bgthread_name);
 
-            let valid_nodes = this.get_valid_nodes();
+            let valid_nodes: { [node_name: string]: VarDAGNode } = this.waiting_valid_nodes ? this.waiting_valid_nodes : this.get_valid_nodes();
+            this.waiting_valid_nodes = null;
 
             // // Si on a des noeuds, et en particulier des noeuds clients, on ne doit pas faire d'invalidation sans avoir traité les noeuds clients
             // // let has_client_nodes = false;
@@ -170,25 +176,15 @@ export default abstract class VarsProcessBase {
         for (let i in valid_nodes) {
             let node = valid_nodes[i];
 
-            // Si on a plus de free_slot, et qu'on a fait plus de 0.5 seconde de travail - totalement arbitraire -, on attend le prochain run
-            if ((!!promise_pipeline) && (!promise_pipeline.has_free_slot()) && ((Dates.now_ms() - time_in) > 500)) {
+            // Si on a plus de free_slot, et qu'on a fait plus de 2 secondes de travail - totalement arbitraire -, on attend le prochain run
+            if ((!!promise_pipeline) && (!promise_pipeline.has_free_slot()) && ((Dates.now_ms() - time_in) > 2000)) {
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
                     ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_individual_worker:break:!has_free_slot:' + node.var_data.index + ':' + node.var_data.value + ':' + ((Dates.now_ms() - time_in) / 1000));
                 }
 
                 // On peut pas break directement, il faut remettre les noeuds valids non traités en attente
-                for (let j in untreated_nodes) {
-                    let untreated_node = untreated_nodes[j];
-
-                    untreated_node.remove_tag(this.TAG_SELF_NAME);
-                    untreated_node.add_tag(this.TAG_IN_NAME);
-
-                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
-                        ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:break:node:' + untreated_node.var_data.index + ':' + untreated_node.var_data.value);
-                    }
-                }
-
+                this.waiting_valid_nodes = untreated_nodes;
                 break;
             }
 

@@ -10,6 +10,7 @@ import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBas
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
 
@@ -643,7 +644,7 @@ export default class VarDAGNode extends DAGNodeBase {
         return this;
     }
 
-    public update_parent_is_computable_if_needed(force_this_node_as_computed: boolean = false) {
+    public update_parent_is_computable_if_needed() {
 
         // On impacte le tag sur les parents si tous leurs enfants sont computed
         for (let i in this.incoming_deps) {
@@ -651,42 +652,8 @@ export default class VarDAGNode extends DAGNodeBase {
 
             for (let k in deps) {
                 let dep = deps[k];
-
-                let parent_node: VarDAGNode = dep.incoming_node as VarDAGNode;
-
-                // Si déjà taggé on refait pas
-                if ((parent_node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_IS_COMPUTABLE]) ||
-                    parent_node.tags[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
-                    continue;
-                }
-
-                // Si le parent est pas encore déployé, on peut pas vérifier ses dépendances sortantes puisqu'elles sont pas encore déployées
-                if (parent_node.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_2_DEPLOYED]) {
-                    continue;
-                }
-
-                // On veut un is_computable mais avec un is_computing sur le noeud en cours de work
-                let parent_is_computable = true;
-                for (let j in parent_node.outgoing_deps) {
-                    let outgoing_dep = parent_node.outgoing_deps[j];
-
-                    if (force_this_node_as_computed && (outgoing_dep.outgoing_node == this)) {
-                        continue;
-                    }
-
-                    if ((outgoing_dep.outgoing_node as VarDAGNode).current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
-                        parent_is_computable = false;
-                        break;
-                    }
-                }
-
-                if (parent_is_computable) {
-                    parent_node.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
-
-                    if (parent_node.tags[VarDAGNode.TAG_3_DATA_LOADED]) {
-                        parent_node.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
-                    }
-                }
+                let node = dep.incoming_node as VarDAGNode;
+                UpdateIsComputableVarDAGNode.throttle_update_is_computable_var_dag_node({ [node.var_data.index]: node });
             }
         }
     }
@@ -801,8 +768,10 @@ export default class VarDAGNode extends DAGNodeBase {
             this.remove_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
         }
 
-        // On impacte les parents sur un potentiel is_computable
-        this.update_parent_is_computable_if_needed();
+        if (this.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
+            // On impacte les parents sur un potentiel is_computable
+            this.update_parent_is_computable_if_needed();
+        }
     }
 
     get is_notifiable(): boolean {
