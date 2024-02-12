@@ -76,6 +76,7 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
+import ValidationFiltersWidgetOptions from '../../validation_filters_widget/options/ValidationFiltersWidgetOptions';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -572,6 +573,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private get_identifier(vo: any): number {
         return vo.__crud_actions;
+    }
+
+    private async callback_action(action: BulkActionVO) {
+        if (!action) {
+            return;
+        }
+
+        await action.callback(this.selected_vos_true);
+
+        this.refresh();
     }
 
     get can_refresh(): boolean {
@@ -1417,8 +1428,27 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      */
     private async update_visible_options(force: boolean = false) {
         // Si j'ai mon bouton de validation des filtres qui est actif,
-        // j'attends que ce soit lui qui m'appelle
-        if ((!force) && this.has_validation_page_widgets()) {
+        // je vérifie s'il me permet de faire un update
+        let validation_filters: DashboardPageWidgetVO[] = this.get_validation_page_widgets();
+        let can_update: boolean = true;
+        for (let i in validation_filters) {
+            let validation_filter = validation_filters[i];
+
+            // Si j'ai un seul widget de validation qui n'accepte pas l'update, je ne mettrais pas à jour mes widgets
+            if (!validation_filter.json_options) {
+                can_update = false;
+                continue;
+            }
+
+            let options = JSON.parse(validation_filter.json_options) as ValidationFiltersWidgetOptions;
+            options = options ? new ValidationFiltersWidgetOptions().from(options) : null;
+            if (!options || !options.load_widgets_prevalidation) {
+                can_update = false;
+            }
+        }
+
+        // sinon j'attends que ce soit lui qui m'appelle
+        if ((!force) && this.has_validation_page_widgets() && (!can_update)) {
             return;
         }
 

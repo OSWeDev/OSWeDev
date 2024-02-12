@@ -1,12 +1,17 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
+import AbstractVO from "../../../../../../../shared/modules/VO/abstract/AbstractVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class ValidationFiltersWidgetOptions implements IExportableWidgetOptions {
+export default class ValidationFiltersWidgetOptions extends AbstractVO implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "ValidationFiltersWidgetOptions.title.";
 
-    public constructor() { }
+    public constructor(
+        public load_widgets_prevalidation: boolean = false,
+    ) {
+        super();
+    }
 
     public get_title_name_code_text(page_widget_id: number): string {
 

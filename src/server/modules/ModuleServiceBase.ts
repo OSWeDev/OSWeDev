@@ -15,6 +15,7 @@ import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommand
 import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
 import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
+import ModuleClockifyAPI from '../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
 import ModuleContextFilter from '../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleCron from '../../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
@@ -81,6 +82,7 @@ import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
 import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
+import ModuleClockifyAPIServer from './ClockifyAPI/ModuleClockifyAPIServer';
 import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
@@ -615,6 +617,7 @@ export default abstract class ModuleServiceBase {
             ModuleTeamsAPI.getInstance(),
             ModuleAnimation.getInstance(),
             ModuleAnonymization.getInstance(),
+            ModuleClockifyAPI.getInstance(),
             ModuleEvolizAPI.getInstance(),
             ModuleFacturationProAPI.getInstance(),
             ModulePowershell.getInstance(),
@@ -677,6 +680,7 @@ export default abstract class ModuleServiceBase {
             ModuleTeamsAPIServer.getInstance(),
             ModuleAnimationServer.getInstance(),
             ModuleAnonymizationServer.getInstance(),
+            ModuleClockifyAPIServer.getInstance(),
             ModuleEvolizAPIServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
             ModulePowershellServer.getInstance(),
