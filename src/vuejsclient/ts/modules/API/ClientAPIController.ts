@@ -21,6 +21,7 @@ export default class ClientAPIController implements IAPIController {
      */
     public static api_waiting_for_result_notif_waiting_for_solvers: { [api_call_id: number]: () => void } = {};
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ClientAPIController {
         if (!ClientAPIController.instance) {
             ClientAPIController.instance = new ClientAPIController();

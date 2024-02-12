@@ -14,6 +14,7 @@ export default class FakeAVarController extends VarServerControllerBase<FakeData
     public static DEP_B: string = 'B' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_C: string = 'C' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeAVarController {
         if (!FakeAVarController.instance) {
             FakeAVarController.instance = new FakeAVarController();

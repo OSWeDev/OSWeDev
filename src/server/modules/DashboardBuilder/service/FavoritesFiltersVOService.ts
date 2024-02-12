@@ -193,6 +193,7 @@ export default class FavoritesFiltersVOService {
         return context_field_filters;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FavoritesFiltersVOService {
         if (!FavoritesFiltersVOService.instance) {
             FavoritesFiltersVOService.instance = new FavoritesFiltersVOService();

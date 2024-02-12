@@ -17,6 +17,7 @@ export default class ModulePlayWright extends Module {
     public static APINAME_after_all: string = "playwright_after_all";
     public static APINAME_after_each: string = "playwright_after_each";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulePlayWright {
         if (!ModulePlayWright.instance) {
             ModulePlayWright.instance = new ModulePlayWright();

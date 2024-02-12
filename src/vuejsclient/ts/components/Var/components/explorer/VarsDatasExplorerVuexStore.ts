@@ -14,6 +14,7 @@ export interface IVarsDatasExplorerVueXState {
 
 export default class VarsDatasExplorerStoreModule implements IStoreModule<IVarsDatasExplorerVueXState, VarsDatasExplorerContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarsDatasExplorerStoreModule {
         if (!VarsDatasExplorerStoreModule.instance) {
             VarsDatasExplorerStoreModule.instance = new VarsDatasExplorerStoreModule();

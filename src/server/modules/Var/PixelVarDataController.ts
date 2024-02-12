@@ -5,6 +5,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 
 export default class PixelVarDataController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PixelVarDataController {
         if (!PixelVarDataController.instance) {
             PixelVarDataController.instance = new PixelVarDataController();

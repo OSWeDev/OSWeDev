@@ -4,6 +4,7 @@ export default class ModuleAzureMemoryCheck extends Module {
 
     public static MODULE_NAME: string = 'AzureMemoryCheck';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAzureMemoryCheck {
         if (!ModuleAzureMemoryCheck.instance) {
             ModuleAzureMemoryCheck.instance = new ModuleAzureMemoryCheck();

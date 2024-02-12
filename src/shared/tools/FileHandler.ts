@@ -7,6 +7,7 @@ import ThreadHandler from './ThreadHandler';
 
 export default class FileHandler {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FileHandler {
         if (!FileHandler.instance) {
             FileHandler.instance = new FileHandler();

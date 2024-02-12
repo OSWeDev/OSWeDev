@@ -15,6 +15,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CreateDefaultAdminAccountIfNone {
         if (!CreateDefaultAdminAccountIfNone.instance) {
             CreateDefaultAdminAccountIfNone.instance = new CreateDefaultAdminAccountIfNone();

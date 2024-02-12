@@ -8,6 +8,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class InitBaseImageFormats implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): InitBaseImageFormats {
         if (!InitBaseImageFormats.instance) {
             InitBaseImageFormats.instance = new InitBaseImageFormats();

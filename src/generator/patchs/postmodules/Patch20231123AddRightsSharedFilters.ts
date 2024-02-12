@@ -8,6 +8,7 @@ import PostModulesPoliciesPatchBase from "../PostModulesPoliciesPatchBase";
 
 export default class Patch20231123AddRightsSharedFilters extends PostModulesPoliciesPatchBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231123AddRightsSharedFilters {
         if (!Patch20231123AddRightsSharedFilters.instance) {
             Patch20231123AddRightsSharedFilters.instance = new Patch20231123AddRightsSharedFilters();

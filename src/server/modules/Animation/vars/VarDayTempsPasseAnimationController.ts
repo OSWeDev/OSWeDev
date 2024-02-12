@@ -16,6 +16,7 @@ import UMsRangesDatasourceController from '../datasources/UMsRangesDatasourceCon
 
 export default class VarDayTempsPasseAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarDayTempsPasseAnimationController {
         if (!VarDayTempsPasseAnimationController.instance) {
             VarDayTempsPasseAnimationController.instance = new VarDayTempsPasseAnimationController();

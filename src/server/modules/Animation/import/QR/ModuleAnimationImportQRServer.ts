@@ -18,6 +18,7 @@ import ModuleAnimationImportQRDefaultFormats from "./ModuleAnimationImportQRDefa
 
 export default class ModuleAnimationImportQRServer extends DataImportModuleBase<AnimationImportQRVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportQRServer {
         if (!ModuleAnimationImportQRServer.instance) {
             ModuleAnimationImportQRServer.instance = new ModuleAnimationImportQRServer();

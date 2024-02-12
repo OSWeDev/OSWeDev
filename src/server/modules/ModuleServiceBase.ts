@@ -134,6 +134,7 @@ export default abstract class ModuleServiceBase {
 
     public static db;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleServiceBase {
         return ModuleServiceBase.instance;
     }

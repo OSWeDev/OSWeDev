@@ -5,6 +5,7 @@ export default class ModuleMatroid extends Module {
 
     public static MODULE_NAME: string = 'Matroid';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleMatroid {
         if (!ModuleMatroid.instance) {
             ModuleMatroid.instance = new ModuleMatroid();

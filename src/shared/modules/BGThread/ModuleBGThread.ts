@@ -12,6 +12,7 @@ export default class ModuleBGThread extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleBGThread.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleBGThread.MODULE_NAME + ".BO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleBGThread {
         if (!ModuleBGThread.instance) {
             ModuleBGThread.instance = new ModuleBGThread();

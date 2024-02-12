@@ -70,6 +70,7 @@ export default class PushDataServerController {
 
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PushDataServerController {
         if (!PushDataServerController.instance) {
             PushDataServerController.instance = new PushDataServerController();

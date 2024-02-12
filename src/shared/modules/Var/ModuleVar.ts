@@ -89,6 +89,7 @@ export default class ModuleVar extends Module {
 
     public static MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache = 'force_empty_vars_datas_vo_update_cache';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
             ModuleVar.instance = new ModuleVar();

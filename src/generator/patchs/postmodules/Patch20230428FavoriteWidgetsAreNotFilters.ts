@@ -9,6 +9,7 @@ import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class Patch20230428FavoriteWidgetsAreNotFilters implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230428FavoriteWidgetsAreNotFilters {
         if (!Patch20230428FavoriteWidgetsAreNotFilters.instance) {
             Patch20230428FavoriteWidgetsAreNotFilters.instance = new Patch20230428FavoriteWidgetsAreNotFilters();

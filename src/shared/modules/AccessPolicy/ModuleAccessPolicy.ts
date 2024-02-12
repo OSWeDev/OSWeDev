@@ -108,6 +108,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAccessPolicy {
         if (!ModuleAccessPolicy.instance) {
             ModuleAccessPolicy.instance = new ModuleAccessPolicy();

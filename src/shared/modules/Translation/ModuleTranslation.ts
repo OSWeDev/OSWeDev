@@ -35,6 +35,7 @@ export default class ModuleTranslation extends Module {
     public static APINAME_T: string = "t";
     public static APINAME_LABEL: string = "label";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleTranslation {
         if (!ModuleTranslation.instance) {
             ModuleTranslation.instance = new ModuleTranslation();

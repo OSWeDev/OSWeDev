@@ -5,6 +5,7 @@ import StatsClientController from './StatsClientController';
 
 export default class StatsVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): StatsVueModule {
         if (!StatsVueModule.instance) {
             StatsVueModule.instance = new StatsVueModule();

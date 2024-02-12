@@ -18,6 +18,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
     public static IMPORT_MODAL: string = 'modal';
     public static IMPORT_PARAMS: string = 'params';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DataImportAdminVueModule {
         if (!DataImportAdminVueModule.instance) {
             DataImportAdminVueModule.instance = new DataImportAdminVueModule();

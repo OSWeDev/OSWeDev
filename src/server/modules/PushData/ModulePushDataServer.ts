@@ -28,6 +28,7 @@ import UnRegisterIORoomsThreadMessage from './vos/UnRegisterIORoomsThreadMessage
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulePushDataServer {
         if (!ModulePushDataServer.instance) {
             ModulePushDataServer.instance = new ModulePushDataServer();

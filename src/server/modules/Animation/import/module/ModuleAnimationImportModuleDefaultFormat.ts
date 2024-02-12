@@ -10,6 +10,7 @@ import ModulesManagerServer from "../../../ModulesManagerServer";
 
 export default class ModuleAnimationImportModuleDefaultFormats {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportModuleDefaultFormats {
         if (!ModuleAnimationImportModuleDefaultFormats.instance) {
             ModuleAnimationImportModuleDefaultFormats.instance = new ModuleAnimationImportModuleDefaultFormats();

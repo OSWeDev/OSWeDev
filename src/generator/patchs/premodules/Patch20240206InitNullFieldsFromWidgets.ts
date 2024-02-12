@@ -5,6 +5,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20240206InitNullFieldsFromWidgets implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20240206InitNullFieldsFromWidgets {
         if (!Patch20240206InitNullFieldsFromWidgets.instance) {
             Patch20240206InitNullFieldsFromWidgets.instance = new Patch20240206InitNullFieldsFromWidgets();

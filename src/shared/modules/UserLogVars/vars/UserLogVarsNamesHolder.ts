@@ -9,6 +9,7 @@ export default class UserLogVarsNamesHolder {
 
     public static VarLastCSRFTSController_VAR_NAME: string = 'VarLastCSRFTSController';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): UserLogVarsNamesHolder {
         if (!UserLogVarsNamesHolder.instance) {
             UserLogVarsNamesHolder.instance = new UserLogVarsNamesHolder();

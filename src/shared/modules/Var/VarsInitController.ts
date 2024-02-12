@@ -40,6 +40,7 @@ export default class VarsInitController {
         delete VarsInitController.pre_registered_var_data_api_type_id_modules_list;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarsInitController {
         if (!VarsInitController.instance) {
             VarsInitController.instance = new VarsInitController();

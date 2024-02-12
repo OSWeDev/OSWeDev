@@ -5,6 +5,7 @@ import './supervision_crud.scss';
 
 export default class SupervisionClientController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisionClientController {
         if (!SupervisionClientController.instance) {
             SupervisionClientController.instance = new SupervisionClientController();

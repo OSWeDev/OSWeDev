@@ -8,6 +8,7 @@ import AnimationMessageModuleVO from './vos/AnimationMessageModuleVO';
 
 export default class MessageModuleTableFieldTypeController extends TableFieldTypeControllerBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): MessageModuleTableFieldTypeController {
         if (!MessageModuleTableFieldTypeController.instance) {
             MessageModuleTableFieldTypeController.instance = new MessageModuleTableFieldTypeController();

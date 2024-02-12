@@ -11,6 +11,7 @@ export interface ISurveyState {
 
 export default class SurveyStore implements IStoreModule<ISurveyState, SurveyContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SurveyStore {
         if (!SurveyStore.instance) {
             SurveyStore.instance = new SurveyStore();

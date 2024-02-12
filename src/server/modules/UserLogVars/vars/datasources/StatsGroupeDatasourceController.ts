@@ -6,6 +6,7 @@ import DataSourceControllerMatroidIndexedBase from "../../../Var/datasource/Data
 
 export default class StatsGroupeDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): StatsGroupeDatasourceController {
         if (!StatsGroupeDatasourceController.instance) {
             StatsGroupeDatasourceController.instance = new StatsGroupeDatasourceController(

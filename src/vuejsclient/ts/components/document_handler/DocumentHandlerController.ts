@@ -15,6 +15,7 @@ import DocumentHandlerReloadListVO from './vos/DocumentHandlerReloadListVO';
 
 export default class DocumentHandlerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DocumentHandlerController {
         if (!DocumentHandlerController.instance) {
             DocumentHandlerController.instance = new DocumentHandlerController();

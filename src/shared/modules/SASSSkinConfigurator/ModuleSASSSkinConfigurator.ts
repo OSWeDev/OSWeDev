@@ -73,6 +73,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
         header_text_color_mid_opacity: '#563c2299',
     };
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleSASSSkinConfigurator {
         if (!ModuleSASSSkinConfigurator.instance) {
             ModuleSASSSkinConfigurator.instance = new ModuleSASSSkinConfigurator();

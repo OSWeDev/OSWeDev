@@ -33,6 +33,7 @@ export default class ModuleSendInBlue extends Module {
     public static APINAME_sendinblue_event_webhook: string = 'sendinblue_event_webhook';
     public static APINAME_sendinblue_refresh_mail_events: string = 'sendinblue_refresh_mail_events';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleSendInBlue {
         if (!ModuleSendInBlue.instance) {
             ModuleSendInBlue.instance = new ModuleSendInBlue();

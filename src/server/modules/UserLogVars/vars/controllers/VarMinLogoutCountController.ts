@@ -17,6 +17,7 @@ import CountUserLogLogoutDatasourceController from '../datasources/CountUserLogL
 
 export default class VarMinLogoutCountController extends VarServerControllerBase<UserMinDataRangesVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarMinLogoutCountController {
         if (!VarMinLogoutCountController.instance) {
             VarMinLogoutCountController.instance = new VarMinLogoutCountController();

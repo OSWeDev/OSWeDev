@@ -27,6 +27,7 @@ import AccessPolicyVueController from './AccessPolicyVueController';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AccessPolicyAdminVueModule {
         if (!AccessPolicyAdminVueModule.instance) {
             AccessPolicyAdminVueModule.instance = new AccessPolicyAdminVueModule();

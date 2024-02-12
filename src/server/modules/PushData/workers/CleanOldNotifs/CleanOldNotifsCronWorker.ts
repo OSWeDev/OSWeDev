@@ -23,6 +23,7 @@ export default class CleanOldNotifsCronWorker implements ICronWorker {
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "CleanOldNotifsCronWorker";
     }

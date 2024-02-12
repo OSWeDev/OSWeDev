@@ -6,6 +6,7 @@ import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSou
 
 export default class QRsRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): QRsRangesDatasourceController {
         if (!QRsRangesDatasourceController.instance) {
             QRsRangesDatasourceController.instance = new QRsRangesDatasourceController(

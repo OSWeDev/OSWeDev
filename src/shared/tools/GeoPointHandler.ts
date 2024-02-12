@@ -7,6 +7,7 @@ export default class GeoPointHandler {
     public static URL_API: string = '/search/?q=';
     public static MILE_TO_KM: number = 1.60934;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): GeoPointHandler {
         if (!GeoPointHandler.instance) {
             GeoPointHandler.instance = new GeoPointHandler();

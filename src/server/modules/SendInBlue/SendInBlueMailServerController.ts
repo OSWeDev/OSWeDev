@@ -24,6 +24,7 @@ export default class SendInBlueMailServerController {
     public static PATH_EMAIL: string = 'smtp/email';
     public static PATH_STATS_EVENTS: string = 'smtp/statistics/events';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueMailServerController {
         if (!SendInBlueMailServerController.instance) {
             SendInBlueMailServerController.instance = new SendInBlueMailServerController();

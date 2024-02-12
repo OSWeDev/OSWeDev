@@ -732,6 +732,7 @@ export default class FieldValueFilterWidgetManager {
         return context_query;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FieldValueFilterWidgetManager {
         if (!this.instance) {
             this.instance = new FieldValueFilterWidgetManager();

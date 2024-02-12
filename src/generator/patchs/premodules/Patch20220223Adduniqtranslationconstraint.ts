@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220223Adduniqtranslationconstraint implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220223Adduniqtranslationconstraint {
         if (!Patch20220223Adduniqtranslationconstraint.instance) {
             Patch20220223Adduniqtranslationconstraint.instance = new Patch20220223Adduniqtranslationconstraint();

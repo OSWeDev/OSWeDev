@@ -36,6 +36,7 @@ export default class SupervisionManager {
         return available_api_type_ids;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisionManager {
         if (!SupervisionManager.instance) {
             SupervisionManager.instance = new SupervisionManager();

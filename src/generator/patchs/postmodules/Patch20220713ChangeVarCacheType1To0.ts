@@ -7,6 +7,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220713ChangeVarCacheType1To0 implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220713ChangeVarCacheType1To0 {
         if (!Patch20220713ChangeVarCacheType1To0.instance) {
             Patch20220713ChangeVarCacheType1To0.instance = new Patch20220713ChangeVarCacheType1To0();

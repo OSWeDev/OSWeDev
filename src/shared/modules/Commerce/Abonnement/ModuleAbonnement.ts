@@ -9,6 +9,7 @@ import PackAbonnementVO from './vos/PackAbonnementVO';
 
 export default class ModuleAbonnement extends Module {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAbonnement {
         if (!ModuleAbonnement.instance) {
             ModuleAbonnement.instance = new ModuleAbonnement();

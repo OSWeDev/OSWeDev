@@ -33,6 +33,7 @@ export default class ModuleParams extends Module {
     // public static APINAME_feedback_activate_api_logs: boolean = false; //Désactive l'envoie d'api logs lors des feedbacks vers trello
     public static APINAME_feedback_display_screenshots: boolean = false; //N'affiche pas le screen en dessous du lien associé à celui-ci
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleParams {
         if (!ModuleParams.instance) {
             ModuleParams.instance = new ModuleParams();

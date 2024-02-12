@@ -27,6 +27,7 @@ import ModuleTranslationsImportDefaultFormats from './ModuleTranslationsImportDe
 
 export default class ModuleTranslationsImportServer extends DataImportModuleBase<ImportTranslationRaw> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleTranslationsImportServer {
         if (!ModuleTranslationsImportServer.instance) {
             ModuleTranslationsImportServer.instance = new ModuleTranslationsImportServer();

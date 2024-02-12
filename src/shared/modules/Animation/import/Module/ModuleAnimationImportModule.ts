@@ -12,6 +12,7 @@ export default class ModuleAnimationImportModule extends Module {
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimationImportModule.MODULE_NAME + ".BO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportModule {
         if (!ModuleAnimationImportModule.instance) {
             ModuleAnimationImportModule.instance = new ModuleAnimationImportModule();

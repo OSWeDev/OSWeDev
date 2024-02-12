@@ -1,6 +1,7 @@
 
 export default class CheckPointController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CheckPointController {
         if (!CheckPointController.instance) {
             CheckPointController.instance = new CheckPointController();

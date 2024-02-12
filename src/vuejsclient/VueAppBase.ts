@@ -72,6 +72,7 @@ export default abstract class VueAppBase {
 
     public static instance_: VueAppBase;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VueAppBase {
         return this.instance_;
     }

@@ -8,6 +8,7 @@ import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 
 export default class SendInBlueSmsServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueSmsServerController {
         if (!SendInBlueSmsServerController.instance) {
             SendInBlueSmsServerController.instance = new SendInBlueSmsServerController();

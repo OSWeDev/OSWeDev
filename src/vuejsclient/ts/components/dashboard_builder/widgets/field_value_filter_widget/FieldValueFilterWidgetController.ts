@@ -14,6 +14,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
         return 'FILTER__' + api_type_id + '__' + field_id;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FieldValueFilterWidgetController {
         if (!this.instance) {
             this.instance = new FieldValueFilterWidgetController();

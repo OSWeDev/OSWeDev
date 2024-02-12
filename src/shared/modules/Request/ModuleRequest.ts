@@ -16,6 +16,7 @@ export default class ModuleRequest extends Module {
 
     public static APINAME_sendRequestFromApp = "send_request_from_app";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleRequest {
         if (!ModuleRequest.instance) {
             ModuleRequest.instance = new ModuleRequest();

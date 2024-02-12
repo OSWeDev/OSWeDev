@@ -15,6 +15,7 @@ import SupervisedItemServerControllerBase from "../SupervisedItemServerControlle
 
 export default class SupervisedCRONServerController extends SupervisedItemServerControllerBase<SupervisedCRONVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisedCRONServerController {
         if (!SupervisedCRONServerController.instance) {
             SupervisedCRONServerController.instance = new SupervisedCRONServerController();

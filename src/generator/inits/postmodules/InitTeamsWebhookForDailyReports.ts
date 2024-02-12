@@ -7,6 +7,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class InitTeamsWebhookForDailyReports implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): InitTeamsWebhookForDailyReports {
         if (!InitTeamsWebhookForDailyReports.instance) {
             InitTeamsWebhookForDailyReports.instance = new InitTeamsWebhookForDailyReports();

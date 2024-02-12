@@ -2,6 +2,7 @@ import ISupervisedItemServerController from './interfaces/ISupervisedItemServerC
 
 export default class SupervisionServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisionServerController {
         if (!SupervisionServerController.instance) {
             SupervisionServerController.instance = new SupervisionServerController();

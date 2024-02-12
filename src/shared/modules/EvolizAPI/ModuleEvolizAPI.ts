@@ -37,6 +37,7 @@ export default class ModuleEvolizAPI extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleEvolizAPI.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleEvolizAPI.MODULE_NAME + '.FO_ACCESS';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleEvolizAPI {
         if (!ModuleEvolizAPI.instance) {
             ModuleEvolizAPI.instance = new ModuleEvolizAPI();

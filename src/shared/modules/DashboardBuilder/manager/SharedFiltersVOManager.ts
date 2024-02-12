@@ -247,6 +247,7 @@ export default class SharedFiltersVOManager {
         return res?.shift()?.id != null;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SharedFiltersVOManager {
         if (!SharedFiltersVOManager.instance) {
             SharedFiltersVOManager.instance = new SharedFiltersVOManager();

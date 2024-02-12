@@ -58,6 +58,7 @@ export interface IDashboardPageState {
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardPageStore {
         if (!DashboardPageStore.instance) {
             DashboardPageStore.instance = new DashboardPageStore();

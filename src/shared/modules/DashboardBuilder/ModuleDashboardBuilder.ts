@@ -43,6 +43,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDashboardBuilder {
 
         if (!ModuleDashboardBuilder.instance) {

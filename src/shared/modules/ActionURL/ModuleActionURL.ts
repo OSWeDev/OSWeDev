@@ -17,6 +17,7 @@ export default class ModuleActionURL extends Module {
 
     public static APINAME_action_url: string = "action_url";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleActionURL {
         if (!ModuleActionURL.instance) {
             ModuleActionURL.instance = new ModuleActionURL();

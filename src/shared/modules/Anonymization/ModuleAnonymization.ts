@@ -14,6 +14,7 @@ export default class ModuleAnonymization extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAnonymization.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnonymization.MODULE_NAME + ".BO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnonymization {
         if (!ModuleAnonymization.instance) {
             ModuleAnonymization.instance = new ModuleAnonymization();

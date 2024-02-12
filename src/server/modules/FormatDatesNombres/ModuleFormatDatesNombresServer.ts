@@ -5,6 +5,7 @@ import ModuleServerBase from "../ModuleServerBase";
 
 export default class ModuleFormatDatesNombresServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFormatDatesNombresServer {
         if (!ModuleFormatDatesNombresServer.instance) {
             ModuleFormatDatesNombresServer.instance = new ModuleFormatDatesNombresServer();

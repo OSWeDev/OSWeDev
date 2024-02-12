@@ -11,6 +11,7 @@ import VarDayPrctAtteinteSeuilAnimationController from "../vars/VarDayPrctAttein
  */
 export default class UQRsRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): UQRsRangesDatasourceController {
         if (!UQRsRangesDatasourceController.instance) {
             UQRsRangesDatasourceController.instance = new UQRsRangesDatasourceController(

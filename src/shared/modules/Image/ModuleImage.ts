@@ -13,6 +13,7 @@ export default class ModuleImage extends Module {
 
     public static IMAGES_ROOT: string = './images/';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleImage {
         if (!ModuleImage.instance) {
             ModuleImage.instance = new ModuleImage();

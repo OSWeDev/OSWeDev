@@ -14,6 +14,7 @@ export interface IOnPageTranslationState {
 
 export default class OnPageTranslationStore implements IStoreModule<IOnPageTranslationState, OnPageTranslationContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): OnPageTranslationStore {
         if (!OnPageTranslationStore.instance) {
             OnPageTranslationStore.instance = new OnPageTranslationStore();

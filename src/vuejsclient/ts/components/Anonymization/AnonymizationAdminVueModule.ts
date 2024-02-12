@@ -8,6 +8,7 @@ import MenuController from '../menu/MenuController';
 
 export default class AnonymizationAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AnonymizationAdminVueModule {
         if (!AnonymizationAdminVueModule.instance) {
             AnonymizationAdminVueModule.instance = new AnonymizationAdminVueModule();

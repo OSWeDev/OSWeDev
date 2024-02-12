@@ -37,6 +37,7 @@ export default class ModuleDataExport extends Module {
     public static APINAME_ExportDataToMultiSheetsXLSXParamVOFile: string = 'ExportDataToMultiSheetsXLSXParamVOFile';
     public static APINAME_ExportContextQueryToXLSXParamVO: string = 'ExportContextQueryToXLSXParamVO';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDataExport {
         if (!ModuleDataExport.instance) {
             ModuleDataExport.instance = new ModuleDataExport();

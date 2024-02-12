@@ -537,6 +537,7 @@ export default class DashboardPageWidgetVOManager {
         return page_widget;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardPageWidgetVOManager {
         if (!DashboardPageWidgetVOManager.instance) {
             DashboardPageWidgetVOManager.instance = new DashboardPageWidgetVOManager();

@@ -83,6 +83,7 @@ import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch202
 
 export default abstract class GeneratorBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): GeneratorBase {
         return GeneratorBase.instance;
     }

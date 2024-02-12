@@ -315,6 +315,7 @@ export default class ContextFilterVOManager {
         return false;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ContextFilterVOManager {
         if (!ContextFilterVOManager.instance) {
             ContextFilterVOManager.instance = new ContextFilterVOManager();

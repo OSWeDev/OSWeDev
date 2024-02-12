@@ -12,6 +12,7 @@ export default class ModuleTranslationsImport extends Module {
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslationsImport.MODULE_NAME + ".BO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleTranslationsImport {
         if (!ModuleTranslationsImport.instance) {
             ModuleTranslationsImport.instance = new ModuleTranslationsImport();

@@ -15,6 +15,7 @@ export default class ModuleClient extends Module {
     public static APINAME_getInformationsClientUser: string = "getInformationsClientUser";
     public static APINAME_getClientsByUserId: string = "getClientsByUserId";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleClient {
         if (!ModuleClient.instance) {
             ModuleClient.instance = new ModuleClient();

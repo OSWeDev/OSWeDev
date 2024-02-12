@@ -29,6 +29,7 @@ import CeliaThreadWidgetOptions from './widgets/celia_thread_widget/options/Celi
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderVueModuleBase {
         if (!DashboardBuilderVueModuleBase.instance) {
             DashboardBuilderVueModuleBase.instance = new DashboardBuilderVueModuleBase();

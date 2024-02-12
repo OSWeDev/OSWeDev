@@ -7,6 +7,7 @@ import SendInBlueVO from '../../../shared/modules/SendInBlue/vos/SendInBlueVO';
 
 export default class SendInBlueServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueServerController {
         if (!SendInBlueServerController.instance) {
             SendInBlueServerController.instance = new SendInBlueServerController();

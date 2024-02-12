@@ -21,6 +21,7 @@ export default class AnimationController {
     public static OPTION_YES: number = 1;
     public static OPTION_NO: number = 2;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AnimationController {
         if (!AnimationController.instance) {
             AnimationController.instance = new AnimationController();

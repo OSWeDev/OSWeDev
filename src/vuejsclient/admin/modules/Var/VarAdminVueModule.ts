@@ -9,6 +9,7 @@ import VueAppController from '../../../VueAppController';
 export default class VarAdminVueModule extends VueModuleBase {
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarAdminVueModule {
         if (!VarAdminVueModule.instance) {
             VarAdminVueModule.instance = new VarAdminVueModule();

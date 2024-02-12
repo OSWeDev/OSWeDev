@@ -95,6 +95,7 @@ export default class VarWidgetManager {
         );
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarWidgetManager {
         if (!VarWidgetManager.instance) {
             VarWidgetManager.instance = new VarWidgetManager();

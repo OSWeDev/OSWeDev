@@ -22,6 +22,7 @@ export default class ModuleSurvey extends Module {
 
     public static APINAME_survey: string = "survey";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleSurvey {
         if (!ModuleSurvey.instance) {
             ModuleSurvey.instance = new ModuleSurvey();

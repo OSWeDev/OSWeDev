@@ -20,6 +20,7 @@ export interface IVarState {
 
 export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarStore {
         if (!VarStore.instance) {
             VarStore.instance = new VarStore();

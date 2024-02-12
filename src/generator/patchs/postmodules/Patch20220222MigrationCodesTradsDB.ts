@@ -11,6 +11,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220222MigrationCodesTradsDB implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220222MigrationCodesTradsDB {
         if (!Patch20220222MigrationCodesTradsDB.instance) {
             Patch20220222MigrationCodesTradsDB.instance = new Patch20220222MigrationCodesTradsDB();

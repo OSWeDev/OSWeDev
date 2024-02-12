@@ -29,6 +29,7 @@ export interface ISupervisionState {
 
 export default class SupervisionDashboardStore implements IStoreModule<ISupervisionState, SupervisionContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisionDashboardStore {
         if (!SupervisionDashboardStore.instance) {
             SupervisionDashboardStore.instance = new SupervisionDashboardStore();

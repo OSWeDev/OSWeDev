@@ -10,6 +10,7 @@ export default class ArrayHandler {
         return Object.keys(map_by_string);
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ArrayHandler {
         if (!ArrayHandler.instance) {
             ArrayHandler.instance = new ArrayHandler();

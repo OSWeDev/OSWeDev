@@ -24,6 +24,7 @@ import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
 
 export default class PushDataVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PushDataVueModule {
         if (!PushDataVueModule.instance) {
             PushDataVueModule.instance = new PushDataVueModule();

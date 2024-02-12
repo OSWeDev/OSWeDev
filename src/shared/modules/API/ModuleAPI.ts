@@ -2,6 +2,7 @@ import Module from '../Module';
 
 export default class ModuleAPI extends Module {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAPI {
         if (!ModuleAPI.instance) {
             ModuleAPI.instance = new ModuleAPI();

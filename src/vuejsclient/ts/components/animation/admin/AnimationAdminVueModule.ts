@@ -26,6 +26,7 @@ import ReponseReadComponent from './read_component/reponse/ReponseReadComponent'
 
 export default class AnimationAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AnimationAdminVueModule {
         if (!AnimationAdminVueModule.instance) {
             AnimationAdminVueModule.instance = new AnimationAdminVueModule();

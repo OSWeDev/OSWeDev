@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220822ChangeTypeRecurrCron implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220822ChangeTypeRecurrCron {
         if (!Patch20220822ChangeTypeRecurrCron.instance) {
             Patch20220822ChangeTypeRecurrCron.instance = new Patch20220822ChangeTypeRecurrCron();

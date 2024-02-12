@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20230512DeleteAllStats implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230512DeleteAllStats {
         if (!Patch20230512DeleteAllStats.instance) {
             Patch20230512DeleteAllStats.instance = new Patch20230512DeleteAllStats();

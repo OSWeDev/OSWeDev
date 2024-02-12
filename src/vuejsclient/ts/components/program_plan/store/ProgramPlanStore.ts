@@ -53,6 +53,7 @@ export interface IProgramPlanState {
 
 export default class ProgramPlanStore implements IStoreModule<IProgramPlanState, ProgramPlanContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ProgramPlanStore {
         if (!ProgramPlanStore.instance) {
             ProgramPlanStore.instance = new ProgramPlanStore();

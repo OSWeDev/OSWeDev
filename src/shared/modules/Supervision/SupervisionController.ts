@@ -48,6 +48,7 @@ export default class SupervisionController {
         [SupervisionController.STATE_UNKOWN]: 'supervision.STATE_UNKOWN',
     };
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisionController {
         if (!SupervisionController.instance) {
             SupervisionController.instance = new SupervisionController();

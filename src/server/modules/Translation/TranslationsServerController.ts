@@ -1,6 +1,7 @@
 
 export default class TranslationsServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TranslationsServerController {
         if (!TranslationsServerController.instance) {
             TranslationsServerController.instance = new TranslationsServerController();

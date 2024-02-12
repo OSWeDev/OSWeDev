@@ -16,6 +16,7 @@ export default class ModuleAjaxCache extends Module {
 
     public static APINAME_REQUESTS_WRAPPER: string = "REQUESTS_WRAPPER";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAjaxCache {
         if (!ModuleAjaxCache.instance) {
             ModuleAjaxCache.instance = new ModuleAjaxCache();

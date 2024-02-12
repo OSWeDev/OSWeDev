@@ -555,10 +555,11 @@ export default abstract class ServerBase {
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
 
-            let url = decodeURIComponent(req.path);
+            let url = path.normalize(decodeURIComponent(req.path));
+            let normalized = path.resolve('./dist' + url);
 
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            if (!fs.existsSync(path.resolve('./dist' + url))) {
+            if ((!normalized.startsWith("./dist")) || !fs.existsSync(normalized)) {
                 StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
 
                 const uid = req.session ? req.session.uid : null;
@@ -576,7 +577,7 @@ export default abstract class ServerBase {
                 return;
             }
 
-            res.sendFile(path.resolve('./dist' + url));
+            res.sendFile(normalized);
         });
 
         // Le service de push

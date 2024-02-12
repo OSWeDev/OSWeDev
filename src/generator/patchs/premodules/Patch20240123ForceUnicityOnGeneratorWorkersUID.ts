@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20240123ForceUnicityOnGeneratorWorkersUID implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20240123ForceUnicityOnGeneratorWorkersUID {
         if (!Patch20240123ForceUnicityOnGeneratorWorkersUID.instance) {
             Patch20240123ForceUnicityOnGeneratorWorkersUID.instance = new Patch20240123ForceUnicityOnGeneratorWorkersUID();

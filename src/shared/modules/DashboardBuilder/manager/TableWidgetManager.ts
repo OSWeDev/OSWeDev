@@ -838,6 +838,7 @@ export default class TableWidgetManager {
         return columns_by_field_id;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TableWidgetManager {
         if (!TableWidgetManager.instance) {
             TableWidgetManager.instance = new TableWidgetManager();

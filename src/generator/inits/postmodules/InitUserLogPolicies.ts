@@ -13,6 +13,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 
 export default class InitUserLogPolicies implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): InitUserLogPolicies {
         if (!InitUserLogPolicies.instance) {
             InitUserLogPolicies.instance = new InitUserLogPolicies();

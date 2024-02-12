@@ -9,6 +9,7 @@ import MenuController from '../menu/MenuController';
 
 export default class NFCConnectAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): NFCConnectAdminVueModule {
         if (!NFCConnectAdminVueModule.instance) {
             NFCConnectAdminVueModule.instance = new NFCConnectAdminVueModule();

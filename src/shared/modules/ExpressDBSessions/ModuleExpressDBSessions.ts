@@ -7,6 +7,7 @@ export default class ModuleExpressDBSessions extends Module {
 
     public static MODULE_NAME: string = "ExpressDBSessions";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleExpressDBSessions {
         if (!ModuleExpressDBSessions.instance) {
             ModuleExpressDBSessions.instance = new ModuleExpressDBSessions();

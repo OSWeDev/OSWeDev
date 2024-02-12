@@ -28,6 +28,7 @@ export default class ModuleMailer extends Module {
     public static APINAME_prepareHTML: string = "prepare_html";
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleMailer {
         if (!ModuleMailer.instance) {
             ModuleMailer.instance = new ModuleMailer();

@@ -49,6 +49,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_build_select_query: string = "build_select_query";
     public static APINAME_build_select_query_str: string = "build_select_query_str";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
             ModuleContextFilter.instance = new ModuleContextFilter();

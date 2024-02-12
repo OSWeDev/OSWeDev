@@ -76,6 +76,7 @@ export default class ModuleDataImport extends Module {
 
     public static IMPORT_TABLE_PREFIX: string = '_i_';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDataImport {
         if (!ModuleDataImport.instance) {
             ModuleDataImport.instance = new ModuleDataImport();

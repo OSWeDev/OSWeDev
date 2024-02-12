@@ -8,6 +8,7 @@ import AnimationReponseVO from './vos/AnimationReponseVO';
 
 export default class ReponseTableFieldTypeController extends TableFieldTypeControllerBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ReponseTableFieldTypeController {
         if (!ReponseTableFieldTypeController.instance) {
             ReponseTableFieldTypeController.instance = new ReponseTableFieldTypeController();

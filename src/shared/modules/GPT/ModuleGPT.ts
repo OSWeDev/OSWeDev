@@ -40,6 +40,7 @@ export default class ModuleGPT extends Module {
 
     public static POLICY_ASSISTANT_FILES_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ASSISTANT_FILES_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleGPT {
         if (!ModuleGPT.instance) {
             ModuleGPT.instance = new ModuleGPT();

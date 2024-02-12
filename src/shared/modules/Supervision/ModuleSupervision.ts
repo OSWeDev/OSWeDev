@@ -22,6 +22,7 @@ export default class ModuleSupervision extends Module {
     public static APINAME_execute_manually: string = 'execute_manually';
     public static APINAME_refresh_one_manually: string = 'refresh_one_manually';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleSupervision {
         if (!ModuleSupervision.instance) {
             ModuleSupervision.instance = new ModuleSupervision();

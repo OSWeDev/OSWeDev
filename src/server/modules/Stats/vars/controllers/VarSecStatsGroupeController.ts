@@ -17,6 +17,7 @@ import StatsGroupeDatasourceController from '../datasources/StatsGroupeDatasourc
 
 export default class VarSecStatsGroupeController extends VarServerControllerBase<StatsGroupSecDataRangesVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarSecStatsGroupeController {
         if (!VarSecStatsGroupeController.instance) {
             VarSecStatsGroupeController.instance = new VarSecStatsGroupeController();

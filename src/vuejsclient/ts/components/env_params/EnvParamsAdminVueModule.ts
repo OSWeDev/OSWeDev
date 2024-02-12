@@ -7,6 +7,7 @@ import MenuController from '../menu/MenuController';
 
 export default class EnvParamsAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): EnvParamsAdminVueModule {
         if (!EnvParamsAdminVueModule.instance) {
             EnvParamsAdminVueModule.instance = new EnvParamsAdminVueModule();

@@ -14,6 +14,7 @@ export default class ModulesManager {
 
     public static MODULE_PARAM_TABLE_PREFIX: string = "module_";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulesManager {
         if (!ModulesManager.instance) {
             ModulesManager.instance = new ModulesManager();

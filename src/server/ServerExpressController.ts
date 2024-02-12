@@ -7,6 +7,7 @@ import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class ServerExpressController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ServerExpressController {
         if (!ServerExpressController.instance) {
             ServerExpressController.instance = new ServerExpressController();

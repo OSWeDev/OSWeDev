@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231120AddUniqCronPlanificationUID implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231120AddUniqCronPlanificationUID {
         if (!Patch20231120AddUniqCronPlanificationUID.instance) {
             Patch20231120AddUniqCronPlanificationUID.instance = new Patch20231120AddUniqCronPlanificationUID();
