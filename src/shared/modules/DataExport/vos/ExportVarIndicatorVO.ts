@@ -6,7 +6,7 @@ import ExportVarcolumnConfVO from "./ExportVarcolumnConfVO";
  */
 export default class ExportVarIndicatorVO implements IDistantVOBase {
 
-    public static API_TYPE_ID: string = "export_varcolumn_conf";
+    public static API_TYPE_ID: string = "export_var_indicator";
 
     public static create_new(
         ordered_column_list: string[],
