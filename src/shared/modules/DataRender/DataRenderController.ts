@@ -7,6 +7,7 @@ import TypesHandler from '../../tools/TypesHandler';
 
 export default class DataRenderController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DataRenderController {
         if (!DataRenderController.instance) {
             DataRenderController.instance = new DataRenderController();

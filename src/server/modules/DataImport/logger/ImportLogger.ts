@@ -9,6 +9,7 @@ import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
 export default class ImportLogger {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ImportLogger {
         if (!ImportLogger.instance) {
             ImportLogger.instance = new ImportLogger();

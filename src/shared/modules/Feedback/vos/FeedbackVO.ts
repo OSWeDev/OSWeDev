@@ -66,6 +66,11 @@ export default class FeedbackVO implements IVersionedVO {
     // Every console_logs we could get
     public console_logs: string[];
 
+    /**
+     * Le mail de confirmation de dépôt du feedback
+     */
+    public confirmation_mail_id: number;
+
     public wish_be_called: boolean;
     public preferred_times_called: string;
 

@@ -8,6 +8,7 @@ import MenuController from '../menu/MenuController';
 
 export default class ImageAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ImageAdminVueModule {
         if (!ImageAdminVueModule.instance) {
             ImageAdminVueModule.instance = new ImageAdminVueModule();

@@ -6,6 +6,7 @@ import FakeDataVO from '../vos/FakeDataVO';
 
 export default class FakeEVarController extends VarServerControllerBase<FakeDataVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeEVarController {
         if (!FakeEVarController.instance) {
             FakeEVarController.instance = new FakeEVarController();

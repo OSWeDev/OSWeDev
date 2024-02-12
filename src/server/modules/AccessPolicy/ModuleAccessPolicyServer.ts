@@ -60,6 +60,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -974,6 +975,38 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID, this.BEGIN_RECOVER_UID.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID, this.BEGIN_RECOVER_SMS_UID.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_NAME, this.get_avatar_name.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_AVATAR_URL, this.get_avatar_url.bind(this));
+    }
+
+    public async get_avatar_name(uid: number): Promise<string> {
+        if (!uid) {
+            return null;
+        }
+
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+        if (!user) {
+            return null;
+        }
+
+        return user.name;
+    }
+
+    public async get_avatar_url(uid: number): Promise<string> {
+        if (!uid) {
+            return null;
+        }
+
+        return '/vuejsclient/public/img/avatars/unknown.png';
+        // TODO
+        // let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+
+        // if (!user) {
+        //     return null;
+        // }
+
+        // return user.avatar_url;
     }
 
     public async logout() {
@@ -2223,9 +2256,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async send_session_share_email(mail_category: string, url: string, email: string) {
+    private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
         let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
-        await SendInBlueMailServerController.getInstance().sendWithTemplate(
+        return await SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),
             SEND_IN_BLUE_TEMPLATE_ID,
@@ -2243,7 +2276,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'session_share');
     }
 
-    private get_my_sid(res: Response) {
+    private get_my_sid(req: Request, res: Response) {
         // let session = StackContext.get('SESSION');
         // if (!session) {
         //     return null;

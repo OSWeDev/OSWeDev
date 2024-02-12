@@ -6,6 +6,7 @@ import DataSourceControllerMatroidIndexedBase from "../../../Var/datasource/Data
 
 export default class LastUserLogCSRFTSDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): LastUserLogCSRFTSDatasourceController {
         if (!LastUserLogCSRFTSDatasourceController.instance) {
             LastUserLogCSRFTSDatasourceController.instance = new LastUserLogCSRFTSDatasourceController(

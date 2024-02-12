@@ -81,6 +81,7 @@ export default class DashboardBuilderBoardManager {
         };
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderBoardManager {
         if (!DashboardBuilderBoardManager.instance) {
             DashboardBuilderBoardManager.instance = new DashboardBuilderBoardManager();

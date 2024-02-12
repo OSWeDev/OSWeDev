@@ -12,6 +12,7 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
 
 export default class ActionURLServerTools extends ModuleServerBase {
 
@@ -19,12 +20,12 @@ export default class ActionURLServerTools extends ModuleServerBase {
 
     public static get_unique_code_from_text(text: string): string {
         let this_uid = ActionURLServerTools.UID++;
-        let tsms = Dates.now_ms();
+        let tsms = Math.round(Dates.now_ms());
         return createHash('sha256').update(text + this_uid).digest('hex') + tsms.toString() + this_uid.toString();
     }
 
-    public static get_action_full_url(action_url: ActionURLVO): string {
-        return ConfigurationService.node_configuration.BASE_URL + 'api_handler/action_url/' + action_url.action_code;
+    public static get_action_full_url(action_url: ActionURLVO, do_not_redirect: boolean = false): string {
+        return ConfigurationService.node_configuration.BASE_URL + 'api_handler/action_url/' + action_url.action_code + '/' + (do_not_redirect ? 'true' : 'false');
     }
 
     public static async add_right_for_admins_on_action_url(action_url: ActionURLVO) {
@@ -47,4 +48,71 @@ export default class ActionURLServerTools extends ModuleServerBase {
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(vos);
     }
 
+    public static create_error_cr(action_url: ActionURLVO, translatable_cr_title: string, translatable_cr_title_params_json: string = null, cr_translatable_text: string = null, translatable_cr_content_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_ERROR;
+
+        res.translatable_cr_title = translatable_cr_title;
+        res.translatable_cr_title_params_json = translatable_cr_title_params_json;
+
+        res.translatable_cr_content = cr_translatable_text;
+        res.translatable_cr_content_params_json = translatable_cr_content_params_json;
+
+        res.ts = Dates.now();
+
+        return res;
+    }
+
+    public static create_info_cr(action_url: ActionURLVO, translatable_cr_title: string, translatable_cr_title_params_json: string = null, cr_translatable_text: string = null, translatable_cr_content_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_INFO;
+
+        res.translatable_cr_title = translatable_cr_title;
+        res.translatable_cr_title_params_json = translatable_cr_title_params_json;
+
+        res.translatable_cr_content = cr_translatable_text;
+        res.translatable_cr_content_params_json = translatable_cr_content_params_json;
+
+        res.ts = Dates.now();
+
+        return res;
+    }
+
+    public static create_warn_cr(action_url: ActionURLVO, translatable_cr_title: string, translatable_cr_title_params_json: string = null, cr_translatable_text: string = null, translatable_cr_content_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_WARNING;
+
+        res.translatable_cr_title = translatable_cr_title;
+        res.translatable_cr_title_params_json = translatable_cr_title_params_json;
+
+        res.translatable_cr_content = cr_translatable_text;
+        res.translatable_cr_content_params_json = translatable_cr_content_params_json;
+
+        res.ts = Dates.now();
+
+        return res;
+    }
+
+    public static create_success_cr(action_url: ActionURLVO, translatable_cr_title: string, translatable_cr_title_params_json: string = null, cr_translatable_text: string = null, translatable_cr_content_params_json: string = null): ActionURLCRVO {
+        let res: ActionURLCRVO = new ActionURLCRVO();
+
+        res.action_url_id = action_url.id;
+        res.cr_type = ActionURLCRVO.CR_TYPE_SUCCESS;
+
+        res.translatable_cr_title = translatable_cr_title;
+        res.translatable_cr_title_params_json = translatable_cr_title_params_json;
+
+        res.translatable_cr_content = cr_translatable_text;
+        res.translatable_cr_content_params_json = translatable_cr_content_params_json;
+
+        res.ts = Dates.now();
+
+        return res;
+    }
 }

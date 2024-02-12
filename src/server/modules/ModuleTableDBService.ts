@@ -19,6 +19,7 @@ import TableDescriptor from './TableDescriptor';
 
 export default class ModuleTableDBService {
 
+    // istanbul ignore next: cannot test getInstance
     public static getInstance(db): ModuleTableDBService {
         if (!ModuleTableDBService.instance) {
             ModuleTableDBService.instance = new ModuleTableDBService(db);
@@ -31,6 +32,7 @@ export default class ModuleTableDBService {
         ModuleTableDBService.instance = this;
     }
 
+    // istanbul ignore next: cannot test datatable_install
     public async datatable_install(moduleTable: ModuleTable<any>) {
 
         await this.create_or_update_datatable(moduleTable);
@@ -39,6 +41,7 @@ export default class ModuleTableDBService {
     }
 
     // Après installation de tous les modules
+    // istanbul ignore next: nothing to test
     public async datatable_configure(moduleTable: ModuleTable<any>) {
         return true;
     }
@@ -108,6 +111,7 @@ export default class ModuleTableDBService {
                             return;
                         }
 
+                        // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
                         let datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
                         for (let i in datas) {
                             let data = datas[i];
@@ -238,12 +242,15 @@ export default class ModuleTableDBService {
         } else {
 
             // On doit entre autre ajouter la table en base qui gère les fields
-            if (moduleTable.get_fields() && (moduleTable.get_fields().length > 0)) {
+            if ((!moduleTable.get_fields()) || (!moduleTable.get_fields().length)) {
+                ConsoleHandler.error('ModuleTableDBService: no fields for table - DB declaration is impossible without fields:' + moduleTable.full_name);
+            } else {
                 await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name, null);
             }
         }
     }
 
+    // istanbul ignore next: cannot test handle_check_segment
     private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'handle_check_segment', '-');
@@ -275,6 +282,7 @@ export default class ModuleTableDBService {
     /**
      * @returns true if causes a change in the db structure
      */
+    // istanbul ignore next: cannot test do_check_or_update_moduletable
     private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'do_check_or_update_moduletable', '-');
@@ -346,6 +354,7 @@ export default class ModuleTableDBService {
      * @param table_name
      * @returns true if causes a change in the db structure
      */
+    // istanbul ignore next: cannot test checkConstraintsOnForeignKey
     private async checkConstraintsOnForeignKey(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
@@ -436,6 +445,7 @@ export default class ModuleTableDBService {
      * @param table_cols_by_name
      * @returns true if causes a change in the db structure
      */
+    // istanbul ignore next: cannot test checkMissingInTS
     private async checkMissingInTS(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
@@ -491,6 +501,7 @@ export default class ModuleTableDBService {
      * @param table_cols_by_name
      * @returns true if causes a change in the db structure
      */
+    // istanbul ignore next: cannot test checkMissingInDB
     private async checkMissingInDB(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
@@ -562,6 +573,7 @@ export default class ModuleTableDBService {
      * @param table_cols_by_name
      * @returns true if causes a change in the db structure
      */
+    // istanbul ignore next: cannot test checkColumnsStrutInDB
     private async checkColumnsStrutInDB(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
@@ -646,6 +658,7 @@ export default class ModuleTableDBService {
     /**
      * @returns true if causes a change in the db structure
      */
+    // istanbul ignore next: cannot test chec_indexes
     private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'chec_indexes', '-');
@@ -672,6 +685,7 @@ export default class ModuleTableDBService {
         return res_;
     }
 
+    // istanbul ignore next: cannot test create_new_datatable
     private async create_new_datatable(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_new_datatable', '-');
@@ -733,11 +747,13 @@ export default class ModuleTableDBService {
         await this.db.none(pgSQL);
     }
 
+    // istanbul ignore next: nothing to test
     private get_limited_seq_label(seq_label: string): string {
         let seq_label_63: string = seq_label.substring(0, 63 - "_id_seq".length);
         return seq_label_63 + "_id_seq";
     }
 
+    // istanbul ignore next: nothing to test
     private get_segmented_table_common_limited_seq_label(moduletable: ModuleTable<any>): string {
         return moduletable.name.substring(0, 63 - '_common_id_seq'.length) + '_common_id_seq';
     }

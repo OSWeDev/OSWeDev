@@ -16,6 +16,7 @@ import VueAppController from '../../../../VueAppController';
 export default class TranslationAdminVueModule extends VueModuleBase {
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TranslationAdminVueModule {
         if (!TranslationAdminVueModule.instance) {
             TranslationAdminVueModule.instance = new TranslationAdminVueModule();

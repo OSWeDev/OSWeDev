@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20211004ChangeLang implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20211004ChangeLang {
         if (!Patch20211004ChangeLang.instance) {
             Patch20211004ChangeLang.instance = new Patch20211004ChangeLang();

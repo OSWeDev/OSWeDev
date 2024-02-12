@@ -98,7 +98,7 @@ export default class CronServerController {
 
         try {
 
-            let plannedWorkers: CronWorkerPlanification[] = await query(CronWorkerPlanification.API_TYPE_ID).select_vos<CronWorkerPlanification>();
+            let plannedWorkers: CronWorkerPlanification[] = await query(CronWorkerPlanification.API_TYPE_ID).exec_as_server().select_vos<CronWorkerPlanification>();
 
             if (plannedWorkers) {
                 plannedWorkers = plannedWorkers.sort((a: CronWorkerPlanification, b: CronWorkerPlanification) => {

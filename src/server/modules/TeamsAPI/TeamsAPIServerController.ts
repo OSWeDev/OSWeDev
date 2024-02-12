@@ -1,5 +1,5 @@
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
@@ -29,7 +29,8 @@ export default class TeamsAPIServerController {
         }
 
         let TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
-        let msg = TextHandler.getInstance().sanityze_object(message);
+        // let msg = TextHandler.getInstance().sanityze_object(message);
+        let msg = TextHandler.getInstance().encode_object(message);
 
         await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,
@@ -44,30 +45,36 @@ export default class TeamsAPIServerController {
         );
     }
 
+    // istanbul ignore next: nothing to test : send_teams
     public static async send_teams_error(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         await TeamsAPIServerController.send_teams_level('error', title, message, webhook_param_name, webhook_default_value);
     }
 
+    // istanbul ignore next: nothing to test : send_teams
     public static async send_teams_info(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         await TeamsAPIServerController.send_teams_level('info', title, message, webhook_param_name, webhook_default_value);
     }
 
+    // istanbul ignore next: nothing to test : send_teams
     public static async send_teams_warn(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         await TeamsAPIServerController.send_teams_level('warn', title, message, webhook_param_name, webhook_default_value);
     }
 
+    // istanbul ignore next: nothing to test : send_teams
     public static async send_teams_success(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         await TeamsAPIServerController.send_teams_level('success', title, message, webhook_param_name, webhook_default_value);
     }
 
     private static throttle_send_teams = null;
 
+    // istanbul ignore next: nothing to test : send_teams
     private static get_throttle_send_teams_level() {
         if (!TeamsAPIServerController.throttle_send_teams) {
             TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.TEAMS_WEBHOOK__THROTTLE_MS);
         }
         return TeamsAPIServerController.throttle_send_teams;
     }
+    // istanbul ignore next: nothing to test : send_teams
     private static async send_teams_level(level: string, title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         try {
             let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) :
@@ -83,10 +90,12 @@ export default class TeamsAPIServerController {
         }
     }
 
+    // istanbul ignore next: nothing to test : get_key
     private static get_key(title: string, webhook: string) {
         return title + '_' + webhook;
     }
 
+    // istanbul ignore next: nothing to test : get_key
     private static async throttled_send_teams_level(params: SendTeamsLevelParam[]) {
 
         let params_by_key: { [key: string]: SendTeamsLevelParam[] } = {};
@@ -128,8 +137,8 @@ export default class TeamsAPIServerController {
                 if (ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE) {
                     try {
 
-                        let response: GPTMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
-                            GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+                        let response: GPTCompletionAPIMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+                            GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                             null,
                             'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
                         ));

@@ -4,6 +4,7 @@ import ConsoleLog from './ConsoleLog';
 
 export default class ConsoleLogLogger {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ConsoleLogLogger {
         if (!ConsoleLogLogger.instance) {
             ConsoleLogLogger.instance = new ConsoleLogLogger();

@@ -4,6 +4,7 @@ import StatsUnstackerBGThread from './bgthreads/StatsUnstackerBGThread';
 
 export default class StatsServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): StatsServerController {
         if (!StatsServerController.instance) {
             StatsServerController.instance = new StatsServerController();

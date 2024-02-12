@@ -11,6 +11,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
     public static SEPARATOR: string = ' - ';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FileLoggerHandler {
         if (!FileLoggerHandler.instance) {
             FileLoggerHandler.instance = new FileLoggerHandler();

@@ -122,4 +122,51 @@ export default class DashboardPageFieldFiltersVOManager {
             field_filters: ObjectHandler.sort_by_key(field_filters),
         });
     }
+
+    /**
+     * merge_all_dashboard_pages_field_filters
+     * - Merge all given dashboard_pages_field_filters_map
+     * - This method is used to create the single dashboard_pages_field_filters
+     *   by combining (INTERSECTION) all dashboard_pages_field_filters_map
+     *
+     * @param {DashboardPageFieldFiltersVO[]} dashboard_pages_field_filters_map
+     * @returns {DashboardPageFieldFiltersVO}
+     */
+    public static get_INTERSECTION_all_dashboard_pages_field_filters(
+        dashboard_pages_field_filters_map: DashboardPageFieldFiltersVO[]
+    ): DashboardPageFieldFiltersVO {
+
+        if (!dashboard_pages_field_filters_map || !dashboard_pages_field_filters_map.length) {
+            return null;
+        }
+
+        let readable_field_filters: { [label: string]: IReadableFieldFilters } = Object.assign({}, dashboard_pages_field_filters_map[0].readable_field_filters);
+        let field_filters: FieldFiltersVO = Object.assign({}, dashboard_pages_field_filters_map[0].field_filters);
+
+        for (let i in dashboard_pages_field_filters_map) {
+            if (i == '0') {
+                continue;
+            }
+
+            const field_filters_metadata = dashboard_pages_field_filters_map[i];
+
+            field_filters = FieldFiltersVOManager.get_INTERSECTION_field_filters(
+                field_filters,
+                field_filters_metadata.field_filters
+            ) as FieldFiltersVO;
+
+            readable_field_filters = FieldFiltersVOManager.get_INTERSECTION_field_filters(
+                readable_field_filters,
+                field_filters_metadata.readable_field_filters
+            ) as { [label: string]: IReadableFieldFilters };
+        }
+
+        return new DashboardPageFieldFiltersVO().from({
+            readable_field_filters: ObjectHandler.sort_by_key(readable_field_filters),
+            field_filters: ObjectHandler.sort_by_key(field_filters),
+        });
+    }
+
+
+
 }

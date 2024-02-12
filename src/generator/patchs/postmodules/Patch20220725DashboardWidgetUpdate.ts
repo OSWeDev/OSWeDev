@@ -9,6 +9,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220725DashboardWidgetUpdate implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220725DashboardWidgetUpdate {
         if (!Patch20220725DashboardWidgetUpdate.instance) {
             Patch20220725DashboardWidgetUpdate.instance = new Patch20220725DashboardWidgetUpdate();

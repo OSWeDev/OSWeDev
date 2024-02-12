@@ -7,6 +7,7 @@ import MenuController from '../menu/MenuController';
 
 export default class MenuAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): MenuAdminVueModule {
         if (!MenuAdminVueModule.instance) {
             MenuAdminVueModule.instance = new MenuAdminVueModule();

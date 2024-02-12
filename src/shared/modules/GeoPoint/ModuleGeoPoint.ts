@@ -12,6 +12,7 @@ export default class ModuleGeoPoint extends Module {
     public static METHOD_GET: string = "GET";
     public static METHOD_POST: string = "POST";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleGeoPoint {
         if (!ModuleGeoPoint.instance) {
             ModuleGeoPoint.instance = new ModuleGeoPoint();

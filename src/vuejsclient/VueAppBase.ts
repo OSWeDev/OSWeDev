@@ -1,10 +1,10 @@
 import VueFlags from "@growthbunker/vueflags";
-import $ from 'jquery';
 import 'bootstrap';
+import $ from 'jquery';
 import moment from 'moment';
 
+import { ColorPanel, ColorPicker } from 'one-colorpicker';
 import 'select2';
-import { quillEditor } from 'vue-quill-editor';
 import VCalendar from 'v-calendar';
 import 'v-calendar/lib/v-calendar.min.css';
 import VTooltip from 'v-tooltip';
@@ -16,7 +16,7 @@ import VModal from 'vue-js-modal';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
-import { ColorPicker, ColorPanel } from 'one-colorpicker';
+import { quillEditor } from 'vue-quill-editor';
 import VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
 import { RouteConfig } from 'vue-router/types/router';
@@ -26,38 +26,36 @@ import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
-import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
+import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 import Module from '../shared/modules/Module';
-import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
+import ModulesManager from '../shared/modules/ModulesManager';
+import StatsController from "../shared/modules/Stats/StatsController";
 import VOsTypesManager from "../shared/modules/VO/manager/VOsTypesManager";
+import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
+import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
+import { all_promises } from "../shared/tools/PromiseTools";
+import VueAppController from './VueAppController';
 import PWAController from "./public/pwa/PWAController";
+import VarsClientController from "./ts/components/Var/VarsClientController";
+import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
+import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDirective";
+import VueComponentBase from './ts/components/VueComponentBase';
 import AlertComponent from './ts/components/alert/AlertComponent';
+import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 import DroppableVoFieldsController from "./ts/components/dashboard_builder/droppable_vo_fields/DroppableVoFieldsController";
 import DocumentStore from './ts/components/document_handler/store/DocumentStore';
 import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
 import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
-import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
-import VueComponentBase from './ts/components/VueComponentBase';
-import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 import IVueModule from './ts/modules/IVueModule';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
+import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
-import VueAppController from './VueAppController';
-import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDirective";
-import VarsClientController from "./ts/components/Var/VarsClientController";
-import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
-import ConsoleHandler from "../shared/tools/ConsoleHandler";
-import { all_promises } from "../shared/tools/PromiseTools";
-import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
-import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
-import StatsController from "../shared/modules/Stats/StatsController";
-import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 require('moment-json-parser').overrideDefault();
 
 // const loadComponent = async (component) => {
@@ -74,6 +72,7 @@ export default abstract class VueAppBase {
 
     public static instance_: VueAppBase;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VueAppBase {
         return this.instance_;
     }
@@ -91,7 +90,6 @@ export default abstract class VueAppBase {
     public async runApp() {
 
         ConsoleHandler.init();
-        ModuleAjaxCache.getInstance().setClientController(AjaxCacheClientController.getInstance());
 
         // Chargement des données des modules.
         await this.initializeModulesDatas();
@@ -307,6 +305,15 @@ export default abstract class VueAppBase {
             path: '/me',
             name: 'MyAccount',
             component: () => import('./login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
+        });
+
+        routerOptions.routes.push({
+            path: '/action_url_cr/:action_url_id',
+            name: 'ActionURLCR',
+            component: () => import('./ts/components/action_url_cr/ActionURLCRComponent'),
+            props: (route) => ({
+                action_url_id: route.params.action_url_id,
+            })
         });
 
         routerOptions.routes.push({

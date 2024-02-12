@@ -1,6 +1,7 @@
 
 export default class TemplateHandlerClient {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TemplateHandlerClient {
         if (!TemplateHandlerClient.instance) {
             TemplateHandlerClient.instance = new TemplateHandlerClient();

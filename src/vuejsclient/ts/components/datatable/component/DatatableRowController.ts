@@ -19,6 +19,7 @@ export default class DatatableRowController {
 
     public static cb_file_download: { [vo_type: string]: { [field_id: string]: (vo_id: number) => Promise<void> } } = {};
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DatatableRowController {
         if (!DatatableRowController.instance) {
             DatatableRowController.instance = new DatatableRowController();

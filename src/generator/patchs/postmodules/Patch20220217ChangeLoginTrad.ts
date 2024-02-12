@@ -8,6 +8,7 @@ import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class Patch20220217ChangeLoginTrad implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220217ChangeLoginTrad {
         if (!Patch20220217ChangeLoginTrad.instance) {
             Patch20220217ChangeLoginTrad.instance = new Patch20220217ChangeLoginTrad();

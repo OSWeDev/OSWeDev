@@ -4,6 +4,7 @@ export default class ModuleAlert extends Module {
 
     public static MODULE_NAME: string = "Alert";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAlert {
         if (!ModuleAlert.instance) {
             ModuleAlert.instance = new ModuleAlert();

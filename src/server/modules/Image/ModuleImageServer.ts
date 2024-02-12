@@ -12,6 +12,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleImageServer extends ModuleFileServerBase<ImageVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleImageServer {
         if (!ModuleImageServer.instance) {
             ModuleImageServer.instance = new ModuleImageServer();

@@ -139,10 +139,11 @@
                                                                 span {{ label('dashboard_builder.shared_filters.field_filters_does_no_exist_in_dashboard') }} : {{ dashboard_label(dashboard) }}
                   
                 .modal-footer
-                    template(v-if="!shared_filters?.id")
-                        a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}
-                    template(v-if="shared_filters?.id")
-                        a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.update') }}
+                    template(v-if='active_tab_view == "field_filters_selection_tab"')
+                        template(v-if="!shared_filters?.id")
+                            a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}
+                        template(v-if="shared_filters?.id")
+                            a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.update') }}
                     template(v-if="shared_filters?.id")
                         a.btn.btn-danger(@click='handle_delete') {{ label('crud.update.modal.delete') }}
                     a.btn.btn-default(data-dismiss="modal" @click='handle_close_modal') {{ label('crud.update.modal.cancel') }}

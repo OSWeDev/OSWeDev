@@ -12,6 +12,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class CreateDefaultRobotUserAccount implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CreateDefaultRobotUserAccount {
         if (!CreateDefaultRobotUserAccount.instance) {
             CreateDefaultRobotUserAccount.instance = new CreateDefaultRobotUserAccount();

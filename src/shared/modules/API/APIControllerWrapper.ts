@@ -25,6 +25,7 @@ export default class APIControllerWrapper {
      * ----- Local thread cache
      */
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): APIControllerWrapper {
         if (!APIControllerWrapper.instance) {
             APIControllerWrapper.instance = new APIControllerWrapper();

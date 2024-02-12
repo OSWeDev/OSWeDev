@@ -22,8 +22,14 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
+import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
+import { SnotifyToast } from 'vue-snotify';
 
 export default class CRUDFormServices {
+
+    // Pour éviter de mettre 15 snotifys pour un seul formulaire par exemple
+    public static update_ok_snotify_toast: SnotifyToast = null;
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -361,7 +367,26 @@ export default class CRUDFormServices {
                 }
 
                 let field: OneToManyReferenceDatatableFieldVO<any> = datatable.fields[i] as OneToManyReferenceDatatableFieldVO<any>;
-                let actual_links: IDistantVOBase[] = await query(field.targetModuleTable.vo_type).filter_by_num_eq(field.destField.field_id, db_vo.id).select_vos<IDistantVOBase>();
+
+                let q = query(field.targetModuleTable.vo_type);
+
+                switch (field.destField.field_type) {
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                        q.filter_by_num_eq(
+                            field.destField.field_id,
+                            db_vo.id);
+                        break;
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        q.filter_by_num_x_ranges(
+                            field.destField.field_id,
+                            [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)]);
+                        break;
+                    default:
+                        throw new Error('Type de champ non géré');
+                }
+                let actual_links: IDistantVOBase[] = await q.select_vos<IDistantVOBase>();
                 let new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 
                 let need_update_links: IDistantVOBase[] = [];
@@ -386,8 +411,19 @@ export default class CRUDFormServices {
                         if ((!getStoredDatas[field.targetModuleTable.vo_type]) || (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
                             continue;
                         }
-                        getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
-                        need_update_links.push(getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+
+                        if (field.destField.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+                            if (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
+                                getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
+                            }
+                            if (!RangeHandler.elt_intersects_any_range(db_vo.id, getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id])) {
+                                getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id].push(RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT));
+                            }
+                            need_update_links.push(getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                        } else {
+                            getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
+                            need_update_links.push(getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                        }
                     }
                 }
 

@@ -16,6 +16,7 @@ export interface IAppMainStoreState {
 
 export default class AppMainStoreModule implements IStoreModule<IAppMainStoreState, AppMainStoreContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AppMainStoreModule {
         if (!AppMainStoreModule.instance) {
             AppMainStoreModule.instance = new AppMainStoreModule();

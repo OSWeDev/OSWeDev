@@ -7,6 +7,7 @@ import ICronWorker from '../../Cron/interfaces/ICronWorker';
  */
 export default class ExportFavoritesFiltersDatatableCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance() {
 
         if (!ExportFavoritesFiltersDatatableCronWorker.instance) {
@@ -21,10 +22,12 @@ export default class ExportFavoritesFiltersDatatableCronWorker implements ICronW
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "ExportFavoritesFiltersDatatableCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
         await ModuleDashboardBuilder.getInstance().start_export_favorites_filters_datatable();
     }

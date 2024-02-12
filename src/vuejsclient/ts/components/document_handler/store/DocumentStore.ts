@@ -13,6 +13,7 @@ export interface IDocumentState {
 
 export default class DocumentStore implements IStoreModule<IDocumentState, DocumentContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DocumentStore {
         if (!DocumentStore.instance) {
             DocumentStore.instance = new DocumentStore();

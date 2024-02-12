@@ -6,6 +6,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class Patch20220111LocalizeCRONDate implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220111LocalizeCRONDate {
         if (!Patch20220111LocalizeCRONDate.instance) {
             Patch20220111LocalizeCRONDate.instance = new Patch20220111LocalizeCRONDate();

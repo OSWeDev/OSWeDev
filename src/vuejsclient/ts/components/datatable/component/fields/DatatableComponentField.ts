@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isArray } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
@@ -26,6 +26,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -123,6 +124,17 @@ export default class DatatableComponentField extends VueComponentBase {
         }
 
         this.is_load = true;
+    }
+
+    get component_key(): string {
+        let key = this.field.datatable_field_uid + '__';
+
+        if (this.vo && this.vo.id) {
+            key += this.vo.id;
+            return key;
+        }
+
+        return key + this.vo['__crud_actions'];
     }
 
     @Watch('with_style', { immediate: true })
@@ -299,6 +311,50 @@ export default class DatatableComponentField extends VueComponentBase {
                 (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html_array)
             ) {
                 return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
+            }
+
+            if (this.field.field_type == ModuleTableField.FIELD_TYPE_translatable_text) {
+                if (!this.vo[this.field.datatable_field_uid + '__raw']) {
+                    return null;
+                }
+
+                if (!isArray(this.vo[this.field.datatable_field_uid + '__raw'])) {
+
+                    if (!!this.field.moduleTableField.translatable_params_field_id) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_id]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                        return this.label(this.vo[this.field.datatable_field_uid + '__raw'], params);
+                    } else {
+                        return this.label(this.vo[this.field.datatable_field_uid + '__raw']);
+                    }
+                }
+
+                if (this.vo[this.field.datatable_field_uid + '__raw'].length == 0) {
+                    return null;
+                }
+
+                let res = [];
+                for (let i in this.vo[this.field.datatable_field_uid + '__raw']) {
+                    let translatable_text = this.vo[this.field.datatable_field_uid + '__raw'][i];
+
+                    if (!!this.field.moduleTableField.translatable_params_field_id) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_id][i]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                        res.push(this.label(translatable_text, params));
+                    } else {
+                        res.push(this.label(translatable_text));
+                    }
+                }
+
+                return res.join(', ');
             }
         }
 

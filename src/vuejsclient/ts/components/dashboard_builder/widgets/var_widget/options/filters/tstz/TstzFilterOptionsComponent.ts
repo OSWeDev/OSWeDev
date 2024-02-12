@@ -4,6 +4,7 @@ import TimeSegment from '../../../../../../../../../shared/modules/DataRender/vo
 import ConsoleHandler from '../../../../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../../../../VueComponentBase';
 import './TstzFilterOptionsComponent.scss';
+import ObjectHandler from '../../../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./TstzFilterOptionsComponent.pug'),
@@ -30,7 +31,7 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
     private onchange_actual_additional_options() {
 
         try {
-            let options = this.actual_additional_options ? JSON.parse(this.actual_additional_options) : null;
+            let options = this.actual_additional_options ? ObjectHandler.try_get_json(this.actual_additional_options) : null;
 
             this.tmp_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
             this.onchange_inputs();

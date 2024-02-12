@@ -1,3 +1,4 @@
+import ObjectHandler from "../../../tools/ObjectHandler";
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
@@ -16,7 +17,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: TableWidgetOptionsVO = (page_widget && page_widget.json_options) ? JSON.parse(page_widget.json_options) : null;
+        let options: TableWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if (!options) {
             return res;
         }

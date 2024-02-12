@@ -4,6 +4,7 @@
  */
 export default class TableWidgetCustomFieldsController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TableWidgetCustomFieldsController {
         if (!this.instance) {
             this.instance = new TableWidgetCustomFieldsController();

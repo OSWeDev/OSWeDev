@@ -22,6 +22,7 @@ export default class ModuleFile extends Module {
 
     public static APINAME_TEST_FILE_EXISTENZ = "test_file_existenz";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFile {
         if (!ModuleFile.instance) {
             ModuleFile.instance = new ModuleFile();

@@ -10,6 +10,7 @@ import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBas
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
 
@@ -146,6 +147,7 @@ export default class VarDAGNode extends DAGNodeBase {
             throw new Error('VarDAGNode.load_from_db_if_exists :: table.is_segmented not implemented');
         }
 
+        // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
         // let res = await ModuleDAOServer.getInstance().query('select * from ' + table.full_name + ' where _bdd_only_index = $1', [index]);
 
         // // Attention aux injections...
@@ -180,6 +182,7 @@ export default class VarDAGNode extends DAGNodeBase {
             fields += ', t.' + field.field_id;
         }
 
+        // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
         // let parameterized_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(
         //     'select * from ' + table.full_name + ' where _bdd_only_index = $1',
         //     [index],
@@ -211,18 +214,22 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     private static async getInstance_semaphored(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
 
+        /**
+         * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
+         */
+        if (!MatroidController.check_bases_not_max_ranges(var_data)) {
+            ConsoleHandler.error('VarDAGNode.getInstance_semaphored:!check_bases_not_max_ranges:' + var_data.index);
+            throw new Error('VarDAGNode.getInstance_semaphored:!check_bases_not_max_ranges:' + var_data.index);
+        }
+
         if (!!var_dag.nodes[var_data.index]) {
             return var_dag.nodes[var_data.index];
         }
 
         return new Promise(async (resolve, reject) => {
 
-            /**
-             * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
-             */
-            if (!MatroidController.check_bases_not_max_ranges(var_data)) {
-                ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
-                reject('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
+            if (!!var_dag.nodes[var_data.index]) {
+                resolve(var_dag.nodes[var_data.index]);
                 return;
             }
 
@@ -240,6 +247,10 @@ export default class VarDAGNode extends DAGNodeBase {
                     node.var_data = db_data;
                     already_tried_load_cache_complet = true;
                 }
+            }
+
+            if (ConfigurationService.node_configuration.DEBUG_var_get_instance_semaphored_db_loaded_var_data) {
+                ConsoleHandler.log('VarDAGNode.getInstance_semaphored:already_tried_load_cache_complet:' + already_tried_load_cache_complet + ':is_client_sub?' + node.is_client_sub + ':is_server_sub?' + node.is_server_sub + ':TAG_0_CREATED:' + JSON.stringify(node.var_data));
             }
 
             /**
@@ -633,7 +644,7 @@ export default class VarDAGNode extends DAGNodeBase {
         return this;
     }
 
-    public update_parent_is_computable_if_needed(force_this_node_as_computed: boolean = false) {
+    public update_parent_is_computable_if_needed() {
 
         // On impacte le tag sur les parents si tous leurs enfants sont computed
         for (let i in this.incoming_deps) {
@@ -641,42 +652,8 @@ export default class VarDAGNode extends DAGNodeBase {
 
             for (let k in deps) {
                 let dep = deps[k];
-
-                let parent_node: VarDAGNode = dep.incoming_node as VarDAGNode;
-
-                // Si déjà taggé on refait pas
-                if ((parent_node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_IS_COMPUTABLE]) ||
-                    parent_node.tags[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
-                    continue;
-                }
-
-                // Si le parent est pas encore déployé, on peut pas vérifier ses dépendances sortantes puisqu'elles sont pas encore déployées
-                if (parent_node.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_2_DEPLOYED]) {
-                    continue;
-                }
-
-                // On veut un is_computable mais avec un is_computing sur le noeud en cours de work
-                let parent_is_computable = true;
-                for (let j in parent_node.outgoing_deps) {
-                    let outgoing_dep = parent_node.outgoing_deps[j];
-
-                    if (force_this_node_as_computed && (outgoing_dep.outgoing_node == this)) {
-                        continue;
-                    }
-
-                    if ((outgoing_dep.outgoing_node as VarDAGNode).current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
-                        parent_is_computable = false;
-                        break;
-                    }
-                }
-
-                if (parent_is_computable) {
-                    parent_node.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
-
-                    if (parent_node.tags[VarDAGNode.TAG_3_DATA_LOADED]) {
-                        parent_node.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
-                    }
-                }
+                let node = dep.incoming_node as VarDAGNode;
+                UpdateIsComputableVarDAGNode.throttle_update_is_computable_var_dag_node({ [node.var_data.index]: node });
             }
         }
     }
@@ -764,12 +741,21 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_3_DATA_LOADED]) && this.is_computable) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
-                ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ':TAG_4_IS_COMPUTABLE');
+
+            if (this.tags[VarDAGNode.TAG_4_COMPUTED]) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ' && already TAG_4_COMPUTED: removing TAG_3_DATA_LOADED');
+                }
+            } else {
+                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ':TAG_4_IS_COMPUTABLE');
+                }
+                this.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
             }
 
-            this.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
-            this.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
+            if (this.tags[VarDAGNode.TAG_3_DATA_LOADED]) {
+                this.remove_tag(VarDAGNode.TAG_3_DATA_LOADED);
+            }
         }
 
         if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_6_UPDATED_IN_DB]) && this.is_deletable) {
@@ -782,8 +768,10 @@ export default class VarDAGNode extends DAGNodeBase {
             this.remove_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
         }
 
-        // On impacte les parents sur un potentiel is_computable
-        this.update_parent_is_computable_if_needed();
+        if (this.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
+            // On impacte les parents sur un potentiel is_computable
+            this.update_parent_is_computable_if_needed();
+        }
     }
 
     get is_notifiable(): boolean {

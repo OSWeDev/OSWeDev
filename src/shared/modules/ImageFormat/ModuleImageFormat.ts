@@ -29,6 +29,7 @@ export default class ModuleImageFormat extends Module {
 
     public static APINAME_get_formatted_image: string = "get_formatted_image";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleImageFormat {
         if (!ModuleImageFormat.instance) {
             ModuleImageFormat.instance = new ModuleImageFormat();

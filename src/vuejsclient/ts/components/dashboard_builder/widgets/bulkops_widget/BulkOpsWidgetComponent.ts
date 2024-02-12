@@ -2,7 +2,6 @@ import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
@@ -292,7 +291,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let cloned_raw = cloneDeep(row);
             let cloned_res = cloneDeep(row);
             cloned_raw[this.field_id_selected] = this.new_value;
-            await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field);
+            await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field, null);
             res.push(cloned_res);
         }
 
@@ -396,7 +395,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             for (let j in this.fields) {
                 let field = this.fields[j];
 
-                promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field));
+                promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field, null));
             }
             data_rows.push(resData);
         }
@@ -489,7 +488,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                                         [self.field_id_selected]: new_value
                                     });
 
-                                    ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
+                                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
 
                                     await self.throttled_update_visible_options();
 

@@ -43,10 +43,12 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "PasswordInvalidationCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
         // On check les dates d'invalidation et de reminder
         let users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();

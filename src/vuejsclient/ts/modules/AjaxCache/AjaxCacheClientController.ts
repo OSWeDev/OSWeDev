@@ -33,6 +33,7 @@ import ThreadHandler from '../../../../shared/tools/ThreadHandler';
  */
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AjaxCacheClientController {
         if (!AjaxCacheClientController.instance) {
             AjaxCacheClientController.instance = new AjaxCacheClientController();
@@ -78,12 +79,6 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      *  Si oui, inutile de le relancer
      */
     private is_processing_requests: boolean = false;
-
-    // private process_get_and_post_for_get_requests: (index: string, request: RequestResponseCacheVO) => Promise<any> =
-    //     ThrottlePipelineHelper.declare_throttled_pipeline(
-    //         'AjaxCacheClientController.process_get_and_post_for_get_requests',
-    //         this._process_get_and_post_for_get_requests.bind(this), 200, 6, 20
-    //     );
 
     public async getCSRFToken() {
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');

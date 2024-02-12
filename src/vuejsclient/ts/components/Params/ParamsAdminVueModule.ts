@@ -8,6 +8,7 @@ import MenuController from '../menu/MenuController';
 
 export default class ParamsAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ParamsAdminVueModule {
         if (!ParamsAdminVueModule.instance) {
             ParamsAdminVueModule.instance = new ParamsAdminVueModule();

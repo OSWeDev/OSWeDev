@@ -32,6 +32,7 @@ export default class FakeVarsInit {
         VarsServerController.init_varcontrollers_dag();
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeVarsInit {
         if (!FakeVarsInit.instance) {
             FakeVarsInit.instance = new FakeVarsInit();

@@ -1,0 +1,42 @@
+.hour_filter_options
+    .arrondiMinutes
+        .label {{ label('hour_filter_options.arrondiMinutes') }}
+        .input
+            input(type='number' v-model='arrondiMinutes' min="0" max="3" @change='onchange_inputs')
+
+    .rounded
+        .label {{ label('hour_filter_options.rounded') }}
+        .input
+            toggle-button(
+                @change="switch_rounded" 
+                :value="rounded" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .negativeValue
+        .label {{ label('hour_filter_options.negativeValue') }}
+        .input
+            toggle-button(
+                @change="switch_negativeValue" 
+                :value="negativeValue" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .positiveSign
+        .label {{ label('hour_filter_options.positiveSign') }}
+        .input
+            toggle-button(
+                @change="switch_positiveSign" 
+                :value="positiveSign" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .formatted
+        .label {{ label('hour_filter_options.formatted') }}
+        .input
+            toggle-button(
+                @change="switch_formatted" 
+                :value="formatted" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")

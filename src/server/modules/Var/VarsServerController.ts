@@ -1,11 +1,11 @@
 
 
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -13,10 +13,10 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import VarServerControllerBase from './VarServerControllerBase';
 import VarCtrlDAG from './controllerdag/VarCtrlDAG';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
-import VarServerControllerBase from './VarServerControllerBase';
 
 export default class VarsServerController {
 
@@ -29,7 +29,7 @@ export default class VarsServerController {
     public static varcontrollers_dag_depths: { [var_id: number]: number } = null;
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
-    public static registered_vars_controller_by_var_id: { [name: string]: VarServerControllerBase<any> } = {};
+    public static registered_vars_controller_by_var_id: { [var_id: number]: VarServerControllerBase<any> } = {};
     public static registered_vars_controller: { [name: string]: VarServerControllerBase<any> } = {};
     public static registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
@@ -161,6 +161,26 @@ export default class VarsServerController {
         return VarsServerController.registered_vars_controller_by_var_id ? (VarsServerController.registered_vars_controller_by_var_id[var_id] ? VarsServerController.registered_vars_controller_by_var_id[var_id] : null) : null;
     }
 
+    public static async clean_varconfs_without_controller() {
+        let db_var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<VarConfVO>();
+
+        let to_delete_ids: number[] = [];
+        for (let i in db_var_confs) {
+            let db_var_conf = db_var_confs[i];
+
+            if (!VarsServerController.registered_vars_controller[db_var_conf.name]) {
+                to_delete_ids.push(db_var_conf.id);
+            }
+        }
+
+        if (to_delete_ids.length) {
+            ConsoleHandler.warn('clean_varconfs_without_controller:DELETING:' + to_delete_ids.length + ' varconfs from db - no controller exists for these vars in the app:' + JSON.stringify(to_delete_ids));
+            await query(VarConfVO.API_TYPE_ID).filter_by_ids(to_delete_ids).exec_as_server().delete_vos();
+        }
+    }
+
     public static init_varcontrollers_dag() {
 
         let varcontrollers_dag: VarCtrlDAG = new VarCtrlDAG();
@@ -223,6 +243,7 @@ export default class VarsServerController {
             return null;
         }
 
+        varConf.aggregator = varConf.aggregator ? varConf.aggregator : VarConfVO.SUM_AGGREGATOR;
         if (!ModuleVar.getInstance().initializedasync_VarsController) {
             await ModuleVar.getInstance().initializeasync();
         }
@@ -257,6 +278,49 @@ export default class VarsServerController {
                     daoVarConf.segment_types = varConf.segment_types;
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
                 }
+
+                /**
+                 * Si on a changé le type de vo associé, on doit mettre à jour la bdd
+                 */
+                if (daoVarConf.var_data_vo_type != varConf.var_data_vo_type) {
+
+                    ConsoleHandler.warn('On écrase le var_data_vo_type de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.var_data_vo_type:' + daoVarConf.var_data_vo_type +
+                        ':varConf.var_data_vo_type:' + varConf.var_data_vo_type);
+
+                    daoVarConf.var_data_vo_type = varConf.var_data_vo_type;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                /**
+                 * Si la pixellisation a changée, on met à jour la conf en db
+                 */
+                if ((!!daoVarConf.pixel_activated) != (!!varConf.pixel_activated)) {
+
+                    ConsoleHandler.warn('On écrase le pixel_activated de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.pixel_activated:' + daoVarConf.pixel_activated +
+                        ':varConf.pixel_activated:' + varConf.pixel_activated);
+
+                    daoVarConf.pixel_activated = !!varConf.pixel_activated;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                /**
+                 * Si l'aggrégateur a changé, on met à jour la conf en db
+                 */
+                if ((!!daoVarConf.pixel_activated) && (daoVarConf.aggregator != varConf.aggregator)) {
+
+                    ConsoleHandler.warn('On écrase le aggregator de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.aggregator:' + daoVarConf.aggregator +
+                        ':varConf.aggregator:' + varConf.aggregator);
+
+                    daoVarConf.aggregator = varConf.aggregator;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
 
                 /**
                  * Idem pour les champs de segmentation, si en base on dit qu'on est pixel, mais qu'on a pas de fields et que les fields existent

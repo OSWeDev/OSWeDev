@@ -213,4 +213,39 @@ export default class MainAggregateOperatorsHandlers {
 
         return (typeof res === 'undefined') ? undefined : ((res === null) ? null : ((!!res) ? 1 : 0));
     }
+
+    /**
+     * Fonction d'aggrégation qui applique l'opérateur NON symétrique AVG (moyenne)
+     * @param values les valeurs à aggréger
+     */
+    public aggregateValues_AVG(values: number[]): number {
+
+        let res: number;
+        let nb_values: number = 0;
+
+        if ((!values) || !values.length) {
+            return undefined;
+        }
+
+        values.forEach((value: number) => {
+            if ((value === null) || (typeof value === 'undefined')) {
+                return;
+            }
+
+            nb_values++;
+
+            if ((res === null) || (typeof res === 'undefined')) {
+                res = value;
+                return;
+            }
+
+            res += value;
+        });
+
+        if (!nb_values) {
+            return undefined;
+        }
+
+        return res / nb_values;
+    }
 }

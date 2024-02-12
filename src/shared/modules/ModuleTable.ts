@@ -24,6 +24,8 @@ import VarDataBaseVO from './Var/vos/VarDataBaseVO';
 import cloneDeep from 'lodash/cloneDeep';
 import VOsTypesManager from './VO/manager/VOsTypesManager';
 import ContextQueryInjectionCheckHandler from './ContextFilter/ContextQueryInjectionCheckHandler';
+import ObjectHandler, { reflect } from '../tools/ObjectHandler';
+import IIsServerField from './IIsServerField';
 
 
 export default class ModuleTable<T extends IDistantVOBase> {
@@ -201,6 +203,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             let old_id = fieldIdToAPIMap[field.field_id];
             res[field.field_id] = table.default_field_from_api_version(e[old_id], field);
+        }
+
+        /// Dans TOUS les cas, le field is_server est forcé à FALSE quand on vient du client
+        if (!!res[reflect<IIsServerField>().is_server]) {
+            res[reflect<IIsServerField>().is_server] = false;
         }
 
         return res;
@@ -865,6 +872,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
             throw new Error('Should no ask for readonly fields');
         }
 
+        /// Dans TOUS les cas, le field is_server est forcé à FALSE quand on vient du client
+        if (field.field_id == reflect<IIsServerField>().is_server) {
+            return false;
+        }
+
         /**
          * Si le champ possible un custom_from_api
          */
@@ -936,7 +948,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     return null;
                 }
 
-                let trans_ = e ? JSON.parse(e) : null;
+                let trans_ = ObjectHandler.try_get_json(e);
                 if (!!trans_) {
 
                     /**
@@ -946,7 +958,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         let new_array = [];
                         for (let i in trans_) {
                             let transi = trans_[i];
-                            new_array.push(ModuleTable.default_from_api_version(this.try_get_json(transi)));
+                            new_array.push(ModuleTable.default_from_api_version(ObjectHandler.try_get_json(transi)));
                         }
                         trans_ = new_array;
                     } else {
@@ -961,7 +973,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                             let new_obj = new Object();
                             for (let i in trans_) {
                                 let transi = trans_[i];
-                                new_obj[i] = ModuleTable.default_from_api_version(this.try_get_json(transi));
+                                new_obj[i] = ModuleTable.default_from_api_version(ObjectHandler.try_get_json(transi));
                             }
                             trans_ = new_obj;
                         } else {
@@ -1009,6 +1021,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         switch (field.field_type) {
+
+            case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableField.FIELD_TYPE_html_array:
+                if (Array.isArray(field_value)) {
+                    dest_vo[field_id] = field_value;
+                } else {
+                    dest_vo[field_id] = (field_value.length > 2) ? field_value.substr(1, field_value.length - 2).split(',') : field_value;
+                }
+                break;
 
             case ModuleTableField.FIELD_TYPE_float:
             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
@@ -1125,7 +1146,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 break;
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                let trans_ = field_value ? JSON.parse(field_value) : null;
+                let trans_ = ObjectHandler.try_get_json(field_value);
 
                 if (!!trans_) {
 
@@ -1146,7 +1167,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                             let new_obj = new Object();
                             for (let i in trans_) {
                                 let transi_ = trans_[i];
-                                new_obj[i] = ModuleTable.defaultforceNumeric((typeof transi_ === 'string') ? JSON.parse(transi_) : transi_);
+                                new_obj[i] = ModuleTable.defaultforceNumeric(ObjectHandler.try_get_json(transi_));
                             }
                             trans_ = new_obj;
                         } else {
@@ -1244,8 +1265,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * Permet de récupérer un clone dont les fields sont insérables en bdd.
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec le format de la BDD
      * @param e Le VO dont on veut une version insérable en BDD
+     * @param inside_plain_vo_obj  pour indiquer si on est dans un plain_vo ou sur des champs directement stockés en BDD. ça change a minima le format des string[] qui en base est pas ["",""] mais {"",""}
      */
-    private default_get_bdd_version(e: T): T {
+    private default_get_bdd_version(e: T, inside_plain_vo_obj: boolean = false): T {
         if (!e) {
             return null;
         }
@@ -1287,7 +1309,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (e[field.field_id] && e[field.field_id]._type) {
                         let field_table = VOsTypesManager.moduleTables_by_voType[e[field.field_id]._type];
 
-                        let trans_ = e[field.field_id] ? field_table.default_get_bdd_version(e[field.field_id]) : null;
+                        let trans_ = e[field.field_id] ? field_table.default_get_bdd_version(e[field.field_id], true) : null;
                         res[field.field_id] = trans_ ? JSON.stringify(trans_) : null;
                     } else if (e[field.field_id]) {
                         res[field.field_id] = JSON.stringify(e[field.field_id]);
@@ -1318,7 +1340,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         if (!values || !values.length) {
                             res[field.field_id] = null;
                         } else {
-                            res[field.field_id] = '{' + values + '}';
+                            res[field.field_id] = inside_plain_vo_obj ? '[' + values.join(',') + ']' : '{' + values.join(',') + '}';
                         }
                     }
 
@@ -1345,13 +1367,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
         });
     }
 
-    private try_get_json(e: any): any {
-        try {
-            return (e && (typeof e === 'string') && e.startsWith('{') && e.endsWith('}')) ? JSON.parse(e) : e;
-        } catch (error) {
-            return e;
-        }
-    }
 
     private check_unicity_field_names(tmp_fields: Array<ModuleTableField<any>>) {
         let field_names: { [field_name: string]: boolean } = {};

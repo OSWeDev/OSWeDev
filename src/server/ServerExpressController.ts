@@ -7,6 +7,7 @@ import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class ServerExpressController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ServerExpressController {
         if (!ServerExpressController.instance) {
             ServerExpressController.instance = new ServerExpressController();
@@ -25,7 +26,11 @@ export default class ServerExpressController {
             UID: session.uid,
             SESSION: session,
             CLIENT_TAB_ID: req.headers.client_tab_id,
-            SELF_USER: session.user_vo ? session.user_vo : null,
+            SELF_USER: (session.user_vo && session.user_vo.id) ?
+                // On rafraîchi souvent l'info, mais pas dans la milliseconde non plus...
+                await query(UserVO.API_TYPE_ID).filter_by_id(session.user_vo.id).set_max_age_ms(100).exec_as_server().select_vo<UserVO>() :
+                // await query(UserVO.API_TYPE_ID).filter_by_id(session.user_vo.id).exec_as_server().select_vo<UserVO>() :
+                null,
         };
     }
 }

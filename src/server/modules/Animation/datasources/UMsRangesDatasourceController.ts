@@ -6,6 +6,7 @@ import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSou
 
 export default class UMsRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): UMsRangesDatasourceController {
         if (!UMsRangesDatasourceController.instance) {
             UMsRangesDatasourceController.instance = new UMsRangesDatasourceController(

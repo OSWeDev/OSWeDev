@@ -24,6 +24,35 @@ import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOption
  */
 export default class FieldFiltersVOManager {
 
+    public static get_INTERSECTION_field_filters(
+        field_filters: FieldFiltersVO | { [label: string]: IReadableFieldFilters },
+        field_filters_to_intersect: FieldFiltersVO | { [label: string]: IReadableFieldFilters }): FieldFiltersVO | { [label: string]: IReadableFieldFilters } {
+
+        let res: FieldFiltersVO | { [label: string]: IReadableFieldFilters } = {};
+
+        for (let api_type_id in field_filters) {
+            if (!field_filters_to_intersect[api_type_id]) {
+                continue;
+            }
+
+            let fields = {};
+
+            for (let field_id in field_filters[api_type_id]) {
+                if (typeof field_filters_to_intersect[api_type_id][field_id] === 'undefined') {
+                    continue;
+                }
+
+                fields[field_id] = field_filters[api_type_id][field_id];
+            }
+
+            if (Object.keys(fields).length > 0) {
+                res[api_type_id] = fields;
+            }
+        }
+
+        return res;
+    }
+
     /**
      * find_default_field_filters_by_dashboard_page_id
      * - This method is responsible for loading the default field_filters of the given dashboard_page id
@@ -779,7 +808,7 @@ export default class FieldFiltersVOManager {
                 let page_widget = all_page_widgets_by_id[page_filter_id];
                 if (!page_widget) {
                     column.show_if_any_filter_active = [];
-                    continue;
+                    break;
                 }
                 let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
                 if ((!active_field_filters) ||
@@ -792,6 +821,35 @@ export default class FieldFiltersVOManager {
             }
 
             if (!activated) {
+                return true;
+            }
+        }
+
+        /**
+         * Gestion du check d'absence d'un filtrage
+         */
+        if (column.hide_if_any_filter_active && column.hide_if_any_filter_active.length) {
+
+            let activated = false;
+            for (let j in column.hide_if_any_filter_active) {
+                let page_filter_id = column.hide_if_any_filter_active[j];
+
+                let page_widget = all_page_widgets_by_id[page_filter_id];
+                if (!page_widget) {
+                    column.hide_if_any_filter_active = [];
+                    break;
+                }
+                let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                if ((!active_field_filters) ||
+                    (!active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
+                    (!active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
+                    continue;
+                }
+
+                activated = true;
+            }
+
+            if (activated) {
                 return true;
             }
         }

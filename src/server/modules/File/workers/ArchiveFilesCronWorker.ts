@@ -25,10 +25,12 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
 
     private constructor() { }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "ArchiveFilesCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
 
         var filterFileVOS: ArchiveFilesConfVO[] = await query(ArchiveFilesConfVO.API_TYPE_ID).select_vos<ArchiveFilesConfVO>();

@@ -43,6 +43,11 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public show_if_any_filter_active: number[];
 
     /**
+     * Paramétrage permettant de rendre invisible une colonne uniquement si l'un des filtres est actif
+     */
+    public hide_if_any_filter_active: number[];
+
+    /**
      * Paramétrage permettant de ne pas prendre en compte les filtres pour la création du param de la VAR
      */
     public do_not_user_filter_active_ids: number[];
@@ -108,6 +113,11 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public weight: number;
 
     public readonly: boolean;
+
+    /**
+     * Permet de cacher les boutons de tri
+     */
+    public sortable: boolean;
 
     /**
      * Permet de cacher des colonnes dans les exports, par exemple les colonnes logAs sur la base des utilisateurs

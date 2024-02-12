@@ -240,7 +240,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.column,
             custom_filters,
             this.limit_nb_ts_ranges_on_param_by_context_filter,
-            false);
+            false,
+            false
+        );
 
         if (!this.var_param || !new_param || (this.var_param.index != new_param.index)) {
             this.var_param = new_param;
@@ -275,6 +277,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     }
 
     get var_filter_additional_params(): string {
-        return this.filter_additional_params ? JSON.parse(this.filter_additional_params) : undefined;
+        return this.filter_additional_params ? ObjectHandler.try_get_json(this.filter_additional_params) : undefined;
     }
 }

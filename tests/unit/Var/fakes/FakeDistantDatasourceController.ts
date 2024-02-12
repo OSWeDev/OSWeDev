@@ -8,6 +8,7 @@ export default class FakeDistantDatasourceController extends DataSourceControlle
 
     public static fake_distant_datas: FakeDistantVO[] = [];
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeDistantDatasourceController {
         if (!FakeDistantDatasourceController.instance) {
             FakeDistantDatasourceController.instance = new FakeDistantDatasourceController(

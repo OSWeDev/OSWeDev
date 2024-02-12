@@ -13,6 +13,7 @@ import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos
 
 export default class SendInBlueMailCampaignServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueMailCampaignServerController {
         if (!SendInBlueMailCampaignServerController.instance) {
             SendInBlueMailCampaignServerController.instance = new SendInBlueMailCampaignServerController();
@@ -99,8 +100,25 @@ export default class SendInBlueMailCampaignServerController {
         // On check que l'env permet d'envoyer des mails
         if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
 
-            ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + templateId);
-            return null;
+            let whitelisted_contacts: SendInBlueContactVO[] = [];
+            for (let i in contacts) {
+                let contact = contacts[i];
+                if (!contact.email) {
+                    continue;
+                }
+
+                if (ModuleMailerServer.getInstance().check_mail_whitelist(contact.email, null, null)) {
+                    ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + templateId + ' mais contact whitelisté : ' + contact.email);
+                    whitelisted_contacts.push(contact);
+                } else {
+                    ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + templateId + ' contact : ' + contact.email);
+                }
+            }
+
+            if (!whitelisted_contacts.length) {
+                return null;
+            }
+            contacts = whitelisted_contacts;
         }
 
         if (!campaignName || !contacts || !contacts.length || !templateId || !subject) {

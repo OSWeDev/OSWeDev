@@ -23,6 +23,7 @@ export default class ModuleMenu extends Module {
     public static APINAME_get_menu = "get_menu";
     public static APINAME_add_menu = "add_menu";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleMenu {
         if (!ModuleMenu.instance) {
             ModuleMenu.instance = new ModuleMenu();

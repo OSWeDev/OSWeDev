@@ -11,6 +11,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 
 export default class InitFrontVarsPolicies implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): InitFrontVarsPolicies {
         if (!InitFrontVarsPolicies.instance) {
             InitFrontVarsPolicies.instance = new InitFrontVarsPolicies();

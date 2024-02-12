@@ -60,6 +60,7 @@ export default class StatsController {
         }
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): StatsController {
         if (!StatsController.instance) {
             StatsController.instance = new StatsController();

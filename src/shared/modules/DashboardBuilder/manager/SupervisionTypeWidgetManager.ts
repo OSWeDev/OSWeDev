@@ -208,6 +208,7 @@ export default class SupervisionTypeWidgetManager {
         return categories_by_name;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisionTypeWidgetManager {
         if (!SupervisionTypeWidgetManager.instance) {
             SupervisionTypeWidgetManager.instance = new SupervisionTypeWidgetManager();

@@ -88,7 +88,7 @@ include ../../../../../../views/mixins/loading.pug
 
 
                                         template(v-if="column.type == 1")
-                                            .order_by
+                                            .order_by(v-if="column.sortable")
                                                 template(v-if='(order_asc_on_id != column.id) && (order_desc_on_id != column.id)')
                                                     i.fa-solid.fa-sort.fa-fw(aria-hidden="true")
                                                 template(v-if='order_asc_on_id == column.id')
@@ -109,7 +109,7 @@ include ../../../../../../views/mixins/loading.pug
                                         @click="sort_by(child)"
                                     )
                                         template(v-if="child.type == 1")
-                                            .order_by
+                                            .order_by(v-if="child.sortable")
                                                 template(v-if='(order_asc_on_id != child.id) && (order_desc_on_id != child.id)')
                                                     i.fa-duotone.fa-sort.fa-fw(aria-hidden="true")
                                                 template(v-if='order_asc_on_id == child.id')
@@ -196,6 +196,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                 :filter='get_column_filter(column)'
                                                                 :filter_additional_params='get_column_filter_additional_params(column)'
                                                                 :table_is_busy="is_busy"
+                                                                :editable="false"
                                                                 :explicit_html="column.explicit_html"
                                                                 @refresh="refresh"
                                                             )

@@ -12,6 +12,7 @@ import SendInBlueServerController from '../SendInBlueServerController';
 
 export default class SendInBlueListServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueListServerController {
         if (!SendInBlueListServerController.instance) {
             SendInBlueListServerController.instance = new SendInBlueListServerController();

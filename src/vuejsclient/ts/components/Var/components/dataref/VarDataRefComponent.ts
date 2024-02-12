@@ -291,7 +291,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         /**
          * On ajoute le contextmenu
          */
-        SemaphoreHandler.semaphore_sync("VarDataRefComponent.contextmenu", () => {
+        SemaphoreHandler.do_only_once("VarDataRefComponent.contextmenu", () => {
             $['contextMenu']({
                 selector: ".var-data-wrapper .var_data_ref",
                 items: this.contextmenu_items

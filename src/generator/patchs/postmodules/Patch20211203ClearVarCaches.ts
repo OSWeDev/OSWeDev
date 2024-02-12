@@ -5,6 +5,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20211203ClearVarCaches implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20211203ClearVarCaches {
         if (!Patch20211203ClearVarCaches.instance) {
             Patch20211203ClearVarCaches.instance = new Patch20211203ClearVarCaches();

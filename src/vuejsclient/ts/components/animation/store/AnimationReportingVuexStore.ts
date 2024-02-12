@@ -41,6 +41,7 @@ export interface IAnimationReportingVueXState {
 
 export default class AnimationReportingStoreModule implements IStoreModule<IAnimationReportingVueXState, AnimationReportingContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AnimationReportingStoreModule {
         if (!AnimationReportingStoreModule.instance) {
             AnimationReportingStoreModule.instance = new AnimationReportingStoreModule();

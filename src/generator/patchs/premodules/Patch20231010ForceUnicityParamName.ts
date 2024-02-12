@@ -5,6 +5,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231010ForceUnicityParamName implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231010ForceUnicityParamName {
         if (!Patch20231010ForceUnicityParamName.instance) {
             Patch20231010ForceUnicityParamName.instance = new Patch20231010ForceUnicityParamName();

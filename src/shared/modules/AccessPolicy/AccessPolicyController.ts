@@ -4,6 +4,7 @@ import UserVO from './vos/UserVO';
 
 export default class AccessPolicyController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AccessPolicyController {
         if (!AccessPolicyController.instance) {
             AccessPolicyController.instance = new AccessPolicyController();

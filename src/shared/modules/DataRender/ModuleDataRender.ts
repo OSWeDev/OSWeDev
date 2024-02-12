@@ -17,6 +17,7 @@ export default class ModuleDataRender extends Module {
     public static APINAME_GET_DATA_RENDERING_LOGS = "GET_DATA_RENDERING_LOGS";
     public static APINAME_getLatestAvailableSegment = "getLatestAvailableSegment";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDataRender {
         if (!ModuleDataRender.instance) {
             ModuleDataRender.instance = new ModuleDataRender();

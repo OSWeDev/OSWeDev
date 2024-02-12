@@ -7,6 +7,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20221217ParamBlockVos implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20221217ParamBlockVos {
         if (!Patch20221217ParamBlockVos.instance) {
             Patch20221217ParamBlockVos.instance = new Patch20221217ParamBlockVos();

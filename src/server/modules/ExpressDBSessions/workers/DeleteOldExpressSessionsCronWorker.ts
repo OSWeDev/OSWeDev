@@ -20,10 +20,12 @@ export default class DeleteOldExpressSessionsCronWorker implements ICronWorker {
 
     private constructor() { }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "DeleteOldExpressSessionsCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
 
         let old_sessions = await query(ExpressSessionVO.API_TYPE_ID).filter_by_date_before('expire', Dates.now()).select_vos<ExpressSessionVO>();

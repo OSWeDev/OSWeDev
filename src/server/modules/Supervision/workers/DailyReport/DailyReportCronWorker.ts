@@ -39,10 +39,12 @@ export default class DailyReportCronWorker implements ICronWorker {
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "DailyReportCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
         /**
          * On génère les infos pour le rapport et ensuite on tente de l'envoyer à qui veut (Teams, mail *TODO*, logs, ...)
@@ -63,6 +65,7 @@ export default class DailyReportCronWorker implements ICronWorker {
         this.log(ordered_supervised_items_by_state);
     }
 
+    // istanbul ignore next: nothing to test : send_teams
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
         let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
 
@@ -73,7 +76,7 @@ export default class DailyReportCronWorker implements ICronWorker {
         if (!!TEAMS_WEBHOOK_PARAM_NAME) {
             let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
 
-            message.title = "Bilan quotidien - Supervision";
+            message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + "Bilan quotidien - Supervision";
             message.summary = "Bilan quotidien de supervision de l'application";
 
             message.sections.push(new TeamsWebhookContentSectionVO().set_text("<blockquote>Erreurs : " +

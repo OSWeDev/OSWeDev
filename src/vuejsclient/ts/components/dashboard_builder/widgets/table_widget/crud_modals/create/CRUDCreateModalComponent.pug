@@ -1,11 +1,15 @@
 .crud_create_modal_wrapper
-    #crud_create_modal.modal.fade.in(tabindex='-1' role='dialog')
+    .modal.fade.in(
+        :id="'crud_create_modal_' + api_type_id"
+        tabindex='-1' 
+        role='dialog'
+    )
         .modal-dialog.modal-lg(role='document')
             .modal-content 
                 Crudcreateformcomponent(
                     ref="Crudcreateformcomponent"
                     :close_on_submit="true"
-                    :show_insert_or_update_target="true"
+                    :show_insert_or_update_target="show_insert_or_update_target"
                     :api_type_id="api_type_id"
                     :vo_init="vo_init"
                     :show_placeholder="true"

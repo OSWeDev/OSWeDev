@@ -114,6 +114,7 @@ export default class VOFieldRefVOManager {
         });
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VOFieldRefVOManager {
         if (!VOFieldRefVOManager.instance) {
             VOFieldRefVOManager.instance = new VOFieldRefVOManager();

@@ -109,6 +109,11 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             }
         }
 
+        if (!contacts_ids.length) {
+            this.target_contacts = [];
+            return;
+        }
+
         this.target_contacts = await query(this.program_plan_shared_module.contact_type_id).filter_by_ids(contacts_ids).select_vos<IPlanContact>();
     }
 

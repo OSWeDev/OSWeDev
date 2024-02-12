@@ -675,7 +675,7 @@ export default class FieldValueFilterWidgetManager {
                     ignore_self_filter
                 );
 
-                if (count_segmentations > 20) {
+                if (count_segmentations > 25) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + ') pour la table segmentée ' + overflowing_api_type_id + ', on ne filtre pas sur cette table');
                     overflowing_api_type_id = api_type_id;
                 }
@@ -732,6 +732,7 @@ export default class FieldValueFilterWidgetManager {
         return context_query;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FieldValueFilterWidgetManager {
         if (!this.instance) {
             this.instance = new FieldValueFilterWidgetManager();

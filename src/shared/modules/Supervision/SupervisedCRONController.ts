@@ -5,6 +5,7 @@ import SupervisedCRONVO from './vos/SupervisedCRONVO';
 
 export default class SupervisedCRONController implements ISupervisedItemController<SupervisedCRONVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisedCRONController {
         if (!SupervisedCRONController.instance) {
             SupervisedCRONController.instance = new SupervisedCRONController();

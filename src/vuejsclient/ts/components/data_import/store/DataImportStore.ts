@@ -23,6 +23,7 @@ export interface IDataImportState {
 
 export default class DataImportStore implements IStoreModule<IDataImportState, DataImportContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DataImportStore {
         if (!DataImportStore.instance) {
             DataImportStore.instance = new DataImportStore();

@@ -36,6 +36,7 @@ export default class FavoritesFiltersVOManager {
     }
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FavoritesFiltersVOManager {
         if (!FavoritesFiltersVOManager.instance) {
             FavoritesFiltersVOManager.instance = new FavoritesFiltersVOManager();

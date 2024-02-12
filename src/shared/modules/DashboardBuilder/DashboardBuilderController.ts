@@ -25,6 +25,7 @@ export default class DashboardBuilderController {
     public static ROUTE_NAME_CRUD: string = "__CRUD";
     public static ROUTE_NAME_CRUD_ALL: string = "__all";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderController {
         if (!DashboardBuilderController.instance) {
             DashboardBuilderController.instance = new DashboardBuilderController();

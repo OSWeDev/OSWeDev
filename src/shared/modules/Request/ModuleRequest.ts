@@ -12,9 +12,11 @@ export default class ModuleRequest extends Module {
     public static METHOD_POST: string = "POST";
     public static METHOD_DELETE: string = "DELETE";
     public static METHOD_PATCH: string = "PATCH";
+    public static METHOD_PUT: string = "PUT";
 
     public static APINAME_sendRequestFromApp = "send_request_from_app";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleRequest {
         if (!ModuleRequest.instance) {
             ModuleRequest.instance = new ModuleRequest();

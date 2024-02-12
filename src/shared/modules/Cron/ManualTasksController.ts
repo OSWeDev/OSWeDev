@@ -1,6 +1,7 @@
 
 export default class ManualTasksController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ManualTasksController {
         if (!ManualTasksController.instance) {
             ManualTasksController.instance = new ManualTasksController();

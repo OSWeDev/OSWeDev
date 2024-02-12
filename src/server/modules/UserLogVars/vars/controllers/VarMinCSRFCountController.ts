@@ -17,6 +17,7 @@ import CountUserLogCSRFDatasourceController from '../datasources/CountUserLogCSR
 
 export default class VarMinCSRFCountController extends VarServerControllerBase<UserMinDataRangesVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarMinCSRFCountController {
         if (!VarMinCSRFCountController.instance) {
             VarMinCSRFCountController.instance = new VarMinCSRFCountController();

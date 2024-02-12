@@ -127,6 +127,14 @@
                             :width="100"
                             :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
 
+                    .sortable_column(v-tooltip='label("table_widget_column_conf.sortable_column")')
+                        toggle-button(
+                            @change="switch_sortable" 
+                            :value="column.sortable" 
+                            :sync="true"
+                            :width="75"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.sortable'), unchecked: label('table_widget_column_conf.editable_column.unsortable')}")
+
                     .is_sticky_column(v-tooltip='label("table_widget_column_conf.is_sticky_column")')
                         toggle-button(
                             @change="switch_is_sticky"
@@ -219,6 +227,29 @@
                             :internal-search="true"
 
                             id="show_if_any_filter_active"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
+                    .hide_if_any_filter_active(v-tooltip='label("table_widget_column_conf.hide_if_any_filter_active")')
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="true"
+                            v-model="column.hide_if_any_filter_active"
+                            :placeholder="label('table_widget_column.hide_if_any_filter_active')"
+                            :options="show_if_any_active_filter_options"
+                            :custom-label="hide_if_any_filter_active_label"
+                            :allow-empty="true",
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            id="hide_if_any_filter_active"
 
                             :select-label='label("multiselect.selectLabel")'
                             :select-group-label='label("multiselect.selectGroupLabel")'

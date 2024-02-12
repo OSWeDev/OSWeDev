@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231117AddUniqCookieNamePopup implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231117AddUniqCookieNamePopup {
         if (!Patch20231117AddUniqCookieNamePopup.instance) {
             Patch20231117AddUniqCookieNamePopup.instance = new Patch20231117AddUniqCookieNamePopup();

@@ -952,7 +952,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     true);
             }
 
-            ConsoleHandler.log('select_filter_visible_options:1:' + context_query.base_api_type_id);
             tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
                 context_query,
                 this.actual_query,
@@ -1148,6 +1147,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             this.filter_visible_options_lvl2 = tmp_lvl2;
         }
     }
+
 
     // create single data filter to apply
     private createDataFilter(text: string, index: string | number): DataFilterOption {

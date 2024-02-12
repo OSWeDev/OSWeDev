@@ -6,6 +6,7 @@ import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 
 export default class RefreshCRONSupervisionEachDayCronWorker implements ICronWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance() {
         if (!RefreshCRONSupervisionEachDayCronWorker.instance) {
             RefreshCRONSupervisionEachDayCronWorker.instance = new RefreshCRONSupervisionEachDayCronWorker();
@@ -18,10 +19,12 @@ export default class RefreshCRONSupervisionEachDayCronWorker implements ICronWor
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "RefreshCRONSupervisionEachDayCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
 
         try {

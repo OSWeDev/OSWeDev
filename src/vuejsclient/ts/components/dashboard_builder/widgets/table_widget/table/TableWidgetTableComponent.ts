@@ -38,9 +38,8 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
-import IExportOptions from '../../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
-import ExportVarIndicator from '../../../../../../../shared/modules/DataExport/vos/ExportVarIndicator';
-import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ExportVarIndicatorVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
+import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
@@ -384,7 +383,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return null;
         }
 
-        return column.filter_additional_params ? JSON.parse(column.filter_additional_params) : undefined;
+        return column.filter_additional_params ? ObjectHandler.try_get_json(column.filter_additional_params) : undefined;
     }
 
     /**
@@ -575,16 +574,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return vo.__crud_actions;
     }
 
-    private async callback_action(action: BulkActionVO) {
-        if (!action) {
-            return;
-        }
-
-        await action.callback(this.selected_vos_true);
-
-        this.refresh();
-    }
-
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
     }
@@ -701,7 +690,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             /**
              * On ajoute le contextmenu
              */
-            SemaphoreHandler.semaphore_sync("TableWidgetTableComponent.contextmenu", () => {
+            SemaphoreHandler.do_only_once("TableWidgetTableComponent.contextmenu", () => {
                 $['contextMenu']({
                     selector: ".table_widget_component .table_wrapper table",
                     items: this.contextmenu_items
@@ -2128,7 +2117,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             null,
             null,
             this.do_not_use_filter_by_datatable_field_uid,
-            this.export_options,
+            this.widget_options?.can_export_active_field_filters,
+            this.widget_options?.can_export_vars_indicator,
+            false,
             this.vars_indicator,
         );
 
@@ -2222,8 +2213,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return res;
     }
 
-    get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConf } {
-        let res: { [datatable_field_uid: string]: ExportVarcolumnConf } = {};
+    get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConfVO } {
+        let res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
 
         for (let i in this.default_widget_options_columns) {
             let column = this.default_widget_options_columns[i];
@@ -2232,10 +2223,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
-            let varcolumn_conf: ExportVarcolumnConf = {
-                custom_field_filters: column.filter_custom_field_filters,
-                var_id: column.var_id
-            };
+            let varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                column.var_id,
+                column.filter_custom_field_filters
+            );
 
             res[column.datatable_field_uid] = varcolumn_conf;
         }
@@ -2488,7 +2479,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 param.file_access_policy_name,
                 VueAppBase.getInstance().appController?.data_user?.id,
                 param.do_not_use_filter_by_datatable_field_uid,
-                param.export_options,
+                param.export_active_field_filters,
+                param.export_vars_indicator,
+                param.send_email_with_export_notification,
                 param.vars_indicator,
             );
         }
@@ -2666,35 +2659,18 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     /**
-     * Get export_options
-     *
-     * @return {IExportOptions}
-     */
-    get export_options(): IExportOptions {
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        return {
-            export_active_field_filters: this.widget_options.can_export_active_field_filters,
-            export_vars_indicator: this.widget_options.can_export_vars_indicator
-        };
-    }
-
-    /**
      * Var Indicator
      *  - All vars indicator on the actual page to be exported
      *
-     * @return {ExportVarIndicator}
+     * @return {ExportVarIndicatorVO}
      */
-    get vars_indicator(): ExportVarIndicator {
+    get vars_indicator(): ExportVarIndicatorVO {
 
         if (!this.widget_options) {
             return;
         }
 
-        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConf } = {};
+        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
 
         // Find id of widget that have type "var"
         const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
@@ -2717,18 +2693,18 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             const var_widget_options = new VarWidgetOptions().from(options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
 
-            let conf: ExportVarcolumnConf = {
-                custom_field_filters: var_widget_options.filter_custom_field_filters,
-                filter_additional_params: var_widget_options.filter_additional_params,
-                filter_type: var_widget_options.filter_type,
-                var_id: options.var_id
-            };
+            let conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                options.var_id,
+                var_widget_options.filter_custom_field_filters,
+                var_widget_options.filter_type,
+                var_widget_options.filter_additional_params,
+            );
 
             varcolumn_conf[name] = conf;
         }
 
         // returns ordered_column_list, column_labels and varcolumn_conf
-        return new ExportVarIndicator(
+        return ExportVarIndicatorVO.create_new(
             ['name', 'value'],
             { name: 'Nom', value: 'Valeur' },
             varcolumn_conf
@@ -2963,5 +2939,15 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 this.all_rows_datas_query_string = await this.actual_all_rows_datas_query.get_select_query_str();
             })()
         ]);
+    }
+
+    private async callback_action(action: BulkActionVO) {
+        if (!action) {
+            return;
+        }
+
+        await action.callback(this.selected_vos_true);
+
+        this.refresh();
     }
 }

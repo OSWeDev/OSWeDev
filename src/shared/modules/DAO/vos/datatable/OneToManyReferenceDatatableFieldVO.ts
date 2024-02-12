@@ -4,6 +4,8 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import RangeHandler from '../../../../tools/RangeHandler';
+import NumRange from '../../../DataRender/vos/NumRange';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 
 export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
@@ -88,6 +90,21 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
 
         for (let oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
             let targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];
+
+            // Cas particulier du refranges où on cherche l'intersection
+            if (this.destField.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+
+                if ((!targetVo) || (!targetVo[this.destField.field_id])) {
+                    continue;
+                }
+
+                let targetVoRanges: NumRange[] = targetVo[this.destField.field_id];
+                if (RangeHandler.elt_intersects_any_range(vo.id, targetVoRanges)) {
+                    res.push(parseInt(oneToManyTargetId.toString()));
+                }
+
+                continue;
+            }
 
             if ((!!targetVo) && (targetVo[this.destField.field_id] == vo.id)) {
 

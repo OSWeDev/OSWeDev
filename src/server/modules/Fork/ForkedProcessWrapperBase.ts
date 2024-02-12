@@ -27,6 +27,7 @@ import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionSe
 
 export default abstract class ForkedProcessWrapperBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ForkedProcessWrapperBase {
         return ForkedProcessWrapperBase.instance;
     }

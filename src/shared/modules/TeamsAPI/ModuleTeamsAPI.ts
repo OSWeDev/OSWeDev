@@ -4,6 +4,7 @@ export default class ModuleTeamsAPI extends Module {
 
     public static MODULE_NAME: string = 'TeamsAPI';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleTeamsAPI {
         if (!ModuleTeamsAPI.instance) {
             ModuleTeamsAPI.instance = new ModuleTeamsAPI();

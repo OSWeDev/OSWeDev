@@ -174,7 +174,7 @@ export default class CRUDComponentField extends VueComponentBase
     /**
      * La CSS i.inline_input_is_editing.auto_validate est en dur avec la même durée, au besoin la reprendre dans le projet pour adapter au cas par cas ou faire évoluer
      */
-    @Prop({ default: 2 })
+    @Prop({ default: 0 })
     private auto_validate_inline_input_delay_sec: number;
 
     /**
@@ -1399,7 +1399,8 @@ export default class CRUDComponentField extends VueComponentBase
             let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.vo);
 
             if ((!result) || (!result.id)) {
-                await this.snotify.error(this.label('field.auto_update_field_value.failed'));
+
+                await this.snotify_update_error();
                 this.vo[this.field.datatable_field_uid] = old_value;
 
                 this.register_alert(new Alert(this.alert_path, 'field.auto_update_field_value.server_error'));
@@ -1407,7 +1408,8 @@ export default class CRUDComponentField extends VueComponentBase
 
                 return;
             } else {
-                await this.snotify.success(this.label('field.auto_update_field_value.succes'));
+
+                await this.snotify_update_success();
             }
 
             this.vo.id = result.id;
@@ -1434,6 +1436,21 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         this.inline_input_is_busy = false;
+    }
+
+    private async snotify_update_error() {
+        await this.snotify.error(this.label('field.auto_update_field_value.failed'));
+    }
+
+    private async snotify_update_success() {
+        if (this.auto_validate_inline_input_delay_sec) {
+            await this.snotify.success(this.label('field.auto_update_field_value.succes'), {
+                timeout: 500,
+                showProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true
+            });
+        }
     }
 
     private prepare_inline_input(event) {

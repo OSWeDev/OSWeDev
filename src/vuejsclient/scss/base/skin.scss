@@ -475,3 +475,67 @@ i.fa-spin:before {
 .context-menu-item.context-menu-disabled {
     color: #DDD;
 }
+
+/**
+ * Pour les éléments sélectionnés des multiselect, avec une pill spécifique (ex: DBB)
+ */
+.multiselect {
+    .multiselect__content {
+        max-width: -webkit-fill-available;
+    }
+
+    .multiselect__element {
+        max-width: -webkit-fill-available;
+    }
+
+    .multiselect__option,
+    .option__tag,
+    .option__title,
+    .option__label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: -webkit-fill-available;
+    }
+
+    .pill_wrapper {
+
+        margin: 0.1em;
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-size: smaller;
+        margin-right: 0.5rem;
+        color: white;
+
+        .option__tag,
+        .option__label {
+            max-width: 15em;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        i.fa-solid.fa-square-x {
+            cursor: pointer;
+            margin-left: 1em;
+            margin-right: -7px;
+
+            &:hover {
+                -webkit-animation-name: fa-beat;
+                animation-name: fa-beat;
+                -webkit-animation-iteration-count: var(--fa-animation-iteration-count, 1);
+                animation-iteration-count: var(--fa-animation-iteration-count, 1);
+                -webkit-animation-timing-function: var(--fa-animation-timing, cubic-bezier(.4, 0, .6, 1));
+                animation-timing-function: var(--fa-animation-timing, cubic-bezier(.4, 0, .6, 1));
+
+                -webkit-animation-delay: var(--fa-animation-delay, 0s);
+                animation-delay: var(--fa-animation-delay, 0s);
+                -webkit-animation-direction: var(--fa-animation-direction, normal);
+                animation-direction: var(--fa-animation-direction, normal);
+                -webkit-animation-duration: var(--fa-animation-duration, .25s);
+                animation-duration: var(--fa-animation-duration, .25s);
+                --fa-beat-scale: 1.2;
+            }
+        }
+    }
+}

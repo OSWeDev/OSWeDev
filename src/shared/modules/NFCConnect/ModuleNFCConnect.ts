@@ -29,6 +29,7 @@ export default class ModuleNFCConnect extends Module {
     public static APINAME_remove_user_tag = "remove_user_tag";
     public static APINAME_get_own_tags = "get_own_tags";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleNFCConnect {
         if (!ModuleNFCConnect.instance) {
             ModuleNFCConnect.instance = new ModuleNFCConnect();

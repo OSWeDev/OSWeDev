@@ -34,6 +34,7 @@ export default class ModuleDocument extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDocument.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDocument.MODULE_NAME + '.FO_ACCESS';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDocument {
         if (!ModuleDocument.instance) {
             ModuleDocument.instance = new ModuleDocument();

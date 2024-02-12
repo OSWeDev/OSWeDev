@@ -12,6 +12,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 export default class ModulesAdminVueModule extends VueModuleBase {
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulesAdminVueModule {
         if (!ModulesAdminVueModule.instance) {
             ModulesAdminVueModule.instance = new ModulesAdminVueModule();

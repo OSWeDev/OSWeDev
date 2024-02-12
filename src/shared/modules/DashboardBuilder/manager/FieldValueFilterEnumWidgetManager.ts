@@ -24,6 +24,7 @@ import { cloneDeep } from "lodash";
  */
 export default class FieldValueFilterEnumWidgetManager {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FieldValueFilterEnumWidgetManager {
         if (!FieldValueFilterEnumWidgetManager.instance) {
             FieldValueFilterEnumWidgetManager.instance = new FieldValueFilterEnumWidgetManager();

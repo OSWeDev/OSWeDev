@@ -1,6 +1,5 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipelineHelper';
@@ -43,18 +42,53 @@ export default class VarsServerCallBackSubsController {
     }
 
     public static async get_var_data<T extends VarDataBaseVO>(param_index: string): Promise<T> {
-        return this.get_var_data_indexed<T>(param_index, param_index);
+
+        try {
+
+            let var_data = await this.get_var_data_indexed<T>(param_index, param_index);
+
+            if (var_data) {
+                return var_data;
+            }
+        } catch (error) {
+
+            // Dans le cas d'un timeout, on retente automatiquement
+            let msg = error.message ? error.message : error;
+            msg = msg.toLowerCase();
+            if ((msg.indexOf('timeout') > -1) || (msg.indexOf('timedout') > -1)) {
+                let retries = 3;
+                ConsoleHandler.warn('VarsServerCallBackSubsController.get_var_data: timeout for index: ' + param_index + ' error: ' + error + ' retries: ' + retries);
+
+                while (retries) {
+                    retries--;
+
+                    try {
+                        let var_data = await this.get_var_data_indexed<T>(param_index, param_index);
+
+                        if (var_data) {
+                            return var_data;
+                        }
+                    } catch (error) {
+                        ConsoleHandler.warn('VarsServerCallBackSubsController.get_var_data: timeout for index: ' + param_index + ' error: ' + error + ' retries: ' + retries);
+                    }
+                }
+
+                ConsoleHandler.error('VarsServerCallBackSubsController.get_var_data: timeout for index: ' + param_index + ' error: ' + error + ' no more retries');
+            } else {
+                ConsoleHandler.error('VarsServerCallBackSubsController.get_var_data: error for index: ' + param_index + ' error: ' + error);
+            }
+        }
     }
 
-    public static async get_vars_datas(params_indexes: string[]): Promise<{ [index: string]: VarDataBaseVO }> {
-        let res: { [index: string]: VarDataBaseVO } = {};
+    public static async get_vars_datas<T extends VarDataBaseVO>(params_indexes: string[]): Promise<{ [index: string]: T }> {
+        let res: { [index: string]: T } = {};
 
         let promises = [];
         for (let i in params_indexes) {
             let params_index = params_indexes[i];
 
             promises.push((async () => {
-                let var_data = await this.get_var_data(params_index);
+                let var_data = await this.get_var_data(params_index) as T;
 
                 if (var_data) {
                     res[var_data.index] = var_data;

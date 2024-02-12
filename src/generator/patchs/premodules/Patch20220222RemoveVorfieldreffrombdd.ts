@@ -6,6 +6,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class Patch20220222RemoveVorfieldreffrombdd implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220222RemoveVorfieldreffrombdd {
         if (!Patch20220222RemoveVorfieldreffrombdd.instance) {
             Patch20220222RemoveVorfieldreffrombdd.instance = new Patch20220222RemoveVorfieldreffrombdd();

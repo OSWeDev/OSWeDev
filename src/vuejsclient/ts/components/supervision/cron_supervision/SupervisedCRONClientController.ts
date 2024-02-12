@@ -8,6 +8,7 @@ import RangeHandler from "../../../../../shared/tools/RangeHandler";
 
 export default class SupervisedCRONClientController implements ISupervisedItemClientController<SupervisedCRONVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisedCRONClientController {
         if (!SupervisedCRONClientController.instance) {
             SupervisedCRONClientController.instance = new SupervisedCRONClientController();

@@ -29,6 +29,8 @@ export default interface IEnvParam {
     MAX_SIZE_PER_QUERY?: number;
     MAX_UNION_ALL_PER_QUERY?: number;
 
+    MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean;
+
     DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
     DEBUG_SLOW_QUERIES?: boolean;
     DEBUG_PARAM_QUERIES?: boolean;
@@ -50,6 +52,16 @@ export default interface IEnvParam {
     DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean;
     DEBUG_DB_FULL_QUERY_PERF?: boolean;
     DEBUG_INTERTHREADS_MESSAGES?: boolean;
+    DEBUG_IO_ROOMS?: boolean;
+    DEBUG_VO_EVENTS?: boolean;
+
+    DEBUG_var_insert_with_copy?: boolean;
+
+    DEBUG_var_get_instance_semaphored_db_loaded_var_data?: boolean;
+
+    DEBUG_waiting_registered_task_result_wrappers?: boolean;
+    DEBUG_waiting_registered_task_result_wrappers_threshold?: number;
+    DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean;
 
     DEBUG_PROMISE_PIPELINE?: boolean;
     DEBUG_PROMISE_PIPELINE_WORKER_STATS?: boolean;
@@ -84,4 +96,6 @@ export default interface IEnvParam {
     TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean;
 
     BLOCK_TEAMS_MESSAGES?: boolean;
+
+    EXPRESS_SECRET: string;
 }

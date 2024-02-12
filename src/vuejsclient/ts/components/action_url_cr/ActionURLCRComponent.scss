@@ -1,0 +1,46 @@
+@import "skin-variables.scss";
+
+.ActionURLCRComponent {
+
+    .action_cr_wrapper {
+
+        padding: 2em;
+        border-radius: 1em;
+        max-width: 860px;
+        margin: auto;
+        margin-bottom: 1em;
+
+        color: white;
+
+        .action_cr_icon {
+            font-size: xxx-large;
+            float: left;
+            margin-right: .5em;
+        }
+
+        .action_cr_message {
+            font-size: smaller;
+        }
+
+        blockquote {
+            font-size: small;
+            margin-left: 1em;
+        }
+
+        &.cr_type_0 {
+            background-color: royalblue;
+        }
+
+        &.cr_type_2 {
+            background-color: $danger_color;
+        }
+
+        &.cr_type_1 {
+            background-color: $button_warning_color;
+        }
+
+        &.cr_type_3 {
+            background-color: $success_color;
+        }
+    }
+}

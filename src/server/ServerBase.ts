@@ -64,6 +64,8 @@ import { IClient } from 'pg-promise/typescript/pg-subset';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
+import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
+import { DailyRotateFileTransportOptions } from 'winston/lib/winston/transports';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -80,6 +82,7 @@ export default abstract class ServerBase {
 
     public csrfProtection;
     public version;
+    public io;
 
     protected db: IDatabase<any>;
     protected spawn;
@@ -222,11 +225,11 @@ export default abstract class ServerBase {
         const logger = new (winston.Logger)({
             transports: [
                 new (winston.transports.Console)(),
-                new (winston_daily_rotate_file)({
-                    filename: './logs/log',
-                    datePattern: 'yyyy-MM-dd.',
-                    prepend: true
-                })
+                new (winston_daily_rotate_file)(
+                    {
+                        filename: './logs/log',
+                        datePattern: 'yyyy-MM-dd.'
+                    })
             ]
         });
 
@@ -399,7 +402,7 @@ export default abstract class ServerBase {
         });
 
         this.session = expressSession({
-            secret: 'vk4s8dq2j4',
+            secret: ConfigurationService.node_configuration.EXPRESS_SECRET,
             name: 'sid',
             proxy: true,
             resave: false,
@@ -553,10 +556,11 @@ export default abstract class ServerBase {
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
 
-            let url = decodeURIComponent(req.url);
+            let url = path.normalize(decodeURIComponent(req.path));
+            let normalized = path.resolve('./dist' + url);
 
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            if (!fs.existsSync(path.resolve('./dist' + url))) {
+            if ((!normalized.startsWith("./dist")) || !fs.existsSync(normalized)) {
                 StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
 
                 const uid = req.session ? req.session.uid : null;
@@ -574,7 +578,7 @@ export default abstract class ServerBase {
                 return;
             }
 
-            res.sendFile(path.resolve('./dist' + url));
+            res.sendFile(normalized);
         });
 
         // Le service de push
@@ -1196,7 +1200,56 @@ export default abstract class ServerBase {
 
             let server = require('http').Server(ServerBase.getInstance().app);
             let io = require('socket.io')(server);
+            ServerBase.getInstance().io = io;
             io.use(sharedsession(ServerBase.getInstance().session));
+
+            io.of('/').adapter.on('join-room', (room) => {
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:join-room: ' + room);
+                }
+            });
+
+            io.of('/').adapter.on('leave-room', (room) => {
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:leave-room: ' + room);
+                }
+            });
+
+            io.of('/').adapter.on('create-room', (room) => {
+
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:create-room: ' + room);
+                }
+
+                ModulePushDataServer.getInstance().on_create_room(room);
+            });
+            io.of('/').adapter.on('delete-room', (room) => {
+                // On ne s'intéresse qu'aux rooms de push (donc un vo stringified)
+                if (!room || (typeof room != 'string') || (room.indexOf('{"') != 0)) {
+                    return;
+                }
+
+                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                    ConsoleHandler.log('SOCKET IO:delete-room: ' + room);
+                }
+
+                ModulePushDataServer.getInstance().on_delete_room(room);
+            });
 
             server.listen(ServerBase.getInstance().port);
             // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
@@ -1206,6 +1259,7 @@ export default abstract class ServerBase {
             //turn off debug
             // io.set('log level', 1);
             // define interactions with client
+
             io.on('connection', function (socket: socketIO.Socket) {
                 let session: IServerUserSession = socket.handshake['session'];
 

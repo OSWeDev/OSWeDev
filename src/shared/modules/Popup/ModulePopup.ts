@@ -15,6 +15,7 @@ export default class ModulePopup extends Module {
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModulePopup.MODULE_NAME;
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModulePopup.MODULE_NAME + '.BO_ACCESS';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulePopup {
         if (!ModulePopup.instance) {
             ModulePopup.instance = new ModulePopup();

@@ -7,6 +7,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class CheckExtensions implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CheckExtensions {
         if (!CheckExtensions.instance) {
             CheckExtensions.instance = new CheckExtensions();

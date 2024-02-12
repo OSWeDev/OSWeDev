@@ -11,6 +11,7 @@ import MenuController from '../menu/MenuController';
 
 export default class DocumentAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DocumentAdminVueModule {
         if (!DocumentAdminVueModule.instance) {
             DocumentAdminVueModule.instance = new DocumentAdminVueModule();
@@ -37,7 +38,7 @@ export default class DocumentAdminVueModule extends VueModuleBase {
                 await MenuController.getInstance().declare_menu_element(
                     MenuElementVO.create_new(
                         ModuleDocument.POLICY_BO_ACCESS,
-                        VueAppController.getInstance().app_name,
+                        VueAppController.APP_NAME_ADMIN,
                         "DocumentAdminVueModule",
                         "fa-book",
                         10,
@@ -50,7 +51,7 @@ export default class DocumentAdminVueModule extends VueModuleBase {
                 null,
                 MenuElementVO.create_new(
                     ModuleDocument.POLICY_BO_ACCESS,
-                    VueAppController.getInstance().app_name,
+                    VueAppController.APP_NAME_ADMIN,
                     DocumentVO.API_TYPE_ID,
                     "fa-book",
                     10,
@@ -64,7 +65,7 @@ export default class DocumentAdminVueModule extends VueModuleBase {
                 null,
                 MenuElementVO.create_new(
                     ModuleDocument.POLICY_BO_ACCESS,
-                    VueAppController.getInstance().app_name,
+                    VueAppController.APP_NAME_ADMIN,
                     DocumentTagVO.API_TYPE_ID,
                     "fa-tag",
                     20,
@@ -78,7 +79,7 @@ export default class DocumentAdminVueModule extends VueModuleBase {
                 null,
                 MenuElementVO.create_new(
                     ModuleDocument.POLICY_BO_ACCESS,
-                    VueAppController.getInstance().app_name,
+                    VueAppController.APP_NAME_ADMIN,
                     DocumentTagGroupVO.API_TYPE_ID,
                     "fa-tags",
                     30,

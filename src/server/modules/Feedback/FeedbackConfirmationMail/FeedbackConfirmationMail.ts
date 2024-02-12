@@ -2,6 +2,7 @@ import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
+import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
@@ -34,7 +35,8 @@ export default class FeedbackConfirmationMail {
     private constructor() {
     }
 
-    public async sendConfirmationEmail(feedback: FeedbackVO): Promise<void> {
+    // istanbul ignore next: nothing to test : sendConfirmationEmail
+    public async sendConfirmationEmail(feedback: FeedbackVO): Promise<MailVO> {
 
         // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
         let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
@@ -53,7 +55,7 @@ export default class FeedbackConfirmationMail {
         if (!!FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID) {
 
             // Using SendInBlue
-            await SendInBlueMailServerController.getInstance().sendWithTemplate(
+            return await SendInBlueMailServerController.getInstance().sendWithTemplate(
                 FeedbackConfirmationMail.MAILCATEGORY_FeedbackConfirmationMail,
                 SendInBlueMailVO.createNew(user.name, user.email),
                 FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID,
@@ -75,6 +77,7 @@ export default class FeedbackConfirmationMail {
                     FEEDBACK_ID: feedback.id.toString()
                 })
             });
+            return null;
         }
     }
 }

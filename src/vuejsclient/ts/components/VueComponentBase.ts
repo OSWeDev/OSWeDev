@@ -2,6 +2,8 @@
 import moment from "moment";
 import screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
+import ContextFilterVO, { filter } from "../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import SortByVO from "../../../shared/modules/ContextFilter/vos/SortByVO";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
@@ -15,11 +17,16 @@ import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter, tstzFilter } from '../../../shared/tools/Filters';
 import LocaleManager from "../../../shared/tools/LocaleManager";
+import { all_promises } from "../../../shared/tools/PromiseTools";
 import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
 import AjaxCacheClientController from "../modules/AjaxCache/AjaxCacheClientController";
+import VOEventRegistrationKey from "../modules/PushData/VOEventRegistrationKey";
+import VOEventRegistrationsHandler from "../modules/PushData/VOEventRegistrationsHandler";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
+import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
+import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 
 // MONTHS MIXIN
 let months = [
@@ -287,6 +294,11 @@ export default class VueComponentBase extends Vue
 
     protected data_user = VueAppController.getInstance().data_user;
 
+    /**
+     * On ajoute les fonctions d'auto-synchro CRUD via io rooms
+     */
+    protected vo_events_registration_keys_by_room_id: { [room_id: string]: VOEventRegistrationKey[] } = {};
+
     // FILTERS MIXIN
     protected const_filters = {
         amount: amountFilter,
@@ -417,6 +429,13 @@ export default class VueComponentBase extends Vue
                 dateToFormat
             );
         }
+    }
+
+    protected format_date(date: number, format: string): string {
+        if (date == null) {
+            return null;
+        }
+        return Dates.format(date, format);
     }
 
     protected formatNumber_nodecimal(numberToFormat) {
@@ -898,5 +917,324 @@ export default class VueComponentBase extends Vue
             return true;
         }
         return false;
+    }
+
+    protected async unregister_room_id_vo_event_callbacks(room_id: string) {
+        let promises = [];
+        for (let j in this.vo_events_registration_keys_by_room_id[room_id]) {
+            let vo_event_registration_key = this.vo_events_registration_keys_by_room_id[room_id][j];
+
+            promises.push(VOEventRegistrationsHandler.unregister_vo_event_callback(vo_event_registration_key));
+        }
+        await all_promises(promises);
+        this.vo_events_registration_keys_by_room_id = {};
+    }
+
+    protected async unregister_all_vo_event_callbacks() {
+        let promises = [];
+        for (let i in this.vo_events_registration_keys_by_room_id) {
+            promises.push(this.unregister_room_id_vo_event_callbacks(i));
+        }
+        await all_promises(promises);
+        this.vo_events_registration_keys_by_room_id = {};
+    }
+
+    protected handle_created_vo_event_callback(list_name: string, sort_function: (a, b) => number, created_vo: IDistantVOBase, map_name: string = null) {
+        if (map_name) {
+            if (!this[map_name][list_name]) {
+                this[map_name][list_name] = [];
+            }
+        } else {
+            if (!this[list_name]) {
+                this[list_name] = [];
+            }
+        }
+
+        let list = map_name ? this[map_name][list_name] : this[list_name];
+
+        let index = list.findIndex((vo) => vo.id == created_vo.id);
+        if (index < 0) {
+
+            let insert_index = 0;
+            for (let i in list) {
+                if (sort_function(created_vo, list[i]) > 0) {
+                    insert_index++;
+                } else {
+                    break;
+                }
+            }
+            list.splice(insert_index, 0, created_vo);
+        }
+    }
+
+    /**
+     * Permet de surveiller les mises à jour d'éléments de type API_TYPE_ID et de les stocker dans la liste list_name
+     * ATTENTION : Ce système nécessite plusieurs configuration :
+     *             - Cette fonction qui doit être appelée là où on veut entamer l'init de la liste,
+     *             - Le hook de destruction du composant pour unregister les callbacks : beforeDestroy() => await this.unregister_all_vo_event_callbacks()
+     * Attention, on doit bien arriver ici avec l'idée qu'on va vider la liste qui va se remplir quand on reçoit les réponses des apis.
+     * @param API_TYPE_ID L'API_TYPE_ID à surveiller
+     * @param list_name la liste dans laquelle on stocke les éléments à jour correspondants au filtrage
+     * @param simple_filters_on_api_type_id les filtres à appliquer. Ne sont gérés que les filtres simples directement sur l'API_TYPE_ID à surveiller. Donc si on veut récupérer des éléments liés, on passe par la liaison N/1 pour le moment
+     * @param simple_sorts_by_on_api_type_id les étapes du sort à appliquer. Ne sont gérés que les sorts simples directement sur l'API_TYPE_ID à surveiller.
+     * @param map_name si fourni, alors au lieu de stocker dans this[list_name], on stocke dans this[map_name][list_name]
+     */
+    protected async register_vo_updates_on_list(
+        API_TYPE_ID: string,
+        list_name: string,
+        simple_filters_on_api_type_id: ContextFilterVO[] = [],
+        simple_sorts_by_on_api_type_id: SortByVO[] = [],
+        map_name: string = null
+    ) {
+
+        this.assert_compatibility_for_register_vo_list_updates(API_TYPE_ID, list_name, simple_filters_on_api_type_id, simple_sorts_by_on_api_type_id);
+
+        if (map_name) {
+            if (!this[map_name]) {
+                this[map_name] = {};
+            }
+            this[map_name][list_name] = [];
+        } else {
+            this[list_name] = [];
+        }
+        let sort_function: (a, b) => number = this.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
+
+        let room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
+        let room_id = JSON.stringify(room_vo);
+
+        await this.unregister_room_id_vo_event_callbacks(room_id);
+        this.vo_events_registration_keys_by_room_id[room_id] = [];
+
+        let promises = [];
+
+        promises.push((async () => {
+            let vos = await query(API_TYPE_ID)
+                .add_filters(simple_filters_on_api_type_id)
+                .set_sorts(simple_sorts_by_on_api_type_id)
+                .select_vos();
+
+            for (let i in vos) {
+                let vo = vos[i];
+                this.handle_created_vo_event_callback(list_name, sort_function, vo, map_name);
+            }
+        })());
+
+        promises.push((async () => {
+            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_create_callback(
+                room_vo,
+                room_id,
+                (created_vo: IDistantVOBase) => {
+                    this.handle_created_vo_event_callback(list_name, sort_function, created_vo, map_name);
+                }
+            );
+            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
+        })());
+
+        promises.push((async () => {
+            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
+                room_vo,
+                room_id,
+                async (deleted_vo: IDistantVOBase) => {
+
+                    let list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
+
+                    let index = list ? list.findIndex((vo) => vo.id == deleted_vo.id) : null;
+                    if (index >= 0) {
+                        list.splice(index, 1);
+                    }
+                }
+            );
+            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
+        })());
+
+        promises.push((async () => {
+            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
+                room_vo,
+                room_id,
+                async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
+                    let list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
+
+                    let index = list.findIndex((vo) => vo.id == post_update_vo.id);
+                    if (index >= 0) {
+                        list.splice(index, 1, post_update_vo);
+                    }
+                }
+            );
+            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
+        })());
+
+        await all_promises(promises);
+    }
+
+    /**
+     * Permet de surveiller les mises à jour d'un vo de type API_TYPE_ID et dont l'id est passé en param et de le mettre à jour dans le vo_name
+     * ATTENTION : Ce système nécessite plusieurs configuration :
+     *             - Cette fonction qui doit être appelée là où on veut entamer l'init de la liste,
+     *             - Le hook de destruction du composant pour unregister les callbacks : beforeDestroy() => await this.unregister_all_vo_event_callbacks()
+     * Attention, on doit bien arriver ici avec l'idée qu'on va vider la liste qui va se remplir quand on reçoit les réponses des apis.
+     * @param API_TYPE_ID L'API_TYPE_ID à surveiller
+     * @param vo_id l'id du vo à surveiller
+     * @param field_name le nom du vo dans lequel on stocke l'élément à jour correspondant au filtrage
+     * @param vo_has_been_preloaded si on a déjà préchargé le vo - on ne le supprime pas du coup par défaut et on ne le recharge pas non plus
+     */
+    protected async register_single_vo_updates(
+        API_TYPE_ID: string,
+        vo_id: number,
+        field_name: string,
+        vo_has_been_preloaded: boolean = true
+    ) {
+
+        this.assert_compatibility_for_register_single_vo_updates(API_TYPE_ID, vo_id, field_name);
+
+        if (!vo_has_been_preloaded) {
+            this[field_name] = null;
+        }
+
+        let simple_filters_on_api_type_id = [
+            filter(API_TYPE_ID).by_id(vo_id)
+        ];
+        let room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
+        let room_id = JSON.stringify(room_vo);
+
+        await this.unregister_room_id_vo_event_callbacks(room_id);
+        this.vo_events_registration_keys_by_room_id[room_id] = [];
+
+        let promises = [];
+
+        if (!vo_has_been_preloaded) {
+            promises.push((async () => {
+                let vo = await query(API_TYPE_ID)
+                    .add_filters(simple_filters_on_api_type_id)
+                    .select_vo();
+
+                this[field_name] = vo;
+            })());
+        }
+
+        promises.push((async () => {
+            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
+                room_vo,
+                room_id,
+                async (deleted_vo: IDistantVOBase) => {
+                    this[field_name] = null;
+                }
+            );
+            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
+        })());
+
+        promises.push((async () => {
+            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
+                room_vo,
+                room_id,
+                async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
+                    this[field_name] = post_update_vo;
+                }
+            );
+            this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
+        })());
+
+        await all_promises(promises);
+    }
+
+
+    private assert_compatibility_for_register_vo_list_updates(
+        API_TYPE_ID: string,
+        list_name: string,
+        simple_filters_on_api_type_id: ContextFilterVO[] = [],
+        simple_sorts_by_on_api_type_id: SortByVO[] = []
+    ) {
+        if (!API_TYPE_ID) {
+            throw new Error('API_TYPE_ID is mandatory');
+        }
+
+        if (!list_name) {
+            throw new Error('list_name is mandatory');
+        }
+
+        for (let i in simple_filters_on_api_type_id) {
+            if (simple_filters_on_api_type_id[i].vo_type != API_TYPE_ID) {
+                throw new Error('simple_filters_on_api_type_id must be on API_TYPE_ID');
+            }
+
+            if ((simple_filters_on_api_type_id[i].filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
+                (simple_filters_on_api_type_id[i].filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
+                throw new Error('simple_filters_on_api_type_id filter_type Not implemented');
+            }
+
+            if (simple_filters_on_api_type_id[i].param_numeric == null) {
+                throw new Error('simple_filters_on_api_type_id only param_numeric is supported right now');
+            }
+        }
+
+        for (let i in simple_sorts_by_on_api_type_id) {
+            if (simple_sorts_by_on_api_type_id[i].vo_type != API_TYPE_ID) {
+                throw new Error('simple_sorts_by_on_api_type_id must be on API_TYPE_ID');
+            }
+        }
+    }
+
+    private assert_compatibility_for_register_single_vo_updates(
+        API_TYPE_ID: string,
+        vo_id: number,
+        field_name: string
+    ) {
+        if (!API_TYPE_ID) {
+            throw new Error('API_TYPE_ID is mandatory');
+        }
+
+        if (!field_name) {
+            throw new Error('field_name is mandatory');
+        }
+
+        if (!vo_id) {
+            throw new Error('vo_id is mandatory');
+        }
+    }
+
+
+    private get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id: SortByVO[]): (a, b) => number {
+        let sort_function = (a, b) => {
+            if ((!simple_sorts_by_on_api_type_id) || (!simple_sorts_by_on_api_type_id.length)) {
+                return a.id - b.id;
+            }
+
+            for (let i in simple_sorts_by_on_api_type_id) {
+                let sort_by = simple_sorts_by_on_api_type_id[i];
+
+                let compare_a = a[sort_by.field_id];
+                let compare_b = b[sort_by.field_id];
+
+                if (!sort_by.sort_asc) {
+                    let tmp = compare_a;
+                    compare_a = compare_b;
+                    compare_b = tmp;
+                }
+
+                if (compare_a == compare_b) {
+                    continue;
+                }
+
+                if (compare_a > compare_b) {
+                    return 1;
+                }
+
+                return -1;
+            }
+
+            return 0;
+        };
+
+        return sort_function;
+    }
+
+    private get_room_vo_for_register_vo_updates(API_TYPE_ID: string, simple_filters_on_api_type_id: ContextFilterVO[] = []): any {
+        let room_vo = {
+            _type: API_TYPE_ID
+        };
+        for (let i in simple_filters_on_api_type_id) {
+            let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
+            room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_numeric;
+        }
+        return room_vo;
     }
 }

@@ -4,6 +4,7 @@ export default class ModuleTrelloAPI extends Module {
 
     public static MODULE_NAME: string = 'TrelloAPI';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleTrelloAPI {
         if (!ModuleTrelloAPI.instance) {
             ModuleTrelloAPI.instance = new ModuleTrelloAPI();

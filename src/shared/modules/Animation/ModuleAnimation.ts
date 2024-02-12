@@ -51,6 +51,7 @@ export default class ModuleAnimation extends Module {
     public static POLICY_FO_INLINE_EDIT_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".FO_INLINE_EDIT_ACCESS";
     public static POLICY_FO_REPORTING_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".REPORTING.FO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimation {
         if (!ModuleAnimation.instance) {
             ModuleAnimation.instance = new ModuleAnimation();

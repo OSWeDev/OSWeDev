@@ -209,6 +209,7 @@ export default class WidgetOptionsVOManager {
         return sorted_widgets;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): WidgetOptionsVOManager {
         if (!WidgetOptionsVOManager.instance) {
             WidgetOptionsVOManager.instance = new WidgetOptionsVOManager();

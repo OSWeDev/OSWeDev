@@ -15,8 +15,9 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
@@ -343,7 +344,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             // Créer le Trello associé
             let response;
-            let trello_api = await ModuleTrelloAPIServer.getInstance().getTrelloAPI();
             let idLabels: string[] = [];
             let trello_message = feedback.message + '\x0A' + '\x0A';
 
@@ -381,7 +381,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let card_name: string = feedback.title;
+            let card_name: string = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + feedback.title;
 
             if (feedback.wish_be_called && FEEDBACK_TRELLO_RAPPELER_ID) {
                 idLabels.push(FEEDBACK_TRELLO_RAPPELER_ID);
@@ -403,20 +403,22 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             try {
 
-                response = await trello_api.card.create({
-                    name: card_name,
-                    desc: trello_message,
-                    pos: 'top',
-                    idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
-                    idLabels: idLabels,
-                });
+                response = await ModuleTrelloAPIServer.getInstance().create_card(
+                    card_name,
+                    trello_message,
+                    FEEDBACK_TRELLO_LIST_ID,
+                    idLabels);
+                // idLabels,
+                // {
+                //     pos: 'top',
+                // });
             } catch (error) {
                 ConsoleHandler.error(error);
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_TRELLO_API");
             }
 
             // Faire le lien entre le feedback en base et le Trello
-            feedback.trello_ref = response;
+            feedback.trello_ref = response.id;
             let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!ires) || (!ires.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
@@ -425,12 +427,14 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             feedback.id = ires.id;
 
-            await this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
+            // On n'attend pas la réponse pour Teams, à cause des temps d'interaction avec GPT
+            this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
                 // , api_logs
             );
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
-            await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
+            let mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
+            feedback.confirmation_mail_id = mail ? mail.id : null;
 
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
@@ -453,7 +457,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
 
             // //TODO FIXME simple test remplacer par un assistant dédié ( et lié au projet ) en gérant correctement les fichiers / captures, ou juste revenir à l'ancienne version
-            // let gtp_4_brief_msg = await GPTServerController.askAssistant(
+            // let gtp_4_brief_msg = await GPTServerController.ask_assistant(
             //     'g-4dPuTN6RY-celia-c-dms-mail-writer',
             //     'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
             //     // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
@@ -469,12 +473,13 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // };
 
 
-            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(
-                GPTMessageVO.GPTMSG_ROLE_TYPE_USER,
+            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+                GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                 uid,
                 'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
-                'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+                'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' +
+                'Formattes le message en HTML pour être le plus lisible / synthétique / efficace possible. Le format HTML doit être compatible avec Teams. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
                 'Ci-après les éléments constituant le formulaire de contact client : {' +
                 ' - Titre du formulaire : ' + feedback.title + ' ' +
                 ' - Message : ' + feedback.message + ' ' +
@@ -486,7 +491,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
             if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
                 let teamsWebhookContent = new TeamsWebhookContentVO();
-                teamsWebhookContent.title = 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
+                teamsWebhookContent.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
                 teamsWebhookContent.summary = gtp_4_brief.content;
 
                 if (feedback.screen_capture_1_id) {
@@ -521,8 +526,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                             ConfigurationService.node_configuration.BASE_URL + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
                 }
 
-                let teams_res = await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
-                ConsoleHandler.log("teams_res : " + teams_res);
+                await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
             }
         }
     }

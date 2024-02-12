@@ -14,6 +14,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20221216ChangeDbbTradsToIncludeLabels implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20221216ChangeDbbTradsToIncludeLabels {
         if (!Patch20221216ChangeDbbTradsToIncludeLabels.instance) {
             Patch20221216ChangeDbbTradsToIncludeLabels.instance = new Patch20221216ChangeDbbTradsToIncludeLabels();

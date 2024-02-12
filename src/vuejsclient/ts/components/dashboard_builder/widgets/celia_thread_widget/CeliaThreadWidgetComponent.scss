@@ -1,0 +1,66 @@
+.celia_thread_widget_component {
+
+    .update_button {
+        text-align: right;
+    }
+
+    .no_access,
+    .too_many_assistants {
+
+        padding: 1em;
+        border-radius: 1em;
+        color: white;
+        max-width: fit-content;
+        margin: 1em auto;
+
+        i {
+            font-size: xx-large;
+            vertical-align: middle;
+            margin-right: 0.4em;
+        }
+    }
+
+    .thread_container {
+
+        padding: 1em 0em;
+        overflow-y: auto;
+        height: -webkit-fill-available;
+
+        .thread_message_input {
+
+            margin: auto;
+            margin-top: 2em;
+            max-width: 768px;
+
+            .thread_message_input_textarea {
+                width: -webkit-fill-available;
+
+                textarea {
+                    width: -webkit-fill-available;
+                    font-size: 1em;
+                    font-weight: normal;
+                    padding: 0.4em 0.8em 0.4em 0.8em;
+                    border: none;
+                    border-radius: 1em;
+                    margin-top: 1em;
+                    line-height: 1.5em;
+                    margin-bottom: .4em;
+                }
+            }
+
+            .thread_message_input_send {
+                text-align: right;
+
+                i {
+                    margin-right: 0.4em;
+                }
+            }
+        }
+
+        .thread_messages {
+
+            max-width: 768px;
+            margin: auto;
+        }
+    }
+}

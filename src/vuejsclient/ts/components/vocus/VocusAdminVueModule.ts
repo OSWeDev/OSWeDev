@@ -10,6 +10,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
 
     public static ROUTE_PATH: string = VocusHandler.Vocus_ROUTE_BASE;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VocusAdminVueModule {
         if (!VocusAdminVueModule.instance) {
             VocusAdminVueModule.instance = new VocusAdminVueModule();

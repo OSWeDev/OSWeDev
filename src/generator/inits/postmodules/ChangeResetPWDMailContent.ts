@@ -11,6 +11,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class ChangeResetPWDMailContent implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ChangeResetPWDMailContent {
         if (!ChangeResetPWDMailContent.instance) {
             ChangeResetPWDMailContent.instance = new ChangeResetPWDMailContent();

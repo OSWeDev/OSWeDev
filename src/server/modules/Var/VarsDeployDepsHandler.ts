@@ -1,10 +1,10 @@
 import { cloneDeep } from "lodash";
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../../shared/modules/Stats/StatsController";
 import VOsTypesManager from "../../../shared/modules/VOsTypesManager";
 import VarsController from "../../../shared/modules/Var/VarsController";
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarConfVO from "../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarPixelFieldConfVO from "../../../shared/modules/Var/vos/VarPixelFieldConfVO";
@@ -249,9 +249,67 @@ export default class VarsDeployDepsHandler {
         }
 
         /**
-         * Si on a pas tout, on doit identifier les pixels qui sont déjà connus pour pas les refaire
-         *  et en déduire ceux qui manquent
+         * Si on a pas tout,
+         * Suivant le type d'aggrégat :
+         *  - soit on peut utiliser les pixels connus, soit non, et dans ce cas on redemande tous les pixels et on fait l'aggrégat gloabl ensuite
+         *  - soit on doit identifier les pixels qui sont déjà connus pour pas les refaire et en déduire ceux qui manquent
          */
+        let can_not_use_known_pixels = (varconf.aggregator == VarConfVO.AVG_AGGREGATOR);
+
+        if (can_not_use_known_pixels) {
+            await this.do_not_use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
+        } else {
+            await this.use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
+        }
+
+        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED');
+        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED', Dates.now_ms() - time_in);
+    }
+
+    private static async do_not_use_known_pixels(
+        node: VarDAGNode,
+        varconf: VarConfVO,
+        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixel_cache: { counter: number, aggregated_value: number },
+        prod_cardinaux: number,
+        DEBUG_VARS: boolean
+    ) {
+
+        let aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
+
+        VarsDeployDepsHandler.populate_missing_pixels(
+            aggregated_datas,
+            varconf,
+            node.var_data,
+            pixellised_fields_by_id,
+            cloneDeep(node.var_data)
+        );
+
+        /**
+         * On n'a pas tenté de charger les pixels
+         */
+        for (let depi in aggregated_datas) {
+            let aggregated_data = aggregated_datas[depi];
+            await VarDAGNode.getInstance(node.var_dag, aggregated_data, false);
+        }
+
+        node.is_aggregator = true;
+        node.aggregated_datas = aggregated_datas;
+
+        if (DEBUG_VARS) {
+            ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':PIXELED:can_not_use_known_pixels');
+        }
+    }
+
+    private static async use_known_pixels(
+        node: VarDAGNode,
+        varconf: VarConfVO,
+        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixel_cache: { counter: number, aggregated_value: number },
+        prod_cardinaux: number,
+        DEBUG_VARS: boolean
+    ) {
+
         let known_pixels_query = query(varconf.var_data_vo_type);
 
         /**
@@ -334,9 +392,6 @@ export default class VarsDeployDepsHandler {
         if (DEBUG_VARS) {
             ConsoleHandler.log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':PIXELED:known:' + nb_known_pixels + ':' + nb_unknown_pixels + ':');
         }
-
-        StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED');
-        StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'handle_pixellisation', 'OUT_PIXELED', Dates.now_ms() - time_in);
     }
 
     /**
@@ -371,7 +426,8 @@ export default class VarsDeployDepsHandler {
 
             RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
 
-                let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, true);
+                // Pas sur d'avoir besoin de cloner les fields, on tente sans, par ce que niveau perf ça devrait être mieux
+                let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, false);
                 new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.createNew(
                     RangeHandler.getRangeType(field),
                     pixel_value,
@@ -380,6 +436,7 @@ export default class VarsDeployDepsHandler {
                     true,
                     segment_type
                 )];
+                new_var_data
                 if (!aggregated_datas[new_var_data.index]) {
                     VarsDeployDepsHandler.populate_missing_pixels(
                         aggregated_datas,

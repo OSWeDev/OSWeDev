@@ -2,6 +2,7 @@ import TableFieldTypeControllerBase from './vos/TableFieldTypeControllerBase';
 
 export default class TableFieldTypesManager {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TableFieldTypesManager {
         if (!TableFieldTypesManager.instance) {
             TableFieldTypesManager.instance = new TableFieldTypesManager();

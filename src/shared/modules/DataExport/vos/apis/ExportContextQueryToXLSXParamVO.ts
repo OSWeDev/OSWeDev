@@ -5,12 +5,11 @@ import IAPIParamTranslatorStatic from '../../../API/interfaces/IAPIParamTranslat
 import ContextFilterVO from '../../../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../ContextFilter/vos/ContextQueryVO';
 import DatatableField from '../../../DAO/vos/datatable/DatatableField';
-import TableColumnDescVO from '../../../DashboardBuilder/vos/TableColumnDescVO';
-import IExportOptions from '../../interfaces/IExportOptions';
-import ExportVarIndicator from '../ExportVarIndicator';
-import ExportVarcolumnConf from '../ExportVarcolumnConf';
-import AbstractVO from '../../../VO/abstract/AbstractVO';
 import FieldFiltersVO from '../../../DashboardBuilder/vos/FieldFiltersVO';
+import TableColumnDescVO from '../../../DashboardBuilder/vos/TableColumnDescVO';
+import AbstractVO from '../../../VO/abstract/AbstractVO';
+import ExportVarIndicatorVO from '../ExportVarIndicatorVO';
+import ExportVarcolumnConfVO from '../ExportVarcolumnConfVO';
 
 /**
  * @class ExportContextQueryToXLSXParamVO
@@ -26,7 +25,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
         columns: TableColumnDescVO[] = null,
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
-        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
@@ -35,14 +34,16 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         file_access_policy_name: string = null,
         target_user_id: number = null,
         do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
-        export_options: IExportOptions = null,
-        vars_indicator?: ExportVarIndicator,
+        export_active_field_filters?: boolean,
+        export_vars_indicator?: boolean,
+        send_email_with_export_notification?: boolean,
+        vars_indicator?: ExportVarIndicatorVO,
     ): ExportContextQueryToXLSXParamVO {
 
         return new ExportContextQueryToXLSXParamVO(
             filename, context_query, ordered_column_list, column_labels, exportable_datatable_custom_field_columns, columns, fields, varcolumn_conf,
             active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths, is_secured, file_access_policy_name, target_user_id,
-            do_not_use_filter_by_datatable_field_uid, export_options, vars_indicator);
+            do_not_use_filter_by_datatable_field_uid, export_active_field_filters, export_vars_indicator, send_email_with_export_notification, vars_indicator);
     }
 
     public static getAPIParams(param: ExportContextQueryToXLSXParamVO): any[] {
@@ -63,7 +64,9 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
             param.file_access_policy_name,
             param.target_user_id,
             param.do_not_use_filter_by_datatable_field_uid,
-            param.export_options,
+            param.export_active_field_filters,
+            param.export_vars_indicator,
+            param.send_email_with_export_notification, ,
             param.vars_indicator,
         ];
     }
@@ -77,7 +80,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         public exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
         public columns: TableColumnDescVO[] = null,
         public fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
-        public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+        public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         public active_field_filters: FieldFiltersVO = null,
         public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         public active_api_type_ids: string[] = null,
@@ -88,9 +91,11 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         public target_user_id: number = null,
         public do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
-        public export_options?: IExportOptions,
+        public export_active_field_filters?: boolean,
+        public export_vars_indicator?: boolean,
+        public send_email_with_export_notification?: boolean,
 
-        public vars_indicator?: ExportVarIndicator,
+        public vars_indicator?: ExportVarIndicatorVO,
     ) {
         super();
     }

@@ -198,7 +198,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         return null;
     }
 
-    private async connect_and_redirect(serial_number: string, res: Response): Promise<boolean> {
+    private async connect_and_redirect(serial_number: string, req: Request, res: Response): Promise<boolean> {
         if (!await this.connect(serial_number)) {
             return false;
         }

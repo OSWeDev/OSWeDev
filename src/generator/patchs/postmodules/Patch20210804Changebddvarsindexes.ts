@@ -9,6 +9,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20210804Changebddvarsindexes implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20210804Changebddvarsindexes {
         if (!Patch20210804Changebddvarsindexes.instance) {
             Patch20210804Changebddvarsindexes.instance = new Patch20210804Changebddvarsindexes();

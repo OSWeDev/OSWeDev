@@ -7,7 +7,6 @@ import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/Dashboar
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -24,10 +23,13 @@ import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/Var
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
 import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import CeliaThreadWidgetOptions from './widgets/celia_thread_widget/options/CeliaThreadWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderVueModuleBase {
         if (!DashboardBuilderVueModuleBase.instance) {
             DashboardBuilderVueModuleBase.instance = new DashboardBuilderVueModuleBase();
@@ -124,6 +126,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_SaveFavoritesFilters();
 
         await this.initializeWidget_ShowFavoritesFilters();
+
+        await this.initializeWidget_CeliaThread();
     }
 
     private async initializeWidget_BulkOps() {
@@ -224,6 +228,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
     }
 
+    private async initializeWidget_CeliaThread() {
+        let widget = new DashboardWidgetVO();
+
+        widget.default_height = 35;
+        widget.default_width = 6;
+        widget.name = DashboardWidgetVO.WIDGET_NAME_celiathread;
+        widget.widget_component = 'Celiathreadwidgetcomponent';
+        widget.options_component = 'Celiathreadwidgetoptionscomponent';
+        widget.weight = 99;
+        widget.default_background = '#f5f5f5';
+        widget.icon_component = 'Celiathreadwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new CeliaThreadWidgetOptions(), CeliaThreadWidgetOptions.get_selected_fields);
+
+        Vue.component('Celiathreadwidgetcomponent', () => import('./widgets/celia_thread_widget/CeliaThreadWidgetComponent'));
+        Vue.component('Celiathreadwidgetoptionscomponent', () => import('./widgets/celia_thread_widget/options/CeliaThreadWidgetOptionsComponent'));
+        Vue.component('Celiathreadwidgeticoncomponent', () => import('./widgets/celia_thread_widget/icon/CeliaThreadWidgetIconComponent'));
+    }
+
+
     private async initializeWidget_ValueTable() {
         let Table = new DashboardWidgetVO();
 
@@ -320,7 +344,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             AdvancedDateFilter,
-            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null),
+            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false),
             AdvancedDateFilterWidgetOptions.get_selected_fields
         );
 
@@ -344,14 +368,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             CurrentUserFilter,
-            () => new CurrentUserFilterWidgetOptionsVO(
-                new VOFieldRefVO().from({
-                    api_type_id: UserVO.API_TYPE_ID,
-                    field_id: "id"
-                }),
-                true
-            ),
-            CurrentUserFilterWidgetOptionsVO.get_selected_fields
+            () => new CurrentUserFilterWidgetOptionsVO(),
+            null
         );
 
         Vue.component('Currentuserfilterwidgetcomponent', () => import('./widgets/current_user_filter_widget/CurrentUserFilterWidgetComponent'));

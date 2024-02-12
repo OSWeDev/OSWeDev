@@ -24,6 +24,7 @@ export default class ModuleProduit extends Module {
     public static APINAME_getFacturationProduitByIdProduit: string = 'getFacturationProduitByIdProduit';
     public static APINAME_getPrixProduit: string = 'getPrixProduit';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleProduit {
         if (!ModuleProduit.instance) {
             ModuleProduit.instance = new ModuleProduit();

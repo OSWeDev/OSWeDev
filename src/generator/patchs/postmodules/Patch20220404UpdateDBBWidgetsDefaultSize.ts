@@ -9,6 +9,7 @@ import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class Patch20220404UpdateDBBWidgetsDefaultSize implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220404UpdateDBBWidgetsDefaultSize {
         if (!Patch20220404UpdateDBBWidgetsDefaultSize.instance) {
             Patch20220404UpdateDBBWidgetsDefaultSize.instance = new Patch20220404UpdateDBBWidgetsDefaultSize();

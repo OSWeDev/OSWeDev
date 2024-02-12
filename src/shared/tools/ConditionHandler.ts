@@ -127,9 +127,10 @@ export default class ConditionHandler {
         return result;
     }
 
-    private static dynamic_statement_string(a: unknown, condition: ConditionStatement, c?: unknown): boolean {
+    private static dynamic_statement_string(a: string, condition: ConditionStatement, c?: string): boolean {
         const expected_conditions: ConditionStatement[] = [
             ConditionStatement.EQUALS,
+            ConditionStatement.STRICT_EQUALS,
             ConditionStatement.NOT_EQUALS,
             ConditionStatement.IN,
             ConditionStatement.NOT_IN,
@@ -147,14 +148,31 @@ export default class ConditionHandler {
             ConditionStatement.IS_NOT_EMPTY,
         ];
 
-        throw new Error(
-            'Not implemented yet!'
-        );
-
         if (!expected_conditions.includes(condition as ConditionStatement)) {
             throw new Error(
                 `ConditionHandler.dynamic_statement_string: unexpected condition '${condition}' given!`
             );
+        }
+
+        // Si a ou c est null, on ne peut pas comparer donc on sait que c'est différent
+        if (
+            (a && !c) ||
+            (!a && c)
+        ) {
+            return false;
+        }
+
+        switch (condition) {
+            case ConditionStatement.EQUALS:
+                return a.toLowerCase() == c.toLowerCase();
+
+            case ConditionStatement.STRICT_EQUALS:
+                return a === c;
+
+            default:
+                throw new Error(
+                    'Not implemented yet!'
+                );
         }
 
         return false;
@@ -190,7 +208,7 @@ export default class ConditionHandler {
 
         if (!expected_conditions.includes(condition as ConditionStatement)) {
             throw new Error(
-                `ConditionHandler.dynamic_statement_string: unexpected condition '${condition}' given!`
+                `ConditionHandler.dynamic_statement_number: unexpected condition '${condition}' given!`
             );
         }
 
@@ -242,7 +260,7 @@ export default class ConditionHandler {
 
             default:
                 throw new Error(
-                    `ConditionHandler.dynamic_statement_string: unexpected condition '${condition}' given!`
+                    `ConditionHandler.dynamic_statement_number: unexpected condition '${condition}' given!`
                 );
         }
     }
@@ -263,7 +281,7 @@ export default class ConditionHandler {
 
         if (!expected_conditions.includes(condition as ConditionStatement)) {
             throw new Error(
-                `ConditionHandler.dynamic_statement_string: unexpected condition '${condition}' given!`
+                `ConditionHandler.dynamic_statement_object: unexpected condition '${condition}' given!`
             );
         }
 

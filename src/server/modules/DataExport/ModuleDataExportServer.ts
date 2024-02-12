@@ -8,7 +8,6 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
@@ -16,12 +15,12 @@ import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manage
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
-import IExportOptions from '../../../shared/modules/DataExport/interfaces/IExportOptions';
 import IExportableSheet from '../../../shared/modules/DataExport/interfaces/IExportableSheet';
 import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
+import ExportContextQueryToXLSXQueryVO from '../../../shared/modules/DataExport/vos/ExportContextQueryToXLSXQueryVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
-import ExportVarIndicator from '../../../shared/modules/DataExport/vos/ExportVarIndicator';
-import ExportVarcolumnConf from '../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ExportVarIndicatorVO from '../../../shared/modules/DataExport/vos/ExportVarIndicatorVO';
+import ExportVarcolumnConfVO from '../../../shared/modules/DataExport/vos/ExportVarcolumnConfVO';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
@@ -64,7 +63,6 @@ import ModuleVarServer from '../Var/ModuleVarServer';
 import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsController';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
-import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
 import default_export_mail_html_template from './default_export_mail_html_template.html';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
@@ -245,7 +243,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         columns: TableColumnDescVO[],
         fields: { [datatable_field_uid: string]: DatatableField<any, any> },
-        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
@@ -258,9 +256,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
-        export_options?: IExportOptions,
+        export_active_field_filters?: boolean,
+        export_vars_indicator?: boolean,
+        send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicator,
+        vars_indicator?: ExportVarIndicatorVO,
     ): Promise<string> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
@@ -269,7 +269,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.starting.___LABEL___', true);
         }
 
-        let export_query = new ExportContextQueryToXLSXQueryVO(
+        let export_query = ExportContextQueryToXLSXQueryVO.create_new(
             filename,
             context_query,
             ordered_column_list,
@@ -286,11 +286,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file_access_policy_name,
             target_user_id,
             do_not_use_filter_by_datatable_field_uid,
-            export_options,
+            export_active_field_filters,
+            export_vars_indicator,
+            send_email_with_export_notification,
             vars_indicator,
         );
 
-        await ExportContextQueryToXLSXBGThread.getInstance().push_export_query(export_query);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(export_query);
 
         return null;
     }
@@ -308,7 +310,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         columns: TableColumnDescVO[] = null,
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
-        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
         active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
@@ -321,9 +323,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
-        export_options?: IExportOptions,
+        export_active_field_filters?: boolean,
+        export_vars_indicator?: boolean,
+        send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicator,
+        vars_indicator?: ExportVarIndicatorVO,
     ): Promise<void> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
@@ -350,7 +354,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     file_access_policy_name,
                     target_user_id,
                     do_not_use_filter_by_datatable_field_uid,
-                    export_options,
+                    export_active_field_filters,
+                    export_vars_indicator,
+                    send_email_with_export_notification,
                     vars_indicator,
                 );
             });
@@ -372,7 +378,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 file_access_policy_name,
                 target_user_id,
                 do_not_use_filter_by_datatable_field_uid,
-                export_options,
+                export_active_field_filters,
+                export_vars_indicator,
+                send_email_with_export_notification,
                 vars_indicator,
             );
         }
@@ -387,7 +395,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         columns: TableColumnDescVO[] = null,
         fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
-        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null, // TODO FIXME : Quand est-ce qu'on applique le format ???
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null, // TODO FIXME : Quand est-ce qu'on applique le format ???
         active_field_filters: FieldFiltersVO = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
@@ -400,9 +408,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null, // TODO FIXME ??? What is the use of this param ???
 
-        export_options?: IExportOptions,
+        export_active_field_filters?: boolean,
+        export_vars_indicator?: boolean,
+        send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicator,
+        vars_indicator?: ExportVarIndicatorVO,
     ): Promise<void> {
 
         let api_type_id = context_query.base_api_type_id;
@@ -539,13 +549,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         sheets.push(datas_sheet);
 
         // Sheet for active field filters
-        if (export_options?.export_active_field_filters) {
+        if (export_active_field_filters) {
             const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters);
             sheets.push(active_filters_sheet);
         }
 
         // Sheet for Vars Indicator
-        if (export_options?.export_vars_indicator) {
+        if (export_vars_indicator) {
 
             try {
 
@@ -586,7 +596,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             let SEND_IN_BLUE_TEMPLATE_ID: number = null;
 
-            if (export_options?.send_email_with_export_notification) {
+            if (send_email_with_export_notification) {
                 SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(
                     ModuleDataExportServer.PARAM_NAME_SEND_IN_BLUE_EXPORT_NOTIFICATION_TEMPLATE_ID
                 );
@@ -939,14 +949,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * create_vars_indicator_xlsx_sheet
      *  - Make the Xlsx sheet of the given Vars Indicator
      *
-     * @param vars_indicator {ExportVarIndicator}
+     * @param vars_indicator {ExportVarIndicatorVO}
      * @param active_field_filters {FieldFiltersVO}
      * @param active_api_type_ids {string[]}
      * @param discarded_field_paths {{ [vo_type: string]: { [field_id: string]: boolean } }}
      * @returns {IExportableSheet}
      */
     private async create_vars_indicator_xlsx_sheet(
-        vars_indicator: ExportVarIndicator,
+        vars_indicator: ExportVarIndicatorVO,
         active_field_filters: FieldFiltersVO = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -1561,7 +1571,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             try {
                 // JSON parse may throw exeception (case when empty or Non-JSON)
-                filter_additional_params = column.filter_additional_params ? JSON.parse(column.filter_additional_params) : null;
+                filter_additional_params = column.filter_additional_params ? ObjectHandler.try_get_json(column.filter_additional_params) : null;
             } catch (e) {
 
             }
@@ -1621,7 +1631,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     //     ordered_column_list: string[],
 
     //     columns: TableColumnDescVO[],
-    //     varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+    //     varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
     //     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
     //     custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
     //     active_api_type_ids: string[] = null,
@@ -1730,12 +1740,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     /**
      * update_value_to_xlsx_column_format
      *
-     * @param {TableColumnDescVO | ExportVarcolumnConf} column
+     * @param {TableColumnDescVO | ExportVarcolumnConfVO} column
      * @param {number | string} value
      * @returns {number}
      */
     private update_value_to_xlsx_column_format(
-        column: TableColumnDescVO | ExportVarcolumnConf,
+        column: TableColumnDescVO | ExportVarcolumnConfVO,
         value: any,
     ): number {
 
@@ -1902,7 +1912,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     // private get_active_field_filters_filtered_by_do_not_use_filter_by_datatable_field_uid(
     //     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
     //     ordered_column_list: string[],
-    //     varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+    //     varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
     //     do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null
     // ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
 

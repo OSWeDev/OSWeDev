@@ -8,6 +8,7 @@ import PlayWrightServerController from './PlayWrightServerController';
 
 export default class ModulePlayWrightServer extends ModuleServerBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulePlayWrightServer {
         if (!ModulePlayWrightServer.instance) {
             ModulePlayWrightServer.instance = new ModulePlayWrightServer();

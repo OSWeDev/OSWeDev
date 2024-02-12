@@ -4,6 +4,7 @@ import { IDatabase } from 'pg-promise';
 
 export default class GeneratorPreModulesPatchDBController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): GeneratorPreModulesPatchDBController {
         if (!GeneratorPreModulesPatchDBController.instance) {
             GeneratorPreModulesPatchDBController.instance = new GeneratorPreModulesPatchDBController();

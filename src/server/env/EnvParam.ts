@@ -35,6 +35,8 @@ export default class EnvParam implements IEnvParam {
     public MAX_SIZE_PER_QUERY?: number = 1000000;
     public MAX_UNION_ALL_PER_QUERY?: number = 1000;
 
+    public MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean = false;
+
     public DEBUG_FORKS?: boolean = false;
     public DEBUG_VARS?: boolean = false;
     public DEBUG_VARS_PROCESSES?: boolean = false;
@@ -47,6 +49,8 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_START_SERVER?: boolean = false;
     public DEBUG_DB_QUERY_add_activated_many_to_many?: boolean = false;
     public DEBUG_convert_varparamfields_to_vardatas?: boolean = false;
+    public DEBUG_IO_ROOMS?: boolean = false;
+    public DEBUG_VO_EVENTS?: boolean = false;
 
     public DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean = false;
 
@@ -55,6 +59,13 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS?: boolean = false;
     public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS?: boolean = false;
     public DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS?: boolean = false;
+
+    public DEBUG_var_insert_with_copy?: boolean = false;
+    public DEBUG_var_get_instance_semaphored_db_loaded_var_data?: boolean = false;
+
+    public DEBUG_waiting_registered_task_result_wrappers?: boolean = false;
+    public DEBUG_waiting_registered_task_result_wrappers_threshold?: number = 5;
+    public DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean = false;
 
     /**
      * Activate this to debug SLOW QUERIES in ModuleServiceBase
@@ -107,4 +118,6 @@ export default class EnvParam implements IEnvParam {
     public TEAMS_WEBHOOK__THROTTLE_MS?: number = 15000;
     public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE?: number = 10000;
     public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean = true;
+
+    public EXPRESS_SECRET: string = null;
 }

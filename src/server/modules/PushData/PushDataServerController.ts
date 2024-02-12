@@ -16,7 +16,9 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
@@ -61,8 +63,14 @@ export default class PushDataServerController {
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
     public static TASK_NAME_notifyDownloadFile: string = 'PushDataServerController' + '.notifyDownloadFile';
+
+    public static TASK_NAME_notify_vo_creation: string = 'PushDataServerController' + '.notify_vo_creation';
+    public static TASK_NAME_notify_vo_update: string = 'PushDataServerController' + '.notify_vo_update';
+    public static TASK_NAME_notify_vo_deletion: string = 'PushDataServerController' + '.notify_vo_deletion';
+
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PushDataServerController {
         if (!PushDataServerController.instance) {
             PushDataServerController.instance = new PushDataServerController();
@@ -159,6 +167,13 @@ export default class PushDataServerController {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
+
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_creation, this.notify_vo_creation.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_update, this.notify_vo_update.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_deletion, this.notify_vo_deletion.bind(this));
     }
 
     public getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
@@ -393,6 +408,96 @@ export default class PushDataServerController {
             res = res.concat(this.getUserSockets(parseInt(userId.toString())));
         }
         return res;
+    }
+
+    /**
+     * On notifie une room IO, avec le vo créé
+     * @param room_id
+     * @param vo
+     */
+    public async notify_vo_creation(room_id: string, vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_creation, room_id, vo)) {
+            return;
+        }
+
+        let create_vo_notif: NotificationVO = new NotificationVO();
+        create_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
+        create_vo_notif.room_id = room_id;
+        create_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            vo
+        ]));
+
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_creation:' + room_id + ':' + vo._type + ':' + vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[create_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+    }
+
+    /**
+     * On notifie une room IO, avec le vo updaté (pré et post update)
+     * @param room_id
+     * @param pre_update_vo
+     * @param post_update_vo
+     */
+    public async notify_vo_update(room_id: string, pre_update_vo: any, post_update_vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_update, room_id, pre_update_vo, post_update_vo)) {
+            return;
+        }
+
+        let update_vo_notif: NotificationVO = new NotificationVO();
+        update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_UPDATED;
+        update_vo_notif.room_id = room_id;
+        update_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            pre_update_vo,
+            post_update_vo
+        ]));
+
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_update:' + room_id + ':' + pre_update_vo._type + ':' + pre_update_vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[update_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
+    }
+
+
+    /**
+     * On notifie une room IO, avec le vo supprimé
+     * @param room_id
+     * @param vo
+     */
+    public async notify_vo_deletion(room_id: string, vo: any) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notify_vo_deletion, room_id, vo)) {
+            return;
+        }
+
+        let delete_vo_notif: NotificationVO = new NotificationVO();
+        delete_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_DELETED;
+        delete_vo_notif.room_id = room_id;
+        delete_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
+            vo
+        ]));
+
+        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+            ConsoleHandler.log('notify_vo_deletion:' + room_id + ':' + vo._type + ':' + vo.id);
+        }
+
+        let notification_type = NotificationVO.TYPE_NAMES[delete_vo_notif.notification_type];
+        let notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
+
+        await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
 
     /**
@@ -760,7 +865,7 @@ export default class PushDataServerController {
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
 
-            if (!usersRoles) {
+            if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
@@ -814,7 +919,7 @@ export default class PushDataServerController {
             }
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
-            if (!usersRoles) {
+            if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }

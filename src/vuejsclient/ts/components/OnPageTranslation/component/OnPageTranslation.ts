@@ -21,8 +21,8 @@ import './OnPageTranslation.scss';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
-import GPTConversationVO from '../../../../../shared/modules/GPT/vos/GPTConversationVO';
-import GPTMessageVO from '../../../../../shared/modules/GPT/vos/GPTMessageVO';
+import GPTCompletionAPIMessageVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
+import GPTCompletionAPIConversationVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 
 @Component({
     template: require('./OnPageTranslation.pug')
@@ -463,7 +463,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
                 try {
 
-                    let gpt_response: GPTMessageVO = await ModuleGPT.getInstance().generate_response(new GPTConversationVO(), GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
+                    let gpt_response: GPTCompletionAPIMessageVO = await ModuleGPT.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
 
                     if (!gpt_response) {
                         reject({

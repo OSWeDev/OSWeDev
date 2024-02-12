@@ -313,6 +313,7 @@ export default class MonthFilterWidgetManager {
         return res;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): MonthFilterWidgetManager {
         if (!MonthFilterWidgetManager.instance) {
             MonthFilterWidgetManager.instance = new MonthFilterWidgetManager();

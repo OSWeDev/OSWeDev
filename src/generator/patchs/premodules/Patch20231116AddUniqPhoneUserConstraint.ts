@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231116AddUniqPhoneUserConstraint implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231116AddUniqPhoneUserConstraint {
         if (!Patch20231116AddUniqPhoneUserConstraint.instance) {
             Patch20231116AddUniqPhoneUserConstraint.instance = new Patch20231116AddUniqPhoneUserConstraint();

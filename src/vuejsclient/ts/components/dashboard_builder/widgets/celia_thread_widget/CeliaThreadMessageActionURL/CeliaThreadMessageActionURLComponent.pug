@@ -1,0 +1,4 @@
+.celia_thread_message_action_url_component
+    button.btn(@click='execute_action_url' v-tooltip.left='action_url_tooltip' :class='action_url_button_class' :disabled='action_url_button_disabled')
+        i.btn_icon(:class='action_url_button_icon_class' aria-hidden="true")
+        | {{ action_url_button_label }}

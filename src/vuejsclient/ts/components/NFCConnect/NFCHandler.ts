@@ -5,6 +5,7 @@ import VueAppBase from '../../../VueAppBase';
 
 export default class NFCHandler {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): NFCHandler {
         if (!NFCHandler.instance) {
             NFCHandler.instance = new NFCHandler();

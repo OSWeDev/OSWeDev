@@ -6,6 +6,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ActivateDataImport implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ActivateDataImport {
         if (!ActivateDataImport.instance) {
             ActivateDataImport.instance = new ActivateDataImport();

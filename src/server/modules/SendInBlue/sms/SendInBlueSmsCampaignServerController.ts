@@ -16,6 +16,7 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class SendInBlueSmsCampaignServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueSmsCampaignServerController {
         if (!SendInBlueSmsCampaignServerController.instance) {
             SendInBlueSmsCampaignServerController.instance = new SendInBlueSmsCampaignServerController();

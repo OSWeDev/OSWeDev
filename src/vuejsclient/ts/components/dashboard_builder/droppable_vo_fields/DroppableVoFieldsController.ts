@@ -1,6 +1,7 @@
 
 export default class DroppableVoFieldsController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DroppableVoFieldsController {
         if (!DroppableVoFieldsController.instance) {
             DroppableVoFieldsController.instance = new DroppableVoFieldsController();

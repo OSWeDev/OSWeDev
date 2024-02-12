@@ -27,6 +27,7 @@ export default class VarsClientController {
         return this.CB_UID++;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarsClientController {
         if (!VarsClientController.instance) {
             VarsClientController.instance = new VarsClientController();

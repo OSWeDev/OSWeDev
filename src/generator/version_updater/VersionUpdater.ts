@@ -1,9 +1,9 @@
-import ConfigurationService from '../../server/env/ConfigurationService';
 import ModuleFileServer from '../../server/modules/File/ModuleFileServer';
 import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class VersionUpdater {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VersionUpdater {
         if (!VersionUpdater.instance) {
             VersionUpdater.instance = new VersionUpdater();

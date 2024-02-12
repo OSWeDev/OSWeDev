@@ -5,6 +5,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 
 export default class FileServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FileServerController {
         if (!FileServerController.instance) {
             FileServerController.instance = new FileServerController();

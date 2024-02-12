@@ -180,7 +180,7 @@
                                     span.option__tag {{ label(props.option.label) }}
                                 template(v-else)
                                     span.option__tag {{ props.option.label }}
-                                i.fa-duotone.fa-times(@click='props.remove(props.option)')
+                                i.fa-solid.fa-square-x(@click='props.remove(props.option)')
 
                     template
                         template(v-if="can_select_all")

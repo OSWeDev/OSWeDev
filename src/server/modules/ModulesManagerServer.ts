@@ -3,6 +3,7 @@ import ModuleVO from '../../shared/modules/ModuleVO';
 
 export default class ModulesManagerServer {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulesManagerServer {
         if (!ModulesManagerServer.instance) {
             ModulesManagerServer.instance = new ModulesManagerServer();

@@ -484,7 +484,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             this.selected_dashboards_shared_from.map((dashboard) => dashboard.id),
         );
 
-        const dashboard_pages_field_filters = DashboardPageFieldFiltersVOManager.merge_all_dashboard_pages_field_filters(
+        const dashboard_pages_field_filters = DashboardPageFieldFiltersVOManager.get_INTERSECTION_all_dashboard_pages_field_filters(//merge_all_dashboard_pages_field_filters(
             dashboard_pages_field_filters_map
         );
 
@@ -652,6 +652,19 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     private init_modal(): void {
         this.throttled_load_selectionnable_dashboards_options();
+    }
+
+    @Watch('active_tab_view', { immediate: true })
+    private async update_selectable_filters() {
+        // c'est quand on arrive sur l'onglet 'field_filters_selection_tab' qu'on doit mettre à jour les filtres selectionnables
+        //  en fonction des DBs sélectionnés dans l'onglet 1
+        //  et si on a une incohérence avec la conf actuelle (un filtre selectionné qui n'est pas selectionnable dans toutes les DBs)
+        //  on doit le déselectionner ou le supprimer de la liste des filtres selectionnables
+        if (this.active_tab_view != 'field_filters_selection_tab') {
+            return;
+        }
+
+        await this.update_selectionnable_field_filters();
     }
 
     /**

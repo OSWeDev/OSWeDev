@@ -490,10 +490,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
             }
 
             exportable.target_user_id = VueAppController.getInstance().data_user.id; // TODO: find another way to get the target_user_id
-            exportable.export_options = {
-                ...exportable.export_options,
-                send_email_with_export_notification: this.send_email_with_export_notification,
-            };
+            exportable.send_email_with_export_notification = this.send_email_with_export_notification;
         }
 
         const favorites_filters: FavoritesFiltersVO = new FavoritesFiltersVO().from({

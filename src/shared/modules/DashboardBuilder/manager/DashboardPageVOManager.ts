@@ -188,6 +188,7 @@ export default class DashboardPageVOManager {
         return dashboards_pages;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardPageVOManager {
         if (!DashboardPageVOManager.instance) {
             DashboardPageVOManager.instance = new DashboardPageVOManager();

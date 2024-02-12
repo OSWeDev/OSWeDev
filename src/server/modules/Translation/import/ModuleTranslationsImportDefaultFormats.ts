@@ -9,6 +9,7 @@ import ModulesManagerServer from '../../ModulesManagerServer';
 
 export default class ModuleTranslationsImportDefaultFormats {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleTranslationsImportDefaultFormats {
         if (!ModuleTranslationsImportDefaultFormats.instance) {
             ModuleTranslationsImportDefaultFormats.instance = new ModuleTranslationsImportDefaultFormats();

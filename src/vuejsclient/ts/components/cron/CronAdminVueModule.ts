@@ -8,6 +8,7 @@ import MenuController from '../menu/MenuController';
 
 export default class CronAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CronAdminVueModule {
         if (!CronAdminVueModule.instance) {
             CronAdminVueModule.instance = new CronAdminVueModule();

@@ -14,6 +14,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class PresetExistingLangsChangeRights implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PresetExistingLangsChangeRights {
         if (!PresetExistingLangsChangeRights.instance) {
             PresetExistingLangsChangeRights.instance = new PresetExistingLangsChangeRights();

@@ -57,17 +57,17 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return amountFilter.read(field_value);
 
                 case ModuleTableField.FIELD_TYPE_translatable_text:
-                    if (isArray(field_value)) {
-                        let res_field_value: string[] = [];
-
-                        for (let i in field_value) {
-                            res_field_value.push(LocaleManager.getInstance().label(field_value[i]));
+                    if (!!this.moduleTableField.translatable_params_field_id) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(vo[this.moduleTableField.translatable_params_field_id]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
                         }
-
-                        return res_field_value.toString();
+                        return LocaleManager.getInstance().label(field_value, params);
+                    } else {
+                        return LocaleManager.getInstance().label(field_value);
                     }
-
-                    return LocaleManager.getInstance().label(field_value);
 
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:

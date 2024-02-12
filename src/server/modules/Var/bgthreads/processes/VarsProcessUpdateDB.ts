@@ -11,6 +11,9 @@ import ModuleDAOServer from '../../../DAO/ModuleDAOServer';
 import VarsCacheController from '../../VarsCacheController';
 import VarsDatasProxy from '../../VarsDatasProxy';
 import VarsProcessBase from './VarsProcessBase';
+import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
+import PixelVarDataController from '../../PixelVarDataController';
+import VarsController from '../../../../../shared/modules/Var/VarsController';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
 
@@ -37,13 +40,14 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
 
-        let nodes_by_type: { [type: string]: VarDAGNode[] } = {};
+        let nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } } = {};
+        let printed_tree: boolean = false;
         for (let i in nodes) {
             let node = nodes[i];
 
-            // if (this.is_pixel_of_card_supp_1(VarsController.var_conf_by_id[node.var_data.var_id], node.var_data)) {
-            //     continue;
-            // }
+            if (this.is_pixel_of_card_supp_1(VarsController.var_conf_by_id[node.var_data.var_id], node.var_data)) {
+                continue;
+            }
 
             /**
              * On update en base aucune data issue de la BDD, puisque si on a chargé la donnée, soit c'est un import qu'on a donc interdiction de toucher, soit c'est
@@ -54,27 +58,46 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
                 continue;
             }
 
-            if (!nodes_by_type[node.var_data._type]) {
-                nodes_by_type[node.var_data._type] = [];
+            if (!nodes_by_type_and_index[node.var_data._type]) {
+                nodes_by_type_and_index[node.var_data._type] = {};
             }
-            nodes_by_type[node.var_data._type].push(node);
+
+            // Check de cohérence : on doit pas avoir plusieurs noeuds avec le même index
+            if (!!nodes_by_type_and_index[node.var_data._type][node.var_data.index]) {
+                ConsoleHandler.error('VarsProcessUpdateDB:worker_async_batch:Erreur : on a plusieurs noeuds avec le même index : ' + node.var_data.index);
+                if (!printed_tree) {
+                    ConsoleHandler.error('VarsProcessUpdateDB:worker_async_batch:Erreur : nodes:' + JSON.stringify(nodes));
+                    printed_tree = true;
+                }
+                continue;
+            }
+            nodes_by_type_and_index[node.var_data._type][node.var_data.index] = node;
         }
 
         if (!ConfigurationService.IS_UNIT_TEST_MODE) {
-            nodes_by_type = await this.filter_var_datas_by_index_size_limit(nodes_by_type);
-            nodes_by_type = await this.filter_by_BDD_do_cache_param_data(nodes_by_type);
+            nodes_by_type_and_index = await this.filter_var_datas_by_index_size_limit(nodes_by_type_and_index);
+            nodes_by_type_and_index = await this.filter_by_BDD_do_cache_param_data(nodes_by_type_and_index);
         }
 
         let promises = [];
         let result = true;
-        for (let i in nodes_by_type) {
-            let nodes_array = nodes_by_type[i];
+        for (let i in nodes_by_type_and_index) {
+            let nodes_by_index: { [index: string]: VarDAGNode } = nodes_by_type_and_index[i];
 
-            if (!nodes_array || !nodes_array.length) {
+            if (!nodes_by_index) {
                 continue;
             }
 
-            let vars_datas: VarDataBaseVO[] = nodes_array.map((node: VarDAGNode) => node.var_data);
+            let vars_datas: VarDataBaseVO[] = [];
+
+            for (let j in nodes_by_index) {
+                let node = nodes_by_index[j];
+                vars_datas.push(node.var_data);
+            }
+
+            if (!vars_datas.length) {
+                continue;
+            }
 
             if (!ConfigurationService.IS_UNIT_TEST_MODE) {
                 promises.push((async () => {
@@ -94,9 +117,9 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         return true;
     }
 
-    // private is_pixel_of_card_supp_1(var_conf: VarConfVO, matroid: VarDataBaseVO): boolean {
-    //     return var_conf.pixel_activated && (PixelVarDataController.getInstance().get_pixel_card(matroid) > 1);
-    // }
+    private is_pixel_of_card_supp_1(var_conf: VarConfVO, matroid: VarDataBaseVO): boolean {
+        return var_conf.pixel_activated && (PixelVarDataController.getInstance().get_pixel_card(matroid) > 1);
+    }
 
     /**
      * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
@@ -104,14 +127,14 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
      * @param vardatas
      * @returns
      */
-    private async filter_var_datas_by_index_size_limit(nodes_by_type: { [type: string]: VarDAGNode[] }): Promise<{ [type: string]: VarDAGNode[] }> {
-        let res_by_type: { [type: string]: VarDAGNode[] } = {};
+    private async filter_var_datas_by_index_size_limit(nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } }): Promise<{ [type: string]: { [index: string]: VarDAGNode } }> {
+        let res_by_type: { [type: string]: { [index: string]: VarDAGNode } } = {};
 
         // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
         let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
 
-        for (let _type in nodes_by_type) {
-            let nodes = nodes_by_type[_type];
+        for (let _type in nodes_by_type_and_index) {
+            let nodes: { [index: string]: VarDAGNode } = nodes_by_type_and_index[_type];
 
             let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(_type);
 
@@ -135,9 +158,9 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
                 if (!refuse_var) {
 
                     if (!res_by_type[_type]) {
-                        res_by_type[_type] = [];
+                        res_by_type[_type] = {};
                     }
-                    res_by_type[_type].push(node);
+                    res_by_type[_type][vardata.index] = node;
                 }
             }
         }
@@ -145,11 +168,11 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         return res_by_type;
     }
 
-    private async filter_by_BDD_do_cache_param_data(nodes_by_type: { [type: string]: VarDAGNode[] }): Promise<{ [type: string]: VarDAGNode[] }> {
-        let res_by_type: { [type: string]: VarDAGNode[] } = {};
+    private async filter_by_BDD_do_cache_param_data(nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } }): Promise<{ [type: string]: { [index: string]: VarDAGNode } }> {
+        let res_by_type: { [type: string]: { [index: string]: VarDAGNode } } = {};
 
-        for (let _type in nodes_by_type) {
-            let nodes = nodes_by_type[_type];
+        for (let _type in nodes_by_type_and_index) {
+            let nodes = nodes_by_type_and_index[_type];
 
             for (let i in nodes) {
                 let node = nodes[i];
@@ -157,10 +180,10 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
                 if (VarsCacheController.BDD_do_cache_param_data(node)) {
 
                     if (!res_by_type[_type]) {
-                        res_by_type[_type] = [];
+                        res_by_type[_type] = {};
                     }
 
-                    res_by_type[_type].push(node);
+                    res_by_type[_type][node.var_data.index] = node;
                 }
             }
         }

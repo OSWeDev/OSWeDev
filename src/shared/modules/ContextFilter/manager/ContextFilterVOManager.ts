@@ -100,6 +100,7 @@ export default class ContextFilterVOManager {
             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
                 context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
                 context_filter.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
                 break;
@@ -234,7 +235,7 @@ export default class ContextFilterVOManager {
                     return context_filter;
                 }
 
-                if (from_vo_types.indexOf(context_filter.vo_type) <= -1) {
+                if ((!from_vo_types) || (from_vo_types.indexOf(context_filter.vo_type) <= -1)) {
                     // Pas une supervision, on laisse passer
                     return context_filter;
                 }
@@ -314,6 +315,7 @@ export default class ContextFilterVOManager {
         return false;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ContextFilterVOManager {
         if (!ContextFilterVOManager.instance) {
             ContextFilterVOManager.instance = new ContextFilterVOManager();

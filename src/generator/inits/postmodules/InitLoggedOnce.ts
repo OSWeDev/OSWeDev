@@ -8,6 +8,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class InitLoggedOnce implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): InitLoggedOnce {
         if (!InitLoggedOnce.instance) {
             InitLoggedOnce.instance = new InitLoggedOnce();
@@ -23,6 +24,7 @@ export default class InitLoggedOnce implements IGeneratorWorker {
 
     private constructor() { }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
         let users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos();
         let update_users: UserVO[] = [];

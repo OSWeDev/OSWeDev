@@ -8,6 +8,7 @@ import PaiementVO from './vos/PaiementVO';
 
 export default class ModulePaiement extends Module {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulePaiement {
         if (!ModulePaiement.instance) {
             ModulePaiement.instance = new ModulePaiement();

@@ -6,6 +6,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
+import APINotifTypeResultVO from "../../../../shared/modules/PushData/vos/APINotifTypeResultVO";
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -16,13 +17,14 @@ import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
+import ClientAPIController from "../API/ClientAPIController";
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
-import APINotifTypeResultVO from "../../../../shared/modules/PushData/vos/APINotifTypeResultVO";
-import ClientAPIController from "../API/ClientAPIController";
+import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
 
 export default class PushDataVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PushDataVueModule {
         if (!PushDataVueModule.instance) {
             PushDataVueModule.instance = new PushDataVueModule();
@@ -32,6 +34,44 @@ export default class PushDataVueModule extends VueModuleBase {
     }
 
     private static instance: PushDataVueModule = null;
+
+    private static async joinAllRoomsAgain() {
+        for (let room_id in VOEventRegistrationsHandler.registered_vo_create_callbacks) {
+            let room_fields: string[] = [];
+            for (let i in VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id]) {
+                let room_vo = JSON.parse(room_id);
+                for (let j in room_vo) {
+                    room_fields.push(j);
+                    room_fields.push(JSON.stringify(room_vo[j]));
+                }
+            }
+            await ModulePushData.getInstance().join_io_room(room_fields);
+        }
+
+        for (let room_id in VOEventRegistrationsHandler.registered_vo_update_callbacks) {
+            let room_fields: string[] = [];
+            for (let i in VOEventRegistrationsHandler.registered_vo_update_callbacks[room_id]) {
+                let room_vo = JSON.parse(room_id);
+                for (let j in room_vo) {
+                    room_fields.push(j);
+                    room_fields.push(JSON.stringify(room_vo[j]));
+                }
+            }
+            await ModulePushData.getInstance().join_io_room(room_fields);
+        }
+
+        for (let room_id in VOEventRegistrationsHandler.registered_vo_delete_callbacks) {
+            let room_fields: string[] = [];
+            for (let i in VOEventRegistrationsHandler.registered_vo_delete_callbacks[room_id]) {
+                let room_vo = JSON.parse(room_id);
+                for (let j in room_vo) {
+                    room_fields.push(j);
+                    room_fields.push(JSON.stringify(room_vo[j]));
+                }
+            }
+            await ModulePushData.getInstance().join_io_room(room_fields);
+        }
+    }
 
     public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
         this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
@@ -110,6 +150,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
                 setTimeout(async () => {
                     await VarsClientController.getInstance().registerAllParamsAgain();
+                    await PushDataVueModule.joinAllRoomsAgain();
                 }, 10000);
             }
         });
@@ -121,6 +162,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
             setTimeout(async () => {
                 await VarsClientController.getInstance().registerAllParamsAgain();
+                await PushDataVueModule.joinAllRoomsAgain();
             }, 10000);
         });
 
@@ -153,6 +195,18 @@ export default class PushDataVueModule extends VueModuleBase {
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_CREATED], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_DELETED], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
+
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VO_UPDATED], async function (notification: NotificationVO) {
             self.throttled_notifications_handler([notification]);
         });
 
@@ -212,6 +266,9 @@ export default class PushDataVueModule extends VueModuleBase {
         let TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
         let TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
         let TYPE_NOTIF_DOWNLOAD_FILE: NotificationVO[] = [];
+        let TYPE_NOTIF_VO_CREATED: NotificationVO[] = [];
+        let TYPE_NOTIF_VO_UPDATED: NotificationVO[] = [];
+        let TYPE_NOTIF_VO_DELETED: NotificationVO[] = [];
 
         for (let i in notifications) {
             let notification = notifications[i];
@@ -240,6 +297,15 @@ export default class PushDataVueModule extends VueModuleBase {
                     break;
                 case NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE:
                     TYPE_NOTIF_DOWNLOAD_FILE.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VO_CREATED:
+                    TYPE_NOTIF_VO_CREATED.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VO_UPDATED:
+                    TYPE_NOTIF_VO_UPDATED.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VO_DELETED:
+                    TYPE_NOTIF_VO_DELETED.push(notification);
                     break;
             }
         }
@@ -275,6 +341,53 @@ export default class PushDataVueModule extends VueModuleBase {
         if (TYPE_NOTIF_APIRESULT && TYPE_NOTIF_APIRESULT.length) {
             await this.notifications_handler_TYPE_NOTIF_APIRESULT(TYPE_NOTIF_APIRESULT);
         }
+
+        if (TYPE_NOTIF_VO_CREATED && TYPE_NOTIF_VO_CREATED.length) {
+            await this.notifications_handler_TYPE_NOTIF_VO_CREATED(TYPE_NOTIF_VO_CREATED);
+        }
+
+        if (TYPE_NOTIF_VO_UPDATED && TYPE_NOTIF_VO_UPDATED.length) {
+            await this.notifications_handler_TYPE_NOTIF_VO_UPDATED(TYPE_NOTIF_VO_UPDATED);
+        }
+
+        if (TYPE_NOTIF_VO_DELETED && TYPE_NOTIF_VO_DELETED.length) {
+            await this.notifications_handler_TYPE_NOTIF_VO_DELETED(TYPE_NOTIF_VO_DELETED);
+        }
+    }
+
+    private async notifications_handler_TYPE_NOTIF_VO_CREATED(notifications: NotificationVO[]) {
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            for (let j in VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id]) {
+                let vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+                let vo = vos[0];
+
+                VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id][j](vo);
+            }
+        }
+    }
+
+    private async notifications_handler_TYPE_NOTIF_VO_UPDATED(notifications: NotificationVO[]) {
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            for (let j in VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id]) {
+                let vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+                VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id][j](vos[0], vos[1]);
+            }
+        }
+    }
+
+    private async notifications_handler_TYPE_NOTIF_VO_DELETED(notifications: NotificationVO[]) {
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            for (let j in VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id]) {
+                let vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+                VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id][j](vos[0]);
+            }
+        }
     }
 
     private async notifications_handler_TYPE_NOTIF_APIRESULT(notifications: NotificationVO[]) {
@@ -284,12 +397,12 @@ export default class PushDataVueModule extends VueModuleBase {
             let api_result: APINotifTypeResultVO = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos))[0];
 
             if (!api_result) {
-                ConsoleHandler.error("API result not found for notification:", notification);
+                ConsoleHandler.error("API result not found for notification:" + notification);
                 continue;
             }
 
             if (!api_result.api_call_id) {
-                ConsoleHandler.error("API result not found for notification:", notification);
+                ConsoleHandler.error("API result not found for notification:" + notification);
                 continue;
             }
 

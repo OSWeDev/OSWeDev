@@ -6,6 +6,7 @@ import ModuleTranslation from '../../../shared/modules/Translation/ModuleTransla
 
 export default class TemplateHandlerServer {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TemplateHandlerServer {
         if (!TemplateHandlerServer.instance) {
             TemplateHandlerServer.instance = new TemplateHandlerServer();
