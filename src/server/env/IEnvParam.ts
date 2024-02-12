@@ -96,4 +96,6 @@ export default interface IEnvParam {
     TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean;
 
     BLOCK_TEAMS_MESSAGES?: boolean;
+
+    EXPRESS_SECRET: string;
 }

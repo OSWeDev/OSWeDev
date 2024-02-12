@@ -37,6 +37,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_invalidated: UserVO = {
@@ -59,6 +66,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_toremind1: UserVO = {
@@ -81,6 +95,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_reminded1: UserVO = {
@@ -103,6 +124,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_toremind2: UserVO = {
@@ -125,6 +153,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_toremind1_before_2: UserVO = {
@@ -147,6 +182,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_reminded2: UserVO = {
@@ -169,6 +211,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_nothingtodo: UserVO = {
@@ -191,6 +240,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
 
@@ -215,6 +271,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_invalidated_blocked: UserVO = {
@@ -237,6 +300,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_toremind1_blocked: UserVO = {
@@ -259,6 +329,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_reminded1_blocked: UserVO = {
@@ -281,6 +358,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_toremind2_blocked: UserVO = {
@@ -303,6 +387,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_toremind1_before_2_blocked: UserVO = {
@@ -325,6 +416,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_reminded2_blocked: UserVO = {
@@ -347,6 +445,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
     let user_nothingtodo_blocked: UserVO = {
@@ -369,6 +474,13 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         logged_once: false,
         creation_date: creation_date,
         archived: false,
+        parent_id: null,
+        trashed: null,
+        version_num: null,
+        version_author_id: null,
+        version_edit_author_id: null,
+        version_edit_timestamp: null,
+        version_timestamp: null,
     };
 
 

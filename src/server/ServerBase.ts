@@ -65,6 +65,7 @@ import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
+import { DailyRotateFileTransportOptions } from 'winston/lib/winston/transports';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -224,11 +225,11 @@ export default abstract class ServerBase {
         const logger = new (winston.Logger)({
             transports: [
                 new (winston.transports.Console)(),
-                new (winston_daily_rotate_file)({
-                    filename: './logs/log',
-                    datePattern: 'yyyy-MM-dd.',
-                    prepend: true
-                })
+                new (winston_daily_rotate_file)(
+                    {
+                        filename: './logs/log',
+                        datePattern: 'yyyy-MM-dd.'
+                    })
             ]
         });
 
@@ -401,7 +402,7 @@ export default abstract class ServerBase {
         });
 
         this.session = expressSession({
-            secret: 'vk4s8dq2j4',
+            secret: ConfigurationService.node_configuration.EXPRESS_SECRET,
             name: 'sid',
             proxy: true,
             resave: false,
