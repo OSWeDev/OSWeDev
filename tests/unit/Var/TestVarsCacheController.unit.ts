@@ -38,10 +38,10 @@ test.describe('VarsCacheVarsCacheController', () => {
         var_node = await VarDAGNode.getInstance(new VarDAG(), var_data);
     });
 
-    test('BDD_do_cache_param_data - updates the BDD cache if data has ID', async () => {
+    test('BDD_do_cache_param_data - does not update the BDD cache if data has ID', async () => {
         var_data.id = 1;
         const result = VarsCacheController.BDD_do_cache_param_data(var_node);
-        test.expect(result).toBe(true);
+        test.expect(result).toBe(false);
     });
 
     test('BDD_do_cache_param_data - caches for pixel strategy even if cardinal is not 1', async () => {
