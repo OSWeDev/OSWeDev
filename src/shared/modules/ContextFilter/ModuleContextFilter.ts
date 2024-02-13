@@ -32,6 +32,8 @@ import UpdateVosParamVO, { UpdateVosParamVOStatic } from './vos/UpdateVosParamVO
 
 export default class ModuleContextFilter extends Module {
 
+    public static MAX_SEGMENTATION_OPTIONS: number = 200;
+
     public static MODULE_NAME: string = "ContextFilter";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleContextFilter.MODULE_NAME;
