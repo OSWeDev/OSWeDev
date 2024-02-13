@@ -731,28 +731,31 @@ export default abstract class ModuleServiceBase {
         try {
 
             // On rajoute quelques contrôles de cohérence | des garde-fous simples mais qui protège d'une panne idiote
+            // TODO FIXME ASAP : le pb c'est que ça génère potentiellement des vars à 0... donc il faut trouver le moyen de réactiver ces verrous, mais 
+            //  en les appliquant surtout en amont dans la création de la requete pour bloquer la création d'une requete trop grosse et qui ferait une erreur.
+            //  Si la requete ne passe pas sur les vars, c'est pas une var interdite aujourd'hui, c'est un 0. il faut peut-etre réintroduire une var interdite pour les requetes trop grosses
 
-            if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
+            // if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
 
-                // export query to txt file for debug
-                let fs = require('fs');
-                let path = require('path');
-                let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
-                fs.writeFileSync(filename, query);
+            //     // export query to txt file for debug
+            //     let fs = require('fs');
+            //     let path = require('path');
+            //     let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+            //     fs.writeFileSync(filename, query);
 
-                throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
-            }
+            //     throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
+            // }
 
-            if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
+            // if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
 
-                // export query to txt file for debug
-                let fs = require('fs');
-                let path = require('path');
-                let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
-                fs.writeFileSync(filename, query);
+            //     // export query to txt file for debug
+            //     let fs = require('fs');
+            //     let path = require('path');
+            //     let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+            //     fs.writeFileSync(filename, query);
 
-                throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
-            }
+            //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
+            // }
 
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {

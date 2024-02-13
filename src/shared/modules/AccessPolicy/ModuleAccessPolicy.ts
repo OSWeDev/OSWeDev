@@ -60,6 +60,7 @@ export default class ModuleAccessPolicy extends Module {
     public static ROLE_ANONYMOUS: string = AccessPolicyTools.ROLE_UID_PREFIX + 'anonymous';
 
     public static APINAME_impersonateLogin = "impersonateLogin";
+    public static APINAME_impersonate = "impersonate";
     public static APINAME_change_lang = "change_lang";
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
     public static APINAME_TEST_ACCESS = "ACCESS_TEST_ACCESS";
@@ -133,6 +134,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserId: () => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
+    public impersonate: (uid: number) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonate);
     public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
     public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
@@ -392,10 +394,17 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<LoginParamVO, number>(
-            null,
+            ModuleAccessPolicy.POLICY_IMPERSONATE,
             ModuleAccessPolicy.APINAME_impersonateLogin,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, number>(
+            ModuleAccessPolicy.POLICY_IMPERSONATE,
+            ModuleAccessPolicy.APINAME_impersonate,
+            [UserVO.API_TYPE_ID],
+            NumberParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(

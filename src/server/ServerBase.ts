@@ -96,6 +96,8 @@ export default abstract class ServerBase {
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     private session;
+
+    private ROOT_FOLDER: string = null;
     // private subscription;
 
     /* istanbul ignore next: nothing to test here */
@@ -559,8 +561,12 @@ export default abstract class ServerBase {
             let url = path.normalize(decodeURIComponent(req.path));
             let normalized = path.resolve('./dist' + url);
 
+            if (!this.ROOT_FOLDER) {
+                this.ROOT_FOLDER = path.resolve('./');
+            }
+
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            if ((!normalized.startsWith("./dist")) || !fs.existsSync(normalized)) {
+            if ((!normalized.startsWith(this.ROOT_FOLDER)) || !fs.existsSync(normalized)) {
                 StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
 
                 const uid = req.session ? req.session.uid : null;
