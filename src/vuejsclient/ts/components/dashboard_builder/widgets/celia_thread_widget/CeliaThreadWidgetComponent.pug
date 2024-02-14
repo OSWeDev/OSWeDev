@@ -11,9 +11,9 @@
 
         template(v-else)
             .thread_container(ref='thread_container')
-                .update_button 
-                    button.btn.btn-sm.btn-primary(v-on:click='force_reload')
-                        i.fa-duotone.fa-sync
+                //- .update_button 
+                //-     button.btn.btn-sm.btn-primary(v-on:click='force_reload')
+                //-         i.fa-duotone.fa-sync
                 template(v-if='(!thread_messages) || (!thread_messages.length)')
                     .no_messages
                         i.fa-duotone.fa-comments

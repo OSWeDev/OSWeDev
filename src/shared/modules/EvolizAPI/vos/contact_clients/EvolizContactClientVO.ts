@@ -5,6 +5,8 @@ export default class EvolizContactClientVO {
     public userid: number;
     // Client
     public client: { clientid: number, code: string, civility: string, name: string };
+    // ID du client en POST (required & non null)
+    public clientid: number;
     // Civilité
     public civility: string;
     // Nom de famille (required & non null)

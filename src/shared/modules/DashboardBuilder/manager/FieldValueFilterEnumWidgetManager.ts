@@ -18,6 +18,7 @@ import ModuleDAO from "../../DAO/ModuleDAO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import UserVO from "../../AccessPolicy/vos/UserVO";
 import { cloneDeep } from "lodash";
+import ConsoleHandler from "../../../tools/ConsoleHandler";
 
 /**
  * FieldValueFilterEnumWidgetManager
@@ -250,6 +251,15 @@ export default class FieldValueFilterEnumWidgetManager {
                 if (!has_filter) {
                     return;
                 }
+
+                // Même si on a un filtre on veut vérifier que c'est pertinent et suffisant :
+                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
+
+                if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
+                    ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + api_type_id + ', on ne cherche pas le options pour le moment.');
+                    return;
+                }
+
             } else {
                 const overflowing_api_type_id = await FieldValueFilterWidgetManager.get_overflowing_segmented_options_api_type_id_from_dashboard(
                     dashboard_api_type_ids,

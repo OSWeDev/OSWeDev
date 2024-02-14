@@ -18,7 +18,6 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../VueAppController';
-import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
@@ -70,20 +69,21 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
-    private too_many_threads: boolean = false;
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
 
     private too_many_assistants: boolean = false;
-    private is_loading_assistant: boolean = true;
     private can_run_assistant: boolean = false;
     private assistant_is_busy: boolean = false;
+
+    private current_thread_id: number = null;
 
     private assistant: GPTAssistantAPIAssistantVO = null;
 
     private new_message_text: string = null;
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
+    private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
     @Watch('get_active_field_filters', { immediate: true, deep: true })
     @Watch('get_discarded_field_paths', { deep: true })
@@ -92,15 +92,15 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         this.throttle_load_thread();
     }
 
-    private async force_reload() {
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([
-            GPTAssistantAPIThreadVO.API_TYPE_ID,
-            GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-            GPTAssistantAPIAssistantVO.API_TYPE_ID
-        ]);
+    // private async force_reload() {
+    //     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([
+    //         GPTAssistantAPIThreadVO.API_TYPE_ID,
+    //         GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
+    //         GPTAssistantAPIAssistantVO.API_TYPE_ID
+    //     ]);
 
-        this.throttle_load_thread();
-    }
+    //     this.throttle_load_thread();
+    // }
 
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
@@ -109,34 +109,44 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
     private async load_thread() {
 
         this.is_loading_thread = true;
-        this.too_many_threads = false;
-        this.has_access_to_thread = false;
-
-        this.is_loading_assistant = true;
-        this.too_many_assistants = false;
-        this.can_run_assistant = false;
-
-        this.thread = null;
-        this.thread_messages = [];
-        this.assistant = null;
-        await this.unregister_all_vo_event_callbacks();
 
         if (!this.page_widget) {
 
+            this.thread_messages = [];
+            this.assistant = null;
             this.is_loading_thread = false;
-            this.is_loading_assistant = false;
+            this.has_access_to_thread = false;
+            this.thread = null;
+            this.too_many_assistants = false;
+            this.can_run_assistant = false;
             return;
         }
 
         await this.set_thread();
 
+        this.is_loading_thread = false;
+        this.has_access_to_thread = !!this.thread;
+    }
+
+    @Watch('thread', { immediate: true })
+    private async onchange_thread() {
+        this.throttle_register_thread();
+    }
+
+    private async register_thread() {
+
+        await this.unregister_all_vo_event_callbacks();
+
         // On check qu'on a un thread et un seul
         if (!this.thread) {
-
-            this.is_loading_thread = false;
-            this.is_loading_assistant = false;
             return;
         }
+
+        if (this.current_thread_id == this.thread.id) {
+            return;
+        }
+
+        this.current_thread_id = this.thread.id;
 
         await this.set_assistant();
         await this.register_single_vo_updates(GPTAssistantAPIThreadVO.API_TYPE_ID, this.thread.id, reflect<this>().thread);
@@ -152,10 +162,6 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
             reflect<this>().thread_messages,
             [filter(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().thread_id).by_num_eq(this.thread.id)]
         );
-
-        this.is_loading_thread = false;
-        this.is_loading_assistant = false;
-        this.has_access_to_thread = true;
 
         this.$nextTick(() => {
             this.scroll_to_bottom();
@@ -186,25 +192,21 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         let nb_threads = await context_query_count.select_count();
 
         if (!nb_threads) {
-            this.is_loading_thread = false;
+            if (this.thread) {
+                this.thread = null;
+            }
             return;
         }
 
         if (nb_threads > 1) {
-            this.too_many_threads = true;
-            this.is_loading_thread = false;
+            if (this.thread) {
+                this.thread = null;
+            }
             return;
         }
 
         // On récupère le thread
-        let thread: GPTAssistantAPIThreadVO = await context_query_select.select_vo<GPTAssistantAPIThreadVO>();
-
-        if (!thread) {
-            this.is_loading_thread = false;
-            return;
-        }
-
-        this.thread = thread;
+        this.thread = await context_query_select.select_vo<GPTAssistantAPIThreadVO>();
     }
 
     private async set_assistant() {
@@ -228,8 +230,6 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
                 .filter_by_id(this.thread.current_default_assistant_id)
                 .select_vo<GPTAssistantAPIAssistantVO>();
 
-            this.is_loading_assistant = false;
-
             if (!default_assistant) {
                 this.too_many_assistants = nb_assistants > 1;
                 return;
@@ -240,15 +240,12 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
-
         if (!nb_assistants) {
-            this.is_loading_assistant = false;
             return;
         }
 
         if (nb_assistants > 1) {
             this.too_many_assistants = true;
-            this.is_loading_assistant = false;
             return;
         }
 
@@ -256,7 +253,6 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
         let assistant: GPTAssistantAPIAssistantVO = await context_query_select.select_vo<GPTAssistantAPIAssistantVO>();
 
         if (!assistant) {
-            this.is_loading_assistant = false;
             return;
         }
 

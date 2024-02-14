@@ -122,6 +122,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_ValidationFilters();
 
         await this.initializeWidget_ResetFilters();
+        await this.initializeWidget_BlocText();
 
         await this.initializeWidget_SaveFavoritesFilters();
 
@@ -580,6 +581,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Resetfilterswidgetcomponent', () => import('./widgets/reset_filters_widget/ResetFiltersWidgetComponent'));
         Vue.component('Resetfilterswidgetoptionscomponent', () => import('./widgets/reset_filters_widget/options/ResetFiltersWidgetOptionsComponent'));
         Vue.component('Resetfilterswidgeticoncomponent', () => import('./widgets/reset_filters_widget/icon/ResetFiltersWidgetIconComponent'));
+    }
+
+    private async initializeWidget_BlocText() {
+        let BlocText = new DashboardWidgetVO();
+
+        BlocText.default_height = 5;
+        BlocText.default_width = 2;
+        BlocText.name = 'BlocText';
+        BlocText.widget_component = 'BlocTextwidgetcomponent';
+        BlocText.options_component = 'BlocTextwidgetoptionscomponent';
+        BlocText.weight = 3;
+        BlocText.default_background = '#f5f5f5';
+        BlocText.icon_component = 'BlocTextwidgeticoncomponent';
+        BlocText.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(BlocText, null, null);
+
+        Vue.component('BlocTextwidgetcomponent', () => import('./widgets/bloc_text_widget/BlocTextWidgetComponent'));
+        Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
+        Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {

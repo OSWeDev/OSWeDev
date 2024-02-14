@@ -675,8 +675,8 @@ export default class FieldValueFilterWidgetManager {
                     ignore_self_filter
                 );
 
-                if (count_segmentations > 25) {
-                    ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + ') pour la table segmentée ' + overflowing_api_type_id + ', on ne filtre pas sur cette table');
+                if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
+                    ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + overflowing_api_type_id + ', on ne filtre pas sur cette table');
                     overflowing_api_type_id = api_type_id;
                 }
             }

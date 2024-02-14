@@ -480,7 +480,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrer une date par mois'
         }, 'dashboards.widgets.icons_tooltips.monthfilter.___LABEL___'));
-
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Insérer un bloc de texte'
+        }, 'dashboards.widgets.icons_tooltips.BlocText.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Min/Max relatifs à l\'année actuelle'
         }, 'year_filter_widget_component.year_relative_mode.___LABEL___'));
@@ -1874,6 +1876,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Oui" },
             'table_widget_options_component.show_pagination_resumee.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Charger les widgets avant première validation" },
+            'table_widget_options_component.load_widgets_prevalidation.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.load_widgets_prevalidation.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.load_widgets_prevalidation.visible.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher le slider de pagination" },

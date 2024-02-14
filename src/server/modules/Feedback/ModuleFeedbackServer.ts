@@ -418,13 +418,20 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             // Faire le lien entre le feedback en base et le Trello
-            feedback.trello_ref = response.id;
+            if (response && response.id) {
+                feedback.trello_ref = response.id;
+            } else {
+                ConsoleHandler.error('Failed Trello card creation');
+                await TeamsAPIServerController.send_teams_error(
+                    'Echec de création de carte Trello',
+                    'Impossible de créer la carte Trello pour le feedback ' + feedback.id + ' : ' + feedback.title);
+            }
+
             let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!ires) || (!ires.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
                 throw new Error('Failed feedback creation');
             }
-
             feedback.id = ires.id;
 
             // On n'attend pas la réponse pour Teams, à cause des temps d'interaction avec GPT

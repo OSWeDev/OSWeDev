@@ -27,6 +27,9 @@ import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import VOsTypesHandler from "../../../shared/modules/VO/handler/VOsTypesHandler";
+import VOsTypesManager from "../../../shared/modules/VO/manager/VOsTypesManager";
+import ModuleTableField from "../../../shared/modules/ModuleTableField";
 
 // MONTHS MIXIN
 let months = [
@@ -941,12 +944,15 @@ export default class VueComponentBase extends Vue
 
     protected handle_created_vo_event_callback(list_name: string, sort_function: (a, b) => number, created_vo: IDistantVOBase, map_name: string = null) {
         if (map_name) {
+            if (!this[map_name]) {
+                Vue.set(this, map_name, {});
+            }
             if (!this[map_name][list_name]) {
-                this[map_name][list_name] = [];
+                Vue.set(this[map_name], list_name, []);
             }
         } else {
             if (!this[list_name]) {
-                this[list_name] = [];
+                Vue.set(this, list_name, []);
             }
         }
 
@@ -991,11 +997,11 @@ export default class VueComponentBase extends Vue
 
         if (map_name) {
             if (!this[map_name]) {
-                this[map_name] = {};
+                Vue.set(this, map_name, {});
             }
-            this[map_name][list_name] = [];
+            Vue.set(this[map_name], list_name, []);
         } else {
-            this[list_name] = [];
+            Vue.set(this, list_name, []);
         }
         let sort_function: (a, b) => number = this.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
 
@@ -1152,17 +1158,60 @@ export default class VueComponentBase extends Vue
         }
 
         for (let i in simple_filters_on_api_type_id) {
-            if (simple_filters_on_api_type_id[i].vo_type != API_TYPE_ID) {
+            let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
+
+            if (simple_filter_on_api_type_id.vo_type != API_TYPE_ID) {
                 throw new Error('simple_filters_on_api_type_id must be on API_TYPE_ID');
             }
 
-            if ((simple_filters_on_api_type_id[i].filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
-                (simple_filters_on_api_type_id[i].filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
-                throw new Error('simple_filters_on_api_type_id filter_type Not implemented');
-            }
+            let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
+            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            switch (field_type) {
+                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableField.FIELD_TYPE_float:
+                case ModuleTableField.FIELD_TYPE_int:
+                case ModuleTableField.FIELD_TYPE_date:
+                case ModuleTableField.FIELD_TYPE_file_ref:
+                case ModuleTableField.FIELD_TYPE_image_ref:
+                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableField.FIELD_TYPE_foreign_key:
+                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_prct:
+                    if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
+                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
+                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
+                            ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
+                    }
 
-            if (simple_filters_on_api_type_id[i].param_numeric == null) {
-                throw new Error('simple_filters_on_api_type_id only param_numeric is supported right now');
+                    if (simple_filter_on_api_type_id.param_numeric == null) {
+                        throw new Error('simple_filters_on_api_type_id only not null param_numeric is supported right now on numbers');
+                    }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_html:
+                case ModuleTableField.FIELD_TYPE_textarea:
+                case ModuleTableField.FIELD_TYPE_email:
+                case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableField.FIELD_TYPE_translatable_text:
+                case ModuleTableField.FIELD_TYPE_password:
+                case ModuleTableField.FIELD_TYPE_file_field:
+                case ModuleTableField.FIELD_TYPE_image_field:
+                    if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ALL) &&
+                        (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ANY)) {
+                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
+                            ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
+                    }
+
+                    if (simple_filter_on_api_type_id.param_text == null) {
+                        throw new Error('simple_filters_on_api_type_id only not null param_text is supported right now on texts');
+                    }
+                    break;
+
+                default:
+                    throw new Error('simple_filters_on_api_type_id field_type Not implemented' +
+                        ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
             }
         }
 
@@ -1233,7 +1282,40 @@ export default class VueComponentBase extends Vue
         };
         for (let i in simple_filters_on_api_type_id) {
             let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
-            room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_numeric;
+
+            let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
+            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            switch (field_type) {
+                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableField.FIELD_TYPE_float:
+                case ModuleTableField.FIELD_TYPE_int:
+                case ModuleTableField.FIELD_TYPE_date:
+                case ModuleTableField.FIELD_TYPE_file_ref:
+                case ModuleTableField.FIELD_TYPE_image_ref:
+                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableField.FIELD_TYPE_foreign_key:
+                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_prct:
+                    room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_numeric;
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_html:
+                case ModuleTableField.FIELD_TYPE_textarea:
+                case ModuleTableField.FIELD_TYPE_email:
+                case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableField.FIELD_TYPE_translatable_text:
+                case ModuleTableField.FIELD_TYPE_password:
+                case ModuleTableField.FIELD_TYPE_file_field:
+                case ModuleTableField.FIELD_TYPE_image_field:
+                    room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_text;
+                    break;
+
+                default:
+                    throw new Error('get_room_vo_for_register_vo_updates field_type Not implemented' +
+                        ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
+            }
         }
         return room_vo;
     }

@@ -235,7 +235,7 @@ export default class ContextFilterVOManager {
                     return context_filter;
                 }
 
-                if ((!from_vo_types) || (from_vo_types.indexOf(context_filter.vo_type) <= -1)) {
+                if ((!from_vo_types?.length) || from_vo_types.indexOf(context_filter.vo_type) <= -1) {
                     // Pas une supervision, on laisse passer
                     return context_filter;
                 }

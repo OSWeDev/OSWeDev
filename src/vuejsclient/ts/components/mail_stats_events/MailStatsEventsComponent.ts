@@ -36,9 +36,9 @@ export default class MailStatsEventsComponent extends VueComponentBase {
 
     private vo_events_registration_keys: VOEventRegistrationKey[] = [];
 
-    private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 100, { leading: false, trailing: true });
+    private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 10, { leading: false, trailing: true });
 
-    private throttled_update_datas_mail_events = ThrottleHelper.declare_throttle_without_args(this.update_datas_mail_events.bind(this), 100, { leading: false, trailing: true });
+    private throttled_update_datas_mail_events = ThrottleHelper.declare_throttle_without_args(this.update_datas_mail_events.bind(this), 10, { leading: false, trailing: true });
 
     @Watch('category_name', { immediate: true })
     @Watch('email_to')

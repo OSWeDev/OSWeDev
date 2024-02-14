@@ -15,6 +15,7 @@ import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommand
 import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
 import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
+import ModuleClockifyAPI from '../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
 import ModuleContextFilter from '../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleCron from '../../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
@@ -81,6 +82,7 @@ import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
 import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
+import ModuleClockifyAPIServer from './ClockifyAPI/ModuleClockifyAPIServer';
 import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
@@ -615,6 +617,7 @@ export default abstract class ModuleServiceBase {
             ModuleTeamsAPI.getInstance(),
             ModuleAnimation.getInstance(),
             ModuleAnonymization.getInstance(),
+            ModuleClockifyAPI.getInstance(),
             ModuleEvolizAPI.getInstance(),
             ModuleFacturationProAPI.getInstance(),
             ModulePowershell.getInstance(),
@@ -677,6 +680,7 @@ export default abstract class ModuleServiceBase {
             ModuleTeamsAPIServer.getInstance(),
             ModuleAnimationServer.getInstance(),
             ModuleAnonymizationServer.getInstance(),
+            ModuleClockifyAPIServer.getInstance(),
             ModuleEvolizAPIServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
             ModulePowershellServer.getInstance(),
@@ -727,6 +731,9 @@ export default abstract class ModuleServiceBase {
         try {
 
             // On rajoute quelques contrôles de cohérence | des garde-fous simples mais qui protège d'une panne idiote
+            // TODO FIXME ASAP : le pb c'est que ça génère potentiellement des vars à 0... donc il faut trouver le moyen de réactiver ces verrous, mais
+            //  en les appliquant surtout en amont dans la création de la requete pour bloquer la création d'une requete trop grosse et qui ferait une erreur.
+            //  Si la requete ne passe pas sur les vars, c'est pas une var interdite aujourd'hui, c'est un 0. il faut peut-etre réintroduire une var interdite pour les requetes trop grosses
 
             if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
 
@@ -734,9 +741,10 @@ export default abstract class ModuleServiceBase {
                 let fs = require('fs');
                 let path = require('path');
                 let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
-                fs.writeFileSync(filename, query);
+                fs.writeFile(filename, query);
+                ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
 
-                throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
+                //     throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
             }
 
             if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
@@ -745,9 +753,10 @@ export default abstract class ModuleServiceBase {
                 let fs = require('fs');
                 let path = require('path');
                 let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
-                fs.writeFileSync(filename, query);
+                fs.writeFile(filename, query);
+                ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
 
-                throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
+                //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
             }
 
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);

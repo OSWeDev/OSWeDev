@@ -96,6 +96,8 @@ export default abstract class ServerBase {
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     private session;
+
+    private ROOT_FOLDER: string = null;
     // private subscription;
 
     /* istanbul ignore next: nothing to test here */
@@ -473,29 +475,6 @@ export default abstract class ServerBase {
                 return next();
             });
 
-        // Pour renvoyer les js en gzip directement quand ils sont appelés en .js.gz dans le html
-        // Accept-Encoding: gzip, deflate
-        // app.get('/public/generated/js/*.js.gz', function (req, res, next) {
-        //     res.set('Content-Encoding', 'gzip');
-        //     next();
-        // });
-        // test: /\.js$|\.css$|\.html|\.woff2?|\.eot|\.ttf|\.svg$/,
-        //'/public/generated/js/*.js'
-
-        let tryuseGZ = function (bundle, req, res, next) {
-
-            let gzpath = './src/' + bundle + '/' + req.url + '.gz';
-            if (req.acceptsEncodings('gzip') || req.acceptsEncodings('deflate')) {
-
-                res.set('Content-Encoding', 'gzip');
-                if (fs.existsSync(gzpath)) {
-
-                    res.sendFile(path.resolve(gzpath));
-                    return;
-                }
-            }
-            next();
-        };
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:express:END');
         }
@@ -509,19 +488,6 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
         }
-
-        // app.get(/^[/]public[/]generated[/].*/, function (req, res, next) {
-        //     tryuseGZ('client', req, res, next);
-        // });
-
-        // app.get(/^[/]admin[/]public[/]generated[/].*/, function (req, res, next) {
-        //     tryuseGZ('admin', req, res, next);
-        // });
-
-        // app.get('*.gz', function (req, res, next) {
-        //     res.set('Content-Encoding', 'gzip');
-        //     next();
-        // });
 
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:registerApis:START');
@@ -559,9 +525,14 @@ export default abstract class ServerBase {
             let url = path.normalize(decodeURIComponent(req.path));
             let normalized = path.resolve('./dist' + url);
 
+            if (!this.ROOT_FOLDER) {
+                this.ROOT_FOLDER = path.resolve('./');
+            }
+
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            if ((!normalized.startsWith("./dist")) || !fs.existsSync(normalized)) {
-                StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
+            // On fait la chasse aux sync
+            if (!normalized.startsWith(this.ROOT_FOLDER)) {
+                StatsController.register_stat_COMPTEUR('express', 'public', 'strange_normalized_url');
 
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;
