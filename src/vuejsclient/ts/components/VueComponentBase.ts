@@ -1165,7 +1165,8 @@ export default class VueComponentBase extends Vue
             }
 
             let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            switch (vo_field.field_type) {
+            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            switch (field_type) {
                 case ModuleTableField.FIELD_TYPE_amount:
                 case ModuleTableField.FIELD_TYPE_float:
                 case ModuleTableField.FIELD_TYPE_int:
@@ -1179,7 +1180,8 @@ export default class VueComponentBase extends Vue
                 case ModuleTableField.FIELD_TYPE_prct:
                     if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
                         (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
-                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type + ' for field_type ' + vo_field.field_type);
+                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
+                            ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
                     }
 
                     if (simple_filter_on_api_type_id.param_numeric == null) {
@@ -1198,7 +1200,8 @@ export default class VueComponentBase extends Vue
                 case ModuleTableField.FIELD_TYPE_image_field:
                     if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ALL) &&
                         (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ANY)) {
-                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type + ' for field_type ' + vo_field.field_type);
+                        throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
+                            ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
                     }
 
                     if (simple_filter_on_api_type_id.param_text == null) {
@@ -1207,7 +1210,8 @@ export default class VueComponentBase extends Vue
                     break;
 
                 default:
-                    throw new Error('simple_filters_on_api_type_id field_type Not implemented :' + vo_field.field_type);
+                    throw new Error('simple_filters_on_api_type_id field_type Not implemented' +
+                        ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
             }
         }
 
@@ -1280,7 +1284,8 @@ export default class VueComponentBase extends Vue
             let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
 
             let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            switch (vo_field.field_type) {
+            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            switch (field_type) {
                 case ModuleTableField.FIELD_TYPE_amount:
                 case ModuleTableField.FIELD_TYPE_float:
                 case ModuleTableField.FIELD_TYPE_int:
@@ -1308,7 +1313,8 @@ export default class VueComponentBase extends Vue
                     break;
 
                 default:
-                    throw new Error('get_room_vo_for_register_vo_updates field_type Not implemented :' + vo_field.field_type);
+                    throw new Error('get_room_vo_for_register_vo_updates field_type Not implemented' +
+                        ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
             }
         }
         return room_vo;

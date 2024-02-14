@@ -64,12 +64,15 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
         // On essaye de recréer le fichier s'il est perdu
         // Si le log est > à 10Mo, on va créé un autre pour éviter que ce soit trop lourd de l'ouvrir et d'écrire dedans
-        if ((!this.log_file) ||
-            (fs.existsSync(this.log_file.path) && fs.statSync(this.log_file.path).size >= 10000000)) {
+        if (!this.log_file) {
             this.set_log_file();
-            // return;
         }
 
-        this.log_file.write(log + '\n');
+        fs.stat(this.log_file.path, (err, stats) => {
+            if (err || (stats.size >= 10000000)) {
+                this.set_log_file();
+            }
+            this.log_file.write(log + '\n');
+        });
     }
 }
