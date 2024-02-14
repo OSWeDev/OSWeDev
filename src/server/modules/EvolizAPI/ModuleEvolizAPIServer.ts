@@ -20,6 +20,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import EvolizAPIToken from './vos/EvolizAPIToken';
 import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -79,6 +80,8 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_devis, this.list_devis.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_get_devis, this.get_devis.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_articles, this.list_articles.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_article, this.create_article.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
@@ -192,6 +195,40 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
         } catch (error) {
             console.error(error);
+        }
+    }
+
+    // ARTICLES
+    public async list_articles(): Promise<EvolizArticleVO[]> {
+        try {
+            let articles: EvolizArticleVO[] = await this.get_all_pages('/api/v1/articles') as EvolizArticleVO[];
+
+            return articles;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    public async create_article(article: EvolizArticleVO) {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let create_article = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/articles',
+                article,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Content-Type': 'application/json',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+        } catch (error) {
+            console.error("Erreur Evoliz: article: " + article.reference_clean);
         }
     }
 
