@@ -19,7 +19,7 @@ export default class EvolizArticleVO {
         //Classification id
         id: number,
         //Classification code
-        code: string
+        code: string,
         //Classification label
         label: string
     };
@@ -28,25 +28,25 @@ export default class EvolizArticleVO {
     //Article designation without html
     public designation_clean: string;
     //Article quantity
-    public quantity: string;
+    public quantity: number;
     //Item weight
-    public weight: string;
+    public weight: number;
     //Quantity unit
     public unit: string;
     //Article unit price excluding vat
-    public unit_price_vat_exclude: string;
+    public unit_price_vat_exclude: number;
     //Article unit price including vat
-    public unit_price_vat_include: string;
+    public unit_price_vat_include: number;
     //Article VAT rate
-    public vat: string;
+    public vat: number;
     //Billing option (true is incl. taxes, false is excl. taxes and null is Company billing option)
-    public ttc: string;
+    public ttc: boolean;
     //Item purchase classification information
     public purchase_classification: {
         //Classification id
         id: number,
         //Classification code
-        code: string
+        code: string,
         //Classification label
         label: string
     };
@@ -55,20 +55,20 @@ export default class EvolizArticleVO {
         //Purchase unit price
         purchase_unit_price_vat_exclude: number,
         //Margin coefficient
-        coefficient: string
+        coefficient: number,
         //Margin percent
-        margin_percent: string
+        margin_percent: number,
         //Markup percent
-        markup_percent: string
+        markup_percent: number,
         //Margin amount
-        amount: string
+        amount: number
     };
     //Linked supplier information
     public supplier: {
         //Linked supplier Id
         supplierid: number,
         //Supplier Code identifier
-        code: string
+        code: string,
         //Supplier name
         name: string
     };
@@ -77,23 +77,23 @@ export default class EvolizArticleVO {
     //Article reference from the supplier without html
     public supplier_reference_clean: string;
     //Stock management for the article
-    public stock_management: string;
+    public stock_management: boolean;
     //Article stocked quantity
-    public stock_quantity: string;
+    public stock_quantity: number;
     //Determines if the article is active
-    public enabled: string;
+    public enabled: boolean;
     //Link to article picture file
     public picture_link: string;
     //Custom field
     public custom_fields: {
         //Hash of the custom field id
         custom_field_api: {
-            label: string
+            label: string,
             value: string
         },
         //Hash of another custom field id
         custom_field_api2: {
-            label: string
+            label: string,
             value: string
         }
     };
