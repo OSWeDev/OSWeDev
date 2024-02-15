@@ -17,6 +17,7 @@ import EvolizDevisVO from './vos/devis/EvolizDevisVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import EvolizArticleVO from './vos/articles/EvolizArticleVO';
 import EvolizArticleParam, { EvolizArticleParamStatic } from './vos/apis/EvolizArticleParam';
+import EvolizInvoicePOSTVO from './vos/invoices/EvolizInvoicePOSTVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -60,7 +61,7 @@ export default class ModuleEvolizAPI extends Module {
     public list_articles: () => Promise<EvolizArticleVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_articles);
     public create_article: (article: EvolizArticleVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_article);
     public list_invoices: () => Promise<EvolizInvoiceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_invoices);
-    public create_invoice: (invoice: EvolizInvoiceVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoice);
+    public create_invoice: (invoice: EvolizInvoicePOSTVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoice);
     public list_clients: () => Promise<EvolizClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_clients);
     public create_client: (client: EvolizClientVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_client);
     public list_contact_clients: () => Promise<EvolizContactClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_contact_clients);

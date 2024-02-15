@@ -21,6 +21,8 @@ import EvolizAPIToken from './vos/EvolizAPIToken';
 import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
+import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoicePOSTVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -128,6 +130,8 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         if (return_connect) {
             this.token = return_connect;
         }
+
+        ConsoleHandler.log(this.token.access_token);
     }
 
     // DEVIS
@@ -243,7 +247,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
     }
 
-    public async create_invoice(invoice: EvolizInvoiceVO) {
+    public async create_invoice(invoice: EvolizInvoicePOSTVO) {
         try {
             let token: EvolizAPIToken = await this.getToken();
 
@@ -262,7 +266,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 true,
             );
         } catch (error) {
-            console.error("Erreur Evoliz: invoice: " + invoice.document_number);
+            console.error("Erreur Evoliz: invoice: " + invoice.object + " - Erreur: " + error);
         }
     }
 
