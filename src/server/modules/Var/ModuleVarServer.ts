@@ -511,11 +511,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             VarsServerController.init_varcontrollers_dag();
-
-            /**
-             * On nettoie les varconfs en bdd qui n'ont plus de controller associé dans l'application
-             */
-            await VarsServerController.clean_varconfs_without_controller();
         });
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] =

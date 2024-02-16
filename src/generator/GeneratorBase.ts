@@ -80,6 +80,7 @@ import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch2
 import Patch20240123ForceUnicityOnGeneratorWorkersUID from './patchs/premodules/Patch20240123ForceUnicityOnGeneratorWorkersUID';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch20240206InitNullFieldsFromWidgets';
+import { field_names } from '../shared/tools/ObjectHandler';
 
 export default abstract class GeneratorBase {
 
@@ -268,7 +269,12 @@ export default abstract class GeneratorBase {
 
         // On va faire le ménage dans les varconf qui sont pas initialisés
         console.log("Clean varconf non initialisés...");
-        await this.clean_varconfs();
+
+        /**
+         * On nettoie les varconfs en bdd qui n'ont plus de controller associé dans l'application
+         */
+        await VarsServerController.clean_varconfs_without_controller();
+
         console.log("Clean varconf non initialisés DONE");
 
         /**
@@ -331,27 +337,5 @@ export default abstract class GeneratorBase {
         }
 
         return true;
-    }
-
-    /**
-     * On va faire le ménage dans les varconf qui sont pas initialisés
-     */
-    private async clean_varconfs() {
-        let varconfs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>();
-
-        let todelete: VarConfVO[] = [];
-
-        for (let i in varconfs) {
-            let varconf: VarConfVO = varconfs[i];
-
-            if (!VarsServerController.registered_vars_controller_by_var_id[varconf.id]) {
-                todelete.push(varconf);
-                console.log("Clean varconf - Suppression du varconf " + varconf.name + " car non initialisé");
-            }
-        }
-
-        if (todelete?.length > 0) {
-            await ModuleDAO.getInstance().deleteVOs(todelete);
-        }
     }
 }

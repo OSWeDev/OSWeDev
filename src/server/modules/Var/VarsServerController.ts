@@ -11,6 +11,7 @@ import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import VarServerControllerBase from './VarServerControllerBase';
@@ -161,8 +162,13 @@ export default class VarsServerController {
         return VarsServerController.registered_vars_controller_by_var_id ? (VarsServerController.registered_vars_controller_by_var_id[var_id] ? VarsServerController.registered_vars_controller_by_var_id[var_id] : null) : null;
     }
 
+    /**
+     * On fait le ménage dans les varconf qui sont pas initialisés
+     * Attention évidemment à ne pas supprimer les vars automatiques
+     */
     public static async clean_varconfs_without_controller() {
         let db_var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID)
+            .filter_is_false(field_names<VarConfVO>().is_auto)
             .exec_as_server()
             .select_vos<VarConfVO>();
 
