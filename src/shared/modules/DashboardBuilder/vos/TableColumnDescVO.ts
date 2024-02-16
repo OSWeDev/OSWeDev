@@ -72,7 +72,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     get datatable_field_uid() {
         switch (this.type) {
             case TableColumnDescVO.TYPE_crud_actions:
-                return 'crud_actions';
+                return '__crud_actions';
             case TableColumnDescVO.TYPE_vo_field_ref:
                 return this.api_type_id + '___' + this.field_id;
             case TableColumnDescVO.TYPE_var_ref:
