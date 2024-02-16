@@ -2,11 +2,11 @@
 
 import IAPIParamTranslator from "../../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../../API/interfaces/IAPIParamTranslatorStatic";
-import EvolizInvoiceVO from "../invoices/EvolizInvoiceVO";
+import EvolizInvoicePOSTVO from "../invoices/EvolizInvoicePOSTVO";
 
 export default class EvolizInvoiceParam implements IAPIParamTranslator<EvolizInvoiceParam> {
 
-    public static fromParams(invoice: EvolizInvoiceVO): EvolizInvoiceParam {
+    public static fromParams(invoice: EvolizInvoicePOSTVO): EvolizInvoiceParam {
         return new EvolizInvoiceParam(invoice);
     }
 
@@ -15,7 +15,7 @@ export default class EvolizInvoiceParam implements IAPIParamTranslator<EvolizInv
     }
 
     public constructor(
-        public invoice: EvolizInvoiceVO
+        public invoice: EvolizInvoicePOSTVO
     ) { }
 }
 
