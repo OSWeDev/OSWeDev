@@ -38,7 +38,7 @@ export default class EvolizInvoicePOSTVO {
     };
     // Comments on the document with html
     public comment: string;
-    // (REQUIRED) Analytic axis id, this field is accepted only when analytic option is enabled, required if invoice is checked in analytic configuration.
+    // (REQUIRED) Catégorie de la facture
     public analyticid: number;
     // Invoice rebate in amount, must be between 0 and the invoice total amount excluding vat
     public global_rebate: number;
