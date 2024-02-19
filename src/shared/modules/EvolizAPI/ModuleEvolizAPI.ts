@@ -18,6 +18,7 @@ import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamV
 import EvolizArticleVO from './vos/articles/EvolizArticleVO';
 import EvolizArticleParam, { EvolizArticleParamStatic } from './vos/apis/EvolizArticleParam';
 import EvolizInvoicePOSTVO from './vos/invoices/EvolizInvoicePOSTVO';
+import EvolizPaymentTermsVO from './vos/payment_terms/EvolizPaymentTermsVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -39,6 +40,7 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_create_prospect: string = "create_prospect";
     public static APINAME_list_contact_prospects: string = "list_contact_prospects";
     public static APINAME_create_contact_prospect: string = "create_contact_prospect";
+    public static APINAME_list_payment_terms: string = "list_payment_terms";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -70,6 +72,7 @@ export default class ModuleEvolizAPI extends Module {
     public create_prospect: (prospect: EvolizProspectVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_prospect);
     public list_contact_prospects: () => Promise<EvolizContactProspectVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_contact_prospects);
     public create_contact_prospect: (contact: EvolizContactProspectVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_contact_prospect);
+    public list_payment_terms: () => Promise<EvolizPaymentTermsVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_payment_terms);
 
     private constructor() {
 
@@ -166,6 +169,12 @@ export default class ModuleEvolizAPI extends Module {
             ModuleEvolizAPI.APINAME_create_contact_prospect,
             [],
             EvolizContactProspectParamStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizPaymentTermsVO[]>(
+            null,
+            ModuleEvolizAPI.APINAME_list_payment_terms,
+            []
         ));
     }
 

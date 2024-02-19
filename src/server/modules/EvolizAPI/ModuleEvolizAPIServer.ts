@@ -22,7 +22,7 @@ import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDev
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
 import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoicePOSTVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import EvolizPaymentTermsVO from '../../../shared/modules/EvolizAPI/vos/payment_terms/EvolizPaymentTermsVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -94,6 +94,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_prospect, this.create_prospect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_prospects, this.list_contact_prospects.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_prospect, this.create_contact_prospect.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_payment_terms, this.list_payment_terms.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -130,8 +131,6 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         if (return_connect) {
             this.token = return_connect;
         }
-
-        ConsoleHandler.log(this.token.access_token);
     }
 
     // DEVIS
@@ -197,6 +196,17 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
             return devis;
 
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Payment terms
+    public async list_payment_terms(): Promise<EvolizPaymentTermsVO[]> {
+        try {
+            let payterms: EvolizPaymentTermsVO[] = await this.get_all_pages('/api/v1/payterms') as EvolizPaymentTermsVO[];
+
+            return payterms;
         } catch (error) {
             console.error(error);
         }
