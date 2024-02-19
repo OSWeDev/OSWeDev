@@ -126,6 +126,23 @@ export default class VarDataRefComponent extends VueComponentBase {
         )
     };
 
+    // Si on est sur une var pixellisée, on peut avoir une valeur importée que sur un pixel
+    get can_edit(): boolean {
+        if (!this.can_inline_edit) {
+            return false;
+        }
+
+        if (!this.var_param) {
+            return false;
+        }
+
+        if (!this.var_param.is_pixel) {
+            return !this.var_conf.pixel_activated;
+        }
+
+        return true;
+    }
+
     private aggregated_var_param: VarDataBaseVO = null;
 
     private var_data_value_is_imported: boolean = false;
@@ -166,9 +183,9 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
-    @Watch('can_inline_edit')
-    private onchange_can_inline_edit() {
-        if (!this.can_inline_edit) {
+    @Watch('can_edit')
+    private onchange_can_edit() {
+        if (!this.can_edit) {
             this.is_inline_editing = false;
         }
     }
@@ -368,7 +385,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private selectVar() {
 
-        if (this.can_inline_edit && !this.is_inline_editing) {
+        if (this.can_edit && !this.is_inline_editing) {
             if (VarsClientController.getInstance().inline_editing_cb) {
                 VarsClientController.getInstance().inline_editing_cb();
             }
@@ -760,7 +777,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                     return true;
                 }
 
-                return (elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true');
+                return (elt.getAttribute('can_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true');
             },
             callback: async (key, opt) => {
                 let elt = opt.$trigger[0];
@@ -769,7 +786,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                     return;
                 }
 
-                if ((elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true')) {
+                if ((elt.getAttribute('can_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true')) {
                     return;
                 }
 

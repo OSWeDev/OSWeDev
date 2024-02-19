@@ -12,7 +12,7 @@
         min-height: 1em;
     }
 
-    &.can_inline_edit.is_not_inline_editing {
+    &.can_edit.is_not_inline_editing {
         cursor: pointer;
 
         &:hover {
@@ -21,7 +21,7 @@
         }
     }
 
-    &.can_inline_edit.is_inline_editing {
+    &.can_edit.is_inline_editing {
         box-shadow: 0px 0px 2px #0d6efd inset;
         border-radius: 4px;
     }
