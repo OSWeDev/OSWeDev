@@ -1,31 +1,29 @@
 import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
-import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import AdvancedStringFilter from './widgets/field_value_filter_widget/string/AdvancedStringFilter';
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
+import OseliaThreadWidgetOptions from './widgets/oselia_thread_widget/options/OseliaThreadWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
-import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
-import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
-import CeliaThreadWidgetOptions from './widgets/celia_thread_widget/options/CeliaThreadWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -128,7 +126,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_ShowFavoritesFilters();
 
-        await this.initializeWidget_CeliaThread();
+        await this.initializeWidget_OseliaThread();
     }
 
     private async initializeWidget_BulkOps() {
@@ -229,23 +227,23 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
     }
 
-    private async initializeWidget_CeliaThread() {
+    private async initializeWidget_OseliaThread() {
         let widget = new DashboardWidgetVO();
 
         widget.default_height = 35;
         widget.default_width = 6;
-        widget.name = DashboardWidgetVO.WIDGET_NAME_celiathread;
-        widget.widget_component = 'Celiathreadwidgetcomponent';
-        widget.options_component = 'Celiathreadwidgetoptionscomponent';
+        widget.name = DashboardWidgetVO.WIDGET_NAME_oseliathread;
+        widget.widget_component = 'Oseliathreadwidgetcomponent';
+        widget.options_component = 'Oseliathreadwidgetoptionscomponent';
         widget.weight = 99;
         widget.default_background = '#f5f5f5';
-        widget.icon_component = 'Celiathreadwidgeticoncomponent';
+        widget.icon_component = 'Oseliathreadwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new CeliaThreadWidgetOptions(), CeliaThreadWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
 
-        Vue.component('Celiathreadwidgetcomponent', () => import('./widgets/celia_thread_widget/CeliaThreadWidgetComponent'));
-        Vue.component('Celiathreadwidgetoptionscomponent', () => import('./widgets/celia_thread_widget/options/CeliaThreadWidgetOptionsComponent'));
-        Vue.component('Celiathreadwidgeticoncomponent', () => import('./widgets/celia_thread_widget/icon/CeliaThreadWidgetIconComponent'));
+        Vue.component('Oseliathreadwidgetcomponent', () => import('./widgets/oselia_thread_widget/OseliaThreadWidgetComponent'));
+        Vue.component('Oseliathreadwidgetoptionscomponent', () => import('./widgets/oselia_thread_widget/options/OseliaThreadWidgetOptionsComponent'));
+        Vue.component('Oseliathreadwidgeticoncomponent', () => import('./widgets/oselia_thread_widget/icon/OseliaThreadWidgetIconComponent'));
     }
 
 

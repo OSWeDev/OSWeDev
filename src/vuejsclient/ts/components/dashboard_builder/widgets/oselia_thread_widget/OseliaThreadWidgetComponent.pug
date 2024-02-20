@@ -1,8 +1,8 @@
-.celia_thread_widget_component
+.oselia_thread_widget_component
     //- template(v-if='too_many_threads')
     //-     .too_many_threads.bg-primary
     //-         i.fa-duotone.fa-filters
-    //-         | {{ label('celia_thread_widget_component.too_many_threads') }}
+    //-         | {{ label('oselia_thread_widget_component.too_many_threads') }}
 
     template(v-if='has_access_to_thread')
         template(v-if='is_loading_thread')
@@ -17,22 +17,22 @@
                 template(v-if='(!thread_messages) || (!thread_messages.length)')
                     .no_messages
                         i.fa-duotone.fa-comments
-                        | {{ label('celia_thread_widget_component.no_messages') }}
+                        | {{ label('oselia_thread_widget_component.no_messages') }}
                 .thread_messages
                     template(v-for='thread_message in thread_messages')
-                        Celiathreadmessagecomponent(
+                        Oseliathreadmessagecomponent(
                             :thread='thread'
                             :thread_message='thread_message'
                             @thread_message_updated='thread_message_updated'
                         )
-                    template(v-if='thread.celia_is_running')
+                    template(v-if='thread.oselia_is_running')
                         .thread_message
                             .thread_message_header
                                 .thread_message_header_left
                                     .thread_message_header_left_avatar
                                         img(:src='role_assistant_avatar_url')
                                     .thread_message_header_left_username
-                                        | {{ label('celia_thread_widget_component.thread_message_header_left_username.celia') }}
+                                        | {{ label('oselia_thread_widget_component.thread_message_header_left_username.oselia') }}
 
                             .thread_message_body
                                 .thread_message_body_content
@@ -47,17 +47,17 @@
                         template(v-if='too_many_assistants')
                             .too_many_assistants.bg-warning
                                 i.fa-duotone.fa-comments-question
-                                | {{ label('celia_thread_widget_component.too_many_assistants') }}
+                                | {{ label('oselia_thread_widget_component.too_many_assistants') }}
                         template(v-else-if='!can_run_assistant')
                             .no_assistant.bg-danger
                                 i.fa-duotone.fa-comments-question
-                                | {{ label('celia_thread_widget_component.no_assistant') }}
+                                | {{ label('oselia_thread_widget_component.no_assistant') }}
                         template(v-else)
                             button.btn.btn-primary(v-on:click='send_message()' :disabled='assistant_is_busy || !new_message_text')
                                 i.fa-duotone.fa-paper-plane
-                                | {{ label('celia_thread_widget_component.send_message') }}
+                                | {{ label('oselia_thread_widget_component.send_message') }}
 
     template(v-else)
         .no_access.bg-warning
             i.fa-duotone.fa-user-lock.fa-beat-fade(style='--fa-animation-iteration-count: 3')
-            | {{ label('celia_thread_widget_component.no_access') }}
+            | {{ label('oselia_thread_widget_component.no_access') }}

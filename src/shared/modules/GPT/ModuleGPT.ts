@@ -256,7 +256,7 @@ export default class ModuleGPT extends Module {
             user_id,
             label,
             current_default_assistant_id,
-            new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().celia_is_running, ModuleTableField.FIELD_TYPE_boolean, 'Celia en cours de réflexion', true, true, false)
+            new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableField.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false)
         ];
 
         let table = new ModuleTable(this, GPTAssistantAPIThreadVO.API_TYPE_ID, () => new GPTAssistantAPIThreadVO(), fields, label, 'GPT Assistant API - Thread');

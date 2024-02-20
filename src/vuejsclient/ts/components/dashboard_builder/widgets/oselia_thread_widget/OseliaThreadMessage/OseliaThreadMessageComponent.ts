@@ -19,21 +19,21 @@ import DatatableComponentField from '../../../../datatable/component/fields/Data
 import MailIDEventsComponent from '../../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import TablePaginationComponent from '../../table_widget/pagination/TablePaginationComponent';
-import CeliaThreadMessageActionURLComponent from '../CeliaThreadMessageActionURL/CeliaThreadMessageActionURLComponent';
-import './CeliaThreadMessageComponent.scss';
+import OseliaThreadMessageActionURLComponent from '../OseliaThreadMessageActionURL/OseliaThreadMessageActionURLComponent';
+import './OseliaThreadMessageComponent.scss';
 
 @Component({
-    template: require('./CeliaThreadMessageComponent.pug'),
+    template: require('./OseliaThreadMessageComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
-        Celiathreadmessageactionurlcomponent: CeliaThreadMessageActionURLComponent,
+        Oseliathreadmessageactionurlcomponent: OseliaThreadMessageActionURLComponent,
         Mailideventscomponent: MailIDEventsComponent,
-        Celiathreadmessageemailcomponent: MailIDEventsComponent
+        Oseliathreadmessageemailcomponent: MailIDEventsComponent
     }
 })
-export default class CeliaThreadMessageComponent extends VueComponentBase {
+export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     public thread_message_contents: GPTAssistantAPIThreadMessageContentVO[] = [];
 
@@ -127,7 +127,7 @@ export default class CeliaThreadMessageComponent extends VueComponentBase {
         return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
     }
     get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/celia.png';
+        return '/vuejsclient/public/img/avatars/oselia.png';
     }
 
     get role_system() {

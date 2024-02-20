@@ -10,15 +10,15 @@ import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
-import './CeliaThreadMessageActionURLComponent.scss';
+import './OseliaThreadMessageActionURLComponent.scss';
 
 @Component({
-    template: require('./CeliaThreadMessageActionURLComponent.pug'),
+    template: require('./OseliaThreadMessageActionURLComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText
     }
 })
-export default class CeliaThreadMessageActionURLComponent extends VueComponentBase {
+export default class OseliaThreadMessageActionURLComponent extends VueComponentBase {
 
     public action_url: ActionURLVO = null;
     public action_url_crs: ActionURLCRVO[] = [];
@@ -78,13 +78,13 @@ export default class CeliaThreadMessageActionURLComponent extends VueComponentBa
             return;
         }
 
-        this.snotify.async(this.label('CeliaThreadMessageActionURLComponent.execute_action_url.encours'), async () =>
+        this.snotify.async(this.label('OseliaThreadMessageActionURLComponent.execute_action_url.encours'), async () =>
             new Promise(async (resolve, reject) => {
 
                 try {
                     if (await ModuleActionURL.getInstance().action_url(this.action_url.action_code, true)) {
                         resolve({
-                            body: this.label('CeliaThreadMessageActionURLComponent.execute_action_url.ok'),
+                            body: this.label('OseliaThreadMessageActionURLComponent.execute_action_url.ok'),
                             config: {
                                 timeout: 10000,
                                 showProgressBar: true,
@@ -98,7 +98,7 @@ export default class CeliaThreadMessageActionURLComponent extends VueComponentBa
                     ConsoleHandler.error(error);
                 }
                 reject({
-                    body: this.label('CeliaThreadMessageActionURLComponent.execute_action_url.failed'),
+                    body: this.label('OseliaThreadMessageActionURLComponent.execute_action_url.failed'),
                     config: {
                         timeout: 10000,
                         showProgressBar: true,

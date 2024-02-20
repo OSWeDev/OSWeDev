@@ -13,5 +13,5 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
     public gpt_thread_id: string;
     public current_default_assistant_id: number;
 
-    public celia_is_running: boolean;
+    public oselia_is_running: boolean;
 }

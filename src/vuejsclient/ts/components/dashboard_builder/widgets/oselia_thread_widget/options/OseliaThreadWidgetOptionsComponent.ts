@@ -6,16 +6,16 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import CeliaThreadWidgetOptions from './CeliaThreadWidgetOptions';
-import './CeliaThreadWidgetOptionsComponent.scss';
+import OseliaThreadWidgetOptions from './OseliaThreadWidgetOptions';
+import './OseliaThreadWidgetOptionsComponent.scss';
 
 @Component({
-    template: require('./CeliaThreadWidgetOptionsComponent.pug'),
+    template: require('./OseliaThreadWidgetOptionsComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText
     }
 })
-export default class CeliaThreadWidgetOptionsComponent extends VueComponentBase {
+export default class OseliaThreadWidgetOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
@@ -41,14 +41,14 @@ export default class CeliaThreadWidgetOptionsComponent extends VueComponentBase 
     }
 
     get default_title_translation(): string {
-        return 'CeliaThreadWidget#' + this.page_widget.id;
+        return 'OseliaThreadWidget#' + this.page_widget.id;
     }
 
-    get widget_options(): CeliaThreadWidgetOptions {
+    get widget_options(): OseliaThreadWidgetOptions {
         if (!this.page_widget) {
             return null;
         }
 
-        return new CeliaThreadWidgetOptions();
+        return new OseliaThreadWidgetOptions();
     }
 }

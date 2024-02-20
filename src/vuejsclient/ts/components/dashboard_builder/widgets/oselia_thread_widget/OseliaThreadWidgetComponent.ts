@@ -25,22 +25,20 @@ import DatatableComponentField from '../../../datatable/component/fields/Datatab
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
-import CeliaThreadMessageComponent from './CeliaThreadMessage/CeliaThreadMessageComponent';
-import CeliaThreadMessageActionURLComponent from './CeliaThreadMessageActionURL/CeliaThreadMessageActionURLComponent';
-import './CeliaThreadWidgetComponent.scss';
+import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
+import './OseliaThreadWidgetComponent.scss';
 
 @Component({
-    template: require('./CeliaThreadWidgetComponent.pug'),
+    template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
-        Celiathreadmessageactionurlcomponent: CeliaThreadMessageActionURLComponent,
         Mailideventscomponent: MailIDEventsComponent,
-        Celiathreadmessagecomponent: CeliaThreadMessageComponent
+        Oseliathreadmessagecomponent: OseliaThreadMessageComponent
     }
 })
-export default class CeliaThreadWidgetComponent extends VueComponentBase {
+export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
@@ -281,7 +279,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
 
         let self = this;
         this.assistant_is_busy = true;
-        self.snotify.async(self.label('CeliaThreadWidgetComponent.send_message.start'), () =>
+        self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
             new Promise(async (resolve, reject) => {
 
                 try {
@@ -301,7 +299,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
                     // self.throttle_load_thread();
 
                     resolve({
-                        body: self.label('CeliaThreadWidgetComponent.send_message.ok'),
+                        body: self.label('OseliaThreadWidgetComponent.send_message.ok'),
                         config: {
                             timeout: 10000,
                             showProgressBar: true,
@@ -312,7 +310,7 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
                 } catch (error) {
                     ConsoleHandler.error(error);
                     reject({
-                        body: self.label('CeliaThreadWidgetComponent.send_message.failed'),
+                        body: self.label('OseliaThreadWidgetComponent.send_message.failed'),
                         config: {
                             timeout: 10000,
                             showProgressBar: true,
@@ -326,6 +324,6 @@ export default class CeliaThreadWidgetComponent extends VueComponentBase {
     }
 
     get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/celia.png';
+        return '/vuejsclient/public/img/avatars/oselia.png';
     }
 }
