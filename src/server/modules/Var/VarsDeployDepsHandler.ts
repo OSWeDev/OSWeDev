@@ -64,13 +64,12 @@ export default class VarsDeployDepsHandler {
 
         let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
-        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
         let varconf = VarsController.var_conf_by_id[node.var_data.var_id];
 
         /**
          * Imports
          */
-        if ((!VarsServerController.has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
+        if ((!VarsServerController.has_valid_value(node.var_data)) && (!varconf || !varconf.optimization__has_no_imports)) {
 
             /**
              * On doit essayer de récupérer des données parcellaires
@@ -436,7 +435,7 @@ export default class VarsDeployDepsHandler {
                     true,
                     segment_type
                 )];
-                new_var_data
+
                 if (!aggregated_datas[new_var_data.index]) {
                     VarsDeployDepsHandler.populate_missing_pixels(
                         aggregated_datas,

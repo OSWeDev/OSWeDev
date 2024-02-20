@@ -783,7 +783,7 @@ export default class ModuleVar extends Module {
 
             new ModuleTableField(field_names<VarConfVO>().pixel_activated, ModuleTableField.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
             new ModuleTableField(field_names<VarConfVO>().pixel_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
-            new ModuleTableField(field_names<VarConfVO>().pixel_never_delete, ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, true),
+            new ModuleTableField(field_names<VarConfVO>().pixel_never_delete, ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, false),
 
             new ModuleTableField(field_names<VarConfVO>().cache_only_exact_sub, ModuleTableField.FIELD_TYPE_boolean, 'Mettre en cache les subs uniquements', true, true, true),
 

@@ -314,6 +314,21 @@ export default class VarsServerController {
                 }
 
                 /**
+                 * Si pixel_never_delete a changé, on met à jour la conf en db
+                 */
+                if ((!!daoVarConf.pixel_never_delete) != (!!varConf.pixel_never_delete)) {
+
+                    ConsoleHandler.warn('On écrase le pixel_never_delete de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.pixel_never_delete:' + daoVarConf.pixel_never_delete +
+                        ':varConf.pixel_never_delete:' + varConf.pixel_never_delete);
+
+                    daoVarConf.pixel_never_delete = !!varConf.pixel_never_delete;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+
+                /**
                  * Si les optimisation diffèrent on met à jour la conf en db
                  */
                 if ((!!daoVarConf.optimization__has_no_imports) != (!!varConf.optimization__has_no_imports)) {
