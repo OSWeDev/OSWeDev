@@ -31,8 +31,6 @@ export default class FakeAVarController extends VarServerControllerBase<FakeData
             }, 1),
             {}, {}, {}, {}
         );
-
-        this.optimization__has_no_imports = true;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {

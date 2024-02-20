@@ -45,8 +45,6 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
             },
             {},
             {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

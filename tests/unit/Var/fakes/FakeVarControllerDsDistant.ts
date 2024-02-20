@@ -28,8 +28,6 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
         super(new VarConfVO('FakeVarControllerDsDistant', FakeDataVO.API_TYPE_ID, {
             ts_ranges: TimeSegment.TYPE_DAY
         }, 1), {}, {}, {}, {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

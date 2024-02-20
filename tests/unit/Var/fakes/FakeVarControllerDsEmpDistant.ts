@@ -28,8 +28,6 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
         super(new VarConfVO('FakeVarControllerDsEmpDistant', FakeEmpDayDataVO.API_TYPE_ID, {
             ts_ranges: TimeSegment.TYPE_DAY
         }, 2), {}, {}, {}, {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

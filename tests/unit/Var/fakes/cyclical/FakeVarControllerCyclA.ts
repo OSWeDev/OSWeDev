@@ -33,8 +33,6 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
             new VarConfVO('FakeVarControllerCyclA', FakeEmpDayDataVO.API_TYPE_ID, null, 10),
             {}, {}, {}, {}
         );
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

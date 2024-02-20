@@ -36,8 +36,6 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
                 'fr-fr': 'Prctage d\'avancement de l\'animation.'
             },
             {}, {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

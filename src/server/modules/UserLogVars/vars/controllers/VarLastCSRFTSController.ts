@@ -45,8 +45,6 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
             },
             {},
             {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

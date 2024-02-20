@@ -136,6 +136,12 @@ export default class VarDataRefComponent extends VueComponentBase {
             return false;
         }
 
+        // Si on a une var optimisée pour l'import, on ne peut pas éditer et créer des imports puisqu'ils ne seront pas pris en compte
+        if (this.var_conf.optimization__has_no_imports) {
+            return false;
+        }
+
+        // Si on est sur une var pixellisée, on peut avoir une valeur importée que sur un pixel
         if (!this.var_param.is_pixel) {
             return !this.var_conf.pixel_activated;
         }

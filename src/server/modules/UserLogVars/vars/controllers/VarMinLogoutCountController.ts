@@ -45,8 +45,6 @@ export default class VarMinLogoutCountController extends VarServerControllerBase
             },
             {},
             {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

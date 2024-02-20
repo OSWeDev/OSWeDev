@@ -35,8 +35,6 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
             },
             {},
             {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {

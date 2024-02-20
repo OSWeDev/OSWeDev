@@ -43,8 +43,6 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
                 'fr-fr': 'Prctage atteinte seuil de l\'animation.'
             },
             {}, {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

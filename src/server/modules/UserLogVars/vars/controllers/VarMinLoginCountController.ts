@@ -45,8 +45,6 @@ export default class VarMinLoginCountController extends VarServerControllerBase<
             },
             {},
             {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

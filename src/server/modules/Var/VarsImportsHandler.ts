@@ -49,8 +49,8 @@ export default class VarsImportsHandler {
             return;
         }
 
-        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
-        await this.split_nodes(node, imports, controller.optimization__has_only_atomic_imports);
+        let var_conf = VarsController.var_conf_by_id[node.var_data.var_id];
+        await this.split_nodes(node, imports, var_conf.optimization__has_only_atomic_imports);
     }
 
     /**

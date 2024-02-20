@@ -39,8 +39,6 @@ export default class VarDayPrctReussiteAnimationController extends VarServerCont
                 'fr-fr': 'Prctage de réussite de l\'animation.'
             },
             {}, {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

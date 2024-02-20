@@ -314,6 +314,29 @@ export default class VarsServerController {
                 }
 
                 /**
+                 * Si les optimisation diffèrent on met à jour la conf en db
+                 */
+                if ((!!daoVarConf.optimization__has_no_imports) != (!!varConf.optimization__has_no_imports)) {
+
+                    ConsoleHandler.warn('On écrase le optimization__has_no_imports de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.optimization__has_no_imports:' + daoVarConf.optimization__has_no_imports +
+                        ':varConf.optimization__has_no_imports:' + varConf.optimization__has_no_imports);
+
+                    daoVarConf.optimization__has_no_imports = !!varConf.optimization__has_no_imports;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+                if ((!!daoVarConf.optimization__has_only_atomic_imports) != (!!varConf.optimization__has_only_atomic_imports)) {
+                    ConsoleHandler.warn('On écrase le optimization__has_only_atomic_imports de la bdd par celui de l\'appli pour la varconf:' +
+                        daoVarConf.id + ':' + daoVarConf.name +
+                        ':daoVarConf.optimization__has_only_atomic_imports:' + daoVarConf.optimization__has_only_atomic_imports +
+                        ':varConf.optimization__has_only_atomic_imports:' + varConf.optimization__has_only_atomic_imports);
+
+                    daoVarConf.optimization__has_only_atomic_imports = !!varConf.optimization__has_only_atomic_imports;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                }
+
+                /**
                  * Si l'aggrégateur a changé, on met à jour la conf en db
                  */
                 if ((!!daoVarConf.pixel_activated) && (daoVarConf.aggregator != varConf.aggregator)) {

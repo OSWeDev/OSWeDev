@@ -13,19 +13,6 @@ import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
-    /**
-     * OPTIMISATION qui permet d'éviter complètement les questions de résolution des imports
-     *  Par défaut on considère qu'on a aucun import sur les variables, et si jamais on doit en avoir on active cette option explicitement
-     *  dans le constructeur de la Var
-     */
-    public optimization__has_no_imports: boolean = true;
-
-    /**
-     * OPTIMISATION qui indique qu'une var ne peut avoir que des imports indépendants, et donc sur lesquels il est inutile
-     *  de vérifier lors du chargement des imports qu'ils ne s'intersectent pas (par définition ils n'intersectent pas, donc on prend tous les imports)
-     */
-    public optimization__has_only_atomic_imports: boolean = false;
-
     // /**
     //  * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
     //  *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)

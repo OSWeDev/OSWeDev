@@ -34,8 +34,6 @@ export default class VarDayTempsPasseAnimationController extends VarServerContro
                 'fr-fr': 'Temps passé - animation.'
             },
             {}, {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

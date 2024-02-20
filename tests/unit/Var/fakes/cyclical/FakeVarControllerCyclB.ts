@@ -27,8 +27,6 @@ export default class FakeVarControllerCyclB extends VarServerControllerBase<Fake
             new VarConfVO('FakeVarControllerCyclB', FakeEmpDayDataVO.API_TYPE_ID, null, 11),
             {}, {}, {}, {}
         );
-
-        this.optimization__has_no_imports = true;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
