@@ -140,7 +140,7 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
+    public static cloneFromVarName<T extends U, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
 
         return this.cloneFieldsFromVarName<T, U>(param_to_clone, var_name, clone_fields);
     }
@@ -151,7 +151,7 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_id Identifiant de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
+    public static cloneFromVarId<T extends U, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
 
         return this.cloneFieldsFromVarId<T, U>(param_to_clone, var_id, clone_fields);
     }
@@ -162,7 +162,7 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_conf La conf de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_conf: VarConfVO = null, clone_fields: boolean = true): U {
+    public static cloneFromVarConf<T extends U, U extends VarDataBaseVO>(param_to_clone: T, var_conf: VarConfVO = null, clone_fields: boolean = true): U {
 
         return this.cloneFieldsFromVarConf<T, U>(param_to_clone, var_conf, clone_fields);
     }
@@ -184,7 +184,8 @@ export default class VarDataBaseVO implements IMatroid {
         for (let i in params_to_clone) {
             let param_to_clone = params_to_clone[i];
 
-            res.push(this.cloneFromVarName<T, U>(param_to_clone, var_name, clone_fields));
+            // On surcharge volontairement le typage, car ici on veut bien avoir U extends T au lieu de l'inverse, ça pose pas de soucis a priori dans l'usage qui est plutôt pour des invalidators
+            res.push(this.cloneFromVarName<any, any>(param_to_clone as any, var_name, clone_fields) as U);
         }
 
         return res;
@@ -301,6 +302,41 @@ export default class VarDataBaseVO implements IMatroid {
     }
 
     /**
+     * Fonction qui check que le type de l'object est cohérent avec le type demandé. Même type et champs a minima avec un range
+     */
+    public check_param_is_valid(target_type: string): boolean {
+
+        if (this._type != target_type) {
+            return false;
+        }
+
+        if (!VarsController.var_conf_by_id[this.var_id]) {
+            return false;
+        }
+
+        let fields = MatroidController.getMatroidFields(this._type);
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            if ((!this[field.field_id]) || (!this[field.field_id].length)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected set_field(field_id: string, value: any) {
+        this['_' + field_id] = value;
+        if (field_id != 'var_id') {
+            if (Array.isArray(value)) {
+                this.rebuild_index();
+            }
+        }
+    }
+
+    /**
      * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite.
      *
      * Suite discussion avec chatgpt... pour booster les perfs de ce truc, on passe par un getter pour le premier appel,
@@ -374,40 +410,5 @@ export default class VarDataBaseVO implements IMatroid {
     get _bdd_only_index(): string {
 
         return this.index;
-    }
-
-    /**
-     * Fonction qui check que le type de l'object est cohérent avec le type demandé. Même type et champs a minima avec un range
-     */
-    public check_param_is_valid(target_type: string): boolean {
-
-        if (this._type != target_type) {
-            return false;
-        }
-
-        if (!VarsController.var_conf_by_id[this.var_id]) {
-            return false;
-        }
-
-        let fields = MatroidController.getMatroidFields(this._type);
-
-        for (let i in fields) {
-            let field = fields[i];
-
-            if ((!this[field.field_id]) || (!this[field.field_id].length)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    protected set_field(field_id: string, value: any) {
-        this['_' + field_id] = value;
-        if (field_id != 'var_id') {
-            if (Array.isArray(value)) {
-                this.rebuild_index();
-            }
-        }
     }
 }

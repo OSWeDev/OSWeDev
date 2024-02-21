@@ -1,35 +1,33 @@
-import { Assistant } from 'openai/resources/beta/assistants/assistants';
-import { MessageContentImageFile, MessageCreateParams, ThreadMessage } from 'openai/resources/beta/threads/messages/messages';
-import { Thread } from 'openai/resources/beta/threads/threads';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ModuleGPTServer from './ModuleGPTServer';
-import { field_names } from '../../../shared/tools/ObjectHandler';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
-import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { Run, RunCreateParams } from 'openai/resources/beta/threads/runs/runs';
-import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
-import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
-import ModulesManagerServer from '../ModulesManagerServer';
-import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleServerBase from '../ModuleServerBase';
-import { all_promises } from '../../../shared/tools/PromiseTools';
-import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
-import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
-import { FileContent, FileObject } from 'openai/resources';
 import { createReadStream, writeFileSync } from 'fs';
-import FileServerController from '../File/FileServerController';
+import { FileObject } from 'openai/resources';
+import { Assistant } from 'openai/resources/beta/assistants/assistants';
+import { MessageCreateParams, ThreadMessage } from 'openai/resources/beta/threads/messages/messages';
+import { Run, RunCreateParams } from 'openai/resources/beta/threads/runs/runs';
+import { Thread } from 'openai/resources/beta/threads/threads';
+import { Uploadable } from 'openai/uploads';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
-import { Uploadable } from 'openai/uploads';
-import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
+import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
+import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
-import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
+import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
+import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
+import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
+import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import ModulesManager from '../../../shared/modules/ModulesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import FileServerController from '../File/FileServerController';
+import ModuleServerBase from '../ModuleServerBase';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
+import ModuleGPTServer from './ModuleGPTServer';
 
 export default class GPTAssistantAPIServerController {
 
@@ -180,8 +178,10 @@ export default class GPTAssistantAPIServerController {
                     break;
                 default:
                     message_vo.role_type = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+                    message_vo.assistant_id = thread_vo.current_oselia_assistant_id;
                     break;
             }
+            message_vo.prompt_id = thread_vo.current_oselia_prompt_id;
             message_vo.thread_id = thread_vo.id;
             message_vo.user_id = user_id ? user_id : thread_vo.user_id;
 
@@ -334,6 +334,7 @@ export default class GPTAssistantAPIServerController {
         message_vo.assistant_id = run ? run.assistant_id : null;
         message_vo.thread_id = thread_vo.id;
         message_vo.user_id = user_id ? user_id : thread_vo.user_id;
+        message_vo.prompt_id = thread_vo.current_oselia_prompt_id;
         message_vo.role_type = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_LABELS.indexOf(message_gpt.role);
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(message_vo);
@@ -478,6 +479,7 @@ export default class GPTAssistantAPIServerController {
 
         // On indique que Osélia est en train de travailler sur cette discussion
         thread.thread_vo.oselia_is_running = true;
+        thread.thread_vo.current_oselia_assistant_id = assistant.assistant_vo.id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
 
         let asking_message: {
@@ -614,6 +616,8 @@ export default class GPTAssistantAPIServerController {
 
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
         thread_vo.oselia_is_running = false;
+        thread_vo.current_oselia_assistant_id = null;
+        thread_vo.current_oselia_prompt_id = null;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
     }
 }

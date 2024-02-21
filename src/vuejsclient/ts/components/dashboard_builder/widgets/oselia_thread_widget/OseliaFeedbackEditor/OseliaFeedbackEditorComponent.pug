@@ -1,0 +1,16 @@
+.oselia_feedback_editor
+
+    template(v-if="current_user_feedback")
+        .oselia_edit_feedback_text 
+            .label {{ label('oselia_thread_feedback.edit_feedback_text') }}
+            input(v-model="current_feedback_text" type="text" :placeholder="label('oselia_thread_feedback.edit_feedback_text_placeholder')" @keyup="set_modified")
+        .oselia_edit_feedback_value
+            .oselia_edit_feedback_value_positive(@click="set_positive")
+                i.fa-duotone.fa-thumbs-up
+            .oselia_edit_feedback_value_negative(@click="set_negative")
+                i.fa-duotone.fa-thumbs-down
+        template(v-if="has_modified_feedback")
+            .oselia_edit_feedback_save(@click="save_feedback")
+                {{ label('oselia_thread_feedback.save_feedback') }}
+        .oseliad_delete_feedback(@click="delete_feedback")
+            {{ label('oselia_thread_feedback.delete_feedback') }}

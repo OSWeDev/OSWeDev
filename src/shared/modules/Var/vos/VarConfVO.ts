@@ -248,7 +248,7 @@ export default class VarConfVO implements INamedVO {
 
     /**
      * Ce paramètre permet d'indiquer qu'on doit mettre en cache uniquement les vars subs client ou server, et pas leurs deps
-     *  (sauf à ce qu'elles soient également subs client ou server)
+     *  (sauf à ce qu'elles soient également subs client ou server). Ne s'applique pas aux pixels qui sont toujours sauvegardés
      * @default true
      */
     public cache_only_exact_sub: boolean;
@@ -278,6 +278,12 @@ export default class VarConfVO implements INamedVO {
         if (id) {
             this.id = id;
         }
+
+        this.pixel_never_delete = false;
+        this.pixel_activated = false;
+        this.cache_only_exact_sub = true;
+        this.optimization__has_no_imports = true;
+        this.optimization__has_only_atomic_imports = false;
     }
 
     /* istanbul ignore next : nothing to test */
