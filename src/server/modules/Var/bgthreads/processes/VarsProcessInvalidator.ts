@@ -1,3 +1,4 @@
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import VarDataInvalidatorVO from '../../../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
@@ -21,6 +22,8 @@ export default class VarsProcessInvalidator {
     }
 
     private static instance: VarsProcessInvalidator = null;
+
+    private last_clear_datasources_cache: number = null;
 
     protected constructor(
         protected name: string = 'VarsProcessInvalidator',
@@ -122,11 +125,20 @@ export default class VarsProcessInvalidator {
 
     /**
      * On invalide le cache des datasources de la manère la plus opti possible. Pour le moment :
+     *  - on se met un timer pour vider tout le cache régulièrement
      *  - on fait la liste des vo_type des ordered_vos_cud
      *  - on invalide le cache des datasources qui ont une dépendance sur ces vo_type
      * @param ordered_vos_cud la liste des modifs qu'on va prendre en compte pour invalider le cache des datasources
      */
     private invalidate_datasources_cache(ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>) {
+
+        if (!this.last_clear_datasources_cache) {
+            this.last_clear_datasources_cache = Dates.now();
+        } else if ((Dates.now() - this.last_clear_datasources_cache) > 10 * 60) { // 10 minutes
+            this.last_clear_datasources_cache = Dates.now();
+            CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+            return;
+        }
 
         let vos_types: { [vo_type: string]: boolean } = {};
 
