@@ -182,7 +182,7 @@ export default class VarsDatasVoUpdateHandler {
      * On passe en param le nombre max de cud qu'on veut gérer, et on dépile en FIFO
      * @returns true si on a des invalidations trop récentes et qu'on veut donc éviter de calculer des vars
      */
-    public static async handle_buffer(): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
+    public static async handle_buffer(ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
 
         let deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = {};
         VarsDatasVoUpdateHandler.last_call_handled_something = false;
@@ -204,7 +204,7 @@ export default class VarsDatasVoUpdateHandler {
         let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
         let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
 
-        VarsDatasVoUpdateHandler.prepare_updates(vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+        VarsDatasVoUpdateHandler.prepare_updates(ordered_vos_cud, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = await VarsDatasVoUpdateHandler.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
         let leaf_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
@@ -1002,34 +1002,20 @@ export default class VarsDatasVoUpdateHandler {
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
     private static prepare_updates(
+        ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>,
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
         vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
         vo_types: string[]) {
 
-        let start_time = Dates.now();
-        let real_start_time = start_time;
-        let last_log_time = start_time;
-
-        if (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
-            ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + VarsDatasVoUpdateHandler.ordered_vos_cud.length);
+        if (ordered_vos_cud && ordered_vos_cud.length) {
+            ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + ordered_vos_cud.length);
+        } else {
+            return;
         }
 
-        while (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
+        while (ordered_vos_cud && ordered_vos_cud.length) {
 
-
-            let actual_time = Dates.now();
-
-            if ((actual_time - last_log_time) >= 10) {
-                ConsoleHandler.warn('VarsDatasVoUpdateHandler:prepare_updates:---:ordered_vos_cud length:' + VarsDatasVoUpdateHandler.ordered_vos_cud.length);
-                last_log_time = actual_time;
-            }
-
-            if (actual_time > (start_time + 60)) {
-                start_time = actual_time;
-                ConsoleHandler.error('VarsDatasVoUpdateHandler:prepare_updates:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
-            }
-
-            let vo_cud = VarsDatasVoUpdateHandler.ordered_vos_cud.shift();
+            let vo_cud = ordered_vos_cud.shift();
 
             // Si on a un champ _type, on est sur un VO, sinon c'est un update
             if (!!vo_cud['_type']) {
@@ -1052,7 +1038,7 @@ export default class VarsDatasVoUpdateHandler {
             }
         }
 
-        ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + VarsDatasVoUpdateHandler.ordered_vos_cud.length);
+        ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length);
     }
 
     private static getJSONFrom_ordered_vos_cud(): string {
