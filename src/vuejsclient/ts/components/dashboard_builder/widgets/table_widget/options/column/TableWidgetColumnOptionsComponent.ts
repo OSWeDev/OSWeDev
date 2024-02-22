@@ -8,15 +8,17 @@ import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardB
 import TableColumnDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
 import { ConditionStatement } from '../../../../../../../../shared/tools/ConditionHandler';
 import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
+import IWeightedItem from '../../../../../../../../shared/tools/interfaces/IWeightedItem';
 import InlineTranslatableText from '../../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
@@ -128,7 +130,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return false;
         }
 
-        return table.getFieldFromId('weight') != null;
+        return table.getFieldFromId(field_names<IWeightedItem & IDistantVOBase>().weight) != null;
     }
 
     get page_widget_by_id(): { [pwid: number]: DashboardPageWidgetVO } {

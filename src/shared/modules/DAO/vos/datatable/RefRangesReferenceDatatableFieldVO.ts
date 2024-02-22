@@ -5,6 +5,7 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import ModuleTableController from '../../ModuleTableFieldController';
 
 export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -125,6 +126,8 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
             return;
         }
         this.is_required = this.srcField.field_required;
-        this.validate = this.validate ? this.validate : this.srcField.validate;
+        this.validate = this.validate ? this.validate : (data: any) => {
+            return ModuleTableController.validate_field_value(this.srcField, data);
+        };
     }
 }

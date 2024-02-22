@@ -289,7 +289,7 @@ export default class CRUDComponentField extends VueComponentBase
     //         //     field = (this.field as OneToManyReferenceDatatableFieldVO<any>).destField;
     //         //     break;
     //         // case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-    //         //     field = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>).interModuleTable.getFieldFromId('id');
+    //         //     field = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>).interModuleTable.getFieldFromId(field_names<IDistantVOBase>().id);
     //         //     break;
     //         // case DatatableField.REF_RANGES_FIELD_TYPE:
     //         //     field = (this.field as RefRangesReferenceDatatableFieldVO<any>).srcField;
@@ -1351,37 +1351,38 @@ export default class CRUDComponentField extends VueComponentBase
             event.stopPropagation();
         }
 
-        let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
+        // FIXME : TODO : TODELETE probablement, je vois pas qui utilise ça
+        // let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
 
-        if ((this.field_type == ModuleTableField.FIELD_TYPE_email) || (this.field_type == ModuleTableField.FIELD_TYPE_string)) {
-            if (!alerts || !alerts.length) {
-                if (!!(this.$refs.input_elt as any) && !!(this.$refs.input_elt as any).checkValidity && !(this.$refs.input_elt as any).checkValidity()) {
-                    if (!alerts) {
-                        alerts = [];
-                    }
+        // if ((this.field_type == ModuleTableField.FIELD_TYPE_email) || (this.field_type == ModuleTableField.FIELD_TYPE_string)) {
+        //     if (!alerts || !alerts.length) {
+        //         if (!!(this.$refs.input_elt as any) && !!(this.$refs.input_elt as any).checkValidity && !(this.$refs.input_elt as any).checkValidity()) {
+        //             if (!alerts) {
+        //                 alerts = [];
+        //             }
 
-                    alerts.push(new Alert(this.field.alert_path, 'crud.field_error_format', Alert.TYPE_ERROR));
-                }
-            }
-        }
+        //             alerts.push(new Alert(this.field.alert_path, 'crud.field_error_format', Alert.TYPE_ERROR));
+        //         }
+        //     }
+        // }
 
-        // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
-        this.replace_alerts({
-            alert_path: this.field.alert_path,
-            alerts: alerts
-        });
+        // // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
+        // this.replace_alerts({
+        //     alert_path: this.field.alert_path,
+        //     alerts: alerts
+        // });
 
-        if (alerts && alerts.length) {
+        // if (alerts && alerts.length) {
 
-            for (let i in alerts) {
-                let alert = alerts[i];
+        //     for (let i in alerts) {
+        //         let alert = alerts[i];
 
-                if (alert.type >= Alert.TYPE_ERROR) {
-                    this.snotify.error(this.label('field.validate_input.error'));
-                    return;
-                }
-            }
-        }
+        //         if (alert.type >= Alert.TYPE_ERROR) {
+        //             this.snotify.error(this.label('field.validate_input.error'));
+        //             return;
+        //         }
+        //     }
+        // }
 
         await this.change_inline_field_value();
     }

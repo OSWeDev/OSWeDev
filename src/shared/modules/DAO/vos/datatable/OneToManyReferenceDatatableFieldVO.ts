@@ -7,6 +7,7 @@ import DefaultTranslation from '../../../../../shared/modules/Translation/vos/De
 import RangeHandler from '../../../../tools/RangeHandler';
 import NumRange from '../../../DataRender/vos/NumRange';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
+import ModuleTableController from '../../ModuleTableFieldController';
 
 export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -119,7 +120,9 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
             return;
         }
         this.is_required = this.destField.field_required;
-        this.validate = this.validate ? this.validate : this.destField.validate;
+        this.validate = this.validate ? this.validate : (data: any) => {
+            return ModuleTableController.validate_field_value(this.destField, data);
+        };
     }
 
 }

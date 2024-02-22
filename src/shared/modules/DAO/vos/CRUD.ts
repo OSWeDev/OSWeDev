@@ -123,7 +123,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
             if (field.manyToOne_target_moduletable.default_label_field) {
                 dt_fields = [
-                    SimpleDatatableFieldVO.createNew(field.manyToOne_target_moduletable.default_label_field.field_id).setValidatInputFunc(field.validate_input)
+                    SimpleDatatableFieldVO.createNew(field.manyToOne_target_moduletable.default_label_field.field_id)
                 ];
             }
 
@@ -132,7 +132,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     field.field_id,
                     VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                     dt_fields
-                ).setValidatInputFunc(field.validate_input);
+                );
 
             } else {
                 if (VOsTypesManager.isManyToManyModuleTable(field.module_table)) {
@@ -164,12 +164,12 @@ export default class CRUD<T extends IDistantVOBase> {
                         field.field_id,
                         VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                         dt_fields
-                    ).setModuleTable(field.module_table).setValidatInputFunc(field.validate_input);
+                    ).setModuleTable(field.module_table);
                 }
             }
         } else {
             dt_field = SimpleDatatableFieldVO.createNew(field.field_id)
-                .setValidatInputFunc(field.validate_input);
+                ;
 
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_refrange_array:
@@ -188,7 +188,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         field.field_id,
                         VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                         dt_fields
-                    ).setValidatInputFunc(field.validate_input);
+                    );
                     break;
 
                 default:
@@ -344,7 +344,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         [
                             SimpleDatatableFieldVO.createNew(field.module_table.default_label_field.field_id)
                         ]
-                    ).setValidatInputFunc(field.validate_input));
+                    ));
                     continue;
                 }
 
@@ -358,7 +358,7 @@ export default class CRUD<T extends IDistantVOBase> {
                                 field.field_id + '__target_label',
                                 ModuleDAO.getInstance().get_compute_function_uid(field.module_table.vo_type)
                             )
-                        ]).setValidatInputFunc(field.validate_input));
+                        ]));
                     continue;
                 }
             }

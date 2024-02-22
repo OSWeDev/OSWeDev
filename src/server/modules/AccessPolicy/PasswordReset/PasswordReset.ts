@@ -12,6 +12,7 @@ import DAOServerController from '../../DAO/DAOServerController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 
 export default class PasswordReset {
 
@@ -130,7 +131,9 @@ export default class PasswordReset {
 
         try {
 
-            let msg = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
+            let msg = ModuleTableController.validate_field_value(
+                VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId(field_names<UserVO>().password),
+                new_pwd1);
             if (!((!msg) || (msg == ""))) {
 
                 return false;

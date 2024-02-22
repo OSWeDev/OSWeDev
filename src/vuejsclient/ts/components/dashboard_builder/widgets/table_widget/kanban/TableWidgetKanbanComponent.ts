@@ -361,7 +361,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 let kanban_table = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id];
                 let new_kanban_column_value = kanban_table.voConstructor();
                 new_kanban_column_value[this.kanban_column.field_id] = this.new_kanban_column_value;
-                if (this.widget_options.use_kanban_column_weight_if_exists && kanban_table.getFieldFromId('weight')) {
+                if (this.widget_options.use_kanban_column_weight_if_exists && kanban_table.getFieldFromId(field_names<IWeightedItem & IDistantVOBase>().weight)) {
                     new_kanban_column_value['weight'] = this.kanban_column_values.length;
                 }
                 let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_kanban_column_value);

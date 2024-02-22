@@ -53,6 +53,7 @@ import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import LogDBPerfServerController from '../DAO/LogDBPerfServerController';
 import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
+import ModuleTableServerController from '../DAO/ModuleTableServerController';
 
 export default class ContextQueryServerController {
 
@@ -155,7 +156,7 @@ export default class ContextQueryServerController {
             uid
         );
 
-        return moduletable.forceNumerics(query_res);
+        return ModuleTableServerController.translate_vos_from_db(query_res);
     }
 
     /**

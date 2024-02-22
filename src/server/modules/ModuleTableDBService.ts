@@ -13,6 +13,7 @@ import RangeHandler from '../../shared/tools/RangeHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import DAOServerController from './DAO/DAOServerController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
+import ModuleTableServerController from './DAO/ModuleTableServerController';
 import ForkedTasksController from './Fork/ForkedTasksController';
 import TableColumnDescriptor from './TableColumnDescriptor';
 import TableDescriptor from './TableDescriptor';
@@ -117,7 +118,7 @@ export default class ModuleTableDBService {
                             let data = datas[i];
                             data._type = moduleTable.vo_type;
                         }
-                        segmentation_bdd_values = moduleTable.forceNumerics(datas);
+                        segmentation_bdd_values = ModuleTableServerController.translate_vos_from_db(datas);
                     } catch (error) {
                     }
 

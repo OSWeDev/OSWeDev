@@ -64,6 +64,7 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import default_export_mail_html_template from './default_export_mail_html_template.html';
+import ModuleTableServerController from '../DAO/ModuleTableServerController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -678,7 +679,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 data._type = context_query.base_api_type_id;
             }
 
-            res = table.forceNumerics(res);
+            res = ModuleTableServerController.translate_vos_from_db(res);
 
             for (const i in res) {
                 const e = res[i];

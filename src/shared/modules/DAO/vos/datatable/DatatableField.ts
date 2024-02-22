@@ -4,6 +4,7 @@ import WeightHandler from '../../../../tools/WeightHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
+import ModuleTableController from '../../ModuleTableFieldController';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
 
 /**
@@ -115,7 +116,8 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public onEndOfChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
-    public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
+    // FIXME : TODO : TODELETE probablement, je vois pas qui utilise ça
+    // public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
 
     //definit comment trier le field si besoin
     public sort: (vos: IDistantVOBase[]) => void;
@@ -343,11 +345,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setValidatInputFunc(validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[]): this {
-        this.validate_input = validate_input;
+    // FIXME : TODO : TODELETE probablement, je vois pas qui utilise ça
+    //    public setValidatInputFunc(validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[]): this {
+    //     this.validate_input = validate_input;
 
-        return this;
-    }
+    //     return this;
+    // }
 
     /**
      * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
@@ -495,7 +498,9 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     private update_moduleTableField() {
         if (this.moduleTableField) {
             this.is_required = this.moduleTableField.field_required;
-            this.validate = (this.validate != null) ? this.validate : this.moduleTableField.validate;
+            this.validate = (this.validate != null) ? this.validate : (data: any) => {
+                return ModuleTableController.validate_field_value(this.moduleTableField, data);
+            };
             this.field_type = (this.field_type != null) ? this.field_type : this.moduleTableField.field_type;
             this.enum_values = (this.enum_values != null) ? this.enum_values : this.moduleTableField.enum_values;
             this.segmentation_type = (this.segmentation_type != null) ? this.segmentation_type : this.moduleTableField.segmentation_type;

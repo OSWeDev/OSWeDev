@@ -29,6 +29,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
 import './SupervisionWidgetComponent.scss';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -282,7 +283,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     private get_date(item: ISupervisedItem): string {
         const moduletable = VOsTypesManager.moduleTables_by_voType[item._type];
-        const field = moduletable.getFieldFromId('last_update');
+        const field = moduletable.getFieldFromId(field_names<ISupervisedItem>().last_update);
 
         return field ? Dates.format_segment(item.last_update, field.segmentation_type) : null;
     }

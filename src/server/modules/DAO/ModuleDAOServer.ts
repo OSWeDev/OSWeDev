@@ -72,6 +72,7 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import ModuleTableServerController from './ModuleTableServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -794,7 +795,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
         if (!!(matroid as VarDataBaseVO).var_id) {
 
-            if (!!moduleTable.getFieldFromId('var_id')) {
+            if (!!moduleTable.getFieldFromId(field_names<VarDataBaseVO>().var_id)) {
                 where_clause_params.push('(var_id = ' + (matroid as VarDataBaseVO).var_id + ') ');
             }
         }
@@ -1779,7 +1780,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 data._type = moduleTable.vo_type;
             }
 
-            res = moduleTable.forceNumerics(vos);
+            res = ModuleTableServerController.translate_vos_from_db(vos);
         } else {
             let query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
                 (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : '');
@@ -1791,7 +1792,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let data = vos[i];
                 data._type = moduleTable.vo_type;
             }
-            res = moduleTable.forceNumerics(vos);
+            res = ModuleTableServerController.translate_vos_from_db(vos);
 
             LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectAll', query_string, '!is_segmented');
         }
@@ -1864,7 +1865,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (!!segmented_vo) {
 
                 segmented_vo['_type'] = moduleTable.vo_type;
-                segmented_vo = moduleTable.forceNumeric(segmented_vo);
+                segmented_vo = ModuleTableServerController.translate_vos_from_db(segmented_vo);
             }
 
             // On filtre les vo suivant les droits d'accès
@@ -1876,7 +1877,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             LogDBPerfServerController.log_db_query_perf_end(query_uid, 'selectOne', query_string, '!is_segmented');
             if (!!vo) {
                 vo['_type'] = moduleTable.vo_type;
-                vo = moduleTable.forceNumeric(vo);
+                vo = ModuleTableServerController.translate_vos_from_db(vo);
             }
         }
 
@@ -1973,7 +1974,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // vo = (vo && vo.id) ? vo : null;
             // if (!!vo) {
             //     vo['_type'] = UserVO.API_TYPE_ID;
-            //     vo = datatable.forceNumeric(vo);
+            //     vo = ModuleTableServerController.translate_vos_from_db(vo);
             // }
             // return vo;
         } catch (error) {
@@ -2029,7 +2030,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // vo = (vo && vo.id) ? vo : null;
             // if (!!vo) {
             //     vo['_type'] = UserVO.API_TYPE_ID;
-            //     vo = datatable.forceNumeric(vo);
+            //     vo = ModuleTableServerController.translate_vos_from_db(vo);
             // }
 
             // if (!vo) {
@@ -2057,7 +2058,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (!!vo) {
                 vo['_type'] = UserVO.API_TYPE_ID;
-                vo = datatable.forceNumeric(vo);
+                vo = ModuleTableServerController.translate_vos_from_db(vo);
             }
             return vo;
         } catch (error) {
@@ -2079,7 +2080,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (!!vo) {
             vo['_type'] = UserVO.API_TYPE_ID;
-            vo = datatable.forceNumeric(vo);
+            vo = ModuleTableServerController.translate_vos_from_db(vo);
         }
         return vo;
     }

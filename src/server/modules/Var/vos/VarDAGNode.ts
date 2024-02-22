@@ -10,6 +10,7 @@ import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBas
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ModuleTableServerController from '../../DAO/ModuleTableServerController';
 import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
@@ -199,7 +200,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
         let data = res[0];
         data._type = table.vo_type;
-        return table.forceNumeric(data);
+        return ModuleTableServerController.translate_vos_from_db(data);
     }
 
     /**

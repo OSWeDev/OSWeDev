@@ -133,59 +133,21 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public boolean_icon_false: string; // "fa-times-circle" by default
     public boolean_invert_colors: boolean; // false by default
 
-    // /**
-    //  * FIXME: à supprimer quand ok
-    //  * POUR INFO : cette méthode semble inutilisée, et donc on ne change jamais l'invalidateur par défaut, .defaultValidator,
-    //  *  donc on supprime le champs (qui ne serait pas transposable en BDD dans tous les cas en l'état) et on met le defaultValidator en méthode statique
-    //  * Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
-    //  */
-    // public validate: (data: any) => string;
-
-    /**
-     * Nouvelle version de validation plus complète, qui doit remplacer l'ancienne version à terme
-     */
-    public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
-
     public return_min_value: boolean; // true by default
     public return_max_value: boolean;    // true by default
     public max_range_offset: number;    // 0 by default
 
     /**
-     * ----- Local thread cache
-     */
-
-    /**
      * On passe en private pour être sûr de bien mettre la table à jour au besoin avec l'info de l'index d'unicité
      */
-    private is_unique_: boolean = false;
+    // TODO FIXME BIZARRE à rendre public et simplifier le comportement (triggers ?)
+    private is_unique_: boolean; // false by default
 
-    constructor(
-        public field_id: string,                    //titre de la colonne en base
-        public field_type: string,                  //type de donnée dans la colonne
-        field_label: string | DefaultTranslation,   //titre de la colonne a afficher
-        public field_required: boolean = false,     //si champ obligatoire
-        public has_default: boolean = false,        //si valeur par defaut
-        public field_default: T = null              //valeur par defaut
-    ) {
-
-        this.cascade_on_delete = field_required;
-
-        if (!field_label) {
-            field_label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.field_id });
-        }
-
-        if (typeof field_label === "string") {
-            field_label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: field_label });
-        } else {
-            if ((!field_label.default_translations) || (!field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
-                field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.field_id;
-            }
-        }
-
-        this.field_label = field_label;                     //titre colonne a afficher
-
-        this.target_database = null;                        //la database en base avec laquelle il y a une relation (generalement "ref")
-    }
+    public field_id: string,                    //titre de la colonne en base
+    public field_type: string,                  //type de donnée dans la colonne
+    public field_required: boolean = false,     //si champ obligatoire
+    public has_default: boolean = false,        //si valeur par defaut
+    public field_default: T = null              //valeur par defaut
 
     public flag_as_secure_boolean_switch_only_server_side(): ModuleTableFieldVO {
         this.secure_boolean_switch_only_server_side = true;
@@ -223,11 +185,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     public set_translatable_params_field_name(translatable_params_field_name: string): ModuleTableFieldVO {
         this.translatable_params_field_name = translatable_params_field_name;
-        return this;
-    }
-
-    public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableFieldVO {
-        this.validate_input = validate_input;
         return this;
     }
 
@@ -364,18 +321,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
         return this;
     }
-
-    // /**
-    //  * FIXME: à supprimer quand ok
-    //  * POUR INFO : cette méthode semble inutilisée, et donc on ne change jamais l'invalidateur par défaut, .defaultValidator,
-    //  *  donc on supprime le champs (qui ne serait pas transposable en BDD dans tous les cas en l'état) et on met le defaultValidator en méthode statique
-    //  * @param validator Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
-    //  */
-    // public setValidator(validator: (data: any) => string): ModuleTableFieldVO {
-    //     this.validate = validator;
-
-    //     return this;
-    // }
 
     public getValidationTextCodeBase(): string {
         return "validation.ko." + this.module_table.full_name + "." + this.field_id + ".";
