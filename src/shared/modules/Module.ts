@@ -1,8 +1,7 @@
-import ModulesManager from './ModulesManager';
-import ModuleTable from './ModuleTable';
-import ModuleTableField from './ModuleTableField';
 import IModuleBase from './IModuleBase';
 import ModuleParamChange from './ModuleParamChange';
+import ModuleTable from './ModuleTable';
+import ModulesManager from './ModulesManager';
 
 export default abstract class Module implements IModuleBase {
 
@@ -13,11 +12,6 @@ export default abstract class Module implements IModuleBase {
      */
 
     public actif: boolean = false;
-
-    /**
-     * @deprecated should use ModuleParams instead now
-     */
-    public fields: Array<ModuleTableField<any>> = [];
 
     public datatables: Array<ModuleTable<any>> = [];
     public name: string;
@@ -81,47 +75,6 @@ export default abstract class Module implements IModuleBase {
 
     public get_nga_filters(nga) {
         return [];
-    }
-
-    /**
-     * @deprecated should use ModuleParams instead now
-     */
-    public getParamValue(id: string) {
-        for (let i in this.fields) {
-            let field = this.fields[i];
-
-            if (field.field_id == id) {
-                return field.field_value;
-            }
-        }
-    }
-
-    /**
-     * @deprecated should use ModuleParams instead now
-     */
-    public setParamValue(id: string, value: any) {
-        for (let i in this.fields) {
-            let field = this.fields[i];
-
-            if (field.field_id == id) {
-                field.field_value = value;
-                return;
-            }
-        }
-    }
-
-    /**
-     * @deprecated should use ModuleParams instead now
-     */
-    public setParamValueFromJSON(id: string, jsonValue: string) {
-        for (let i in this.fields) {
-            let field = this.fields[i];
-
-            if (field.field_id == id) {
-                field.field_value = JSON.parse(jsonValue);
-                return;
-            }
-        }
     }
 
     protected forceActivationOnInstallation(): void {

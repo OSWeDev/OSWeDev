@@ -54,8 +54,6 @@ export default class ModuleFeedback extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeFeedbackStateVO();
         this.initializeFeedbackVO();

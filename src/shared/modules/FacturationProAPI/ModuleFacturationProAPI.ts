@@ -80,8 +80,6 @@ export default class ModuleFacturationProAPI extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 
     public async list_customers(firm_id: number, params: FactuProCustomersLISTParams) {

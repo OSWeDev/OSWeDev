@@ -205,8 +205,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             let ignore_vo = false;
-            for (let field_id in vo_filter) {
-                if (vo_filter[field_id] != vo[field_id]) {
+            for (let field_name in vo_filter) {
+                if (vo_filter[field_name] != vo[field_name]) {
                     ignore_vo = true;
                     break;
                 }
@@ -228,8 +228,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             let ignore_pre_vo = false;
-            for (let field_id in vo_filter) {
-                if (vo_filter[field_id] != vo_updtae_wrapper.pre_update_vo[field_id]) {
+            for (let field_name in vo_filter) {
+                if (vo_filter[field_name] != vo_updtae_wrapper.pre_update_vo[field_name]) {
                     ignore_pre_vo = true;
                     break;
                 }
@@ -241,8 +241,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             let ignore_post_vo = false;
-            for (let field_id in vo_filter) {
-                if (vo_filter[field_id] != vo_updtae_wrapper.post_update_vo[field_id]) {
+            for (let field_name in vo_filter) {
+                if (vo_filter[field_name] != vo_updtae_wrapper.post_update_vo[field_name]) {
                     ignore_post_vo = true;
                     break;
                 }
@@ -263,8 +263,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             let ignore_vo = false;
-            for (let field_id in vo_filter) {
-                if (vo_filter[field_id] != vo[field_id]) {
+            for (let field_name in vo_filter) {
+                if (vo_filter[field_name] != vo[field_name]) {
                     ignore_vo = true;
                     break;
                 }
@@ -289,7 +289,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let room_vo: any = null;
         try {
             for (let i = 0; i < room_vo_fields.length; i += 2) {
-                let field_id = room_vo_fields[i];
+                let field_name = room_vo_fields[i];
                 let field_value = room_vo_fields[i + 1];
 
                 if (i == 0) {
@@ -298,7 +298,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                     room += ',';
                 }
 
-                room += '"' + field_id + '":' + field_value;
+                room += '"' + field_name + '":' + field_value;
             }
             room += '}';
             room_vo = JSON.parse(room);
@@ -342,7 +342,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let room_vo: any = null;
         try {
             for (let i = 0; i < room_vo_fields.length; i += 2) {
-                let field_id = room_vo_fields[i];
+                let field_name = room_vo_fields[i];
                 let field_value = room_vo_fields[i + 1];
 
                 if (i == 0) {
@@ -351,7 +351,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                     room += ',';
                 }
 
-                room += '"' + field_id + '":' + field_value;
+                room += '"' + field_name + '":' + field_value;
             }
             room += '}';
             room_vo = JSON.parse(room);

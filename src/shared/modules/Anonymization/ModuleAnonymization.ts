@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -31,27 +32,24 @@ export default class ModuleAnonymization extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         let datatable_fields = [
-            new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'API TYPE ID', true),
-            new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'FIELD ID', true),
-            new ModuleTableField('anonymizer_type', ModuleTableField.FIELD_TYPE_enum, 'Fonction', true).setEnumValues(AnonymizationFieldConfVO.TYPE_ANONYMIZER_LABELS),
+            new ModuleTableField(field_names<AnonymizationFieldConfVO>().vo_type, ModuleTableField.FIELD_TYPE_string, 'API TYPE ID', true),
+            new ModuleTableField(field_names<AnonymizationFieldConfVO>().field_name, ModuleTableField.FIELD_TYPE_string, 'Nom du champs', true),
+            new ModuleTableField(field_names<AnonymizationFieldConfVO>().anonymizer_type, ModuleTableField.FIELD_TYPE_enum, 'Fonction', true).setEnumValues(AnonymizationFieldConfVO.TYPE_ANONYMIZER_LABELS),
         ];
 
-        let datatable = new ModuleTable(this, AnonymizationFieldConfVO.API_TYPE_ID, () => new AnonymizationFieldConfVO(), datatable_fields, null, "Anonymisation").define_default_label_function((vo: AnonymizationFieldConfVO) => vo.vo_type + "." + vo.field_id, null);
+        let datatable = new ModuleTable(this, AnonymizationFieldConfVO.API_TYPE_ID, () => new AnonymizationFieldConfVO(), datatable_fields, null, "Anonymisation").define_default_label_function((vo: AnonymizationFieldConfVO) => vo.vo_type + "." + vo.field_name, null);
         this.datatables.push(datatable);
 
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let anon_field_id = new ModuleTableField('anon_field_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Champs anonymisé', true);
+        let user_id = new ModuleTableField(field_names<AnonymizationUserConfVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let anon_field_name = new ModuleTableField(field_names<AnonymizationUserConfVO>().anon_field_name, ModuleTableField.FIELD_TYPE_foreign_key, 'Champs anonymisé', true);
         datatable_fields = [
             user_id,
-            anon_field_id
+            anon_field_name
         ];
         let datatable2 = new ModuleTable(this, AnonymizationUserConfVO.API_TYPE_ID, () => new AnonymizationUserConfVO(), datatable_fields, null, "Lien anonymisation/utilisateur");
         this.datatables.push(datatable2);
-        anon_field_id.addManyToOneRelation(datatable);
+        anon_field_name.addManyToOneRelation(datatable);
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
     }
 }

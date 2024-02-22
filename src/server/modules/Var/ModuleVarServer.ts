@@ -177,8 +177,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                     for (let i in varconf.pixel_fields) {
                         let pixel_field = varconf.pixel_fields[i];
 
-                        if (!pixel_field.pixel_param_field_id) {
-                            ConsoleHandler.error('Pixel varconf but no pixel_param_field_id for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
+                        if (!pixel_field.pixel_param_field_name) {
+                            ConsoleHandler.error('Pixel varconf but no pixel_param_field_name for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
                             has_errors = true;
                             continue;
                         }
@@ -195,8 +195,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                             continue;
                         }
 
-                        if (!pixel_field.pixel_vo_field_id) {
-                            ConsoleHandler.error('Pixel varconf but no pixel_vo_field_id for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
+                        if (!pixel_field.pixel_vo_field_name) {
+                            ConsoleHandler.error('Pixel varconf but no pixel_vo_field_name for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
                             has_errors = true;
                             continue;
                         }
@@ -1131,8 +1131,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];
 
-                if ((!param[matroid_field.field_id]) || (!(param[matroid_field.field_id] as IRange[]).length) ||
-                    ((param[matroid_field.field_id] as IRange[]).indexOf(null) >= 0)) {
+                if ((!param[matroid_field.field_name]) || (!(param[matroid_field.field_name] as IRange[]).length) ||
+                    ((param[matroid_field.field_name] as IRange[]).indexOf(null) >= 0)) {
                     filter_ = true;
                     ConsoleHandler.error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
                     break;
@@ -1274,7 +1274,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in varconf.pixel_fields) {
                 let pixel_field = varconf.pixel_fields[i];
 
-                if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_id]) != 1) {
+                if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
                     is_pixel = false;
                     break;
                 }
@@ -1355,7 +1355,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges: boolean = false
     ): Promise<VarDataBaseVO> {
 
@@ -1488,7 +1488,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 //         refuse_param = true;
                                 //     }
                                 // } else {
-                                //     var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                                //     var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                                 // }
                                 refuse_param = true;
                                 break;
@@ -1497,7 +1497,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let ids: number[] = [];
                             ids_db.forEach((id_db) => id_db[alias] ? ids.push(parseInt(id_db[alias])) : {});
 
-                            var_param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_list(ids);
+                            var_param[matroid_field.field_name] = RangeHandler.get_ids_ranges_from_list(ids);
                         } else {
                             // Max range étant interdit sur les registers de var, on force un retour null
                             if (!accept_max_ranges) {
@@ -1507,7 +1507,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                     refuse_param = true;
                                 }
                             } else {
-                                var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                                var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                             }
                         }
                         break;
@@ -1519,11 +1519,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 refuse_param = true;
                             }
                         } else {
-                            var_param[matroid_field.field_id] = [RangeHandler.getMaxHourRange()];
+                            var_param[matroid_field.field_name] = [RangeHandler.getMaxHourRange()];
                         }
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        if (!!custom_filters[matroid_field.field_id]) {
+                        if (!!custom_filters[matroid_field.field_name]) {
                             // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
                             // on compte en nombre de range et non en cardinal
                             // et on limite à la limite configurée dans l'application
@@ -1532,12 +1532,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
                             }
-                            var_param[matroid_field.field_id] = ModuleVar.getInstance().get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
+                            var_param[matroid_field.field_name] = ModuleVar.getInstance().get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_name], limit_nb_range);
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
                             }
 
-                            if ((!var_param[matroid_field.field_id]) || (!var_param[matroid_field.field_id].length)) {
+                            if ((!var_param[matroid_field.field_name]) || (!var_param[matroid_field.field_name].length)) {
                                 if (!accept_max_ranges) {
 
                                     if (!refuse_param) {
@@ -1546,7 +1546,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                     }
 
                                 } else {
-                                    var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                                    var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                                 }
                             }
                             break;
@@ -1561,7 +1561,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
 
                         } else {
-                            var_param[matroid_field.field_id] = [RangeHandler.getMaxTSRange()];
+                            var_param[matroid_field.field_name] = [RangeHandler.getMaxTSRange()];
                         }
                         break;
                 }
@@ -1665,9 +1665,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         for (let i in var_data_fields) {
             let field = var_data_fields[i];
 
-            prompt += " - Le champs '" + await ModuleTranslation.getInstance().label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[var_data._type].name + '.' + field.field_id, lang_id) + "' qui filtre sur un ou plusieurs intervales de " +
+            prompt += " - Le champs '" + await ModuleTranslation.getInstance().label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[var_data._type].name + '.' + field.field_name, lang_id) + "' qui filtre sur un ou plusieurs intervales de " +
                 ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
-            let ranges = var_data[field.field_id] as IRange[];
+            let ranges = var_data[field.field_name] as IRange[];
             for (let j in ranges) {
                 let range = ranges[j];
                 let segmented_min = RangeHandler.getSegmentedMin(range);
@@ -1687,13 +1687,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                         // if (!((segmented_min == RangeHandler.MIN_INT) && (segmented_max == RangeHandler.MAX_INT)) &&
                         //     NumRangeComponentController.getInstance().num_ranges_enum_handler &&
                         //     NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type] &&
-                        //     NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_id]) {
-                        //     segmented_min_str = segmented_min + ' | ' + await NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_id].label_handler(
+                        //     NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_name]) {
+                        //     segmented_min_str = segmented_min + ' | ' + await NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_name].label_handler(
                         //         segmented_min
                         //     );
                         //     if (segmented_min != segmented_max) {
                         //         segmented_max_str = segmented_max + ' | ' +
-                        //             await NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_id].label_handler(
+                        //             await NumRangeComponentController.getInstance().num_ranges_enum_handler[var_data._type][field.field_name].label_handler(
                         //                 RangeHandler.getSegmentedMax(range)
                         //             );
                         //     } else {

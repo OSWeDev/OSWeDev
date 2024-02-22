@@ -320,10 +320,10 @@ export default class DatatableComponentField extends VueComponentBase {
 
                 if (!isArray(this.vo[this.field.datatable_field_uid + '__raw'])) {
 
-                    if (!!this.field.moduleTableField.translatable_params_field_id) {
+                    if (!!this.field.moduleTableField.translatable_params_field_name) {
                         let params = null;
                         try {
-                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_id]);
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name]);
                         } catch (error) {
                             ConsoleHandler.error(error);
                         }
@@ -341,10 +341,10 @@ export default class DatatableComponentField extends VueComponentBase {
                 for (let i in this.vo[this.field.datatable_field_uid + '__raw']) {
                     let translatable_text = this.vo[this.field.datatable_field_uid + '__raw'][i];
 
-                    if (!!this.field.moduleTableField.translatable_params_field_id) {
+                    if (!!this.field.moduleTableField.translatable_params_field_name) {
                         let params = null;
                         try {
-                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_id][i]);
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name][i]);
                         } catch (error) {
                             ConsoleHandler.error(error);
                         }

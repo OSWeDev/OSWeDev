@@ -29,8 +29,6 @@ export default class ModuleGeoPoint extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 
     public registerApis() {

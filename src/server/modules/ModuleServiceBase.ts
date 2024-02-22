@@ -9,13 +9,13 @@ import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonym
 import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
+import ModuleClockifyAPI from '../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
 import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
 import ModuleClient from '../../shared/modules/Commerce/Client/ModuleClient';
 import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommande';
 import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
 import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
-import ModuleClockifyAPI from '../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
 import ModuleContextFilter from '../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleCron from '../../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
@@ -25,6 +25,7 @@ import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
+import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
@@ -64,6 +65,7 @@ import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
+import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
 import { all_promises } from '../../shared/tools/PromiseTools';
 import ThreadHandler from '../../shared/tools/ThreadHandler';
 import ConfigurationService from '../env/ConfigurationService';
@@ -76,13 +78,13 @@ import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer
 import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
+import ModuleClockifyAPIServer from './ClockifyAPI/ModuleClockifyAPIServer';
 import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
 import ModuleClientServer from './Commerce/Client/ModuleClientServer';
 import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
 import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
-import ModuleClockifyAPIServer from './ClockifyAPI/ModuleClockifyAPIServer';
 import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
@@ -91,6 +93,7 @@ import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
+import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
@@ -128,9 +131,6 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
-import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
-import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -307,14 +307,6 @@ export default abstract class ModuleServiceBase {
             // Sinon on doit juste appeler les hooks qui vont bien et le chargement des params + rechargement automatique
             if (!await registered_module.hook_module_configure()) {
                 return false;
-            }
-
-            // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
-            if (registered_module.fields && (registered_module.fields.length > 0)) {
-
-                await ModuleDBService.getInstance(ModuleServiceBase.db).loadParams(registered_module);
-
-                ModuleDBService.getInstance(ModuleServiceBase.db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
             }
 
             // On appelle le hook de fin d'installation

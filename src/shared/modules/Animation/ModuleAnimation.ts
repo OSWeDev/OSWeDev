@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -140,12 +141,12 @@ export default class ModuleAnimation extends Module {
 
     //- ModuleTables
     private initializeAnimationParametersVO() {
-        let image_home_id = new ModuleTableField('image_home_id', ModuleTableField.FIELD_TYPE_foreign_key, "Image page d'accueil");
-        let document_id_ranges = new ModuleTableField('document_id_ranges', ModuleTableField.FIELD_TYPE_refrange_array, 'Documents');
+        let image_home_id = new ModuleTableField(field_names<AnimationParametersVO>().image_home_id, ModuleTableField.FIELD_TYPE_foreign_key, "Image page d'accueil");
+        let document_id_ranges = new ModuleTableField(field_names<AnimationParametersVO>().document_id_ranges, ModuleTableField.FIELD_TYPE_refrange_array, 'Documents');
 
         let fields = [
-            new ModuleTableField('seuil_validation_module_prct', ModuleTableField.FIELD_TYPE_prct, "Seuil validation module"),
-            new ModuleTableField('limite_temps_passe_module', ModuleTableField.FIELD_TYPE_hours_and_minutes, "Limite temps passé par module"),
+            new ModuleTableField(field_names<AnimationParametersVO>().seuil_validation_module_prct, ModuleTableField.FIELD_TYPE_prct, "Seuil validation module"),
+            new ModuleTableField(field_names<AnimationParametersVO>().limite_temps_passe_module, ModuleTableField.FIELD_TYPE_hours_and_minutes, "Limite temps passé par module"),
             image_home_id,
             document_id_ranges,
         ];
@@ -159,13 +160,13 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationThemeVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom du thème", true);
-        let id_import = new ModuleTableField('id_import', ModuleTableField.FIELD_TYPE_string, "id for import");
+        let name_field = new ModuleTableField(field_names<AnimationThemeVO>().name, ModuleTableField.FIELD_TYPE_string, "Nom du thème", true);
+        let id_import = new ModuleTableField(field_names<AnimationThemeVO>().id_import, ModuleTableField.FIELD_TYPE_string, "id for import");
 
         let fields = [
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
+            new ModuleTableField(field_names<AnimationThemeVO>().weight, ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             name_field,
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Description"),
+            new ModuleTableField(field_names<AnimationThemeVO>().description, ModuleTableField.FIELD_TYPE_html, "Description"),
             id_import,
         ];
 
@@ -175,20 +176,20 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationModuleVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom du module", true);
-        let computed_name_field = new ModuleTableField('computed_name', ModuleTableField.FIELD_TYPE_string, "Nom du module computed").hide_from_datatable();
-        let theme_id_field = new ModuleTableField('theme_id', ModuleTableField.FIELD_TYPE_foreign_key, "Thème", true);
-        let document_id_field = new ModuleTableField('document_id', ModuleTableField.FIELD_TYPE_foreign_key, "Document explicatif");
-        let role_id_ranges = new ModuleTableField('role_id_ranges', ModuleTableField.FIELD_TYPE_refrange_array, "Roles ayant le droit d'accès (si vide, tous)");
-        let id_import = new ModuleTableField('id_import', ModuleTableField.FIELD_TYPE_string, "id for import");
+        let name_field = new ModuleTableField(field_names<AnimationModuleVO>().name, ModuleTableField.FIELD_TYPE_string, "Nom du module", true);
+        let computed_name_field = new ModuleTableField(field_names<AnimationModuleVO>().computed_name, ModuleTableField.FIELD_TYPE_string, "Nom du module computed").hide_from_datatable();
+        let theme_id_field = new ModuleTableField(field_names<AnimationModuleVO>().theme_id, ModuleTableField.FIELD_TYPE_foreign_key, "Thème", true);
+        let document_id_field = new ModuleTableField(field_names<AnimationModuleVO>().document_id, ModuleTableField.FIELD_TYPE_foreign_key, "Document explicatif");
+        let role_id_ranges = new ModuleTableField(field_names<AnimationModuleVO>().role_id_ranges, ModuleTableField.FIELD_TYPE_refrange_array, "Roles ayant le droit d'accès (si vide, tous)");
+        let id_import = new ModuleTableField(field_names<AnimationModuleVO>().id_import, ModuleTableField.FIELD_TYPE_string, "id for import");
 
         let fields = [
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
+            new ModuleTableField(field_names<AnimationModuleVO>().weight, ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             theme_id_field,
             role_id_ranges,
             name_field,
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Description"),
-            new ModuleTableField('messages', AnimationMessageModuleVO.API_TYPE_ID, 'Messages'),
+            new ModuleTableField(field_names<AnimationModuleVO>().description, ModuleTableField.FIELD_TYPE_html, "Description"),
+            new ModuleTableField(field_names<AnimationModuleVO>().messages, AnimationMessageModuleVO.API_TYPE_ID, 'Messages'),
             document_id_field,
             computed_name_field,
             id_import,
@@ -206,19 +207,19 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationQRVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Type de question", true);
-        let module_id_field = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, "Module", true);
-        let question_file_id_field = new ModuleTableField('question_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la question");
-        let reponse_file_id_field = new ModuleTableField('reponse_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la réponse");
+        let name_field = new ModuleTableField(field_names<AnimationQRVO>().name, ModuleTableField.FIELD_TYPE_string, "Type de question", true);
+        let module_id_field = new ModuleTableField(field_names<AnimationQRVO>().module_id, ModuleTableField.FIELD_TYPE_foreign_key, "Module", true);
+        let question_file_id_field = new ModuleTableField(field_names<AnimationQRVO>().question_file_id, ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la question");
+        let reponse_file_id_field = new ModuleTableField(field_names<AnimationQRVO>().reponse_file_id, ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la réponse");
 
         let fields = [
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
+            new ModuleTableField(field_names<AnimationQRVO>().weight, ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             module_id_field,
             name_field,
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Question"),
-            new ModuleTableField('reponses', AnimationReponseVO.API_TYPE_ID, 'Réponses'),
-            new ModuleTableField('explicatif', ModuleTableField.FIELD_TYPE_html, "Explicatif de la réponse"),
-            new ModuleTableField('external_video', ModuleTableField.FIELD_TYPE_string, 'Vidéo externe'),
+            new ModuleTableField(field_names<AnimationQRVO>().description, ModuleTableField.FIELD_TYPE_html, "Question"),
+            new ModuleTableField(field_names<AnimationQRVO>().reponses, AnimationReponseVO.API_TYPE_ID, 'Réponses'),
+            new ModuleTableField(field_names<AnimationQRVO>().explicatif, ModuleTableField.FIELD_TYPE_html, "Explicatif de la réponse"),
+            new ModuleTableField(field_names<AnimationQRVO>().external_video, ModuleTableField.FIELD_TYPE_string, 'Vidéo externe'),
             question_file_id_field,
             reponse_file_id_field,
         ];
@@ -235,16 +236,16 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationUserModuleVO() {
-        let module_id_field = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, "Module", true);
-        let user_id_field = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, "Utilisateur", true);
+        let module_id_field = new ModuleTableField(field_names<AnimationUserModuleVO>().module_id, ModuleTableField.FIELD_TYPE_foreign_key, "Module", true);
+        let user_id_field = new ModuleTableField(field_names<AnimationUserModuleVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, "Utilisateur", true);
 
         let fields = [
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, "Début").set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, "Fin").set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('like_vote', ModuleTableField.FIELD_TYPE_enum, "Like").setEnumValues(AnimationUserModuleVO.LIKE_VOTE_LABELS),
-            new ModuleTableField('support', ModuleTableField.FIELD_TYPE_enum, "Support utilisé").setEnumValues(AnimationUserModuleVO.SUPPORT_LABELS),
-            new ModuleTableField('commentaire', ModuleTableField.FIELD_TYPE_html, "Commentaire"),
-            new ModuleTableField('prct_reussite', ModuleTableField.FIELD_TYPE_prct, "Pourcentage réussite"),
+            new ModuleTableField(field_names<AnimationUserModuleVO>().start_date, ModuleTableField.FIELD_TYPE_tstz, "Début").set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<AnimationUserModuleVO>().end_date, ModuleTableField.FIELD_TYPE_tstz, "Fin").set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<AnimationUserModuleVO>().like_vote, ModuleTableField.FIELD_TYPE_enum, "Like").setEnumValues(AnimationUserModuleVO.LIKE_VOTE_LABELS),
+            new ModuleTableField(field_names<AnimationUserModuleVO>().support, ModuleTableField.FIELD_TYPE_enum, "Support utilisé").setEnumValues(AnimationUserModuleVO.SUPPORT_LABELS),
+            new ModuleTableField(field_names<AnimationUserModuleVO>().commentaire, ModuleTableField.FIELD_TYPE_html, "Commentaire"),
+            new ModuleTableField(field_names<AnimationUserModuleVO>().prct_reussite, ModuleTableField.FIELD_TYPE_prct, "Pourcentage réussite"),
             module_id_field,
             user_id_field,
         ];
@@ -258,14 +259,14 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationUserQRVO() {
-        let qr_id_field = new ModuleTableField('qr_id', ModuleTableField.FIELD_TYPE_foreign_key, "Question/Réponses", true);
-        let user_id_field = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, "Utilisateur", true);
+        let qr_id_field = new ModuleTableField(field_names<AnimationUserQRVO>().qr_id, ModuleTableField.FIELD_TYPE_foreign_key, "Question/Réponses", true);
+        let user_id_field = new ModuleTableField(field_names<AnimationUserQRVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, "Utilisateur", true);
 
         let fields = [
-            new ModuleTableField('reponses', ModuleTableField.FIELD_TYPE_int_array, "Réponses"),
+            new ModuleTableField(field_names<AnimationUserQRVO>().reponses, ModuleTableField.FIELD_TYPE_int_array, "Réponses"),
             qr_id_field,
             user_id_field,
-            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, "Date").set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<AnimationUserQRVO>().date, ModuleTableField.FIELD_TYPE_tstz, "Date").set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
         let datatable = new ModuleTable(this, AnimationUserQRVO.API_TYPE_ID, () => new AnimationUserQRVO(), fields, null, "Animation - Info réponses utilisateur");
@@ -277,9 +278,9 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeThemeModuleDataRangesVO() {
-        let theme_id_ranges = new ModuleTableField('theme_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Themes', true);
-        let module_id_ranges = new ModuleTableField('module_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Modules', true);
-        let user_id_ranges = new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Users', true);
+        let theme_id_ranges = new ModuleTableField(field_names<ThemeModuleDataRangesVO>().theme_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Themes', true);
+        let module_id_ranges = new ModuleTableField(field_names<ThemeModuleDataRangesVO>().module_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Modules', true);
+        let user_id_ranges = new ModuleTableField(field_names<ThemeModuleDataRangesVO>().user_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Users', true);
 
         let datatable_fields = [
             theme_id_ranges,

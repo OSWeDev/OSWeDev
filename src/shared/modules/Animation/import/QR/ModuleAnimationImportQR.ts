@@ -1,4 +1,5 @@
 import AccessPolicyTools from "../../../../tools/AccessPolicyTools";
+import { field_names } from "../../../../tools/ObjectHandler";
 import ModuleDataImport from "../../../DataImport/ModuleDataImport";
 import Module from "../../../Module";
 import ModuleTable from "../../../ModuleTable";
@@ -27,9 +28,6 @@ export default class ModuleAnimationImportQR extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.intializeImport();
     }
 
@@ -37,17 +35,17 @@ export default class ModuleAnimationImportQR extends Module {
 
 
         let datatable_fields = [
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'description', false),
-            new ModuleTableField('reponses', ModuleTableField.FIELD_TYPE_string, 'reponses', false),
-            new ModuleTableField('explicatif', ModuleTableField.FIELD_TYPE_string, 'explicatif', false),
-            new ModuleTableField('external_video', ModuleTableField.FIELD_TYPE_string, 'external_video', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().description, ModuleTableField.FIELD_TYPE_string, 'description', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().reponses, ModuleTableField.FIELD_TYPE_string, 'reponses', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().explicatif, ModuleTableField.FIELD_TYPE_string, 'explicatif', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().external_video, ModuleTableField.FIELD_TYPE_string, 'external_video', false),
 
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'name', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_string, 'weight', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().name, ModuleTableField.FIELD_TYPE_string, 'name', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().weight, ModuleTableField.FIELD_TYPE_string, 'weight', false),
 
-            new ModuleTableField('question_file_id', ModuleTableField.FIELD_TYPE_string, 'question_file_id', false),
-            new ModuleTableField('reponse_file_id', ModuleTableField.FIELD_TYPE_string, 'reponse_file_id', false),
-            new ModuleTableField('module_id_import', ModuleTableField.FIELD_TYPE_string, 'module_id_import', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().question_file_id, ModuleTableField.FIELD_TYPE_string, 'question_file_id', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().reponse_file_id, ModuleTableField.FIELD_TYPE_string, 'reponse_file_id', false),
+            new ModuleTableField(field_names<AnimationImportQRVO>().module_id_import, ModuleTableField.FIELD_TYPE_string, 'module_id_import', false),
         ];
 
 

@@ -1,20 +1,21 @@
 
+import moment from 'moment';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import { ARRONDI_TYPE_CEIL, ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_ROUND } from '../../tools/Filters';
 import TypesHandler from '../../tools/TypesHandler';
 import Module from '../Module';
-import ModuleTableField from '../ModuleTableField';
-import moment from 'moment';
+import ModuleParams from '../Params/ModuleParams';
 import Dates from './Dates/Dates';
+import { all_promises } from '../../tools/PromiseTools';
 
 export default class ModuleFormatDatesNombres extends Module {
 
-    public static PARAM_NAME_date_format_month_date = 'date_format_month_date';
-    public static PARAM_NAME_date_format_fullyear_month_date = 'date_format_fullyear_month_date';
-    public static PARAM_NAME_date_format_fullyear_month_day_date = 'date_format_fullyear_month_day_date';
-    public static PARAM_NAME_date_format_fullyear = 'date_format_fullyear';
-    public static PARAM_NAME_nombre_separateur_1000 = 'nombre_separateur_1000';
-    public static PARAM_NAME_nombre_separateur_decimal = 'nombre_separateur_decimal';
+    public static PARAM_NAME_date_format_month_date = 'ModuleFormatDatesNombres.date_format_month_date';
+    public static PARAM_NAME_date_format_fullyear_month_date = 'ModuleFormatDatesNombres.date_format_fullyear_month_date';
+    public static PARAM_NAME_date_format_fullyear_month_day_date = 'ModuleFormatDatesNombres.date_format_fullyear_month_day_date';
+    public static PARAM_NAME_date_format_fullyear = 'ModuleFormatDatesNombres.date_format_fullyear';
+    public static PARAM_NAME_nombre_separateur_1000 = 'ModuleFormatDatesNombres.nombre_separateur_1000';
+    public static PARAM_NAME_nombre_separateur_decimal = 'ModuleFormatDatesNombres.nombre_separateur_decimal';
 
     public static FORMAT_HHmmss_ms: string = 'HH:mm:ss.SSS';
     public static FORMAT_HHmmss: string = 'HH:mm:ss';
@@ -22,6 +23,15 @@ export default class ModuleFormatDatesNombres extends Module {
     public static FORMAT_HH: string = 'HH:';
 
     public static TRANSLATION_date_format_fullyear_month_day = 'YYYY-MM-DD';
+
+    // Pour migrer en ParamVOs on passe par un cache applicatif chargé au lancement et jamais mis à jour, donc si d'aventure on change les formats de dates (ce qui est peu probable), on devra relancer le pool
+    //  et si un projet a besoin de mettre à jour souvent ces éléments il peut toujours utiliser les nouveaux params plutôt
+    public static CACHE_date_format_month_date: string = null;
+    public static CACHE_date_format_fullyear_month_date: string = null;
+    public static CACHE_date_format_fullyear: string = null;
+    public static CACHE_date_format_fullyear_month_day_date: string = null;
+    public static CACHE_nombre_separateur_1000: string = null;
+    public static CACHE_nombre_separateur_decimal: string = null;
 
     /* istanbul ignore next: nothing to test here */
     public static getInstance(): ModuleFormatDatesNombres {
@@ -32,29 +42,29 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     public static get FORMAT_MMDD(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date);
+        return ModuleFormatDatesNombres.CACHE_date_format_month_date;
     }
     public static get FORMAT_YYYYMM(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date);
+        return ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_date;
     }
     public static get FORMAT_YYYYMMDD(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date);
+        return ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_day_date;
     }
     public static get FORMAT_YYYY(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear);
+        return ModuleFormatDatesNombres.CACHE_date_format_fullyear;
     }
 
     public static get FORMAT_YYYYMMDD_HHmmss_ms(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss.SSS";
+        return ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_day_date + " HH:mm:ss.SSS";
     }
     public static get FORMAT_YYYYMMDD_HHmmss(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss";
+        return ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_day_date + " HH:mm:ss";
     }
     public static get FORMAT_YYYYMMDD_HHmm(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm";
+        return ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_day_date + " HH:mm";
     }
     public static get FORMAT_YYYYMMDD_HH(): string {
-        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:";
+        return ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_day_date + " HH:";
     }
 
     private static instance: ModuleFormatDatesNombres = null;
@@ -194,7 +204,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
 
-        return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date));
+        return momentToFormat.format(ModuleFormatDatesNombres.CACHE_date_format_month_date);
     }
 
     // Formatter une date de type 01/2017
@@ -206,7 +216,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
 
-        return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date));
+        return momentToFormat.format(ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_date);
     }
 
     // Formatter une date de type 01/17
@@ -218,7 +228,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
 
-        let format: string = this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date);
+        let format: string = ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_date;
         if (format.match(/.*YYYY.*/i)) {
             return momentToFormat.format(format.replace(/YYYY/i, 'YY'));
         } else {
@@ -302,7 +312,7 @@ export default class ModuleFormatDatesNombres extends Module {
                 let thispart = (number % 1000);
                 let thisparttxt = ((thispart < 100) ? "0" + ((thispart < 10) ? "0" + thispart : thispart) : "" + thispart);
 
-                res = this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000) + thisparttxt + res;
+                res = ModuleFormatDatesNombres.CACHE_nombre_separateur_1000 + thisparttxt + res;
                 number = Math.floor(number / 1000);
             }
 
@@ -350,7 +360,7 @@ export default class ModuleFormatDatesNombres extends Module {
                 dectxt = dectxt + (decimals < Math.pow(10, i - 1) ? "0" : "");
             }
             dectxt += decimals;
-            return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + dectxt;
+            return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + ModuleFormatDatesNombres.CACHE_nombre_separateur_decimal + dectxt;
         } catch (e) {
             ConsoleHandler.error(e);
         }
@@ -403,15 +413,38 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     /* istanbul ignore next: nothing to test here */
-    public initialize() {
-        this.fields = [
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01)', true, true, 'DD/MM'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 01/2017)', true, true, 'MM/Y'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01/2017)', true, true, 'DD/MM/Y'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 2017', true, true, 'YYYY'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000, ModuleTableField.FIELD_TYPE_string, 'Séparateur 10^3', false, true, ' '),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal, ModuleTableField.FIELD_TYPE_string, 'Séparateur décimal', true, true, ',')
-        ];
-        this.datatables = [];
+    public async initializeasync() {
+        await all_promises([
+            (async () => {
+                ModuleFormatDatesNombres.CACHE_date_format_fullyear = await ModuleParams.getInstance().getParamValueAsString(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear, 'YYYY', 1000 * 60 * 60);
+            })(),
+            (async () => {
+                ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_date = await ModuleParams.getInstance().getParamValueAsString(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date, 'MM/YYYY', 1000 * 60 * 60);
+            })(),
+            (async () => {
+                ModuleFormatDatesNombres.CACHE_date_format_month_date = await ModuleParams.getInstance().getParamValueAsString(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, 'DD/MM', 1000 * 60 * 60);
+            })(),
+            (async () => {
+                ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_day_date = await ModuleParams.getInstance().getParamValueAsString(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date, 'DD/MM/YYYY', 1000 * 60 * 60);
+            })(),
+            (async () => {
+                ModuleFormatDatesNombres.CACHE_nombre_separateur_1000 = await ModuleParams.getInstance().getParamValueAsString(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000, ' ', 1000 * 60 * 60);
+            })(),
+            (async () => {
+                ModuleFormatDatesNombres.CACHE_nombre_separateur_decimal = await ModuleParams.getInstance().getParamValueAsString(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal, ',', 1000 * 60 * 60);
+            })()
+        ]);
+    }
+
+    /* istanbul ignore next: nothing to test here */
+    public async hook_module_async_client_admin_initialization(): Promise<any> {
+        await this.initializeasync();
+        return true;
+    }
+
+    /* istanbul ignore next: nothing to test here */
+    public async hook_module_configure(): Promise<boolean> {
+        await this.initializeasync();
+        return true;
     }
 }

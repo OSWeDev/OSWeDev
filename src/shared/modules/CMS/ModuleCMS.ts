@@ -1,7 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import URLHandler from '../../tools/URLHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import ImageVO from '../Image/vos/ImageVO';
@@ -119,9 +119,6 @@ export default class ModuleCMS extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeContentTypeVO();
         this.initializePageVO();
         this.initializePageAliasVO();
@@ -175,11 +172,11 @@ export default class ModuleCMS extends Module {
     // }
 
     private initializePageVO() {
-        let content_type_id = new ModuleTableField('content_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contenu', true);
-        let translatable_title_id = new ModuleTableField('translatable_title_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Titre', true);
+        let content_type_id = new ModuleTableField(field_names<PageVO>().content_type_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contenu', true);
+        let translatable_title_id = new ModuleTableField(field_names<PageVO>().translatable_title_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Titre', true);
         let label_field = translatable_title_id;
         let datatable_fields = [
-            new ModuleTableField('main_route', ModuleTableField.FIELD_TYPE_string, 'URL principale', true),
+            new ModuleTableField(field_names<PageVO>().main_route, ModuleTableField.FIELD_TYPE_string, 'URL principale', true),
             content_type_id,
             translatable_title_id
         ];
@@ -191,9 +188,9 @@ export default class ModuleCMS extends Module {
     }
 
     private initializeContentTypeVO() {
-        let translatable_name_id = new ModuleTableField('translatable_name_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Nom', true);
+        let translatable_name_id = new ModuleTableField(field_names<ContentTypeVO>().translatable_name_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Nom', true);
         let label_field = translatable_name_id;
-        let translatable_desc_id = new ModuleTableField('translatable_desc_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Description', false);
+        let translatable_desc_id = new ModuleTableField(field_names<ContentTypeVO>().translatable_desc_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Description', false);
         let datatable_fields = [
             translatable_name_id,
             translatable_desc_id
@@ -206,8 +203,8 @@ export default class ModuleCMS extends Module {
     }
 
     private initializePageAliasVO() {
-        let label_field = new ModuleTableField('alias_route', ModuleTableField.FIELD_TYPE_string, 'Alias', true);
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
+        let label_field = new ModuleTableField(field_names<PageAliasVO>().alias_route, ModuleTableField.FIELD_TYPE_string, 'Alias', true);
+        let page_id = new ModuleTableField(field_names<PageAliasVO>().page_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             label_field,
             page_id
@@ -219,16 +216,16 @@ export default class ModuleCMS extends Module {
     }
 
     private initializeTemplateComponentVO() {
-        let label_field = new ModuleTableField('type_id', ModuleTableField.FIELD_TYPE_string, 'UID du composant', true);
-        let translatable_name_id = new ModuleTableField('translatable_title_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Nom', false);
-        let translatable_desc_id = new ModuleTableField('translatable_desc_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Description', false);
-        let thumbnail_id = new ModuleTableField('thumbnail_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Miniature', false);
+        let label_field = new ModuleTableField(field_names<TemplateComponentVO>().type_id, ModuleTableField.FIELD_TYPE_string, 'UID du composant', true);
+        let translatable_name_id = new ModuleTableField(field_names<TemplateComponentVO>().translatable_title_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Nom', false);
+        let translatable_desc_id = new ModuleTableField(field_names<TemplateComponentVO>().translatable_desc_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Description', false);
+        let thumbnail_id = new ModuleTableField(field_names<TemplateComponentVO>().thumbnail_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Miniature', false);
         let datatable_fields = [
             label_field,
             translatable_name_id,
             translatable_desc_id,
             thumbnail_id,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<TemplateComponentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, TemplateComponentVO.API_TYPE_ID, () => new TemplateComponentVO(), datatable_fields, label_field, "Templates de composants");
@@ -240,13 +237,13 @@ export default class ModuleCMS extends Module {
 
 
     private initializeImg_HTML_ComponentVO() {
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
-        let image_vo_id = new ModuleTableField('image_vo_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image', false);
+        let page_id = new ModuleTableField(field_names<ImgHtmlComponentVO>().page_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
+        let image_vo_id = new ModuleTableField(field_names<ImgHtmlComponentVO>().image_vo_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Image', false);
         let datatable_fields = [
             page_id,
             image_vo_id,
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_html, 'HTML', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<ImgHtmlComponentVO>().html, ModuleTableField.FIELD_TYPE_html, 'HTML', false),
+            new ModuleTableField(field_names<ImgHtmlComponentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, () => new ImgHtmlComponentVO(), datatable_fields, null, "Composant template : Img+HTML");
@@ -256,13 +253,13 @@ export default class ModuleCMS extends Module {
     }
 
     private initializeHTML_Img_ComponentVO() {
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
-        let image_vo_id = new ModuleTableField('image_vo_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image', false);
+        let page_id = new ModuleTableField(field_names<HtmlImgComponentVO>().page_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
+        let image_vo_id = new ModuleTableField(field_names<HtmlImgComponentVO>().image_vo_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Image', false);
         let datatable_fields = [
             page_id,
             image_vo_id,
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_html, 'HTML', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<HtmlImgComponentVO>().html, ModuleTableField.FIELD_TYPE_html, 'HTML', false),
+            new ModuleTableField(field_names<HtmlImgComponentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlImgComponentVO.API_TYPE_ID, () => new HtmlImgComponentVO(), datatable_fields, null, "Composant template : HTML+Img");
@@ -272,11 +269,11 @@ export default class ModuleCMS extends Module {
     }
 
     private initializeHTML_ComponentVO() {
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
+        let page_id = new ModuleTableField(field_names<HtmlComponentVO>().page_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             page_id,
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_html, 'Texte', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<HtmlComponentVO>().html, ModuleTableField.FIELD_TYPE_html, 'Texte', false),
+            new ModuleTableField(field_names<HtmlComponentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlComponentVO.API_TYPE_ID, () => new HtmlComponentVO(), datatable_fields, null, "Composant template : HTML");
@@ -285,12 +282,12 @@ export default class ModuleCMS extends Module {
     }
 
     private initializeHTML_HTML_ComponentVO() {
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
+        let page_id = new ModuleTableField(field_names<HtmlHtmlComponentVO>().page_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             page_id,
-            new ModuleTableField('left_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Gauche', false),
-            new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Droite', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<HtmlHtmlComponentVO>().left_html, ModuleTableField.FIELD_TYPE_html, 'Texte - Gauche', false),
+            new ModuleTableField(field_names<HtmlHtmlComponentVO>().right_html, ModuleTableField.FIELD_TYPE_html, 'Texte - Droite', false),
+            new ModuleTableField(field_names<HtmlHtmlComponentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlComponentVO.API_TYPE_ID, () => new HtmlHtmlComponentVO(), datatable_fields, null, "Composant template : HTML+HTML");
@@ -299,13 +296,13 @@ export default class ModuleCMS extends Module {
     }
 
     private initializeHTML_HTML_HTML_ComponentVO() {
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
+        let page_id = new ModuleTableField(field_names<HtmlHtmlHtmlComponentVO>().page_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             page_id,
-            new ModuleTableField('left_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Gauche', false),
-            new ModuleTableField('center_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Centre', false),
-            new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Droite', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<HtmlHtmlHtmlComponentVO>().left_html, ModuleTableField.FIELD_TYPE_html, 'Texte - Gauche', false),
+            new ModuleTableField(field_names<HtmlHtmlHtmlComponentVO>().center_html, ModuleTableField.FIELD_TYPE_html, 'Texte - Centre', false),
+            new ModuleTableField(field_names<HtmlHtmlHtmlComponentVO>().right_html, ModuleTableField.FIELD_TYPE_html, 'Texte - Droite', false),
+            new ModuleTableField(field_names<HtmlHtmlHtmlComponentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, () => new HtmlHtmlHtmlComponentVO(), datatable_fields, null, "Composant template : HTML+HTML+HTML");

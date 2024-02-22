@@ -87,7 +87,7 @@ export default class ModuleActionURL extends Module {
             new ModuleTableField(field_names<ActionURLVO>().action_callback_function_name, ModuleTableField.FIELD_TYPE_string, 'Fonction de callback', true),
             new ModuleTableField(field_names<ActionURLVO>().params_json, ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
             new ModuleTableField(field_names<ActionURLVO>().action_remaining_counter, ModuleTableField.FIELD_TYPE_int, 'Nombre d\'utilisations restantes', true, true, 1),
-            new ModuleTableField(field_names<ActionURLVO>().button_translatable_name, ModuleTableField.FIELD_TYPE_translatable_text, 'Nom du bouton', false).set_translatable_params_field_id(field_names<ActionURLVO>().button_translatable_name_params_json),
+            new ModuleTableField(field_names<ActionURLVO>().button_translatable_name, ModuleTableField.FIELD_TYPE_translatable_text, 'Nom du bouton', false).set_translatable_params_field_name(field_names<ActionURLVO>().button_translatable_name_params_json),
             new ModuleTableField(field_names<ActionURLVO>().button_translatable_name_params_json, ModuleTableField.FIELD_TYPE_string, 'Paramètres du nom du bouton (JSON)', false),
             new ModuleTableField(field_names<ActionURLVO>().button_fc_icon_classnames, ModuleTableField.FIELD_TYPE_string_array, 'Icones du bouton', false),
             new ModuleTableField(field_names<ActionURLVO>().button_bootstrap_type, ModuleTableField.FIELD_TYPE_enum, 'Type de bouton', true, true, ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY).setEnumValues(ActionURLVO.BOOTSTRAP_BUTTON_TYPE_LABELS),

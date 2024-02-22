@@ -1,3 +1,4 @@
+import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -24,19 +25,17 @@ export default class ModuleExpressDBSessions extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeExpressSessionVO();
     }
 
     private initializeExpressSessionVO() {
-        let sid = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, 'SID', true).unique(true);
+        let sid = new ModuleTableField(field_names<ExpressSessionVO>().sid, ModuleTableField.FIELD_TYPE_string, 'SID', true).unique(true);
 
         let fields = [
             sid,
-            new ModuleTableField('sess', ModuleTableField.FIELD_TYPE_string, 'Session JSON', false),
-            new ModuleTableField('expire', ModuleTableField.FIELD_TYPE_tstz, 'Date d\'expiration', false),
+            new ModuleTableField(field_names<ExpressSessionVO>().sess, ModuleTableField.FIELD_TYPE_string, 'Session JSON', false),
+            new ModuleTableField(field_names<ExpressSessionVO>().expire, ModuleTableField.FIELD_TYPE_tstz, 'Date d\'expiration', false),
         ];
 
         let table = new ModuleTable(this, ExpressSessionVO.API_TYPE_ID, () => new ExpressSessionVO(), fields, sid, 'Sessions Express');

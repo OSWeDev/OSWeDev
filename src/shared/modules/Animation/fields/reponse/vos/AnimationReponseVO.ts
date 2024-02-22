@@ -1,17 +1,19 @@
+import { field_names } from '../../../../../tools/ObjectHandler';
 import DatatableField from '../../../../DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../DAO/vos/datatable/SimpleDatatableFieldVO';
+import IDistantVOBase from '../../../../IDistantVOBase';
 import ModuleTable from '../../../../ModuleTable';
 import ModuleTableField from '../../../../ModuleTableField';
 import ModuleAnimation from '../../../ModuleAnimation';
 
-export default class AnimationReponseVO {
+export default class AnimationReponseVO implements IDistantVOBase {
     public static API_TYPE_ID: string = 'anim_reponse';
 
     public static moduleTable(): ModuleTable<any> {
         let datatable_fields = [
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Poids"),
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Réponse"),
-            new ModuleTableField('valid', ModuleTableField.FIELD_TYPE_boolean, "Valide"),
+            new ModuleTableField(field_names<AnimationReponseVO>().weight, ModuleTableField.FIELD_TYPE_int, "Poids"),
+            new ModuleTableField(field_names<AnimationReponseVO>().name, ModuleTableField.FIELD_TYPE_string, "Réponse"),
+            new ModuleTableField(field_names<AnimationReponseVO>().valid, ModuleTableField.FIELD_TYPE_boolean, "Valide"),
         ];
 
         return new ModuleTable(ModuleAnimation.getInstance(), AnimationReponseVO.API_TYPE_ID, null, datatable_fields, null);
@@ -32,7 +34,9 @@ export default class AnimationReponseVO {
         return fields;
     }
 
+    // public _type: string;
     public id: number;
+
     public weight: number;
     public name: string;
     public valid: boolean;

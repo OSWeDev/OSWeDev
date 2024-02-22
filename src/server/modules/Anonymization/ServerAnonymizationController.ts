@@ -27,19 +27,19 @@ export default class ServerAnonymizationController {
         }
 
         ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_field_conf.id] = anonymization_field_conf;
-        ServerAnonymizationController.registered_anonymization_values[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = {};
-        ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = anonymization_field_conf;
+        ServerAnonymizationController.registered_anonymization_values[anonymization_field_conf.vo_type][anonymization_field_conf.field_name] = {};
+        ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type][anonymization_field_conf.field_name] = anonymization_field_conf;
     }
 
     /**
      * On doit broadcaster la conf
      */
     public static register_anonymization_user_conf(anonymization_user_conf: AnonymizationUserConfVO) {
-        if (!ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id]) {
-            ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id] = {};
+        if (!ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_name]) {
+            ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_name] = {};
         }
 
-        let conf = ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_user_conf.anon_field_id];
+        let conf = ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_user_conf.anon_field_name];
         if (!ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type]) {
             ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type] = {};
         }
@@ -47,7 +47,7 @@ export default class ServerAnonymizationController {
             ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id] = [];
         }
         ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type][anonymization_user_conf.user_id].push(anonymization_user_conf);
-        ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id][anonymization_user_conf.user_id] = anonymization_user_conf;
+        ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_name][anonymization_user_conf.user_id] = anonymization_user_conf;
     }
 
     public static async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
@@ -142,11 +142,11 @@ export default class ServerAnonymizationController {
             }
 
             let api_type_id = field.api_type_id;
-            let field_id = field.field_id;
+            let field_id = field.field_name;
 
             if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id] &&
                 ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id][field_id]) {
-                ServerAnonymizationController.anonymise_row_field(row, api_type_id, field_id, field.alias ? field.alias : field.field_id, uid);
+                ServerAnonymizationController.anonymise_row_field(row, api_type_id, field_id, field.alias ? field.alias : field.field_name, uid);
             }
         }
 
@@ -296,7 +296,7 @@ export default class ServerAnonymizationController {
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_POSTAL:
                 return ServerAnonymizationController.get_new_TYPE_ANONYMIZER_POSTAL();
             default:
-                return vo[anonymization_field_conf.field_id];
+                return vo[anonymization_field_conf.field_name];
         }
     }
 

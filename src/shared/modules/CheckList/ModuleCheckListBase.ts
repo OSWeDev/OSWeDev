@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -34,15 +35,7 @@ export default abstract class ModuleCheckListBase extends Module {
         this.initialize_later();
     }
 
-    public initialize() {
-        this.fields = [];
-        this.datatables = [];
-    }
-
     public initialize_later() {
-        this.fields = [];
-        this.datatables = [];
-
         this.callInitializeCheckList();
         this.callInitializeCheckListItem();
         this.callInitializeCheckPoint();
@@ -60,14 +53,14 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<ICheckList>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField('limit_affichage', ModuleTableField.FIELD_TYPE_int, 'Nb. limite affichage', false),
-            new ModuleTableField('hide_item_description', ModuleTableField.FIELD_TYPE_boolean, "cacher la desc. de l'item", false, true, false),
-            new ModuleTableField('show_legend', ModuleTableField.FIELD_TYPE_boolean, "afficher la légende", false, true, false),
-            new ModuleTableField('show_finalized_btn', ModuleTableField.FIELD_TYPE_boolean, "Afficher le bouton de finalisation", false, true, false),
+            new ModuleTableField(field_names<ICheckList>().limit_affichage, ModuleTableField.FIELD_TYPE_int, 'Nb. limite affichage', false),
+            new ModuleTableField(field_names<ICheckList>().hide_item_description, ModuleTableField.FIELD_TYPE_boolean, "cacher la desc. de l'item", false, true, false),
+            new ModuleTableField(field_names<ICheckList>().show_legend, ModuleTableField.FIELD_TYPE_boolean, "afficher la légende", false, true, false),
+            new ModuleTableField(field_names<ICheckList>().show_finalized_btn, ModuleTableField.FIELD_TYPE_boolean, "Afficher le bouton de finalisation", false, true, false),
         );
 
         let datatable = new ModuleTable(this, this.checklist_type_id, constructor, additional_fields, label_field, "CheckLists");
@@ -84,15 +77,15 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
-        let checklist_id = new ModuleTableField('checklist_id', ModuleTableField.FIELD_TYPE_foreign_key, 'CheckList', true);
+        let label_field = new ModuleTableField(field_names<ICheckListItem>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let checklist_id = new ModuleTableField(field_names<ICheckListItem>().checklist_id, ModuleTableField.FIELD_TYPE_foreign_key, 'CheckList', true);
 
         additional_fields.unshift(
             label_field,
             checklist_id,
-            new ModuleTableField('explaination', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Caché', true, true, false),
-            new ModuleTableField('finalized', ModuleTableField.FIELD_TYPE_boolean, 'Checklist finalisé', false, true, false)
+            new ModuleTableField(field_names<ICheckListItem>().explaination, ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField(field_names<ICheckListItem>().archived, ModuleTableField.FIELD_TYPE_boolean, 'Caché', true, true, false),
+            new ModuleTableField(field_names<ICheckListItem>().finalized, ModuleTableField.FIELD_TYPE_boolean, 'Checklist finalisé', false, true, false)
         );
 
         let datatable = new ModuleTable(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");
@@ -111,8 +104,8 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        let checklistitem_id = new ModuleTableField('checklistitem_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Item', true);
-        let checkpoint_id = new ModuleTableField('checkpoint_id', ModuleTableField.FIELD_TYPE_foreign_key, 'CheckPoint', true);
+        let checklistitem_id = new ModuleTableField(field_names<ICheckListItemCheckPoints>().checklistitem_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Item', true);
+        let checkpoint_id = new ModuleTableField(field_names<ICheckListItemCheckPoints>().checkpoint_id, ModuleTableField.FIELD_TYPE_foreign_key, 'CheckPoint', true);
 
         additional_fields.unshift(
             checklistitem_id,
@@ -135,16 +128,16 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let checklist_id = new ModuleTableField('checklist_id', ModuleTableField.FIELD_TYPE_foreign_key, 'CheckList', true);
+        let label_field = new ModuleTableField(field_names<ICheckPoint>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let checklist_id = new ModuleTableField(field_names<ICheckPoint>().checklist_id, ModuleTableField.FIELD_TYPE_foreign_key, 'CheckList', true);
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField('explaination', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('item_field_ids', ModuleTableField.FIELD_TYPE_string_array, 'Champs', false),
+            new ModuleTableField(field_names<ICheckPoint>().explaination, ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField(field_names<ICheckPoint>().item_field_ids, ModuleTableField.FIELD_TYPE_string_array, 'Champs', false),
             checklist_id,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField('item_fields_tooltip', ModuleTableField.FIELD_TYPE_string, 'item_fields_tooltip', false),
+            new ModuleTableField(field_names<ICheckPoint>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField(field_names<ICheckPoint>().item_fields_tooltip, ModuleTableField.FIELD_TYPE_string, 'item_fields_tooltip', false),
         );
 
         let datatable = new ModuleTable(this, this.checkpoint_type_id, constructor, additional_fields, label_field, "CheckPoints");
@@ -158,8 +151,8 @@ export default abstract class ModuleCheckListBase extends Module {
     //         return;
     //     }
 
-    //     let checkpoint_id = new ModuleTableField('checkpoint_id', ModuleTableField.FIELD_TYPE_foreign_key, 'CheckPoint', true);
-    //     let dependson_id = new ModuleTableField('dependson_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dépend de', true);
+    //     let checkpoint_id = new ModuleTableField(field_names<>().checkpoint_id, ModuleTableField.FIELD_TYPE_foreign_key, 'CheckPoint', true);
+    //     let dependson_id = new ModuleTableField(field_names<>().dependson_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Dépend de', true);
 
     //     additional_fields.unshift(
     //         checkpoint_id,

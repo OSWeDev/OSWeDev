@@ -18,9 +18,4 @@ export default class ModuleAPI extends Module {
         super("api", "API");
         this.forceActivationOnInstallation();
     }
-
-    public initialize() {
-        this.fields = [];
-        this.datatables = [];
-    }
 }

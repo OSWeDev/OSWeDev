@@ -239,13 +239,13 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
 
     /**
      * Pour faire le lien avec une sous-requête
-     *  Le lien sera fait en indiquant field_id in (%SUB_QUERY%)
+     *  Le lien sera fait en indiquant field_name in (%SUB_QUERY%)
      */
     public static TYPE_IN: number = 52;
 
     /**
      * Pour faire le lien avec une sous-requête
-     *  Le lien sera fait en indiquant field_id not in (%SUB_QUERY%)
+     *  Le lien sera fait en indiquant field_name not in (%SUB_QUERY%)
      */
     public static TYPE_NOT_IN: number = 55;
 
@@ -333,7 +333,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     public _type: string = ContextFilterVO.API_TYPE_ID;
 
     public vo_type: string;
-    public field_id: string;
+    public field_name: string;
 
     public filter_type: number;
 
@@ -543,7 +543,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
     public by_id_not_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
-        this.field_id = 'id';
+        this.field_name = 'id';
         this.filter_type = ContextFilterVO.TYPE_NOT_IN;
         this.set_sub_query(query, this_query);
         return this;
@@ -584,7 +584,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
     public by_id_in(query: ContextQueryVO, this_query: ContextQueryVO = null): ContextFilterVO {
-        this.field_id = 'id';
+        this.field_name = 'id';
         this.filter_type = ContextFilterVO.TYPE_IN;
         this.set_sub_query(query, this_query);
         return this;
@@ -909,7 +909,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * @param id la valeur de l'id qu'on veut filtrer
      */
     public by_id(id: number): ContextFilterVO {
-        this.field_id = 'id';
+        this.field_name = 'id';
         this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         this.param_numeric = id;
         return this;
@@ -928,7 +928,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
             throw new Error('ContextFilterVO.by_ids: no ids provided');
         }
 
-        this.field_id = 'id';
+        this.field_name = 'id';
 
         if (Array.isArray(id_ranges) && (id_ranges.length > 0) && (typeof id_ranges[0] === 'number')) {
             this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
@@ -1031,7 +1031,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         }
 
         log_func('ContextQueryFilterVO - vo_type:' + this.vo_type);
-        log_func('                     - field_id:' + this.field_id);
+        log_func('                     - field_name:' + this.field_name);
         log_func('                     - filter_type:' + this.filter_type + ':' + ContextFilterVO.TYPE_LABELS[this.filter_type]);
         log_func('                     - param_text:' + this.param_text);
         log_func('                     - param_numeric:' + this.param_numeric);
@@ -1053,9 +1053,9 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
  *  on initialise un filtre avec les confs par défaut ou passées en param
  * @param API_TYPE_ID le type de base de la query
  */
-export const filter = (API_TYPE_ID: string = null, field_id: string = null): ContextFilterVO => {
+export const filter = (API_TYPE_ID: string = null, field_name: string = null): ContextFilterVO => {
     let res = new ContextFilterVO();
-    res.field_id = field_id;
+    res.field_name = field_name;
     res.filter_type = null;
     res.left_hook = null;
     res.right_hook = null;

@@ -174,12 +174,12 @@ export default class VarDAGNode extends DAGNodeBase {
 
             parameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
                 _type,
-                field.field_id,
+                field.field_name,
                 null,
-                field.field_id
+                field.field_name
             );
             parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
-            fields += ', t.' + field.field_id;
+            fields += ', t.' + field.field_name;
         }
 
         // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order

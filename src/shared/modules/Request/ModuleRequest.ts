@@ -60,8 +60,6 @@ export default class ModuleRequest extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 
     public registerApis() {

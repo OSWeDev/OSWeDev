@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import TimeHandler from '../../tools/TimeHandler';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -117,17 +118,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         ComputedDatatableFieldVO.define_compute_function(ModuleProgramPlanBase.rdv_date_compute_function_uid, (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT));
         ComputedDatatableFieldVO.define_compute_function(ModuleProgramPlanBase.facilitator_name_compute_function_uid, (facilitator: IPlanFacilitator) => facilitator.firstname + ' ' + facilitator.lastname);
     }
 
     public initialize_later() {
-        this.fields = [];
-        this.datatables = [];
-
         this.callInitializePlanContactType();
         this.callInitializePlanTargetGroup();
         this.callInitializePlanTargetRegion();
@@ -208,22 +204,22 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<IPlanProgramCategory>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('nb_targets', ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
-            new ModuleTableField('total_days', ModuleTableField.FIELD_TYPE_int, 'Nb total de jours des programmes', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgramCategory>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgramCategory>().description, ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField(field_names<IPlanProgramCategory>().nb_targets, ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgramCategory>().total_days, ModuleTableField.FIELD_TYPE_int, 'Nb total de jours des programmes', true, true, 0),
 
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
+            new ModuleTableField(field_names<IPlanProgramCategory>().start_date, ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
+            new ModuleTableField(field_names<IPlanProgramCategory>().end_date, ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
 
-            new ModuleTableField('nb_created_targets', ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
-            new ModuleTableField('nb_late_targets', ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
-            new ModuleTableField('nb_ongoing_targets', ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
-            new ModuleTableField('nb_closed_targets', ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgramCategory>().nb_created_targets, ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgramCategory>().nb_late_targets, ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgramCategory>().nb_ongoing_targets, ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgramCategory>().nb_closed_targets, ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
         );
 
         let datatable = new ModuleTable(this, this.program_category_type_id, constructor, additional_fields, label_field, "Catégories de programmes");
@@ -236,7 +232,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Type de contact', true);
+        let label_field = new ModuleTableField(field_names<IPlanContactType>().name, ModuleTableField.FIELD_TYPE_string, 'Type de contact', true);
 
         additional_fields.unshift(
             label_field
@@ -252,7 +248,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<IPlanFacilitatorRegion>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
@@ -268,8 +264,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let label_field = new ModuleTableField(field_names<IPlanTargetGroup>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let user_id = new ModuleTableField(field_names<IPlanTargetGroup>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         additional_fields.unshift(
             label_field,
@@ -288,8 +284,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let region_director_uid = new ModuleTableField('region_director_uid', ModuleTableField.FIELD_TYPE_foreign_key, 'Directeur de région', false);
+        let label_field = new ModuleTableField(field_names<IPlanTargetRegion>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let region_director_uid = new ModuleTableField(field_names<IPlanTargetRegion>().region_director_uid, ModuleTableField.FIELD_TYPE_foreign_key, 'Directeur de région', false);
 
 
         additional_fields.unshift(
@@ -310,13 +306,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let zone_manager_uid = new ModuleTableField('zone_manager_uid', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager de Zone', false);
+        let label_field = new ModuleTableField(field_names<IPlanTargetZone>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let zone_manager_uid = new ModuleTableField(field_names<IPlanTargetZone>().zone_manager_uid, ModuleTableField.FIELD_TYPE_foreign_key, 'Manager de Zone', false);
 
         let region_id;
 
         if (!!this.target_region_type_id) {
-            region_id = new ModuleTableField('region_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
+            region_id = new ModuleTableField(field_names<IPlanTargetZone>().region_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
             additional_fields.unshift(region_id);
         }
 
@@ -339,23 +335,23 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let label_field = new ModuleTableField(field_names<IPlanContact>().lastname, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let user_id = new ModuleTableField(field_names<IPlanContact>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         let contact_type_id = null;
 
         if (!!this.contact_type_type_id) {
-            contact_type_id = new ModuleTableField('contact_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contact', false);
+            contact_type_id = new ModuleTableField(field_names<IPlanContact>().contact_type_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contact', false);
             additional_fields.unshift(contact_type_id);
         }
 
         additional_fields.unshift(
             user_id,
-            new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
+            new ModuleTableField(field_names<IPlanContact>().firstname, ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField('mail', ModuleTableField.FIELD_TYPE_email, 'Mail', false),
-            new ModuleTableField('mobile', ModuleTableField.FIELD_TYPE_string, 'Portable', false),
-            new ModuleTableField('infos', ModuleTableField.FIELD_TYPE_string, 'Infos', false)
+            new ModuleTableField(field_names<IPlanContact>().mail, ModuleTableField.FIELD_TYPE_email, 'Mail', false),
+            new ModuleTableField(field_names<IPlanContact>().mobile, ModuleTableField.FIELD_TYPE_string, 'Portable', false),
+            new ModuleTableField(field_names<IPlanContact>().infos, ModuleTableField.FIELD_TYPE_string, 'Infos', false)
         );
 
         let datatable = new ModuleTable(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
@@ -374,8 +370,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Cible', true);
-        let contact_id = new ModuleTableField('contact_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
+        let target_id = new ModuleTableField(field_names<IPlanTargetContact>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Cible', true);
+        let contact_id = new ModuleTableField(field_names<IPlanTargetContact>().contact_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
 
         additional_fields.unshift(
             target_id,
@@ -395,23 +391,23 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let category_id = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', false);
+        let label_field = new ModuleTableField(field_names<IPlanProgram>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let category_id = new ModuleTableField(field_names<IPlanProgram>().category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', false);
 
         additional_fields.unshift(
             label_field,
             category_id,
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
-            new ModuleTableField('days_by_target', ModuleTableField.FIELD_TYPE_float, 'Nb. de jours par établissement', true, true, 1),
-            new ModuleTableField('nb_targets', ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
-            new ModuleTableField('nb_created_targets', ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
-            new ModuleTableField('nb_late_targets', ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
-            new ModuleTableField('nb_ongoing_targets', ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
-            new ModuleTableField('nb_closed_targets', ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgram>().start_date, ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
+            new ModuleTableField(field_names<IPlanProgram>().end_date, ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
+            new ModuleTableField(field_names<IPlanProgram>().days_by_target, ModuleTableField.FIELD_TYPE_float, 'Nb. de jours par établissement', true, true, 1),
+            new ModuleTableField(field_names<IPlanProgram>().nb_targets, ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgram>().nb_created_targets, ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgram>().nb_late_targets, ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgram>().nb_ongoing_targets, ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgram>().nb_closed_targets, ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
 
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false)
+            new ModuleTableField(field_names<IPlanProgram>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField(field_names<IPlanProgram>().description, ModuleTableField.FIELD_TYPE_string, 'Description', false)
         );
 
         let datatable = new ModuleTable(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
@@ -427,32 +423,32 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let manager_id;
         let partner_id;
-        let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let label_field = new ModuleTableField(field_names<IPlanFacilitator>().lastname, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let user_id = new ModuleTableField(field_names<IPlanFacilitator>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
         let region_id;
 
         additional_fields.unshift(
             user_id);
 
         if (!!this.manager_type_id) {
-            manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', false);
+            manager_id = new ModuleTableField(field_names<IPlanFacilitator>().manager_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', false);
             additional_fields.unshift(manager_id);
         }
 
         if (!!this.partner_type_id) {
-            partner_id = new ModuleTableField('partner_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
+            partner_id = new ModuleTableField(field_names<IPlanFacilitator>().partner_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
             additional_fields.unshift(partner_id);
         }
 
         if (!!this.facilitator_region_type_id) {
-            region_id = new ModuleTableField('region_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
+            region_id = new ModuleTableField(field_names<IPlanFacilitator>().region_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
             additional_fields.unshift(region_id);
         }
 
         additional_fields.unshift(
-            new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
+            new ModuleTableField(field_names<IPlanFacilitator>().firstname, ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
+            new ModuleTableField(field_names<IPlanFacilitator>().activated, ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
         let datatable = new ModuleTable(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
@@ -480,21 +476,21 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<IPlanManager>().lastname, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let partner_id;
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let user_id = new ModuleTableField(field_names<IPlanManager>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         additional_fields.unshift(user_id);
 
         if (!!this.partner_type_id) {
-            partner_id = new ModuleTableField('partner_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
+            partner_id = new ModuleTableField(field_names<IPlanManager>().partner_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
             additional_fields.unshift(partner_id);
         }
 
         additional_fields.unshift(
-            new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
+            new ModuleTableField(field_names<IPlanManager>().firstname, ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
+            new ModuleTableField(field_names<IPlanManager>().activated, ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
         let datatable = new ModuleTable(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
@@ -513,7 +509,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<IPlanEnseigne>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
@@ -529,16 +525,16 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<IPlanTaskType>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
         );
 
         additional_fields.push(
-            new ModuleTableField('order_tasks_on_same_target', ModuleTableField.FIELD_TYPE_boolean, 'Choix automatique de la tâche', true, true, false));
+            new ModuleTableField(field_names<IPlanTaskType>().order_tasks_on_same_target, ModuleTableField.FIELD_TYPE_boolean, 'Choix automatique de la tâche', true, true, false));
         additional_fields.push(
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
+            new ModuleTableField(field_names<IPlanTaskType>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
 
         let datatable = new ModuleTable(this, this.task_type_type_id, constructor, additional_fields, label_field, "Type de tâche");
         this.datatables.push(datatable);
@@ -550,22 +546,22 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<IPlanTask>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(label_field);
 
         let task_type_id;
         if (!!this.task_type_type_id) {
-            task_type_id = new ModuleTableField('task_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de tâche', false);
+            task_type_id = new ModuleTableField(field_names<IPlanTask>().task_type_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Type de tâche', false);
             additional_fields.unshift(task_type_id);
         }
 
         additional_fields.push(
-            new ModuleTableField('is_facilitator_specific', ModuleTableField.FIELD_TYPE_boolean, 'Tâche liée à l\'animateur/admin', true, true, false));
+            new ModuleTableField(field_names<IPlanTask>().is_facilitator_specific, ModuleTableField.FIELD_TYPE_boolean, 'Tâche liée à l\'animateur/admin', true, true, false));
         additional_fields.push(
-            new ModuleTableField('limit_on_same_target', ModuleTableField.FIELD_TYPE_int, 'Nombre max de RDV de ce type', false));
+            new ModuleTableField(field_names<IPlanTask>().limit_on_same_target, ModuleTableField.FIELD_TYPE_int, 'Nombre max de RDV de ce type', false));
         additional_fields.push(
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
+            new ModuleTableField(field_names<IPlanTask>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
 
         let datatable = new ModuleTable(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
         if (!!this.task_type_type_id) {
@@ -580,33 +576,33 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<IPlanTarget>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let enseigne_id;
         let zone_id;
         let group_id;
         additional_fields.unshift(label_field);
 
         if (!!this.target_zone_type_id) {
-            zone_id = new ModuleTableField('zone_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Zone', false);
+            zone_id = new ModuleTableField(field_names<IPlanTarget>().zone_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Zone', false);
             additional_fields.unshift(zone_id);
         }
         if (!!this.target_group_type_id) {
-            group_id = new ModuleTableField('group_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Groupe', false);
+            group_id = new ModuleTableField(field_names<IPlanTarget>().group_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Groupe', false);
             additional_fields.unshift(group_id);
         }
         if (!!this.enseigne_type_id) {
-            enseigne_id = new ModuleTableField('enseigne_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', true);
+            enseigne_id = new ModuleTableField(field_names<IPlanTarget>().enseigne_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', true);
             additional_fields.unshift(enseigne_id);
         }
 
         additional_fields.unshift(
-            new ModuleTableField('address', ModuleTableField.FIELD_TYPE_string, 'Adresse', false),
-            new ModuleTableField('cp', ModuleTableField.FIELD_TYPE_string, 'Code Postal', false),
-            new ModuleTableField('city', ModuleTableField.FIELD_TYPE_string, 'Ville', false),
-            new ModuleTableField('country', ModuleTableField.FIELD_TYPE_string, 'Pays', false),
+            new ModuleTableField(field_names<IPlanTarget>().address, ModuleTableField.FIELD_TYPE_string, 'Adresse', false),
+            new ModuleTableField(field_names<IPlanTarget>().cp, ModuleTableField.FIELD_TYPE_string, 'Code Postal', false),
+            new ModuleTableField(field_names<IPlanTarget>().city, ModuleTableField.FIELD_TYPE_string, 'Ville', false),
+            new ModuleTableField(field_names<IPlanTarget>().country, ModuleTableField.FIELD_TYPE_string, 'Pays', false),
 
-            new ModuleTableField('infos_horaires', ModuleTableField.FIELD_TYPE_string, 'Infos horaires', false),
-            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
+            new ModuleTableField(field_names<IPlanTarget>().infos_horaires, ModuleTableField.FIELD_TYPE_string, 'Infos horaires', false),
+            new ModuleTableField(field_names<IPlanTarget>().activated, ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
         let datatable = new ModuleTable(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
@@ -631,11 +627,11 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         let rdv_id;
-        let prep_file_id = new ModuleTableField('prep_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier Préparation', false).not_add_to_crud();
-        let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
+        let prep_file_id = new ModuleTableField(field_names<IPlanRDVPrep>().prep_file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier Préparation', false).not_add_to_crud();
+        let author_id = new ModuleTableField(field_names<IPlanRDVPrep>().author_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         if (!!this.rdv_type_id) {
-            rdv_id = new ModuleTableField('rdv_id', ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
+            rdv_id = new ModuleTableField(field_names<IPlanRDVPrep>().rdv_id, ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
             additional_fields.unshift(rdv_id);
         }
 
@@ -662,11 +658,11 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         let rdv_id;
-        let cr_file_id = new ModuleTableField('cr_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier CR', false).not_add_to_crud();
-        let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
+        let cr_file_id = new ModuleTableField(field_names<IPlanRDVCR>().cr_file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier CR', false).not_add_to_crud();
+        let author_id = new ModuleTableField(field_names<IPlanRDVCR>().author_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         if (!!this.rdv_type_id) {
-            rdv_id = new ModuleTableField('rdv_id', ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
+            rdv_id = new ModuleTableField(field_names<IPlanRDVCR>().rdv_id, ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
             additional_fields.unshift(rdv_id);
         }
 
@@ -707,41 +703,41 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let task_id;
         let target_id;
-        let label_field = new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_tstz, 'Début', false).set_segmentation_type(start_time_segmentation_type);
+        let label_field = new ModuleTableField(field_names<IPlanRDV>().start_time, ModuleTableField.FIELD_TYPE_tstz, 'Début', false).set_segmentation_type(start_time_segmentation_type);
         let facilitator_id;
         let program_id;
 
         if (!!this.facilitator_type_id) {
-            facilitator_id = new ModuleTableField('facilitator_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', false);
+            facilitator_id = new ModuleTableField(field_names<IPlanRDV>().facilitator_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', false);
             additional_fields.unshift(facilitator_id);
         }
 
         if (!!this.target_type_id) {
-            target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', false);
+            target_id = new ModuleTableField(field_names<IPlanRDV>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', false);
             additional_fields.unshift(target_id);
         }
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false).set_segmentation_type(end_time_segmentation_type),
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
+            new ModuleTableField(field_names<IPlanRDV>().end_time, ModuleTableField.FIELD_TYPE_tstz, 'Fin', false).set_segmentation_type(end_time_segmentation_type),
+            new ModuleTableField(field_names<IPlanRDV>().state, ModuleTableField.FIELD_TYPE_enum, 'Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
                 states),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)
+            new ModuleTableField(field_names<IPlanRDV>().archived, ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)
         );
 
         if (!!this.program_type_id) {
-            program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
+            program_id = new ModuleTableField(field_names<IPlanRDV>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
             additional_fields.unshift(
                 program_id);
         }
 
         if (!!this.task_type_id) {
-            task_id = new ModuleTableField('task_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Tâche', false);
+            task_id = new ModuleTableField(field_names<IPlanRDV>().task_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Tâche', false);
             additional_fields.unshift(
                 task_id);
         }
 
-        additional_fields.push(new ModuleTableField('target_validation', ModuleTableField.FIELD_TYPE_boolean, 'RDV confirmé', false));
+        additional_fields.push(new ModuleTableField(field_names<IPlanRDV>().target_validation, ModuleTableField.FIELD_TYPE_boolean, 'RDV confirmé', false));
 
         let datatable = new ModuleTable(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
 
@@ -770,8 +766,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let facilitator_id = new ModuleTableField('facilitator_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
-        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
+        let facilitator_id = new ModuleTableField(field_names<IPlanProgramFacilitator>().facilitator_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
+        let program_id = new ModuleTableField(field_names<IPlanProgramFacilitator>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             facilitator_id,
@@ -790,8 +786,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', true);
-        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
+        let manager_id = new ModuleTableField(field_names<IPlanProgramManager>().manager_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', true);
+        let program_id = new ModuleTableField(field_names<IPlanProgramManager>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             manager_id,
@@ -810,8 +806,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
-        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
+        let target_id = new ModuleTableField(field_names<IPlanProgramTarget>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        let program_id = new ModuleTableField(field_names<IPlanProgramTarget>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             target_id,
@@ -830,7 +826,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let label_field = new ModuleTableField(field_names<IPlanPartner>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', false);
 
         additional_fields.unshift(
             label_field
@@ -848,8 +844,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
-        let facilitator_id = new ModuleTableField('facilitator_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
+        let target_id = new ModuleTableField(field_names<IPlanTargetFacilitator>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        let facilitator_id = new ModuleTableField(field_names<IPlanTargetFacilitator>().facilitator_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
 
         additional_fields.unshift(
             target_id,
@@ -868,8 +864,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_group_id = new ModuleTableField('target_group_id', ModuleTableField.FIELD_TYPE_foreign_key, "Groupe d'établissements", true);
-        let contact_id = new ModuleTableField('contact_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
+        let target_group_id = new ModuleTableField(field_names<IPlanTargetGroupContact>().target_group_id, ModuleTableField.FIELD_TYPE_foreign_key, "Groupe d'établissements", true);
+        let contact_id = new ModuleTableField(field_names<IPlanTargetGroupContact>().contact_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
 
         additional_fields.unshift(
             target_group_id,

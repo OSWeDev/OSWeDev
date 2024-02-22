@@ -93,13 +93,13 @@ export default class ContextFilterVOHandler {
      *  un filtre sur un champ de segmentation
      *  on checke qu'on a qu'un seul résultat (sinon on est sur un filtre complexe)
      */
-    public static get_simple_filter_by_vo_type_and_field_id(filters: ContextFilterVO[], vo_type: string, field_id: string): ContextFilterVO {
+    public static get_simple_filter_by_vo_type_and_field_name(filters: ContextFilterVO[], vo_type: string, field_name: string): ContextFilterVO {
 
         let res = null;
         for (let i in filters) {
             let filter = filters[i];
 
-            if (filter.field_id != field_id) {
+            if (filter.field_name != field_name) {
                 continue;
             }
 
@@ -312,35 +312,35 @@ export default class ContextFilterVOHandler {
 
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     let simpleField: SimpleDatatableFieldVO<any, any> = (field) as SimpleDatatableFieldVO<any, any>;
-                    let module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_id :
-                        simpleField.moduleTableField.field_id;
+                    let module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_name :
+                        simpleField.moduleTableField.field_name;
 
                     // On doit gérer le cas des champs aggrégés en divisant la valeur et en refaisant l'aggrégation par la suite
                     // FIXME : Est-ce qu'on ne devrait pas gérer ce cas aussi pour les COMPUTED_FIELD_TYPE, COMPONENT_FIELD_TYPE, FILE_FIELD_TYPE, MANY_TO_ONE_FIELD_TYPE, ... ?
                     if (context_query_field && (context_query_field.aggregator != VarConfVO.NO_AGGREGATOR) && (context_query_field.aggregator != VarConfVO.IS_NULLABLE_AGGREGATOR)) {
 
-                        let raw_value = raw_data[module_table_field_id + '__raw'];
+                        let raw_value = raw_data[module_table_field_name + '__raw'];
                         if (raw_value && Array.isArray(raw_value)) {
 
                             let res_data = [];
                             let saved_raw_data_field = raw_value;
-                            // let saved_data_field = raw_data[module_table_field_id];
+                            // let saved_data_field = raw_data[module_table_field_name];
                             for (let i in raw_value) {
                                 let value = raw_value[i];
-                                raw_data[module_table_field_id + '__raw'] = value;
-                                raw_data[module_table_field_id] = value;
-                                res_data.push(ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_id, raw_data));
+                                raw_data[module_table_field_name + '__raw'] = value;
+                                raw_data[module_table_field_name] = value;
+                                res_data.push(ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data));
                             }
 
-                            raw_data[module_table_field_id + '__raw'] = saved_raw_data_field;
+                            raw_data[module_table_field_name + '__raw'] = saved_raw_data_field;
                             resData[field.datatable_field_uid] = res_data;
 
                             break;
                         }
                     }
 
-                    resData[field.datatable_field_uid] = ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_id, raw_data);
+                    resData[field.datatable_field_uid] = ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data);
                     break;
 
                 case DatatableField.COMPUTED_FIELD_TYPE:
@@ -358,17 +358,17 @@ export default class ContextFilterVOHandler {
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
 
-                    let src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        manyToOneField.srcField.module_table.vo_type + '___' + manyToOneField.srcField.field_id :
-                        manyToOneField.srcField.field_id;
+                    let src_module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        manyToOneField.srcField.module_table.vo_type + '___' + manyToOneField.srcField.field_name :
+                        manyToOneField.srcField.field_name;
 
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
-                    if (!!raw_data[src_module_table_field_id]) {
+                    if (!!raw_data[src_module_table_field_name]) {
                         let ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
-                            .filter_by_id(raw_data[src_module_table_field_id])
+                            .filter_by_id(raw_data[src_module_table_field_name])
                             .select_vo();
                         resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
-                        resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
+                        resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_name];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                     }
                     break;
@@ -459,11 +459,11 @@ export default class ContextFilterVOHandler {
 
                     resData[field.datatable_field_uid] = [];
 
-                    let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id + '__raw' : // We are waiting for the actual converted NumRange[] value
-                        refField.srcField.field_id;
+                    let refField_src_module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_name + '__raw' : // We are waiting for the actual converted NumRange[] value
+                        refField.srcField.field_name;
 
-                    await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
+                    await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_name], async (id: number) => {
                         let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
                             .filter_by_id(id)
                             .select_vo();
@@ -495,7 +495,7 @@ export default class ContextFilterVOHandler {
             if (!res[filter.vo_type]) {
                 res[filter.vo_type] = {};
             }
-            res[filter.vo_type][filter.field_id] = filter;
+            res[filter.vo_type][filter.field_name] = filter;
         }
 
         return res;
@@ -585,7 +585,7 @@ export default class ContextFilterVOHandler {
         // on veut rien renvoyer, donc on fait une query qui retourne rien
         let filter_none: ContextFilterVO = new ContextFilterVO();
         filter_none.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-        filter_none.field_id = 'id';
+        filter_none.field_name = 'id';
         filter_none.vo_type = api_type_id;
 
         return query(api_type_id).field('id').set_query_distinct().add_filters([filter_none]).exec_as_server();
@@ -602,7 +602,7 @@ export default class ContextFilterVOHandler {
         }
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+        let field = moduletable.get_field_by_id(vo_field_ref.field_name);
 
         let exclude_values_context_filter: ContextFilterVO = null;
 
@@ -633,7 +633,7 @@ export default class ContextFilterVOHandler {
         if (query_filters) {
 
             for (let i in query_filters) {
-                if ((query_filters[i].field_id == vo_field_ref.field_id) && (query_filters[i].vo_type == vo_field_ref.api_type_id)) {
+                if ((query_filters[i].field_name == vo_field_ref.field_name) && (query_filters[i].vo_type == vo_field_ref.api_type_id)) {
                     if (concat_exclude_values) {
                         is_add = true;
                         new_query_filters.push(ContextFilterVO.and([query_filters[i], exclude_values_context_filter]));
@@ -655,7 +655,7 @@ export default class ContextFilterVOHandler {
     public static get_ContextFilterVO_None(field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): number {
         let field_type = null;
 
-        if ((!field) && (vo_field_ref.field_id == 'id')) {
+        if ((!field) && (vo_field_ref.field_name == 'id')) {
             field_type = ModuleTableField.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;
@@ -1289,13 +1289,13 @@ export default class ContextFilterVOHandler {
         }
     }
 
-    private static get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_id: string, raw_data: IDistantVOBase) {
+    private static get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_name: string, raw_data: IDistantVOBase) {
         if (simpleField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
-            let raw_value = raw_data[module_table_field_id + '__raw'];
+            let raw_value = raw_data[module_table_field_name + '__raw'];
             return RangeHandler.humanizeRanges(raw_value);
         }
 
-        let value = simpleField.dataToReadIHM(raw_data[module_table_field_id], raw_data);
+        let value = simpleField.dataToReadIHM(raw_data[module_table_field_name], raw_data);
         // Limite à 300 cars si c'est du html et strip html
         if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
 

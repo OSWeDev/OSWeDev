@@ -21,7 +21,5 @@ export default class ModuleTrigger extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 }

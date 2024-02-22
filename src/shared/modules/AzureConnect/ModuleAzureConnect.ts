@@ -1,3 +1,4 @@
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -64,16 +65,16 @@ export default class ModuleAzureConnect extends Module {
     }
 
     private initializeAzureConnectedUserVO() {
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, "Utilisateur", true);
+        let user_id = new ModuleTableField(field_names<AzureConnectedUserVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, "Utilisateur", true);
 
         let fields = [
             user_id,
 
-            new ModuleTableField('access_token', ModuleTableField.FIELD_TYPE_string, "access_token"),
-            new ModuleTableField('refresh_token', ModuleTableField.FIELD_TYPE_string, "refresh_token"),
+            new ModuleTableField(field_names<AzureConnectedUserVO>().access_token, ModuleTableField.FIELD_TYPE_string, "access_token"),
+            new ModuleTableField(field_names<AzureConnectedUserVO>().refresh_token, ModuleTableField.FIELD_TYPE_string, "refresh_token"),
 
-            new ModuleTableField('registered_callback_name', ModuleTableField.FIELD_TYPE_string, "registered_callback_name"),
-            new ModuleTableField('connect_callback_redirect_url', ModuleTableField.FIELD_TYPE_string, "connect_callback_redirect_url"),
+            new ModuleTableField(field_names<AzureConnectedUserVO>().registered_callback_name, ModuleTableField.FIELD_TYPE_string, "registered_callback_name"),
+            new ModuleTableField(field_names<AzureConnectedUserVO>().connect_callback_redirect_url, ModuleTableField.FIELD_TYPE_string, "connect_callback_redirect_url"),
         ];
 
         let datatable = new ModuleTable(this, AzureConnectedUserVO.API_TYPE_ID, () => new AzureConnectedUserVO(), fields, null, "Lien compte Azure");

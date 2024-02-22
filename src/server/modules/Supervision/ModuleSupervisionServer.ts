@@ -231,7 +231,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 for (let i in moduletablefields) {
                     let moduletablefield = moduletablefields[i];
 
-                    switch (moduletablefield.field_id) {
+                    switch (moduletablefield.field_name) {
                         case "name":
                         case "last_update":
                         case "last_value":
@@ -241,7 +241,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                         case "state_before_pause":
                             break;
                         default:
-                            if (vo_update_handler.pre_update_vo[moduletablefield.field_id] != vo_update_handler.post_update_vo[moduletablefield.field_id]) {
+                            if (vo_update_handler.pre_update_vo[moduletablefield.field_name] != vo_update_handler.post_update_vo[moduletablefield.field_name]) {
                                 has_new_value = false;
                             }
                     }
@@ -278,7 +278,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             for (let i in moduletablefields) {
                 let moduletablefield = moduletablefields[i];
 
-                historique[moduletablefield.field_id] = vo_update_handler.pre_update_vo[moduletablefield.field_id];
+                historique[moduletablefield.field_name] = vo_update_handler.pre_update_vo[moduletablefield.field_name];
             }
             historique._type = SupervisionController.getInstance().getSupHistVoType(vo_update_handler.post_update_vo._type);
 

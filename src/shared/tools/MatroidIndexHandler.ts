@@ -247,7 +247,7 @@ export default class MatroidIndexHandler {
         for (let i in varconf.pixel_fields) {
             let pixel_field = varconf.pixel_fields[i];
 
-            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+            pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
         }
 
         this.normalize_vardata_fields(vardata);

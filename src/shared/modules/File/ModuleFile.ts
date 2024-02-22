@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
@@ -41,20 +42,18 @@ export default class ModuleFile extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeFileVO();
         this.initializeArchiveFilesConfVO();
     }
 
     public initializeFileVO() {
-        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Fichier', true).unique();
+        let label_field = new ModuleTableField(field_names<FileVO>().path, ModuleTableField.FIELD_TYPE_file_field, 'Fichier', true).unique();
 
         let datatable_fields = [
             label_field,
-            new ModuleTableField('is_secured', ModuleTableField.FIELD_TYPE_boolean, 'Fichier sécurisé', true, true, false),
-            new ModuleTableField('file_access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Nom du droit nécessaire si sécurisé', false),
+            new ModuleTableField(field_names<FileVO>().is_secured, ModuleTableField.FIELD_TYPE_boolean, 'Fichier sécurisé', true, true, false),
+            new ModuleTableField(field_names<FileVO>().file_access_policy_name, ModuleTableField.FIELD_TYPE_string, 'Nom du droit nécessaire si sécurisé', false),
         ];
 
         let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");
@@ -65,7 +64,7 @@ export default class ModuleFile extends Module {
         let label_field = new ModuleTableField("path_to_check", ModuleTableField.FIELD_TYPE_string, 'Répertoire', true).unique();
         let datatable_fields = [
             label_field,
-            new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_enum, 'Type de filtre', true, true, ArchiveFilesConfVO.FILTER_TYPE_MONTH).setEnumValues(ArchiveFilesConfVO.FILTER_TYPE_LABELS),
+            new ModuleTableField(field_names<ArchiveFilesConfVO>().filter_type, ModuleTableField.FIELD_TYPE_enum, 'Type de filtre', true, true, ArchiveFilesConfVO.FILTER_TYPE_MONTH).setEnumValues(ArchiveFilesConfVO.FILTER_TYPE_LABELS),
             new ModuleTableField("target_achive_folder", ModuleTableField.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true),
             new ModuleTableField("archive_delay_sec", ModuleTableField.FIELD_TYPE_file_field, 'Archiver au delà de ce délai', true, true, 30 * 24 * 60 * 60), // Defaults to 30 days
             new ModuleTableField("use_date_type", ModuleTableField.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true, true, ArchiveFilesConfVO.USE_DATE_TYPE_CREATION),

@@ -1,28 +1,35 @@
 import { SendMailOptions } from 'nodemailer';
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MailCategoryVO from './vos/MailCategoryVO';
 import MailEventVO from './vos/MailEventVO';
 import MailVO from './vos/MailVO';
 import PrepareHTMLParamVO, { PrepareHTMLParamVOStatic } from './vos/PrepareHTMLParamVO';
+import { field_names } from '../../tools/ObjectHandler';
 
 export default class ModuleMailer extends Module {
 
-    public static PARAM_NAME_HOST = 'host';
-    public static PARAM_NAME_PORT = 'port';
-    public static PARAM_NAME_SECURE = 'secure';
-    public static PARAM_NAME_AUTH_USER = 'auth_user';
-    public static PARAM_NAME_AUTH_PASS = 'auth_pass';
-    public static PARAM_NAME_FROM = 'from_address';
-    public static PARAM_NAME_SUBJECT_PREFIX = 'subject_prefix';
-    public static PARAM_NAME_SUBJECT_SUFFIX = 'subject_suffix';
+    public static PARAM_NAME_HOST = 'ModuleMailer.host';
+    public static PARAM_NAME_PORT = 'ModuleMailer.port';
+    public static PARAM_NAME_SECURE = 'ModuleMailer.secure';
+    public static PARAM_NAME_AUTH_USER = 'ModuleMailer.auth_user';
+    public static PARAM_NAME_AUTH_PASS = 'ModuleMailer.auth_pass';
+    public static PARAM_NAME_FROM = 'ModuleMailer.from_address';
+    public static PARAM_NAME_SUBJECT_PREFIX = 'ModuleMailer.subject_prefix';
+    public static PARAM_NAME_SUBJECT_SUFFIX = 'ModuleMailer.subject_suffix';
+
+    public static DEFAULT_HOST: string = '127.0.0.1';
+    public static DEFAULT_PORT: number = 25;
+    public static DEFAULT_SECURE: boolean = false;
+    public static DEFAULT_AUTH_USER: string = null;
+    public static DEFAULT_AUTH_PASS: string = null;
+    public static DEFAULT_FROM: string = 'noreply@wedev.fr';
+    public static DEFAULT_SUBJECT_PREFIX: string = '[WEDEV] ';
+    public static DEFAULT_SUBJECT_SUFFIX: string = null;
 
     public static APINAME_sendMail: string = "send_mail";
     public static APINAME_prepareHTML: string = "prepare_html";
@@ -56,18 +63,6 @@ export default class ModuleMailer extends Module {
     }
 
     public initialize() {
-        this.fields = [
-            new ModuleTableField(ModuleMailer.PARAM_NAME_HOST, ModuleTableField.FIELD_TYPE_string, 'host', true, true, '127.0.0.1'),
-            new ModuleTableField(ModuleMailer.PARAM_NAME_PORT, ModuleTableField.FIELD_TYPE_int, 'port', true, true, 25),
-            new ModuleTableField(ModuleMailer.PARAM_NAME_SECURE, ModuleTableField.FIELD_TYPE_boolean, 'secure', true, true, false),
-            new ModuleTableField(ModuleMailer.PARAM_NAME_AUTH_USER, ModuleTableField.FIELD_TYPE_string, 'auth_user'),
-            new ModuleTableField(ModuleMailer.PARAM_NAME_AUTH_PASS, ModuleTableField.FIELD_TYPE_string, 'auth_pass'),
-            new ModuleTableField(ModuleMailer.PARAM_NAME_FROM, ModuleTableField.FIELD_TYPE_email, 'from_address', true, true, 'noreply@wedev.fr'),
-            new ModuleTableField(ModuleMailer.PARAM_NAME_SUBJECT_PREFIX, ModuleTableField.FIELD_TYPE_string, 'subject_prefix', false, true, '[WEDEV] '),
-            new ModuleTableField(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX, ModuleTableField.FIELD_TYPE_string, 'subject_suffix'),
-        ];
-        this.datatables = [];
-
         this.initializeMailCategoryVO();
         this.initializeMailVO();
         this.initializeMailEventVO();
@@ -90,23 +85,23 @@ export default class ModuleMailer extends Module {
     }
 
     private initializeMailVO() {
-        let category_id: ModuleTableField<number> = new ModuleTableField<number>('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', true, false);
-        let sent_by_id: ModuleTableField<number> = new ModuleTableField<number>('sent_by_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Envoyé par', false);
-        let sent_to_id: ModuleTableField<number> = new ModuleTableField<number>('sent_to_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Envoyé à', false);
+        let category_id = new ModuleTableField(field_names<MailVO>().category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', true, false);
+        let sent_by_id = new ModuleTableField(field_names<MailVO>().sent_by_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Envoyé par', false);
+        let sent_to_id = new ModuleTableField(field_names<MailVO>().sent_to_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Envoyé à', false);
 
-        let label = new ModuleTableField('message_id', ModuleTableField.FIELD_TYPE_string, 'ID de suivi', true);
+        let label = new ModuleTableField(field_names<MailVO>().message_id, ModuleTableField.FIELD_TYPE_string, 'ID de suivi', true);
 
         let datatable_fields = [
             category_id,
             sent_by_id,
             sent_to_id,
 
-            new ModuleTableField('last_state', ModuleTableField.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
+            new ModuleTableField(field_names<MailVO>().last_state, ModuleTableField.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
 
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true).index(),
+            new ModuleTableField(field_names<MailVO>().email, ModuleTableField.FIELD_TYPE_string, 'Email', true).index(),
             label,
-            new ModuleTableField('send_date', ModuleTableField.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<MailVO>().send_date, ModuleTableField.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<MailVO>().last_up_date, ModuleTableField.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
         let datatable = new ModuleTable(this, MailVO.API_TYPE_ID, () => new MailVO(), datatable_fields, label, "Mails");
         category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailCategoryVO.API_TYPE_ID]);
@@ -116,7 +111,7 @@ export default class ModuleMailer extends Module {
     }
 
     private initializeMailCategoryVO() {
-        let label = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
+        let label = new ModuleTableField(field_names<MailCategoryVO>().name, ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
         let datatable_fields = [
             label
         ];
@@ -125,14 +120,14 @@ export default class ModuleMailer extends Module {
     }
 
     private initializeMailEventVO() {
-        let mail_id: ModuleTableField<number> = new ModuleTableField<number>('mail_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Mail', true, false);
-        let label = new ModuleTableField('event_date', ModuleTableField.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        let mail_id = new ModuleTableField(field_names<MailEventVO>().mail_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Mail', true, false);
+        let label = new ModuleTableField(field_names<MailEventVO>().event_date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
 
         let datatable_fields = [
             mail_id,
             label,
-            new ModuleTableField('event', ModuleTableField.FIELD_TYPE_enum, 'Evènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
-            new ModuleTableField('reason', ModuleTableField.FIELD_TYPE_string, 'Raison', false),
+            new ModuleTableField(field_names<MailEventVO>().event, ModuleTableField.FIELD_TYPE_enum, 'Evènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
+            new ModuleTableField(field_names<MailEventVO>().reason, ModuleTableField.FIELD_TYPE_string, 'Raison', false),
         ];
         let datatable = new ModuleTable(this, MailEventVO.API_TYPE_ID, () => new MailEventVO(), datatable_fields, label, "Evènements de mail");
         mail_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailVO.API_TYPE_ID]);

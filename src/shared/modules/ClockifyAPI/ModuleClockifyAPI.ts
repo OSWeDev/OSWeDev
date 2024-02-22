@@ -3,6 +3,7 @@
 import { ClockifyTimeEntryParamStatic } from '../../../server/modules/ClockifyAPI/vos/ClockifyTimeEntryParam';
 import TimeParamClockifyTimeEntry from '../../../server/modules/ClockifyAPI/vos/TimeParamClockifyTimeEntry';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -89,9 +90,6 @@ export default class ModuleClockifyAPI extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeClockifyUser();
         this.initializeClockifyClient();
         this.initializeClockifyProjet();
@@ -102,11 +100,11 @@ export default class ModuleClockifyAPI extends Module {
     private initializeClockifyClient() {
 
         let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', false),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true),
-            new ModuleTableField('note', ModuleTableField.FIELD_TYPE_string, 'Note', false),
+            new ModuleTableField(field_names<ClockifyClientVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            new ModuleTableField(field_names<ClockifyClientVO>().clockify_id, ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
+            new ModuleTableField(field_names<ClockifyClientVO>().email, ModuleTableField.FIELD_TYPE_string, 'Email', false),
+            new ModuleTableField(field_names<ClockifyClientVO>().archived, ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true),
+            new ModuleTableField(field_names<ClockifyClientVO>().note, ModuleTableField.FIELD_TYPE_string, 'Note', false),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, ClockifyClientVO.API_TYPE_ID, () => new ClockifyClientVO(), datatable_fields, null, "Client Clockify");
@@ -117,10 +115,10 @@ export default class ModuleClockifyAPI extends Module {
     private initializeClockifyUser() {
 
         let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true),
-            new ModuleTableField('status', ModuleTableField.FIELD_TYPE_string, 'Statut', false),
+            new ModuleTableField(field_names<ClockifyUserVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            new ModuleTableField(field_names<ClockifyUserVO>().clockify_id, ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
+            new ModuleTableField(field_names<ClockifyUserVO>().email, ModuleTableField.FIELD_TYPE_string, 'Email', true),
+            new ModuleTableField(field_names<ClockifyUserVO>().status, ModuleTableField.FIELD_TYPE_string, 'Statut', false),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, ClockifyUserVO.API_TYPE_ID, () => new ClockifyUserVO(), datatable_fields, null, "Utilisateur Clockify");
@@ -129,14 +127,14 @@ export default class ModuleClockifyAPI extends Module {
     }
 
     private initializeClockifyProjet() {
-        let client_id = new ModuleTableField('client_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Client Clockify');
+        let client_id = new ModuleTableField(field_names<ClockifyProjetVO>().client_id, ModuleTableField.FIELD_TYPE_foreign_key, 'ID Client Clockify');
 
         let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true),
-            new ModuleTableField('note', ModuleTableField.FIELD_TYPE_string, 'Note', false),
-            new ModuleTableField('is_public', ModuleTableField.FIELD_TYPE_boolean, 'Publique ?', true),
+            new ModuleTableField(field_names<ClockifyProjetVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            new ModuleTableField(field_names<ClockifyProjetVO>().clockify_id, ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
+            new ModuleTableField(field_names<ClockifyProjetVO>().archived, ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true),
+            new ModuleTableField(field_names<ClockifyProjetVO>().note, ModuleTableField.FIELD_TYPE_string, 'Note', false),
+            new ModuleTableField(field_names<ClockifyProjetVO>().is_public, ModuleTableField.FIELD_TYPE_boolean, 'Publique ?', true),
             client_id
         ];
 
@@ -147,12 +145,12 @@ export default class ModuleClockifyAPI extends Module {
     }
 
     private initializeClockifyTache() {
-        let projet_id = new ModuleTableField('projet_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
+        let projet_id = new ModuleTableField(field_names<ClockifyTacheVO>().projet_id, ModuleTableField.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
 
         let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('status', ModuleTableField.FIELD_TYPE_string, 'Statut', false),
+            new ModuleTableField(field_names<ClockifyTacheVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            new ModuleTableField(field_names<ClockifyTacheVO>().clockify_id, ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
+            new ModuleTableField(field_names<ClockifyTacheVO>().status, ModuleTableField.FIELD_TYPE_string, 'Statut', false),
             projet_id
         ];
 
@@ -163,15 +161,15 @@ export default class ModuleClockifyAPI extends Module {
     }
 
     private initializeClockifyTimeEntry() {
-        let projet_id = new ModuleTableField('projet_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
-        let tache_id = new ModuleTableField('tache_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Tache Clockify');
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID User Clockify');
+        let projet_id = new ModuleTableField(field_names<ClockifyTimeEntryVO>().projet_id, ModuleTableField.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
+        let tache_id = new ModuleTableField(field_names<ClockifyTimeEntryVO>().tache_id, ModuleTableField.FIELD_TYPE_foreign_key, 'ID Tache Clockify');
+        let user_id = new ModuleTableField(field_names<ClockifyTimeEntryVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'ID User Clockify');
 
         let datatable_fields = [
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_tstz, 'Heure de début', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Heure de fin', false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<ClockifyTimeEntryVO>().description, ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField(field_names<ClockifyTimeEntryVO>().clockify_id, ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
+            new ModuleTableField(field_names<ClockifyTimeEntryVO>().start_time, ModuleTableField.FIELD_TYPE_tstz, 'Heure de début', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<ClockifyTimeEntryVO>().end_time, ModuleTableField.FIELD_TYPE_tstz, 'Heure de fin', false).set_segmentation_type(TimeSegment.TYPE_SECOND),
             projet_id,
             tache_id,
             user_id

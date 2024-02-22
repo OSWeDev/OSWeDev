@@ -4,6 +4,8 @@ import ModuleTable from '../../modules/ModuleTable';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import { field_names } from '../../tools/ObjectHandler';
+import IVersionedVO from './interfaces/IVersionedVO';
 
 export default class VersionedVOController implements IVOController {
 
@@ -39,24 +41,24 @@ export default class VersionedVOController implements IVOController {
 
         this.registeredModuleTables.push(moduleTable);
 
-        let version_edit_author_id = new ModuleTableField('version_edit_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Modificateur', false).hide_from_datatable();
+        let version_edit_author_id = new ModuleTableField(field_names<IVersionedVO>().version_edit_author_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Modificateur', false).hide_from_datatable();
         version_edit_author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_edit_author_id.setModuleTable(moduleTable);
-        let version_author_id = new ModuleTableField('version_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Créateur', false).hide_from_datatable();
+        let version_author_id = new ModuleTableField(field_names<IVersionedVO>().version_author_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Créateur', false).hide_from_datatable();
         version_author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_author_id.setModuleTable(moduleTable);
 
         moduleTable.push_field(version_edit_author_id);
-        moduleTable.push_field((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_tstz, 'Date de modification', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField(field_names<IVersionedVO>().version_edit_timestamp, ModuleTableField.FIELD_TYPE_tstz, 'Date de modification', false)).setModuleTable(moduleTable));
 
         moduleTable.push_field(version_author_id);
-        moduleTable.push_field((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField(field_names<IVersionedVO>().version_timestamp, ModuleTableField.FIELD_TYPE_tstz, 'Date de création', false)).setModuleTable(moduleTable));
 
-        moduleTable.push_field((new ModuleTableField('version_num', ModuleTableField.FIELD_TYPE_int, 'Numéro de version', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField(field_names<IVersionedVO>().version_num, ModuleTableField.FIELD_TYPE_int, 'Numéro de version', false)).setModuleTable(moduleTable));
 
-        moduleTable.push_field((new ModuleTableField('trashed', ModuleTableField.FIELD_TYPE_boolean, 'Supprimé', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField(field_names<IVersionedVO>().trashed, ModuleTableField.FIELD_TYPE_boolean, 'Supprimé', false)).setModuleTable(moduleTable));
 
-        let parent_id = new ModuleTableField('parent_id', ModuleTableField.FIELD_TYPE_int, 'Parent', false);
+        let parent_id = new ModuleTableField(field_names<IVersionedVO>().parent_id, ModuleTableField.FIELD_TYPE_int, 'Parent', false);
         parent_id.setModuleTable(moduleTable);
         moduleTable.push_field(parent_id);
 

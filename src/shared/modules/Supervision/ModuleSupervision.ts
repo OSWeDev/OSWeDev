@@ -64,11 +64,11 @@ export default class ModuleSupervision extends Module {
     }
 
     private initializeSupervisedCategoryVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom", true);
+        let name_field = new ModuleTableField(field_names<SupervisedCategoryVO>().name, ModuleTableField.FIELD_TYPE_string, "Nom", true);
 
         let fields = [
             name_field,
-            new ModuleTableField('notify', ModuleTableField.FIELD_TYPE_boolean, "Notification", true, true, false),
+            new ModuleTableField(field_names<SupervisedCategoryVO>().notify, ModuleTableField.FIELD_TYPE_boolean, "Notification", true, true, false),
         ];
 
         let datatable = new ModuleTable(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");

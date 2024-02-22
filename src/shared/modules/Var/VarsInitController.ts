@@ -1,3 +1,4 @@
+import { field_names } from '../../tools/ObjectHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -56,7 +57,7 @@ export default class VarsInitController {
         var_fields: Array<ModuleTableField<any>>,
         module: Module = null,
         is_test: boolean = false): ModuleTable<any> {
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
+        let var_id = new ModuleTableField(field_names<VarDataBaseVO>().var_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
 
         if (!VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id]) {
             VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id] = [];
@@ -86,12 +87,11 @@ export default class VarsInitController {
 
         var_fields.unshift(var_id);
         var_fields = var_fields.concat([
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur'),
-            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
-            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('last_reads_ts', ModuleTableField.FIELD_TYPE_tstz_array, 'Dates derniers accès').set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
-            new ModuleTableField('_bdd_only_is_pixel', ModuleTableField.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
+            new ModuleTableField(field_names<VarDataBaseVO>().value, ModuleTableField.FIELD_TYPE_float, 'Valeur'),
+            new ModuleTableField(field_names<VarDataBaseVO>().value_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
+            new ModuleTableField(field_names<VarDataBaseVO>().value_ts, ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
+            new ModuleTableField(field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableField.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
         ]);
 
         let datatable = new ModuleTable(module, api_type_id, constructor, var_fields, null).defineAsMatroid();

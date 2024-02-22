@@ -81,6 +81,7 @@ import Patch20240123ForceUnicityOnGeneratorWorkersUID from './patchs/premodules/
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch20240206InitNullFieldsFromWidgets';
 import { field_names } from '../shared/tools/ObjectHandler';
+import Patch20240222MoveModuleFieldsToParamVOs from './patchs/premodules/Patch20240222MoveModuleFieldsToParamVOs';
 
 export default abstract class GeneratorBase {
 
@@ -159,7 +160,8 @@ export default abstract class GeneratorBase {
             Patch20231116AddUniqPhoneUserConstraint.getInstance(),
             Patch20231117AddUniqCookieNamePopup.getInstance(),
             Patch20231120AddUniqCronPlanificationUID.getInstance(),
-            Patch20240206InitNullFieldsFromWidgets.getInstance()
+            Patch20240206InitNullFieldsFromWidgets.getInstance(),
+            Patch20240222MoveModuleFieldsToParamVOs.getInstance()
         ];
 
         this.post_modules_workers = [

@@ -1,17 +1,19 @@
+import { field_names } from '../../../../../tools/ObjectHandler';
 import DatatableField from '../../../../DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../DAO/vos/datatable/SimpleDatatableFieldVO';
+import IDistantVOBase from '../../../../IDistantVOBase';
 import ModuleTable from '../../../../ModuleTable';
 import ModuleTableField from '../../../../ModuleTableField';
 import ModuleAnimation from '../../../ModuleAnimation';
 
-export default class AnimationMessageModuleVO {
+export default class AnimationMessageModuleVO implements IDistantVOBase {
     public static API_TYPE_ID: string = 'anim_message_module';
 
     public static moduleTable(): ModuleTable<any> {
         let datatable_fields = [
-            new ModuleTableField('min', ModuleTableField.FIELD_TYPE_prct, "Min"),
-            new ModuleTableField('max', ModuleTableField.FIELD_TYPE_prct, "Max"),
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_html, "Message"),
+            new ModuleTableField(field_names<AnimationMessageModuleVO>().min, ModuleTableField.FIELD_TYPE_prct, "Min"),
+            new ModuleTableField(field_names<AnimationMessageModuleVO>().max, ModuleTableField.FIELD_TYPE_prct, "Max"),
+            new ModuleTableField(field_names<AnimationMessageModuleVO>().message, ModuleTableField.FIELD_TYPE_html, "Message"),
         ];
 
         return new ModuleTable(ModuleAnimation.getInstance(), AnimationMessageModuleVO.API_TYPE_ID, null, datatable_fields, null);
@@ -32,7 +34,9 @@ export default class AnimationMessageModuleVO {
         return fields;
     }
 
+    // public _type: string;
     public id: number;
+
     public min: number;
     public max: number;
     public message: string;

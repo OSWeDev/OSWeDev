@@ -340,11 +340,11 @@ export default class ContextQueryServerController {
             for (let j in context_query.fields) {
                 let field = context_query.fields[j];
 
-                if (field.field_id == 'id') {
+                if (field.field_name == 'id') {
                     // row['id' + '__raw'] = row['id'];
                     continue;
                 }
-                let field_id = field.alias ? field.alias : field.field_id;
+                let field_name = field.alias ? field.alias : field.field_name;
 
                 let module_table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
 
@@ -354,17 +354,17 @@ export default class ContextQueryServerController {
                     let joined_field = joined_query?.fields.find((jf) => jf.alias == field.alias);
 
                     if (!joined_field) {
-                        throw new Error('select_datatable_rows: joined_field not found for field ' + field.field_id + ' of type ' + field.api_type_id);
+                        throw new Error('select_datatable_rows: joined_field not found for field ' + field.field_name + ' of type ' + field.api_type_id);
                     }
 
                     module_table = VOsTypesManager.moduleTables_by_voType[joined_field.api_type_id];
                     field = joined_field;
                 }
 
-                if (field.field_id == 'id') {
+                if (field.field_name == 'id') {
                     continue;
                 }
-                let module_field = module_table.getFieldFromId(field.field_id);
+                let module_field = module_table.getFieldFromId(field.field_name);
 
                 // switch (module_field.field_type) {
                 //     case ModuleTableField.FIELD_TYPE_tsrange:
@@ -376,25 +376,25 @@ export default class ContextQueryServerController {
                 // }
 
                 let forced_numeric_field = {};
-                module_table.force_numeric_field(module_field, row, forced_numeric_field, field_id);
-                row[field_id + '__raw'] = forced_numeric_field[field_id];
+                module_table.force_numeric_field(module_field, row, forced_numeric_field, field_name);
+                row[field_name + '__raw'] = forced_numeric_field[field_name];
 
                 // si on est en édition on laisse la data raw
                 if (
                     columns_by_field_id &&
                     fields &&
-                    fields[field_id] &&
-                    (fields[field_id] instanceof DatatableField) &&
+                    fields[field_name] &&
+                    (fields[field_name] instanceof DatatableField) &&
                     (
-                        !(columns_by_field_id[field_id]) ||
-                        columns_by_field_id[field_id].readonly
+                        !(columns_by_field_id[field_name]) ||
+                        columns_by_field_id[field_name].readonly
                     )
                 ) {
                     await promise_pipeline.push(async () => {
                         query_res[i] = await ContextFilterVOHandler.get_datatable_row_field_data_async(
                             row,
                             row,
-                            fields[field_id],
+                            fields[field_name],
                             field
                         );
                     });
@@ -448,9 +448,9 @@ export default class ContextQueryServerController {
         /**
          * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
          */
-        if (get_active_field_filters && get_active_field_filters[field.api_type_id] && get_active_field_filters[field.api_type_id][field.field_id]) {
+        if (get_active_field_filters && get_active_field_filters[field.api_type_id] && get_active_field_filters[field.api_type_id][field.field_name]) {
             // Je supprime le filtre du champ si je ne cherche pas à exclure de données
-            switch (get_active_field_filters[field.api_type_id][field.field_id].filter_type) {
+            switch (get_active_field_filters[field.api_type_id][field.field_name].filter_type) {
                 case ContextFilterVO.TYPE_TEXT_EQUALS_NONE:
                 case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
                 case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
@@ -459,14 +459,14 @@ export default class ContextQueryServerController {
                     break;
 
                 default:
-                    delete get_active_field_filters[field.api_type_id][field.field_id];
+                    delete get_active_field_filters[field.api_type_id][field.field_name];
                     break;
             }
         }
 
         if (actual_query) {
             let actual_filter = new ContextFilterVO();
-            actual_filter.field_id = field.field_id;
+            actual_filter.field_id = field.field_name;
             actual_filter.vo_type = field.api_type_id;
             actual_filter.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
             actual_filter.param_text = actual_query;
@@ -474,7 +474,7 @@ export default class ContextQueryServerController {
             if (!get_active_field_filters[field.api_type_id]) {
                 get_active_field_filters[field.api_type_id] = {};
             }
-            get_active_field_filters[field.api_type_id][field.field_id] = actual_filter;
+            get_active_field_filters[field.api_type_id][field.field_name] = actual_filter;
         }
 
         context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
@@ -614,8 +614,8 @@ export default class ContextQueryServerController {
         let already_treated_ids: { [id: number]: boolean } = {};
 
         let change_offset = true;
-        for (let field_id in get_active_field_filters[context_query.base_api_type_id]) {
-            if (!!new_api_translated_values[field_id]) {
+        for (let field_name in get_active_field_filters[context_query.base_api_type_id]) {
+            if (!!new_api_translated_values[field_name]) {
                 change_offset = false;
                 break;
             }
@@ -701,16 +701,16 @@ export default class ContextQueryServerController {
                     }
                     already_treated_ids[vo.id] = true;
 
-                    for (let field_id in new_api_translated_values as IDistantVOBase) {
+                    for (let field_name in new_api_translated_values as IDistantVOBase) {
 
                         // Si le champs est filtré (readonly par exemple) on ne le met pas à jour
-                        if (!fields_by_id[field_id]) {
+                        if (!fields_by_id[field_name]) {
                             continue;
                         }
 
-                        let new_api_translated_value = new_api_translated_values[field_id];
+                        let new_api_translated_value = new_api_translated_values[field_name];
 
-                        vo[field_id] = moduletable.default_field_from_api_version(new_api_translated_value, fields_by_id[field_id]);
+                        vo[field_name] = moduletable.default_field_from_api_version(new_api_translated_value, fields_by_id[field_name]);
                     }
                 });
 
@@ -1059,9 +1059,9 @@ export default class ContextQueryServerController {
             /**
              * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
              */
-            if (get_active_field_filters && get_active_field_filters[field.api_type_id] && get_active_field_filters[field.api_type_id][field.field_id]) {
+            if (get_active_field_filters && get_active_field_filters[field.api_type_id] && get_active_field_filters[field.api_type_id][field.field_name]) {
                 // Je supprime le filtre du champ si je ne cherche pas à exclure de données
-                switch (get_active_field_filters[field.api_type_id][field.field_id].filter_type) {
+                switch (get_active_field_filters[field.api_type_id][field.field_name].filter_type) {
                     case ContextFilterVO.TYPE_TEXT_EQUALS_NONE:
                     case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
                     case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
@@ -1070,7 +1070,7 @@ export default class ContextQueryServerController {
                         break;
 
                     default:
-                        delete get_active_field_filters[field.api_type_id][field.field_id];
+                        delete get_active_field_filters[field.api_type_id][field.field_name];
                         context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
                         break;
                 }
@@ -1366,7 +1366,7 @@ export default class ContextQueryServerController {
             });
 
             union_context_query.fields = union_context_query.fields?.map((field) => {
-                let alias = field.alias ? field.alias : field.field_id;
+                let alias = field.alias ? field.alias : field.field_name;
 
                 field.alias = `t_union_${aliases_n}.` + alias;
 
@@ -1644,7 +1644,7 @@ export default class ContextQueryServerController {
             // When it is all_default_fields, we should add all_required_fields
             const have_all_default_fields = base_moduletable_fields.every(
                 (moduletable_field) => fields_for_query.find(
-                    (field) => field.field_id === moduletable_field.field_id
+                    (field) => field.field_name === moduletable_field.field_id
                 )
             );
 
@@ -1667,7 +1667,7 @@ export default class ContextQueryServerController {
                 if (fields_for_query?.length > 0) {
 
                     const fields_for_query_in_field_to_add = fields_for_query.find(
-                        (field) => field.field_id === field_id_to_add
+                        (field) => field.field_name === field_id_to_add
                     ) != null;
 
                     should_add_field_for_query = have_all_default_fields || fields_for_query_in_field_to_add;
@@ -1732,7 +1732,7 @@ export default class ContextQueryServerController {
                     (field) => field.field_id
                 );
 
-                return all_required_field_ids.indexOf(field_a.field_id) - all_required_field_ids.indexOf(field_b.field_id);
+                return all_required_field_ids.indexOf(field_a.field_name) - all_required_field_ids.indexOf(field_b.field_name);
             });
         }
 
@@ -1754,19 +1754,19 @@ export default class ContextQueryServerController {
 
             let moduletable = VOsTypesManager.moduleTables_by_voType[context_field.api_type_id];
 
-            if ((!!moduletable) && context_field.field_id) {
+            if ((!!moduletable) && context_field.field_name) {
                 const all_required_field_ids = all_required_fields?.map((field) => field.field_id);
 
                 if (
                     (!moduletable) ||
                     (
-                        (context_field?.field_id != 'id') &&
-                        (!moduletable.get_field_by_id(context_field.field_id))
+                        (context_field?.field_name != 'id') &&
+                        (!moduletable.get_field_by_id(context_field.field_name))
                     ) &&
                     (
                         // Case when we need all_required_fields (the overflows fields shall be sets as null)
                         (all_required_field_ids?.length > 0) &&
-                        (!all_required_field_ids.find((required_field) => required_field === context_field.field_id))
+                        (!all_required_field_ids.find((required_field) => required_field === context_field.field_name))
                     )
                 ) {
                     return null;
@@ -1778,8 +1778,8 @@ export default class ContextQueryServerController {
              */
             ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_field.api_type_id);
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
-            if (context_field.field_id) {
-                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
+            if (context_field.field_name) {
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_name);
             }
 
             /**
@@ -1809,18 +1809,18 @@ export default class ContextQueryServerController {
 
             let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
                 context_field.api_type_id,
-                context_field.field_id,
+                context_field.field_name,
                 context_field.aggregator,
-                context_field.alias ?? context_field.field_id
+                context_field.alias ?? context_field.field_name
             );
 
-            let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + (context_field.field_id ?? context_field.alias);
+            let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + (context_field.field_name ?? context_field.alias);
 
             if (
                 context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||
                 context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN
             ) {
-                field_full_name = context_field.field_id ?? context_field.alias;
+                field_full_name = context_field.field_name ?? context_field.alias;
             }
 
             let aggregator_prefix = '';
@@ -1832,7 +1832,7 @@ export default class ContextQueryServerController {
                 alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
             }
 
-            let field_alias = ((alias && context_field.field_id) ? " as " + alias : '');
+            let field_alias = ((alias && context_field.field_name) ? " as " + alias : '');
             let handled = false;
 
             switch (context_field.aggregator) {
@@ -2062,7 +2062,7 @@ export default class ContextQueryServerController {
                     continue;
                 }
 
-                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_name);
                 ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
 
                 let alias = context_field.alias;
@@ -2075,12 +2075,12 @@ export default class ContextQueryServerController {
                     context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||
                     context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN
                 ) {
-                    alias = context_field.field_id;
+                    alias = context_field.field_name;
                 }
 
                 group_bys.push(alias ?
                     alias :
-                    query_wrapper.tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
+                    query_wrapper.tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_name);
             }
 
             GROUP_BY += group_bys.join(', ');
@@ -2141,7 +2141,7 @@ export default class ContextQueryServerController {
                             continue;
                         }
 
-                        if (context_field.field_id != sort_by.field_id) {
+                        if (context_field.field_name != sort_by.field_id) {
                             continue;
                         }
 
@@ -2258,7 +2258,7 @@ export default class ContextQueryServerController {
             let source_joined_field = null;
             for (let j in context_query_join.joined_context_query.fields) {
                 let joined_field = context_query_join.joined_context_query.fields[j];
-                if ((joined_field.field_id == join_on_field.joined_table_field_alias) || (joined_field.alias == join_on_field.joined_table_field_alias)) {
+                if ((joined_field.field_name == join_on_field.joined_table_field_alias) || (joined_field.alias == join_on_field.joined_table_field_alias)) {
                     source_joined_field = joined_field;
                     break;
                 }
@@ -2353,8 +2353,8 @@ export default class ContextQueryServerController {
                 /**
                  * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
                  */
-                if ((!context_query.is_server) && !await ContextAccessServerController.check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_id, access_type)) {
-                    ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
+                if ((!context_query.is_server) && !await ContextAccessServerController.check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_name, access_type)) {
+                    ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_name + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
                     return aliases_n;
                 }
 
@@ -2744,7 +2744,7 @@ export default class ContextQueryServerController {
                     return;
                 }
 
-                context_query.set_sort(new SortByVO(context_query.fields[0].api_type_id, context_query.fields[0].field_id, true));
+                context_query.set_sort(new SortByVO(context_query.fields[0].api_type_id, context_query.fields[0].field_name, true));
             }
         }
     }
@@ -2949,7 +2949,7 @@ export default class ContextQueryServerController {
             return null;
         }
 
-        if (context_query.fields[0].field_id != 'id') {
+        if (context_query.fields[0].field_name != 'id') {
             return null;
         }
 

@@ -73,15 +73,13 @@ export default class ModulePushData extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.init_NotificationVO();
         this.init_APIResultVO();
     }
 
     private init_NotificationVO() {
-        let user_id: ModuleTableField<number> = new ModuleTableField<number>(field_names<NotificationVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, false);
+        let user_id = new ModuleTableField(field_names<NotificationVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, false);
         let datatable_fields = [
             new ModuleTableField(field_names<NotificationVO>().notification_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, NotificationVO.TYPE_NOTIF_SIMPLE).setEnumValues(NotificationVO.TYPE_NAMES),
             user_id,
@@ -91,7 +89,7 @@ export default class ModulePushData extends Module {
                 [NotificationVO.SIMPLE_WARN]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_WARN],
                 [NotificationVO.SIMPLE_ERROR]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_ERROR]
             }),
-            new ModuleTableField(field_names<NotificationVO>().simple_notif_label, ModuleTableField.FIELD_TYPE_translatable_text, 'Msg Translatable').set_translatable_params_field_id(field_names<NotificationVO>().simple_notif_json_params),
+            new ModuleTableField(field_names<NotificationVO>().simple_notif_label, ModuleTableField.FIELD_TYPE_translatable_text, 'Msg Translatable').set_translatable_params_field_name(field_names<NotificationVO>().simple_notif_json_params),
             new ModuleTableField(field_names<NotificationVO>().simple_notif_json_params, ModuleTableField.FIELD_TYPE_string, 'Params JSON', false, true, null),
             new ModuleTableField(field_names<NotificationVO>().simple_downloadable_link, ModuleTableField.FIELD_TYPE_string, 'Lien téléchargeable', false, true, null),
             new ModuleTableField(field_names<NotificationVO>().auto_read_if_connected, ModuleTableField.FIELD_TYPE_boolean, 'Lecture auto si connecté', false),

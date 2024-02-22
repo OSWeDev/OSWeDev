@@ -122,14 +122,14 @@ export default class ModuleVar extends Module {
         get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges?: boolean,
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters, null, (
         var_name: string,
         get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges?: boolean,
     ): boolean => {
 
@@ -158,7 +158,7 @@ export default class ModuleVar extends Module {
         }
 
         for (let i in ts_ranges_fields) {
-            if (!custom_filters[ts_ranges_fields[i].field_id]) {
+            if (!custom_filters[ts_ranges_fields[i].field_name]) {
                 return false;
             }
         }
@@ -175,9 +175,6 @@ export default class ModuleVar extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeVarPixelFieldConfVO();
         this.initializeVarConfVO();
         this.initializeVarDataValueResVO();
@@ -588,8 +585,8 @@ export default class ModuleVar extends Module {
         return '_pw2ex_' + do_not_user_filter_active_ids.join('_') + '_';
     }
 
-    public get_var_param_field_name(api_type_id: string, field_id: string, page_widgets_ids_to_exclude_as_alias_prefix: string = null): string {
-        return ModuleVar.VARPARAMFIELD_PREFIX + (page_widgets_ids_to_exclude_as_alias_prefix ? page_widgets_ids_to_exclude_as_alias_prefix : '') + api_type_id + '_' + field_id;
+    public get_var_param_field_name(api_type_id: string, field_name: string, page_widgets_ids_to_exclude_as_alias_prefix: string = null): string {
+        return ModuleVar.VARPARAMFIELD_PREFIX + (page_widgets_ids_to_exclude_as_alias_prefix ? page_widgets_ids_to_exclude_as_alias_prefix : '') + api_type_id + '_' + field_name;
     }
 
     public clean_rows_of_varparamfields(rows: IDistantVOBase[], context_query: ContextQueryVO) {
@@ -647,7 +644,7 @@ export default class ModuleVar extends Module {
                         }
 
                         let ids: number[] = row[alias].map((id) => parseInt(id));
-                        var_param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_list(ids);
+                        var_param[matroid_field.field_name] = RangeHandler.get_ids_ranges_from_list(ids);
                     } else {
                         if (!accept_max_ranges) {
                             // Max range étant interdit sur les registers de var, on force un retour null
@@ -660,7 +657,7 @@ export default class ModuleVar extends Module {
                                 refuse_param = true;
                             }
                         } else {
-                            var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                            var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                         }
                     }
                     break;
@@ -675,17 +672,17 @@ export default class ModuleVar extends Module {
                             refuse_param = true;
                         }
                     } else {
-                        var_param[matroid_field.field_id] = [RangeHandler.getMaxHourRange()];
+                        var_param[matroid_field.field_name] = [RangeHandler.getMaxHourRange()];
                     }
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    if (!!custom_filters[matroid_field.field_id]) {
+                    if (!!custom_filters[matroid_field.field_name]) {
                         // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
                         // on compte en nombre de range et non en cardinal
                         // et on limite à la limite configurée dans l'application
-                        var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_ts_ranges_on_param_by_context_filter);
+                        var_param[matroid_field.field_name] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_name], limit_nb_ts_ranges_on_param_by_context_filter);
 
-                        if ((!var_param[matroid_field.field_id]) || (!var_param[matroid_field.field_id].length) || RangeHandler.is_max_range(var_param[matroid_field.field_id][0])) {
+                        if ((!var_param[matroid_field.field_name]) || (!var_param[matroid_field.field_name].length) || RangeHandler.is_max_range(var_param[matroid_field.field_name][0])) {
                             if (!accept_max_ranges) {
 
                                 if (!refuse_param) {
@@ -697,7 +694,7 @@ export default class ModuleVar extends Module {
                                 }
 
                             } else {
-                                var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                                var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                             }
                         }
                         break;
@@ -715,7 +712,7 @@ export default class ModuleVar extends Module {
                         }
 
                     } else {
-                        var_param[matroid_field.field_id] = [RangeHandler.getMaxTSRange()];
+                        var_param[matroid_field.field_name] = [RangeHandler.getMaxTSRange()];
                     }
                     break;
             }
@@ -728,25 +725,25 @@ export default class ModuleVar extends Module {
 
         let datatable_fields = [
             new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_vo_api_type_id, ModuleTableField.FIELD_TYPE_string, 'pixel_vo_api_type_id', false),
-            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_vo_field_id, ModuleTableField.FIELD_TYPE_string, 'pixel_vo_field_id', false),
-            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_param_field_id, ModuleTableField.FIELD_TYPE_string, 'pixel_param_field_id', false),
+            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_vo_field_name, ModuleTableField.FIELD_TYPE_string, 'pixel_vo_field_name', false),
+            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_param_field_name, ModuleTableField.FIELD_TYPE_string, 'pixel_param_field_name', false),
             new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_range_type, ModuleTableField.FIELD_TYPE_int, 'pixel_range_type', false),
             new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_segmentation_type, ModuleTableField.FIELD_TYPE_int, 'pixel_segmentation_type', false)
         ];
 
         let datatable = new ModuleTable(this, VarPixelFieldConfVO.API_TYPE_ID, () => new VarPixelFieldConfVO(), datatable_fields, null);
-        datatable.define_default_label_function((vo: VarPixelFieldConfVO) => vo.pixel_vo_api_type_id + vo.pixel_vo_field_id, null);
+        datatable.define_default_label_function((vo: VarPixelFieldConfVO) => vo.pixel_vo_api_type_id + vo.pixel_vo_field_name, null);
         this.datatables.push(datatable);
     }
 
     private initializeVarConfAutoDepVO(): ModuleTableField<any> {
 
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dep Var conf', false);
+        let var_id = new ModuleTableField(field_names<VarConfAutoDepVO>().var_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Dep Var conf', false);
         let datatable_fields = [
-            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type de dep', true, true, VarConfAutoDepVO.DEP_TYPE_STATIC).setEnumValues(VarConfAutoDepVO.DEP_TYPE_LABELS),
+            new ModuleTableField(field_names<VarConfAutoDepVO>().type, ModuleTableField.FIELD_TYPE_enum, 'Type de dep', true, true, VarConfAutoDepVO.DEP_TYPE_STATIC).setEnumValues(VarConfAutoDepVO.DEP_TYPE_LABELS),
             var_id,
-            new ModuleTableField('static_value', ModuleTableField.FIELD_TYPE_float, 'Valeur fixe', false, true, 0),
-            new ModuleTableField('params_transform_strategies', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false),
+            new ModuleTableField(field_names<VarConfAutoDepVO>().static_value, ModuleTableField.FIELD_TYPE_float, 'Valeur fixe', false, true, 0),
+            new ModuleTableField(field_names<VarConfAutoDepVO>().params_transform_strategies, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false),
         ];
 
         let datatable = new ModuleTable(this, VarConfAutoDepVO.API_TYPE_ID, () => new VarConfAutoDepVO(), datatable_fields, null, 'Configuration de dependance pour var automatique');
@@ -757,7 +754,7 @@ export default class ModuleVar extends Module {
 
     private initializeVarConfVO() {
 
-        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur').unique();
+        let labelField = new ModuleTableField(field_names<VarConfVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom du compteur').unique();
         let datatable_fields = [
             labelField,
 
@@ -766,7 +763,7 @@ export default class ModuleVar extends Module {
 
             new ModuleTableField(field_names<VarConfVO>().auto_deps, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false),
             new ModuleTableField(field_names<VarConfVO>().auto_vofieldref_api_type_id, ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false),
-            new ModuleTableField(field_names<VarConfVO>().auto_vofieldref_field_id, ModuleTableField.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
+            new ModuleTableField(field_names<VarConfVO>().auto_vofieldref_field_name, ModuleTableField.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
 
             new ModuleTableField(field_names<VarConfVO>().auto_param_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false),
             new ModuleTableField(field_names<VarConfVO>().auto_param_context_api_type_ids, ModuleTableField.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false),
@@ -800,11 +797,11 @@ export default class ModuleVar extends Module {
     private initializeVarDataValueResVO() {
 
         let datatable_fields = [
-            new ModuleTableField('index', ModuleTableField.FIELD_TYPE_string, 'Index', true),
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', false),
-            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_int, 'Type', true),
-            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date', false),
-            new ModuleTableField('is_computing', ModuleTableField.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false),
+            new ModuleTableField(field_names<VarDataValueResVO>().index, ModuleTableField.FIELD_TYPE_string, 'Index', true),
+            new ModuleTableField(field_names<VarDataValueResVO>().value, ModuleTableField.FIELD_TYPE_float, 'Valeur', false),
+            new ModuleTableField(field_names<VarDataValueResVO>().value_type, ModuleTableField.FIELD_TYPE_int, 'Type', true),
+            new ModuleTableField(field_names<VarDataValueResVO>().value_ts, ModuleTableField.FIELD_TYPE_tstz, 'Date', false),
+            new ModuleTableField(field_names<VarDataValueResVO>().is_computing, ModuleTableField.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false),
         ];
 
         let datatable = new ModuleTable(this, VarDataValueResVO.API_TYPE_ID, () => new VarDataValueResVO(), datatable_fields, null);
@@ -815,12 +812,12 @@ export default class ModuleVar extends Module {
 
         let datatable_fields = [
 
-            new ModuleTableField('var_data', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Invalidateur', true),
+            new ModuleTableField(field_names<VarDataInvalidatorVO>().var_data, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Invalidateur', true),
 
-            new ModuleTableField('invalidator_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'invalidateur', true, true, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT).setEnumValues(VarDataInvalidatorVO.INVALIDATOR_TYPE_LABELS),
-            new ModuleTableField('propagate_to_parents', ModuleTableField.FIELD_TYPE_boolean, 'Propager aux parents', true, true, true),
-            new ModuleTableField('invalidate_denied', ModuleTableField.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false),
-            new ModuleTableField('invalidate_imports', ModuleTableField.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false),
+            new ModuleTableField(field_names<VarDataInvalidatorVO>().invalidator_type, ModuleTableField.FIELD_TYPE_enum, 'Type d\'invalidateur', true, true, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT).setEnumValues(VarDataInvalidatorVO.INVALIDATOR_TYPE_LABELS),
+            new ModuleTableField(field_names<VarDataInvalidatorVO>().propagate_to_parents, ModuleTableField.FIELD_TYPE_boolean, 'Propager aux parents', true, true, true),
+            new ModuleTableField(field_names<VarDataInvalidatorVO>().invalidate_denied, ModuleTableField.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false),
+            new ModuleTableField(field_names<VarDataInvalidatorVO>().invalidate_imports, ModuleTableField.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false),
         ];
         let datatable = new ModuleTable(this, VarDataInvalidatorVO.API_TYPE_ID, () => new VarDataInvalidatorVO(), datatable_fields, null);
         this.datatables.push(datatable);
@@ -829,7 +826,7 @@ export default class ModuleVar extends Module {
     /**
      * Important de ne pas juste faire une sous requete par colonne de var qui aurait des filtres, mais bien essayer de limiter les sous-requetes
      * par ce que le moteur pgsql ne voit pas même si les requetes sont identiques qu'il peut les factoriser... (tester avec explain les futurs versions, mais en 13 c'est KO)
-     * Donc on regroupe par la liste des page_widget_ids qu'on refuse puis par api_type_id, puis par field_id
+     * Donc on regroupe par la liste des page_widget_ids qu'on refuse puis par api_type_id, puis par field_name
      * FIXME : TODO : tenter de généraliser avec le cas où on refuse 0 ids. Mais dans ce cas pas de sous requetes, donc c'est peut-etre du temps perdu
      * @param context_query_initiale le contexte initial, hors vars
      * @param context_query_actuelle le contexte actuel, avec les vars en cours d'ajout
@@ -842,7 +839,7 @@ export default class ModuleVar extends Module {
     ) {
 
         // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
-        let needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
+        let needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_name: string]: boolean } } } = {};
         let matroids_done_by_page_widget_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: boolean } } = {};
         let pages_widgets_ids_to_exclude_by_alias_prefix: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: number[] } = {};
 
@@ -872,12 +869,12 @@ export default class ModuleVar extends Module {
             for (let api_type_id in needed_dimensions) {
                 let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
 
-                for (let field_id in needed_dimensions_api_type_id) {
+                for (let field_name in needed_dimensions_api_type_id) {
 
-                    let field_alias = this.get_var_param_field_name(api_type_id, field_id, page_widgets_ids_to_exclude_as_alias_prefix);
+                    let field_alias = this.get_var_param_field_name(api_type_id, field_name, page_widgets_ids_to_exclude_as_alias_prefix);
 
                     // On ajoute la colonne à la sub query - ARRAY_AGG(DISTINCT sub_query_table_alias.field_alias) as field_alias
-                    sub_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+                    sub_query.add_field(field_name, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
 
                     // On ajoute la colonne à la requete actuelle - sans aggreg puisque c'est déjà fait en subquery
                     context_query_actuelle.field(null, field_alias, sub_query_table_alias);
@@ -908,7 +905,7 @@ export default class ModuleVar extends Module {
                     sub_query_table_alias,
                     sub_query_field.alias,
                     field.api_type_id,
-                    field.field_id
+                    field.field_name
                 ));
             }
 
@@ -946,7 +943,7 @@ export default class ModuleVar extends Module {
                         continue;
                     }
 
-                    if ((filter.field_id == page_widget_options.vo_field_ref.field_id) &&
+                    if ((filter.field_name == page_widget_options.vo_field_ref.field_name) &&
                         (filter.vo_type == page_widget_options.vo_field_ref.api_type_id)) {
                         continue;
                     }
@@ -960,7 +957,7 @@ export default class ModuleVar extends Module {
 
     private init_maps_for_add_vars_params_columns_for_ref_ids_with_excluded_filters(
         columns: TableColumnDescVO[],
-        needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_id: string]: boolean } } },
+        needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_name: string]: boolean } } },
         matroids_done_by_page_widget_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: boolean } },
         pages_widgets_ids_to_exclude_by_alias_prefix: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: number[] }
     ) {
@@ -1034,7 +1031,7 @@ export default class ModuleVar extends Module {
     private add_vars_params_columns_for_ref_ids_without_excluded_filters(context_query: ContextQueryVO, columns: TableColumnDescVO[]) {
 
         // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
-        let needed_dimensions: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+        let needed_dimensions: { [api_type_id: string]: { [field_name: string]: boolean } } = {};
         let matroids_done: { [api_type_id: string]: boolean } = {};
 
         for (let j in columns) {
@@ -1093,11 +1090,11 @@ export default class ModuleVar extends Module {
         for (let api_type_id in needed_dimensions) {
             let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
 
-            for (let field_id in needed_dimensions_api_type_id) {
+            for (let field_name in needed_dimensions_api_type_id) {
 
-                let field_alias = this.get_var_param_field_name(api_type_id, field_id);
+                let field_alias = this.get_var_param_field_name(api_type_id, field_name);
 
-                context_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+                context_query.add_field(field_name, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
             }
         }
     }

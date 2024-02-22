@@ -35,10 +35,10 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
     }
 
     public dataToIHM(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
-        res[field.datatable_field_uid] = vo[field.module_table_field_id];
+        res[field.datatable_field_uid] = vo[field.module_table_field_name];
     }
     public IHMToData(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
-        res[field.module_table_field_id] = vo[field.datatable_field_uid];
+        res[field.module_table_field_name] = vo[field.datatable_field_uid];
     }
 
     public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {
@@ -73,10 +73,10 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
 
     public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableField<any>) {
 
-        if ((!e) || (!field) || (!e[field.field_id])) {
+        if ((!e) || (!field) || (!e[field.field_name])) {
             return;
         }
 
-        e[field.field_id] = JSON.parse(e[field.field_id]);
+        e[field.field_name] = JSON.parse(e[field.field_name]);
     }
 }

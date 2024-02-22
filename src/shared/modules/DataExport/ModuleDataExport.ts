@@ -113,9 +113,6 @@ export default class ModuleDataExport extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeExportLogVO();
         this.initializeExportHistoricVO();
 
@@ -162,22 +159,22 @@ export default class ModuleDataExport extends Module {
     }
 
     private initializeExportHistoricVO(): void {
-        let export_to_uid = new ModuleTableField('export_to_uid', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Destinataire - Utilisateur" }), false);
-        let exported_file_id = new ModuleTableField('exported_file_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Fichier exporté" }), false).not_add_to_crud();
+        let export_to_uid = new ModuleTableField(field_names<ExportHistoricVO>().export_to_uid, ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Destinataire - Utilisateur" }), false);
+        let exported_file_id = new ModuleTableField(field_names<ExportHistoricVO>().exported_file_id, ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Fichier exporté" }), false).not_add_to_crud();
 
         let datatable_fields = [
-            new ModuleTableField('export_type_id', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Type d'export" }), true),
-            new ModuleTableField('export_is_secured', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': "Fichier sécurisé" }), true, true, false),
-            new ModuleTableField('export_file_access_policy_name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Droit d\'accès au fichier" }), false),
-            new ModuleTableField('export_params_stringified', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Paramètres" }), false),
-            new ModuleTableField('export_to_mails', ModuleTableField.FIELD_TYPE_string_array, new DefaultTranslation({ 'fr-fr': "Emails destinataires" }), false),
+            new ModuleTableField(field_names<ExportHistoricVO>().export_type_id, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Type d'export" }), true),
+            new ModuleTableField(field_names<ExportHistoricVO>().export_is_secured, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': "Fichier sécurisé" }), true, true, false),
+            new ModuleTableField(field_names<ExportHistoricVO>().export_file_access_policy_name, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Droit d\'accès au fichier" }), false),
+            new ModuleTableField(field_names<ExportHistoricVO>().export_params_stringified, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Paramètres" }), false),
+            new ModuleTableField(field_names<ExportHistoricVO>().export_to_mails, ModuleTableField.FIELD_TYPE_string_array, new DefaultTranslation({ 'fr-fr': "Emails destinataires" }), false),
             export_to_uid,
             exported_file_id,
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, new DefaultTranslation({ 'fr-fr': "Status" }), true, true, ExportHistoricVO.EXPORT_STATE_TODO).setEnumValues(ExportHistoricVO.EXPORT_STATE_LABELS),
-            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date de création" }), true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date de début" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('sent_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date d'envoi" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('export_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date d'export" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<ExportHistoricVO>().state, ModuleTableField.FIELD_TYPE_enum, new DefaultTranslation({ 'fr-fr': "Status" }), true, true, ExportHistoricVO.EXPORT_STATE_TODO).setEnumValues(ExportHistoricVO.EXPORT_STATE_LABELS),
+            new ModuleTableField(field_names<ExportHistoricVO>().creation_date, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date de création" }), true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<ExportHistoricVO>().start_date, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date de début" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<ExportHistoricVO>().sent_date, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date d'envoi" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<ExportHistoricVO>().export_date, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date d'export" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
         let moduleTable: ModuleTable<ExportHistoricVO> = new ModuleTable<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);
@@ -253,12 +250,12 @@ export default class ModuleDataExport extends Module {
     }
 
     private initializeExportLogVO(): void {
-        let field_name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Nom de l'export" }), true);
-        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Utilisateur" }), true);
+        let field_name = new ModuleTableField(field_names<ExportLogVO>().name, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Nom de l'export" }), true);
+        let field_user_id = new ModuleTableField(field_names<ExportLogVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Utilisateur" }), true);
 
         let datatable_fields = [
             field_name,
-            new ModuleTableField('log_time', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date de l'export" })).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<ExportLogVO>().log_time, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': "Date de l'export" })).set_segmentation_type(TimeSegment.TYPE_SECOND),
             field_user_id
         ];
 

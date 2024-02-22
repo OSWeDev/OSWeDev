@@ -1,10 +1,9 @@
+import { field_names } from '../../../tools/ObjectHandler';
 import APIControllerWrapper from '../../API/APIControllerWrapper';
-import ModuleAPI from '../../API/ModuleAPI';
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
 import { query } from '../../ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
@@ -81,9 +80,6 @@ export default class ModuleProduit extends Module {
     // }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeCategorieProduit();
         this.initializeTypeProduit();
         this.initializeProduit();
@@ -93,7 +89,7 @@ export default class ModuleProduit extends Module {
 
     private initializeCategorieProduit(): void {
         // Table CategorieProduit
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('titre', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+        let default_label_field: ModuleTableField<string> = new ModuleTableField(field_names<CategorieProduitVO>().titre, ModuleTableField.FIELD_TYPE_string, 'Titre', true);
         let datatable_fields = [
             default_label_field,
         ];
@@ -102,12 +98,12 @@ export default class ModuleProduit extends Module {
 
     private initializeTypeProduit(): void {
         // Table TypeProduit
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('vo_type_produit', ModuleTableField.FIELD_TYPE_string, 'vo_type_produit', true);
-        let field_categorie_produit_id: ModuleTableField<number> = new ModuleTableField('categorie_produit_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Categorie produit', true);
+        let default_label_field: ModuleTableField<string> = new ModuleTableField(field_names<TypeProduitVO>().vo_type_produit, ModuleTableField.FIELD_TYPE_string, 'vo_type_produit', true);
+        let field_categorie_produit_id: ModuleTableField<number> = new ModuleTableField(field_names<TypeProduitVO>().categorie_produit_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Categorie produit', true);
 
         let datatable_fields = [
             default_label_field,
-            new ModuleTableField('vo_type_param', ModuleTableField.FIELD_TYPE_string, 'vo_type_param', true),
+            new ModuleTableField(field_names<TypeProduitVO>().vo_type_param, ModuleTableField.FIELD_TYPE_string, 'vo_type_param', true),
             field_categorie_produit_id,
         ];
 
@@ -118,17 +114,17 @@ export default class ModuleProduit extends Module {
 
     private initializeProduit(): void {
         // Table Produit
-        let field_type_produit_id: ModuleTableField<number> = new ModuleTableField('type_produit_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type produit', true);
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('titre', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+        let field_type_produit_id: ModuleTableField<number> = new ModuleTableField(field_names<ProduitVO>().type_produit_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Type produit', true);
+        let default_label_field: ModuleTableField<string> = new ModuleTableField(field_names<ProduitVO>().titre, ModuleTableField.FIELD_TYPE_string, 'Titre', true);
 
         let datatable_fields = [
             default_label_field,
-            new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true),
-            new ModuleTableField('prix', ModuleTableField.FIELD_TYPE_amount, 'Prix', true),
-            new ModuleTableField('tva', ModuleTableField.FIELD_TYPE_prct, 'TVA', true),
+            new ModuleTableField(field_names<ProduitVO>().actif, ModuleTableField.FIELD_TYPE_boolean, 'Actif', true),
+            new ModuleTableField(field_names<ProduitVO>().prix, ModuleTableField.FIELD_TYPE_amount, 'Prix', true),
+            new ModuleTableField(field_names<ProduitVO>().tva, ModuleTableField.FIELD_TYPE_prct, 'TVA', true),
             field_type_produit_id,
-            new ModuleTableField('picto', ModuleTableField.FIELD_TYPE_string, 'Picto'),
-            new ModuleTableField('is_complementaire', ModuleTableField.FIELD_TYPE_boolean, 'Complémentaire ?'),
+            new ModuleTableField(field_names<ProduitVO>().picto, ModuleTableField.FIELD_TYPE_string, 'Picto'),
+            new ModuleTableField(field_names<ProduitVO>().is_complementaire, ModuleTableField.FIELD_TYPE_boolean, 'Complémentaire ?'),
         ];
         let dt = new ModuleTable<ProduitVO>(this, ProduitVO.API_TYPE_ID, () => new ProduitVO(), datatable_fields, default_label_field, 'Produit');
         field_type_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TypeProduitVO.API_TYPE_ID]);
@@ -137,25 +133,25 @@ export default class ModuleProduit extends Module {
 
     private initializeFacturation(): void {
         // Table Produit
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('titre', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+        let default_label_field: ModuleTableField<string> = new ModuleTableField(field_names<FacturationVO>().titre, ModuleTableField.FIELD_TYPE_string, 'Titre', true);
 
         let datatable_fields = [
             default_label_field,
-            new ModuleTableField('frequence', ModuleTableField.FIELD_TYPE_int, 'Frequence', true),
-            new ModuleTableField('texte_affichage', ModuleTableField.FIELD_TYPE_string, 'Texte Affichage', true),
+            new ModuleTableField(field_names<FacturationVO>().frequence, ModuleTableField.FIELD_TYPE_int, 'Frequence', true),
+            new ModuleTableField(field_names<FacturationVO>().texte_affichage, ModuleTableField.FIELD_TYPE_string, 'Texte Affichage', true),
         ];
         this.datatables.push(new ModuleTable<FacturationVO>(this, FacturationVO.API_TYPE_ID, () => new FacturationVO(), datatable_fields, default_label_field, 'Facturation'));
     }
 
     private initializeFacturationProduit(): void {
         // Table Produit
-        let field_produit_id: ModuleTableField<number> = new ModuleTableField('produit_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Produit', true);
-        let field_facturation_id: ModuleTableField<number> = new ModuleTableField('facturation_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Facturation', true);
+        let field_produit_id: ModuleTableField<number> = new ModuleTableField(field_names<FacturationProduitVO>().produit_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Produit', true);
+        let field_facturation_id: ModuleTableField<number> = new ModuleTableField(field_names<FacturationProduitVO>().facturation_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Facturation', true);
 
         let datatable_fields = [
             field_produit_id,
             field_facturation_id,
-            new ModuleTableField('par_defaut', ModuleTableField.FIELD_TYPE_boolean, 'Par default'),
+            new ModuleTableField(field_names<FacturationProduitVO>().par_defaut, ModuleTableField.FIELD_TYPE_boolean, 'Par default'),
         ];
         let dt = new ModuleTable<FacturationProduitVO>(this, FacturationProduitVO.API_TYPE_ID, () => new FacturationProduitVO(), datatable_fields, null, 'Facturation Produit');
         field_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID]);

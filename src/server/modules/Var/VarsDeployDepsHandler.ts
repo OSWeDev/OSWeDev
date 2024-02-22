@@ -151,11 +151,11 @@ export default class VarsDeployDepsHandler {
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'IN');
 
-        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+        let pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO } = {};
         for (let i in varconf.pixel_fields) {
             let pixel_field = varconf.pixel_fields[i];
 
-            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+            pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
         }
 
         let pixel_query = query(varconf.var_data_vo_type)
@@ -185,23 +185,23 @@ export default class VarsDeployDepsHandler {
         // for (let i in matroid_fields) {
         //     let matroid_field = matroid_fields[i];
 
-        //     let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+        //     let pixellised = pixellised_fields_by_id[matroid_field.field_name];
 
         //     switch (matroid_field.field_type) {
         //         case ModuleTableField.FIELD_TYPE_numrange_array:
         //         case ModuleTableField.FIELD_TYPE_refrange_array:
         //         case ModuleTableField.FIELD_TYPE_isoweekdays:
         //             if (pixellised) {
-        //                 pixel_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_num_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 pixel_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_num_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
         //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
         //             if (pixellised) {
-        //                 pixel_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_date_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 pixel_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_date_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
         //         case ModuleTableField.FIELD_TYPE_hourrange_array:
@@ -268,7 +268,7 @@ export default class VarsDeployDepsHandler {
     private static async do_not_use_known_pixels(
         node: VarDAGNode,
         varconf: VarConfVO,
-        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
         DEBUG_VARS: boolean
@@ -303,7 +303,7 @@ export default class VarsDeployDepsHandler {
     private static async use_known_pixels(
         node: VarDAGNode,
         varconf: VarConfVO,
-        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
         DEBUG_VARS: boolean
@@ -330,23 +330,23 @@ export default class VarsDeployDepsHandler {
         // for (let i in matroid_fields) {
         //     let matroid_field = matroid_fields[i];
 
-        //     let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+        //     let pixellised = pixellised_fields_by_id[matroid_field.field_name];
 
         //     switch (matroid_field.field_type) {
         //         case ModuleTableField.FIELD_TYPE_numrange_array:
         //         case ModuleTableField.FIELD_TYPE_refrange_array:
         //         case ModuleTableField.FIELD_TYPE_isoweekdays:
         //             if (pixellised) {
-        //                 known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 known_pixels_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_num_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
         //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
         //             if (pixellised) {
-        //                 known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 known_pixels_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_date_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
         //         case ModuleTableField.FIELD_TYPE_hourrange_array:
@@ -405,29 +405,29 @@ export default class VarsDeployDepsHandler {
         aggregated_datas: { [index: string]: VarDataBaseVO },
         var_conf: VarConfVO,
         var_data: VarDataBaseVO,
-        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         cloned_var_data: VarDataBaseVO,
-        current_pixellised_field_id: string = null) {
+        current_pixellised_field_name: string = null) {
 
-        let can_check_field = !current_pixellised_field_id;
+        let can_check_field = !current_pixellised_field_name;
         for (let i in pixellised_fields_by_id) {
             let pixellised_field = pixellised_fields_by_id[i];
 
             if (!can_check_field) {
-                if (i == current_pixellised_field_id) {
+                if (i == current_pixellised_field_name) {
                     can_check_field = true;
                     continue;
                 }
             }
 
-            let field = VOsTypesManager.moduleTables_by_voType[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_id);
-            let segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_id]) ? var_conf.segment_types[field.field_id] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
+            let field = VOsTypesManager.moduleTables_by_voType[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_name);
+            let segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_name]) ? var_conf.segment_types[field.field_name] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
 
-            RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
+            RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_name], (pixel_value: number) => {
 
                 // Pas sur d'avoir besoin de cloner les fields, on tente sans, par ce que niveau perf ça devrait être mieux
                 let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, false);
-                new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.createNew(
+                new_var_data[pixellised_field.pixel_param_field_name] = [RangeHandler.createNew(
                     RangeHandler.getRangeType(field),
                     pixel_value,
                     pixel_value,

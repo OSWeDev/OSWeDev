@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import INamedVO from '../../interfaces/INamedVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -307,9 +308,6 @@ export default class ModuleDAO extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.init_CRUDFieldRemoverConfVO();
     }
 
@@ -347,9 +345,9 @@ export default class ModuleDAO extends Module {
     private init_CRUDFieldRemoverConfVO(): ModuleTable<any> {
 
         let datatable_fields = [
-            new ModuleTableField('module_table_vo_type', ModuleTableField.FIELD_TYPE_string, 'Vo Type', true, false),
-            new ModuleTableField('module_table_field_ids', ModuleTableField.FIELD_TYPE_string_array, 'Types', false),
-            new ModuleTableField('is_update', ModuleTableField.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
+            new ModuleTableField(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, ModuleTableField.FIELD_TYPE_string, 'Vo Type', true, false),
+            new ModuleTableField(field_names<CRUDFieldRemoverConfVO>().module_table_field_ids, ModuleTableField.FIELD_TYPE_string_array, 'Types', false),
+            new ModuleTableField(field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableField.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
         ];
 
         let res = new ModuleTable(this, CRUDFieldRemoverConfVO.API_TYPE_ID, () => new CRUDFieldRemoverConfVO(), datatable_fields, null, "Champs supprimés du CRUD");

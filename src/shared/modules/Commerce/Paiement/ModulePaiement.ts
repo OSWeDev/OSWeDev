@@ -1,3 +1,4 @@
+import { field_names } from '../../../tools/ObjectHandler';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
@@ -23,16 +24,13 @@ export default class ModulePaiement extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeModePaiement();
         this.initializePaiement();
     }
 
     public initializeModePaiement(): void {
         // Création de la table ModePaiement
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('mode', ModuleTableField.FIELD_TYPE_string, 'Mode');
+        let default_label_field: ModuleTableField<string> = new ModuleTableField(field_names<ModePaiementVO>().mode, ModuleTableField.FIELD_TYPE_string, 'Mode');
         let datatable_fields = [
             default_label_field,
         ];
@@ -41,13 +39,13 @@ export default class ModulePaiement extends Module {
 
     public initializePaiement(): void {
         // Création de la table Paiement
-        let field_abonnement_id: ModuleTableField<number> = new ModuleTableField('abonnement_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Abonnement', true);
-        let field_mode_paiement_id: ModuleTableField<number> = new ModuleTableField('mode_paiement_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Mode paiement', true);
+        let field_abonnement_id: ModuleTableField<number> = new ModuleTableField(field_names<PaiementVO>().abonnement_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Abonnement', true);
+        let field_mode_paiement_id: ModuleTableField<number> = new ModuleTableField(field_names<PaiementVO>().mode_paiement_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Mode paiement', true);
 
         let datatable_fields = [
             field_abonnement_id,
             field_mode_paiement_id,
-            new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_enum, 'Statut').setEnumValues({
+            new ModuleTableField(field_names<PaiementVO>().statut, ModuleTableField.FIELD_TYPE_enum, 'Statut').setEnumValues({
                 [PaiementVO.STATUT_ERREUR]: PaiementVO.STATUT_LABELS[PaiementVO.STATUT_ERREUR],
                 [PaiementVO.STATUT_SUCCES]: PaiementVO.STATUT_LABELS[PaiementVO.STATUT_SUCCES],
             }),

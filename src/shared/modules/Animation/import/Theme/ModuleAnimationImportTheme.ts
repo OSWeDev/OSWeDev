@@ -1,4 +1,5 @@
 import AccessPolicyTools from "../../../../tools/AccessPolicyTools";
+import { field_names } from "../../../../tools/ObjectHandler";
 import ModuleDataImport from "../../../DataImport/ModuleDataImport";
 import Module from "../../../Module";
 import ModuleTable from "../../../ModuleTable";
@@ -27,9 +28,6 @@ export default class ModuleAnimationImportTheme extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.intializeImport();
     }
 
@@ -38,10 +36,10 @@ export default class ModuleAnimationImportTheme extends Module {
 
         let datatable_fields = [
 
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'description', false),
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'name', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'weight', false),
-            new ModuleTableField('id_import', ModuleTableField.FIELD_TYPE_string, 'id_import', false),
+            new ModuleTableField(field_names<AnimationImportThemeVO>().description, ModuleTableField.FIELD_TYPE_string, 'description', false),
+            new ModuleTableField(field_names<AnimationImportThemeVO>().name, ModuleTableField.FIELD_TYPE_string, 'name', false),
+            new ModuleTableField(field_names<AnimationImportThemeVO>().weight, ModuleTableField.FIELD_TYPE_int, 'weight', false),
+            new ModuleTableField(field_names<AnimationImportThemeVO>().id_import, ModuleTableField.FIELD_TYPE_string, 'id_import', false),
         ];
 
         let datatable = new ModuleTable(this, AnimationImportThemeVO.API_TYPE_ID, () => new AnimationImportThemeVO(), datatable_fields, null, "Import des themes");

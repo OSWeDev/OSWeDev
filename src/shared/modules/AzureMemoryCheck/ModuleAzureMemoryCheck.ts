@@ -18,9 +18,4 @@ export default class ModuleAzureMemoryCheck extends Module {
         super("azurememorycheck", ModuleAzureMemoryCheck.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
-
-    public initialize() {
-        this.fields = [];
-        this.datatables = [];
-    }
 }

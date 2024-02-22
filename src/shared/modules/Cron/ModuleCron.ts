@@ -70,9 +70,6 @@ export default class ModuleCron extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         let label_field = new ModuleTableField(field_names<CronWorkerPlanification>().planification_uid, ModuleTableField.FIELD_TYPE_string, 'planification_uid', true).unique();
         let datatable_fields = [
             label_field,

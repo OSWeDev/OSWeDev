@@ -109,8 +109,6 @@ export default class ModuleGPT extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeGPTCompletionAPIConversationVO();
         this.initializeGPTCompletionAPIMessageVO();

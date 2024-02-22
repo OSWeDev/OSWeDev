@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -51,22 +52,20 @@ export default class ModuleSurvey extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeSurveyVO();
         this.initializeParamSurveyVO();
     }
 
     private initializeSurveyVO() {
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let user_id = new ModuleTableField(field_names<SurveyVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
 
         let fields = [
             user_id,
 
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', false).hide_from_datatable(),
-            new ModuleTableField('survey_type', ModuleTableField.FIELD_TYPE_enum, 'Avis', true).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
-            new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route du module enquêté', true).hide_from_datatable(),
+            new ModuleTableField(field_names<SurveyVO>().message, ModuleTableField.FIELD_TYPE_string, 'Message', false).hide_from_datatable(),
+            new ModuleTableField(field_names<SurveyVO>().survey_type, ModuleTableField.FIELD_TYPE_enum, 'Avis', true).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
+            new ModuleTableField(field_names<SurveyVO>().route_name, ModuleTableField.FIELD_TYPE_string, 'Route du module enquêté', true).hide_from_datatable(),
         ];
 
         let table = new ModuleTable(this, SurveyVO.API_TYPE_ID, () => new SurveyVO(), fields, null, 'Surveys');
@@ -80,10 +79,10 @@ export default class ModuleSurvey extends Module {
     private initializeParamSurveyVO() {
 
         let fields = [
-            new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route pour laquelle le survey existe ', true),
-            new ModuleTableField('pop_up', ModuleTableField.FIELD_TYPE_boolean, 'Affichage automatique ou manuel ?', false),
-            new ModuleTableField('time_before_pop_up', ModuleTableField.FIELD_TYPE_float, 'Temps avant affichage', true),
-            new ModuleTableField('content', ModuleTableField.FIELD_TYPE_html, 'Contenu'),
+            new ModuleTableField(field_names<SurveyParamVO>().route_name, ModuleTableField.FIELD_TYPE_string, 'Route pour laquelle le survey existe ', true),
+            new ModuleTableField(field_names<SurveyParamVO>().pop_up, ModuleTableField.FIELD_TYPE_boolean, 'Affichage automatique ou manuel ?', false),
+            new ModuleTableField(field_names<SurveyParamVO>().time_before_pop_up, ModuleTableField.FIELD_TYPE_float, 'Temps avant affichage', true),
+            new ModuleTableField(field_names<SurveyParamVO>().content, ModuleTableField.FIELD_TYPE_html, 'Contenu'),
         ];
 
         let table = new ModuleTable(this, SurveyParamVO.API_TYPE_ID, () => new SurveyParamVO(), fields, null, 'SurveysParam');

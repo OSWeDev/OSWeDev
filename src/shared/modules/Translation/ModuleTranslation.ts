@@ -1,8 +1,8 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -127,21 +127,19 @@ export default class ModuleTranslation extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         // Création de la table lang
-        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true).unique();
+        let label_field = new ModuleTableField(field_names<LangVO>().code_lang, ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true).unique();
         let datatable_fields = [
             label_field,
-            new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
-            new ModuleTableField('code_phone', ModuleTableField.FIELD_TYPE_string, 'Indicatif (+33)', false),
+            new ModuleTableField(field_names<LangVO>().code_flag, ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
+            new ModuleTableField(field_names<LangVO>().code_phone, ModuleTableField.FIELD_TYPE_string, 'Indicatif (+33)', false),
         ];
         let datatable_lang = new ModuleTable(this, LangVO.API_TYPE_ID, () => new LangVO(), datatable_fields, label_field, "Langues");
         this.datatables.push(datatable_lang);
 
         // Création de la table translatableText
-        label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true).unique();
+        label_field = new ModuleTableField(field_names<TranslatableTextVO>().code_text, ModuleTableField.FIELD_TYPE_string, 'Id du text', true).unique();
         datatable_fields = [
             label_field
         ];
@@ -149,9 +147,9 @@ export default class ModuleTranslation extends Module {
         this.datatables.push(datatable_translatabletext);
 
         // Création de la table translation
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
-        let field_text_id = new ModuleTableField('text_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Text', true);
-        label_field = new ModuleTableField('translated', ModuleTableField.FIELD_TYPE_string, 'Texte traduit', true);
+        let field_lang_id = new ModuleTableField(field_names<TranslationVO>().lang_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
+        let field_text_id = new ModuleTableField(field_names<TranslationVO>().text_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Text', true);
+        label_field = new ModuleTableField(field_names<TranslationVO>().translated, ModuleTableField.FIELD_TYPE_string, 'Texte traduit', true);
         datatable_fields = [
             field_lang_id,
             field_text_id,

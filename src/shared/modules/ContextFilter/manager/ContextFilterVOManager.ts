@@ -56,7 +56,7 @@ export default class ContextFilterVOManager {
         let context_filter = new ContextFilterVO();
 
         context_filter.vo_type = context_filter_to_add.vo_type;
-        context_filter.field_id = context_filter_to_add.field_id;
+        context_filter.field_name = context_filter_to_add.field_name;
         context_filter.filter_type = operator_type;
         context_filter.left_hook = context_filter_tree_root;
         context_filter.right_hook = context_filter_to_add;
@@ -82,12 +82,12 @@ export default class ContextFilterVOManager {
 
         let context_filter = new ContextFilterVO();
 
-        context_filter.field_id = vo_field_ref.field_id;
+        context_filter.field_name = vo_field_ref.field_name;
         context_filter.vo_type = vo_field_ref.api_type_id;
 
         let field_type = null;
 
-        if ((!field) && (vo_field_ref.field_id == 'id')) {
+        if ((!field) && (vo_field_ref.field_name == 'id')) {
             field_type = ModuleTableField.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;
@@ -181,8 +181,8 @@ export default class ContextFilterVOManager {
      *
      * TODO: to be continued (not finished)
      * TODO: case when we have multiple conditions on the same vo_type e.g.
-     * TODO: - we may search by the same field_id with different values
-     * TODO: - we may search by different field_id with any values
+     * TODO: - we may search by the same field_name with different values
+     * TODO: - we may search by different field_name with any values
      *
      * @param {ContextFilterVO} context_filter
      * @param {string} vo_type

@@ -7,5 +7,5 @@ export default class AnonymizationUserConfVO implements IDistantVOBase {
     public _type: string = AnonymizationUserConfVO.API_TYPE_ID;
 
     public user_id: number;
-    public anon_field_id: number;
+    public anon_field_name: number;
 }

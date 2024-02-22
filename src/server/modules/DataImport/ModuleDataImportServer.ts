@@ -1129,7 +1129,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     protected async get_batch_mode_batch_datas<T extends IImportedData>(raw_api_type_id: string, importHistoric: DataImportHistoricVO, format: DataImportFormatVO, offset: number, batch_size: number, importation_state: number): Promise<T[]> {
 
         let filter = new ContextFilterVO();
-        filter.field_id = field_names<IImportedData>().importation_state;
+        filter.field_name = field_names<IImportedData>().importation_state;
         filter.vo_type = raw_api_type_id;
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter.param_numeric = importation_state;
@@ -1206,7 +1206,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         res.nb_row_unvalidated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
         query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_row_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
-        let fields = moduletable.get_fields().map((field: ModuleTableField<any>) => field.field_id).join(') + COUNT(');
+        let fields = moduletable.get_fields().map((field: ModuleTableField<any>) => field.field_name).join(') + COUNT(');
         query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_fields_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
 
@@ -1230,7 +1230,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             for (let j in moduleTable.get_fields()) {
                 let field = moduleTable.get_fields()[j];
 
-                if (!!vo[field.field_id]) {
+                if (!!vo[field.field_name]) {
                     res.nb_fields_validated++;
                 }
             }
@@ -1325,10 +1325,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                      *      soit on a pas importé et on doit postpone
                      */
                     if (vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type] &&
-                        vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]]) {
+                        vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]]) {
 
                         if (ordered_vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type] &&
-                            ordered_vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]]) {
+                            ordered_vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]]) {
 
                             /**
                              * si on a pas la ref encore on la stocke
@@ -1337,19 +1337,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                                 ref_fields[vo_field.manyToOne_target_moduletable.vo_type] = {};
                             }
 
-                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]]) {
-                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]] = {};
+                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]]) {
+                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]] = {};
                             }
 
-                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type]) {
-                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type] = {};
+                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type]) {
+                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type] = {};
                             }
 
-                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type][vo.id]) {
-                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type][vo.id] = {};
+                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type][vo.id]) {
+                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type][vo.id] = {};
                             }
 
-                            ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type][vo.id][vo_field.field_id] = true;
+                            ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type][vo.id][vo_field.field_name] = true;
                             continue;
                         }
                         need_ref = true;
@@ -1467,11 +1467,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             if ((field.field_type == ModuleTableField.FIELD_TYPE_string) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_plain_vo_obj) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_textarea)) {
-                if (!vo[field.field_id]) {
+                if (!vo[field.field_name]) {
                     continue;
                 }
 
-                let m = reg_exp.exec(vo[field.field_id]);
+                let m = reg_exp.exec(vo[field.field_name]);
 
                 /**
                  * cf: https://regex101.com/codegen?language=javascript
@@ -1489,21 +1489,21 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     let end = m[4];
 
                     if (!ordered_vos_by_type_and_initial_id[vo_type]) {
-                        throw new Error('check_text_fields:referencing unknown type:' + vo[field.field_id] + ':' + start + ':' + vo_type + ':' + initial_id + ':' + end + ':');
+                        throw new Error('check_text_fields:referencing unknown type:' + vo[field.field_name] + ':' + start + ':' + vo_type + ':' + initial_id + ':' + end + ':');
                     }
 
                     if (!ordered_vos_by_type_and_initial_id[vo_type][initial_id]) {
-                        throw new Error('check_text_fields:referencing unknown id:' + vo[field.field_id] + ':' + start + ':' + vo_type + ':' + initial_id + ':' + end + ':');
+                        throw new Error('check_text_fields:referencing unknown id:' + vo[field.field_name] + ':' + start + ':' + vo_type + ':' + initial_id + ':' + end + ':');
                     }
 
-                    vo[field.field_id] = start + ordered_vos_by_type_and_initial_id[vo_type][initial_id].id + end;
+                    vo[field.field_name] = start + ordered_vos_by_type_and_initial_id[vo_type][initial_id].id + end;
 
-                    m = reg_exp.exec(vo[field.field_id]);
+                    m = reg_exp.exec(vo[field.field_name]);
                     /**
                      * Par ce que si on catch la dernière occurrence à chaque fois on remplace un élément et paf null derrière
                      */
                     if (!m) {
-                        m = reg_exp.exec(vo[field.field_id]);
+                        m = reg_exp.exec(vo[field.field_name]);
                     }
                 }
             }

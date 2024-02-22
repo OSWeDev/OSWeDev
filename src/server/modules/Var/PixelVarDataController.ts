@@ -30,8 +30,8 @@ export default class PixelVarDataController {
         for (let i in varconf.pixel_fields) {
             let pixel_field = varconf.pixel_fields[i];
 
-            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
-            let card = RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]);
+            pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
+            let card = RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_name]);
             prod_cardinaux *= card;
         }
 

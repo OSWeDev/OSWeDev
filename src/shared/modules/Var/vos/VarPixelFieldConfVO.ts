@@ -18,7 +18,7 @@ export default class VarPixelFieldConfVO implements IDistantVOBase {
     /**
      * Pour faire le lien avec le field_id du vardatabasevo (approche classique vardatabasevo)
      */
-    public pixel_param_field_id: string;
+    public pixel_param_field_name: string;
 
     /**
      * Les informations liées au range type, et surtout à la segmentation (typiquement sur un pixel de type tsrange)
@@ -37,7 +37,7 @@ export default class VarPixelFieldConfVO implements IDistantVOBase {
     }
 
     public set_param_field_id(param_field_id: string): VarPixelFieldConfVO {
-        this.pixel_param_field_id = param_field_id;
+        this.pixel_param_field_name = param_field_id;
         return this;
     }
 

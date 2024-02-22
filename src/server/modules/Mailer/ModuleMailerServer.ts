@@ -1,12 +1,13 @@
-import nodemailer from 'nodemailer';
-import { SendMailOptions } from 'nodemailer';
+import nodemailer, { SendMailOptions } from 'nodemailer';
 import { Address } from 'nodemailer/lib/mailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import TypesHandler from '../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
@@ -126,16 +127,26 @@ export default class ModuleMailerServer extends ModuleServerBase {
             }
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
 
-            mailOptions.from = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_FROM);
+            let prefix: string = null;
+            let suffix: string = null;
+            await all_promises([
+                (async () => {
+                    mailOptions.from = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_FROM, ModuleMailer.DEFAULT_FROM, 1000 * 60 * 5); // 5 minutes
+                })(),
+                (async () => {
+                    prefix = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_PREFIX, ModuleMailer.DEFAULT_SUBJECT_PREFIX, 1000 * 60 * 5); // 5 minutes
+                })(),
+                (async () => {
+                    suffix = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX, ModuleMailer.DEFAULT_SUBJECT_SUFFIX, 1000 * 60 * 5); // 5 minutes
+                })()
+            ]);
 
-            let prefix: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SUBJECT_PREFIX);
-            let suffix: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX);
             mailOptions.subject = (prefix ? prefix : '') + mailOptions.subject + (suffix ? suffix : '');
 
             try {
-                let mailtransport = nodemailer.createTransport(this.get_transporter());
+                let mailtransport = await nodemailer.createTransport(this.get_transporter());
 
                 ConsoleHandler.log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
 
@@ -222,25 +233,47 @@ export default class ModuleMailerServer extends ModuleServerBase {
         return whitelisted_emails.indexOf(address_.address) >= 0;
     }
 
-    private get_transporter() {
-        let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
-        let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);
+    private async get_transporter() {
+
+        let user: string = null;
+        let pass: string = null;
+        let host: string = null;
+        let port: number = null;
+        let secure: boolean = null;
+        await all_promises([
+            (async () => {
+                user = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_USER, ModuleMailer.DEFAULT_AUTH_USER, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                pass = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_PASS, ModuleMailer.DEFAULT_AUTH_PASS, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                host = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_HOST, ModuleMailer.DEFAULT_HOST, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                port = await ModuleParams.getInstance().getParamValueAsInt(ModuleMailer.PARAM_NAME_PORT, ModuleMailer.DEFAULT_PORT, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                secure = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleMailer.PARAM_NAME_SECURE, ModuleMailer.DEFAULT_SECURE, 1000 * 60 * 5); // 5 minutes
+            })()
+        ]);
+
         if (user && (user != '') && pass && (pass != '')) {
             return new SMTPTransport({
-                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE),
+                host,
+                port,
+                secure,
                 auth: {
-                    user: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER),
-                    pass: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS),
+                    user,
+                    pass
                 }
             });
         }
 
         return new SMTPTransport({
-            host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-            port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-            secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
+            host,
+            port,
+            secure
         });
     }
 }

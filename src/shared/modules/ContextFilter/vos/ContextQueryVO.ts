@@ -373,7 +373,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
             return false;
         }
 
-        return this.fields?.find((f) => f.field_id == field_id) != null;
+        return this.fields?.find((f) => f.field_name == field_id) != null;
     }
 
     /**
@@ -405,7 +405,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         }
 
         this.fields = this.fields.map((f) => {
-            if (f.field_id == field_id) {
+            if (f.field_name == field_id) {
                 return field;
             }
             return f;

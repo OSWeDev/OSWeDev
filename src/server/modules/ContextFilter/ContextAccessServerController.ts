@@ -32,7 +32,7 @@ export default class ContextAccessServerController {
             for (let i in fields) {
                 let field = fields[i];
 
-                if (!ContextAccessServerController.check_access_to_field(field.api_type_id, field.field_id, access_type, roles)) {
+                if (!ContextAccessServerController.check_access_to_field(field.api_type_id, field.field_name, access_type, roles)) {
                     return false;
                 }
             }

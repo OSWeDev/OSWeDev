@@ -1,5 +1,6 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
+import { field_names } from '../../tools/ObjectHandler';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -34,14 +35,12 @@ export default class ModuleUserLogVars extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeUserMinDataRangesVO();
         this.initializeUserDataRangesVO();
     }
     private initializeUserDataRangesVO() {
-        let user_id_ranges = new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = new ModuleTableField(field_names<UserDataRangesVO>().user_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
 
         let datatable_fields = [
             user_id_ranges,
@@ -52,11 +51,11 @@ export default class ModuleUserLogVars extends Module {
     }
 
     private initializeUserMinDataRangesVO() {
-        let user_id_ranges = new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = new ModuleTableField(field_names<UserMinDataRangesVO>().user_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
 
         let datatable_fields = [
             user_id_ranges,
-            new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(false),
+            new ModuleTableField(field_names<UserMinDataRangesVO>().ts_ranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(false),
         ];
 
         VarsInitController.getInstance().register_var_data(UserMinDataRangesVO.API_TYPE_ID, () => new UserMinDataRangesVO(), datatable_fields, this);

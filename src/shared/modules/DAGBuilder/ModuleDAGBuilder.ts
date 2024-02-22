@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -33,9 +34,6 @@ export default class ModuleDAGBuilder extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.init_DAGBuilderNodeVO();
         this.init_DAGBuilderEdgeVO();
     }
@@ -43,30 +41,27 @@ export default class ModuleDAGBuilder extends Module {
     private init_DAGBuilderNodeVO() {
 
         let datatable_fields = [
-            new ModuleTableField('x', ModuleTableField.FIELD_TYPE_float, 'x', true),
-            new ModuleTableField('y', ModuleTableField.FIELD_TYPE_float, 'y', true),
-            new ModuleTableField('component', ModuleTableField.FIELD_TYPE_string, 'component', false),
-            new ModuleTableField('content', ModuleTableField.FIELD_TYPE_string, 'content', false),
-            new ModuleTableField('props_json', ModuleTableField.FIELD_TYPE_string, 'props_json', false)
+            new ModuleTableField(field_names<DAGBuilderNodeVO>().x, ModuleTableField.FIELD_TYPE_float, 'x', true),
+            new ModuleTableField(field_names<DAGBuilderNodeVO>().y, ModuleTableField.FIELD_TYPE_float, 'y', true),
+            new ModuleTableField(field_names<DAGBuilderNodeVO>().component, ModuleTableField.FIELD_TYPE_string, 'component', false),
+            new ModuleTableField(field_names<DAGBuilderNodeVO>().content, ModuleTableField.FIELD_TYPE_string, 'content', false),
+            new ModuleTableField(field_names<DAGBuilderNodeVO>().props_json, ModuleTableField.FIELD_TYPE_string, 'props_json', false)
         ];
 
         let datatable = new ModuleTable(this, DAGBuilderNodeVO.API_TYPE_ID, () => new DAGBuilderNodeVO(), datatable_fields, null, "DAGBuilder Node");
     }
 
     private init_DAGBuilderEdgeVO() {
-        this.fields = [];
-        this.datatables = [];
-
-        let from = new ModuleTableField('from', ModuleTableField.FIELD_TYPE_string, 'from', true);
-        let to = new ModuleTableField('to', ModuleTableField.FIELD_TYPE_string, 'to', true);
+        let from = new ModuleTableField(field_names<DAGBuilderEdgeVO>().from, ModuleTableField.FIELD_TYPE_string, 'from', true);
+        let to = new ModuleTableField(field_names<DAGBuilderEdgeVO>().to, ModuleTableField.FIELD_TYPE_string, 'to', true);
 
         let datatable_fields = [
             from,
             to,
-            new ModuleTableField('fromLink', ModuleTableField.FIELD_TYPE_string, 'fromLink', false),
-            new ModuleTableField('toLink', ModuleTableField.FIELD_TYPE_string, 'toLink', false),
-            new ModuleTableField('edgeColor', ModuleTableField.FIELD_TYPE_string, 'edgeColor', false),
-            new ModuleTableField('arrowColor', ModuleTableField.FIELD_TYPE_string, 'arrowColor', false),
+            new ModuleTableField(field_names<DAGBuilderEdgeVO>().fromLink, ModuleTableField.FIELD_TYPE_string, 'fromLink', false),
+            new ModuleTableField(field_names<DAGBuilderEdgeVO>().toLink, ModuleTableField.FIELD_TYPE_string, 'toLink', false),
+            new ModuleTableField(field_names<DAGBuilderEdgeVO>().edgeColor, ModuleTableField.FIELD_TYPE_string, 'edgeColor', false),
+            new ModuleTableField(field_names<DAGBuilderEdgeVO>().arrowColor, ModuleTableField.FIELD_TYPE_string, 'arrowColor', false),
         ];
 
         let datatable = new ModuleTable(this, DAGBuilderEdgeVO.API_TYPE_ID, () => new DAGBuilderEdgeVO(), datatable_fields, null, "DAGBuilder Edge");

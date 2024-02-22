@@ -1,10 +1,10 @@
+import { field_names } from '../../../tools/ObjectHandler';
 import APIControllerWrapper from '../../API/APIControllerWrapper';
 import NumberAndStringParamVO, { NumberAndStringParamVOStatic } from '../../API/vos/apis/NumberAndStringParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
 import { query } from '../../ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
@@ -85,20 +85,17 @@ export default class ModuleCommande extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeCommande();
         this.initializeLigneCommande();
     }
 
     public initializeCommande(): void {
         // Table Commande
-        let field_client_id: ModuleTableField<number> = new ModuleTableField('client_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Client', true);
+        let field_client_id: ModuleTableField<number> = new ModuleTableField(field_names<CommandeVO>().client_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Client', true);
         let datatable_fields = [
-            new ModuleTableField('identifiant', ModuleTableField.FIELD_TYPE_string, 'Identifiant', true),
-            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
-            new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
+            new ModuleTableField(field_names<CommandeVO>().identifiant, ModuleTableField.FIELD_TYPE_string, 'Identifiant', true),
+            new ModuleTableField(field_names<CommandeVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
+            new ModuleTableField(field_names<CommandeVO>().statut, ModuleTableField.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
                 [CommandeVO.STATUT_PANIER]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_PANIER],
                 [CommandeVO.STATUT_ANNULE]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_ANNULE],
                 [CommandeVO.STATUT_EN_ATTENTE]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_EN_ATTENTE],
@@ -117,13 +114,13 @@ export default class ModuleCommande extends Module {
 
     public initializeLigneCommande(): void {
         // Table Ligne De Commande
-        let field_commande_id: ModuleTableField<number> = new ModuleTableField('commande_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Commande', true);
-        let field_produit_id: ModuleTableField<number> = new ModuleTableField('produit_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Produit', true);
-        let field_informations_id: ModuleTableField<number> = new ModuleTableField('informations_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Informations', true);
+        let field_commande_id: ModuleTableField<number> = new ModuleTableField(field_names<LigneCommandeVO>().commande_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Commande', true);
+        let field_produit_id: ModuleTableField<number> = new ModuleTableField(field_names<LigneCommandeVO>().produit_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Produit', true);
+        let field_informations_id: ModuleTableField<number> = new ModuleTableField(field_names<LigneCommandeVO>().informations_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Informations', true);
 
         let datatable_fields = [
-            new ModuleTableField('prix_unitaire', ModuleTableField.FIELD_TYPE_amount, 'Prix unitaire', true),
-            new ModuleTableField('quantite', ModuleTableField.FIELD_TYPE_float, 'Quantite', true),
+            new ModuleTableField(field_names<LigneCommandeVO>().prix_unitaire, ModuleTableField.FIELD_TYPE_amount, 'Prix unitaire', true),
+            new ModuleTableField(field_names<LigneCommandeVO>().quantite, ModuleTableField.FIELD_TYPE_float, 'Quantite', true),
             field_commande_id,
             field_produit_id,
             field_informations_id

@@ -1,3 +1,4 @@
+import { field_names } from '../tools/ObjectHandler';
 import IDistantVOBase from './IDistantVOBase';
 import IModuleBase from "./IModuleBase";
 import Module from './Module';
@@ -37,10 +38,10 @@ export default class ModulesManager {
     private constructor() {
 
         // Il faut quand même qu'on register une moduleTable pour le admin.modules
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), true);
+        let label_field = new ModuleTableField(field_names<ModuleVO>().name, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), true);
         let fields = [
             label_field,
-            new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Actif' }), true),
+            new ModuleTableField(field_names<ModuleVO>().actif, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Actif' }), true),
         ];
         let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(
             null, ModuleVO.API_TYPE_ID, () => new ModuleVO(), fields, label_field, new DefaultTranslation({ 'fr-fr': 'Modules' }));

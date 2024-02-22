@@ -705,15 +705,15 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
 
                     // cas spécifique de l'id
-                    if (field.field_id == 'id') {
+                    if (field.field_name == 'id') {
                         res[i][field.alias] = parseInt(data[field.alias]);
                         return;
                     }
 
-                    let table_field = table.get_field_by_id(field.field_id);
+                    let table_field = table.get_field_by_id(field.field_name);
 
                     if (!table_field) {
-                        ConsoleHandler.error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_id + ':type:' + field.api_type_id + ':');
+                        ConsoleHandler.error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_name + ':type:' + field.api_type_id + ':');
                         throw new Error('Unknown field');
                     }
 
@@ -1332,14 +1332,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         let src_field_id = (field_alias ? field_alias : field.field_id) + (use_raw_field ? '__raw' : '');
         let dest_field_id = (field_alias ? field_alias : field.field_id);
-
-        /**
-         * Si le champ possible un custom_to_api
-         */
-        if (!!field.custom_translate_to_xlsx) {
-            dest_vo[dest_field_id] = field.custom_translate_to_xlsx(src_vo[src_field_id]);
-            return;
-        }
 
         switch (field.field_type) {
 

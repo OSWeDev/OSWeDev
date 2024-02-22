@@ -29,9 +29,9 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
     public api_type_id: string;
 
     /**
-     * field_id du champs ciblé. Si le field est null, on considère que c'est un champs calculé défini par ailleurs et on affiche directement l'alias sans filtre
+     * field_name du champs ciblé. Si le field est null, on considère que c'est un champs calculé défini par ailleurs et on affiche directement l'alias sans filtre
      */
-    public field_id: string;
+    public field_name: string;
 
     /**
      * Alias optionnel pour retrouver le champs dans les résultats de la requête
@@ -44,7 +44,7 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
     public aggregator: number;
 
     /**
-     * Fonction modificatrice du champs, exemple NULL_IF(field_id, NaN) pour faire des SUM sur des champs qui peuvent être NaN au lieu de null
+     * Fonction modificatrice du champs, exemple NULL_IF(field_name, NaN) pour faire des SUM sur des champs qui peuvent être NaN au lieu de null
      */
     public modifier: number;
 
@@ -55,14 +55,14 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
 
     public constructor(
         api_type_id: string = null,
-        field_id: string = null,
+        field_name: string = null,
         alias: string = null,
         aggregator: number = VarConfVO.NO_AGGREGATOR,
         modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
         cast_with: string = null
     ) {
         this.api_type_id = api_type_id;
-        this.field_id = field_id;
+        this.field_name = field_name;
         this.alias = alias;
         this.aggregator = aggregator;
         this.modifier = modifier;
@@ -77,7 +77,7 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
         }
 
         log_func('ContextQueryFieldVO - api_type_id:' + this.api_type_id);
-        log_func('                    - field_id: ' + this.field_id);
+        log_func('                    - field_name: ' + this.field_name);
         log_func('                    - alias:' + this.alias);
         log_func('                    - aggregator:' + this.aggregator);
         log_func('                    - modifier:' + this.modifier);

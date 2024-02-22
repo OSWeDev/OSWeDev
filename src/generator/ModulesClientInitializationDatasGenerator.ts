@@ -156,12 +156,6 @@ export default class ModulesClientInitializationDatasGenerator {
 
         fileContent = "    Module" + module.reflexiveClassName + ".getInstance().actif = true;\n";
 
-        for (let i in module.fields) {
-            let field = module.fields[i];
-
-            fileContent += "    Module" + module.reflexiveClassName + ".getInstance().setParamValue(\"" + field.field_id + "\", " + JSON.stringify(field.field_value) + ");\n";
-        }
-
         return fileContent;
     }
 

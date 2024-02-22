@@ -57,10 +57,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return amountFilter.read(field_value);
 
                 case ModuleTableField.FIELD_TYPE_translatable_text:
-                    if (!!this.moduleTableField.translatable_params_field_id) {
+                    if (!!this.moduleTableField.translatable_params_field_name) {
                         let params = null;
                         try {
-                            params = JSON.parse(vo[this.moduleTableField.translatable_params_field_id]);
+                            params = JSON.parse(vo[this.moduleTableField.translatable_params_field_name]);
                         } catch (error) {
                             ConsoleHandler.error(error);
                         }

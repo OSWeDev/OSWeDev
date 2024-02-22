@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import NumSegment from '../DataRender/vos/NumSegment';
@@ -53,8 +54,6 @@ export default class ModuleStats extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeStatsThreadVO();
         this.initializeStatsCategoryVO();
@@ -82,11 +81,11 @@ export default class ModuleStats extends Module {
     }
 
     private initializeStatsGroupSecDataRangesVO() {
-        let stats_groupe_id_ranges = new ModuleTableField('stats_groupe_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Groupe de stats', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let stats_groupe_id_ranges = new ModuleTableField(field_names<StatsGroupSecDataRangesVO>().stats_groupe_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Groupe de stats', true).set_segmentation_type(NumSegment.TYPE_INT);
 
         let datatable_fields = [
             stats_groupe_id_ranges,
-            new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(false),
+            new ModuleTableField(field_names<StatsGroupSecDataRangesVO>().ts_ranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(false),
         ];
 
         VarsInitController.getInstance().register_var_data(StatsGroupSecDataRangesVO.API_TYPE_ID, () => new StatsGroupSecDataRangesVO(), datatable_fields, this);
@@ -94,12 +93,12 @@ export default class ModuleStats extends Module {
     }
 
     private initializeStatVO() {
-        let stat_group_id = new ModuleTableField('stat_group_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Groupe de stats', true);
+        let stat_group_id = new ModuleTableField(field_names<StatVO>().stat_group_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Groupe de stats', true);
 
         let fields = [
             stat_group_id,
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
-            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true).index(),
+            new ModuleTableField(field_names<StatVO>().value, ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
+            new ModuleTableField(field_names<StatVO>().timestamp_s, ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true).index(),
         ];
 
         let table = new ModuleTable(this, StatVO.API_TYPE_ID, () => new StatVO(), fields, null, 'Stats');
@@ -111,17 +110,17 @@ export default class ModuleStats extends Module {
     private initializeStatClientWrapperVO() {
 
         let fields = [
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
-            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true).index(),
+            new ModuleTableField(field_names<StatClientWrapperVO>().value, ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
+            new ModuleTableField(field_names<StatClientWrapperVO>().timestamp_s, ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true).index(),
 
-            new ModuleTableField('tmp_category_name', ModuleTableField.FIELD_TYPE_string, 'Catégorie - temp', false),
-            new ModuleTableField('tmp_sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - temp', false),
-            new ModuleTableField('tmp_event_name', ModuleTableField.FIELD_TYPE_string, 'Evènement - temp', false),
-            new ModuleTableField('tmp_stat_type_name', ModuleTableField.FIELD_TYPE_string, 'Type - temp', false),
-            new ModuleTableField('tmp_thread_name', ModuleTableField.FIELD_TYPE_string, 'Thread - temp', false),
+            new ModuleTableField(field_names<StatClientWrapperVO>().tmp_category_name, ModuleTableField.FIELD_TYPE_string, 'Catégorie - temp', false),
+            new ModuleTableField(field_names<StatClientWrapperVO>().tmp_sub_category_name, ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - temp', false),
+            new ModuleTableField(field_names<StatClientWrapperVO>().tmp_event_name, ModuleTableField.FIELD_TYPE_string, 'Evènement - temp', false),
+            new ModuleTableField(field_names<StatClientWrapperVO>().tmp_stat_type_name, ModuleTableField.FIELD_TYPE_string, 'Type - temp', false),
+            new ModuleTableField(field_names<StatClientWrapperVO>().tmp_thread_name, ModuleTableField.FIELD_TYPE_string, 'Thread - temp', false),
 
-            new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
-            new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND).setEnumValues(TimeSegment.TYPE_NAMES_ENUM),
+            new ModuleTableField(field_names<StatClientWrapperVO>().stats_aggregator, ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
+            new ModuleTableField(field_names<StatClientWrapperVO>().stats_aggregator_min_segment_type, ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND).setEnumValues(TimeSegment.TYPE_NAMES_ENUM),
         ];
 
         let table = new ModuleTable(this, StatClientWrapperVO.API_TYPE_ID, () => new StatClientWrapperVO(), fields, null, 'Stats - Client side wrapper');
@@ -130,13 +129,13 @@ export default class ModuleStats extends Module {
 
     private initializeStatsGroupVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du groupe', true).unique(true);
+        let name_field = new ModuleTableField(field_names<StatsGroupVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom du groupe', true).unique(true);
 
-        let category_id = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', false);
-        let sub_category_id = new ModuleTableField('sub_category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Sous-catégorie', false);
-        let event_id = new ModuleTableField('event_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Evènement', false);
-        let stat_type_id = new ModuleTableField('stat_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type', false);
-        let thread_id = new ModuleTableField('thread_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Thread', false);
+        let category_id = new ModuleTableField(field_names<StatsGroupVO>().category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', false);
+        let sub_category_id = new ModuleTableField(field_names<StatsGroupVO>().sub_category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Sous-catégorie', false);
+        let event_id = new ModuleTableField(field_names<StatsGroupVO>().event_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Evènement', false);
+        let stat_type_id = new ModuleTableField(field_names<StatsGroupVO>().stat_type_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Type', false);
+        let thread_id = new ModuleTableField(field_names<StatsGroupVO>().thread_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Thread', false);
 
         let fields = [
             name_field,
@@ -147,14 +146,14 @@ export default class ModuleStats extends Module {
             stat_type_id,
             thread_id,
 
-            new ModuleTableField('category_name', ModuleTableField.FIELD_TYPE_string, 'Catégorie', false),
-            new ModuleTableField('sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie', false),
-            new ModuleTableField('event_name', ModuleTableField.FIELD_TYPE_string, 'Evènement', false),
-            new ModuleTableField('stat_type_name', ModuleTableField.FIELD_TYPE_string, 'Type', false),
-            new ModuleTableField('thread_name', ModuleTableField.FIELD_TYPE_string, 'Thread', false),
+            new ModuleTableField(field_names<StatsGroupVO>().category_name, ModuleTableField.FIELD_TYPE_string, 'Catégorie', false),
+            new ModuleTableField(field_names<StatsGroupVO>().sub_category_name, ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie', false),
+            new ModuleTableField(field_names<StatsGroupVO>().event_name, ModuleTableField.FIELD_TYPE_string, 'Evènement', false),
+            new ModuleTableField(field_names<StatsGroupVO>().stat_type_name, ModuleTableField.FIELD_TYPE_string, 'Type', false),
+            new ModuleTableField(field_names<StatsGroupVO>().thread_name, ModuleTableField.FIELD_TYPE_string, 'Thread', false),
 
-            new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS).index(),
-            new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<StatsGroupVO>().stats_aggregator, ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS).index(),
+            new ModuleTableField(field_names<StatsGroupVO>().stats_aggregator_min_segment_type, ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
         ];
 
         let table = new ModuleTable(this, StatsGroupVO.API_TYPE_ID, () => new StatsGroupVO(), fields, name_field, 'Groupes de stats');
@@ -169,18 +168,18 @@ export default class ModuleStats extends Module {
 
     // private initializeStatsGroupCacheLinkVO() {
 
-    //     let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du groupe - cache', true).unique(true);
+    //     let name_field = new ModuleTableField(field_names<SendInBlueVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom du groupe - cache', true).unique(true);
 
     //     let fields = [
     //         name_field,
 
-    //         new ModuleTableField('category_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la catégorie', true),
-    //         new ModuleTableField('sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la sous-catégorie', true),
-    //         new ModuleTableField('event_name', ModuleTableField.FIELD_TYPE_string, 'Nom de l\'évènement', true),
-    //         new ModuleTableField('thread_name', ModuleTableField.FIELD_TYPE_string, 'Nom du thread', true),
+    //         new ModuleTableField(field_names<SendInBlueVO>().category_name, ModuleTableField.FIELD_TYPE_string, 'Nom de la catégorie', true),
+    //         new ModuleTableField(field_names<SendInBlueVO>().sub_category_name, ModuleTableField.FIELD_TYPE_string, 'Nom de la sous-catégorie', true),
+    //         new ModuleTableField(field_names<SendInBlueVO>().event_name, ModuleTableField.FIELD_TYPE_string, 'Nom de l\'évènement', true),
+    //         new ModuleTableField(field_names<SendInBlueVO>().thread_name, ModuleTableField.FIELD_TYPE_string, 'Nom du thread', true),
 
-    //         new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
-    //         new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
+    //         new ModuleTableField(field_names<SendInBlueVO>().stats_aggregator, ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
+    //         new ModuleTableField(field_names<SendInBlueVO>().stats_aggregator_min_segment_type, ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
     //     ];
 
     //     let table = new ModuleTable(this, StatsGroupCacheLinkVO.API_TYPE_ID, () => new StatsGroupCacheLinkVO(), fields, name_field, 'Groupes de stats - cache');
@@ -190,7 +189,7 @@ export default class ModuleStats extends Module {
 
     private initializeStatsCategoryVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Catégorie', true).unique(true);
+        let name_field = new ModuleTableField(field_names<StatsCategoryVO>().name, ModuleTableField.FIELD_TYPE_string, 'Catégorie', true).unique(true);
         let fields = [
             name_field,
         ];
@@ -202,8 +201,8 @@ export default class ModuleStats extends Module {
 
     private initializeStatsSubCategoryVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie', true).index();
-        let category_id = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', true);
+        let name_field = new ModuleTableField(field_names<StatsSubCategoryVO>().name, ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie', true).index();
+        let category_id = new ModuleTableField(field_names<StatsSubCategoryVO>().category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', true);
         let fields = [
             name_field,
             category_id,
@@ -217,11 +216,11 @@ export default class ModuleStats extends Module {
 
     // private initializeStatsSubCategoryCacheLinkVO() {
 
-    //     let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - cache', true).index();
+    //     let name_field = new ModuleTableField(field_names<SendInBlueVO>().name, ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - cache', true).index();
 
     //     let fields = [
     //         name_field,
-    //         new ModuleTableField('category_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la catégorie', true),
+    //         new ModuleTableField(field_names<SendInBlueVO>().category_name, ModuleTableField.FIELD_TYPE_string, 'Nom de la catégorie', true),
     //     ];
 
     //     let table = new ModuleTable(this, StatsSubCategoryCacheLinkVO.API_TYPE_ID, () => new StatsSubCategoryCacheLinkVO(), fields, name_field, 'Sous-catégories de stats - cache');
@@ -231,7 +230,7 @@ export default class ModuleStats extends Module {
 
     private initializeStatsTypeVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Type de stat', true).index();
+        let name_field = new ModuleTableField(field_names<StatsTypeVO>().name, ModuleTableField.FIELD_TYPE_string, 'Type de stat', true).index();
 
         let fields = [
             name_field
@@ -244,8 +243,8 @@ export default class ModuleStats extends Module {
 
     private initializeStatsEventVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Evènement', true).index();
-        let sub_category_id = new ModuleTableField('sub_category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Sous-catégorie', true);
+        let name_field = new ModuleTableField(field_names<StatsEventVO>().name, ModuleTableField.FIELD_TYPE_string, 'Evènement', true).index();
+        let sub_category_id = new ModuleTableField(field_names<StatsEventVO>().sub_category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Sous-catégorie', true);
 
         let fields = [
             name_field,
@@ -260,11 +259,11 @@ export default class ModuleStats extends Module {
 
     // private initializeStatsEventCacheLinkVO() {
 
-    //     let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Evènement - cache', true).index();
+    //     let name_field = new ModuleTableField(field_names<SendInBlueVO>().name, ModuleTableField.FIELD_TYPE_string, 'Evènement - cache', true).index();
 
     //     let fields = [
     //         name_field,
-    //         new ModuleTableField('sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la sous-catégorie', true),
+    //         new ModuleTableField(field_names<SendInBlueVO>().sub_category_name, ModuleTableField.FIELD_TYPE_string, 'Nom de la sous-catégorie', true),
     //     ];
 
     //     let table = new ModuleTable(this, StatsEventCacheLinkVO.API_TYPE_ID, () => new StatsEventCacheLinkVO(), fields, name_field, 'Evènements de stats - cache');
@@ -275,11 +274,11 @@ export default class ModuleStats extends Module {
 
     private initializeStatsThreadVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom principal du Thread', true).unique(true);
+        let name_field = new ModuleTableField(field_names<StatsThreadVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom principal du Thread', true).unique(true);
 
         let fields = [
             name_field,
-            new ModuleTableField('aliases', ModuleTableField.FIELD_TYPE_string_array, 'Alias', false)
+            new ModuleTableField(field_names<StatsThreadVO>().aliases, ModuleTableField.FIELD_TYPE_string_array, 'Alias', false)
         ];
 
         let table = new ModuleTable(this, StatsThreadVO.API_TYPE_ID, () => new StatsThreadVO(), fields, name_field, 'Threads');

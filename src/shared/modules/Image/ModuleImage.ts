@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -30,10 +31,8 @@ export default class ModuleImage extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
-        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_image_field, 'Image', true).unique();
+        let label_field = new ModuleTableField(field_names<ImageVO>().path, ModuleTableField.FIELD_TYPE_image_field, 'Image', true).unique();
         let datatable_fields = [
             label_field,
         ];

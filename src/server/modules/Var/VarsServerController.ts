@@ -405,7 +405,7 @@ export default class VarsServerController {
                         for (let i in daoVarConf.pixel_fields) {
                             let pixel_field = daoVarConf.pixel_fields[i];
 
-                            if ((pixel_field.pixel_param_field_id == null) ||
+                            if ((pixel_field.pixel_param_field_name == null) ||
                                 (pixel_field.pixel_vo_api_type_id == null) ||
                                 (pixel_field.pixel_vo_field_id == null) ||
                                 (pixel_field.pixel_range_type == null) ||

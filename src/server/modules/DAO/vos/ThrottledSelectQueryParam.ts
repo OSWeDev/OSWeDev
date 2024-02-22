@@ -83,8 +83,8 @@ export default class ThrottledSelectQueryParam {
                             throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery field found');
                         }
 
-                        table_field_type = (sub_field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
-                            VOsTypesManager.moduleTables_by_voType[sub_field.api_type_id].getFieldFromId(sub_field.field_id)?.field_type ?? 'N/A';
+                        table_field_type = (sub_field.field_name == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                            VOsTypesManager.moduleTables_by_voType[sub_field.api_type_id].getFieldFromId(sub_field.field_name)?.field_type ?? 'N/A';
                     } else {
                         table_field_type = (field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
                             VOsTypesManager.moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';

@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -7,7 +8,6 @@ import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import GetParamParamAsBooleanVO, { GetParamParamAsBooleanVOStatic } from './vos/apis/GetParamParamAsBooleanVO';
 import GetParamParamAsNumberVO, { GetParamParamAsNumberVOStatic } from './vos/apis/GetParamParamAsNumberVO';
 import GetParamParamAsStringVO, { GetParamParamAsStringVOStatic } from './vos/apis/GetParamParamAsStringVO';
@@ -125,14 +125,11 @@ export default class ModuleParams extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
+        let label_field = new ModuleTableField(field_names<ParamVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
         let datatable_fields = [
             label_field,
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_string, 'Valeur', false),
-            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Dernière mise à jour', false)
+            new ModuleTableField(field_names<ParamVO>().value, ModuleTableField.FIELD_TYPE_string, 'Valeur', false),
+            new ModuleTableField(field_names<ParamVO>().last_up_date, ModuleTableField.FIELD_TYPE_tstz, 'Dernière mise à jour', false)
         ];
 
         this.datatables.push(new ModuleTable(this, ParamVO.API_TYPE_ID, () => new ParamVO(), datatable_fields, label_field, "Params"));

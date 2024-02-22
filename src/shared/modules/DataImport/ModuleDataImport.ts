@@ -24,6 +24,7 @@ import DataImportErrorLogVO from './vos/DataImportErrorLogVO';
 import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
+import { field_names } from '../../tools/ObjectHandler';
 
 export default class ModuleDataImport extends Module {
 
@@ -231,47 +232,44 @@ export default class ModuleDataImport extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         // Création de la table dataimportfile
-        let field_file_id: ModuleTableField<any> = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
-        let field_post_exec_module_id: ModuleTableField<number> = new ModuleTableField('post_exec_module_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Module de post-traitement', false);
-        let label_field = new ModuleTableField('import_uid', ModuleTableField.FIELD_TYPE_string, 'Nom du fichier d\'import', true);
+        let field_file_id: ModuleTableField<any> = new ModuleTableField(field_names<DataImportFormatVO>().file_id, ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
+        let field_post_exec_module_id: ModuleTableField<number> = new ModuleTableField(field_names<DataImportFormatVO>().post_exec_module_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Module de post-traitement', false);
+        let label_field = new ModuleTableField(field_names<DataImportFormatVO>().import_uid, ModuleTableField.FIELD_TYPE_string, 'Nom du fichier d\'import', true);
         let datatable_fields = [
             field_file_id,
             label_field,
-            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import (XLS, XLSX, CSV)', true).setEnumValues({
+            new ModuleTableField(field_names<DataImportFormatVO>().type, ModuleTableField.FIELD_TYPE_enum, 'Type d\'import (XLS, XLSX, CSV)', true).setEnumValues({
                 [DataImportFormatVO.TYPE_XLS]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XLS],
                 [DataImportFormatVO.TYPE_XLSX]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XLSX],
                 [DataImportFormatVO.TYPE_CSV]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_CSV],
                 [DataImportFormatVO.TYPE_XML]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XML],
             }),
-            new ModuleTableField('encoding', ModuleTableField.FIELD_TYPE_enum, 'Encodage', false).setEnumValues({
+            new ModuleTableField(field_names<DataImportFormatVO>().encoding, ModuleTableField.FIELD_TYPE_enum, 'Encodage', false).setEnumValues({
                 [DataImportFormatVO.TYPE_UTF8]: DataImportFormatVO.TYPE_ENCODING_LABELS[DataImportFormatVO.TYPE_UTF8],
                 [DataImportFormatVO.TYPE_WINDOWS1252]: DataImportFormatVO.TYPE_ENCODING_LABELS[DataImportFormatVO.TYPE_WINDOWS1252],
             }),
-            new ModuleTableField('sheet_name', ModuleTableField.FIELD_TYPE_string, 'Nom de l\'onglet (XLS, XLSX)', false, true, ""),
-            new ModuleTableField('sheet_index', ModuleTableField.FIELD_TYPE_int, 'Index de l\'onglet (XLS, XLSX) si nom indisponible', false, true, 0),
-            new ModuleTableField('first_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la première ligne (1ère ligne = 0)', true),
-            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID associé', true),
-            new ModuleTableField('copy_folder', ModuleTableField.FIELD_TYPE_string, 'Répertoire d\'archivage', true),
-            new ModuleTableField('type_sheet_position', ModuleTableField.FIELD_TYPE_enum, 'Type de positionnement de l\'onglet', true, true, DataImportFormatVO.TYPE_SHEET_POSITION_INDEX).setEnumValues({
+            new ModuleTableField(field_names<DataImportFormatVO>().sheet_name, ModuleTableField.FIELD_TYPE_string, 'Nom de l\'onglet (XLS, XLSX)', false, true, ""),
+            new ModuleTableField(field_names<DataImportFormatVO>().sheet_index, ModuleTableField.FIELD_TYPE_int, 'Index de l\'onglet (XLS, XLSX) si nom indisponible', false, true, 0),
+            new ModuleTableField(field_names<DataImportFormatVO>().first_row_index, ModuleTableField.FIELD_TYPE_int, 'Index de la première ligne (1ère ligne = 0)', true),
+            new ModuleTableField(field_names<DataImportFormatVO>().api_type_id, ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID associé', true),
+            new ModuleTableField(field_names<DataImportFormatVO>().copy_folder, ModuleTableField.FIELD_TYPE_string, 'Répertoire d\'archivage', true),
+            new ModuleTableField(field_names<DataImportFormatVO>().type_sheet_position, ModuleTableField.FIELD_TYPE_enum, 'Type de positionnement de l\'onglet', true, true, DataImportFormatVO.TYPE_SHEET_POSITION_INDEX).setEnumValues({
                 [DataImportFormatVO.TYPE_SHEET_POSITION_LABEL]: DataImportFormatVO.TYPE_SHEET_POSITION_LABELS[DataImportFormatVO.TYPE_SHEET_POSITION_LABEL],
                 [DataImportFormatVO.TYPE_SHEET_POSITION_INDEX]: DataImportFormatVO.TYPE_SHEET_POSITION_LABELS[DataImportFormatVO.TYPE_SHEET_POSITION_INDEX],
                 [DataImportFormatVO.TYPE_SHEET_POSITION_SCAN]: DataImportFormatVO.TYPE_SHEET_POSITION_LABELS[DataImportFormatVO.TYPE_SHEET_POSITION_SCAN]
             }),
-            new ModuleTableField('type_column_position', ModuleTableField.FIELD_TYPE_enum, 'Type de positionnement des colonnes', true, true, DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX).setEnumValues({
+            new ModuleTableField(field_names<DataImportFormatVO>().type_column_position, ModuleTableField.FIELD_TYPE_enum, 'Type de positionnement des colonnes', true, true, DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX).setEnumValues({
                 [DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL]: DataImportFormatVO.TYPE_COLUMN_POSITION_LABELS[DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL],
                 [DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX]: DataImportFormatVO.TYPE_COLUMN_POSITION_LABELS[DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX]
             }),
-            new ModuleTableField('column_labels_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la ligne des titres de colonne (1ère ligne = 0)', false),
+            new ModuleTableField(field_names<DataImportFormatVO>().column_labels_row_index, ModuleTableField.FIELD_TYPE_int, 'Index de la ligne des titres de colonne (1ère ligne = 0)', false),
 
             field_post_exec_module_id,
-            new ModuleTableField('batch_import', ModuleTableField.FIELD_TYPE_boolean, 'Import par segments', true, true, false),
-            new ModuleTableField('batch_size', ModuleTableField.FIELD_TYPE_int, 'Taille d\'un segment (si import par segment)', true, true, 10000),
-            new ModuleTableField('use_multiple_connections', ModuleTableField.FIELD_TYPE_boolean, 'Insertions en //', true, true, true),
-            new ModuleTableField('save_error_logs', ModuleTableField.FIELD_TYPE_boolean, 'Sauvegarde des logs d\'erreur'),
+            new ModuleTableField(field_names<DataImportFormatVO>().batch_import, ModuleTableField.FIELD_TYPE_boolean, 'Import par segments', true, true, false),
+            new ModuleTableField(field_names<DataImportFormatVO>().batch_size, ModuleTableField.FIELD_TYPE_int, 'Taille d\'un segment (si import par segment)', true, true, 10000),
+            new ModuleTableField(field_names<DataImportFormatVO>().use_multiple_connections, ModuleTableField.FIELD_TYPE_boolean, 'Insertions en //', true, true, true),
+            new ModuleTableField(field_names<DataImportFormatVO>().save_error_logs, ModuleTableField.FIELD_TYPE_boolean, 'Sauvegarde des logs d\'erreur'),
         ];
         let datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();
@@ -280,31 +278,31 @@ export default class ModuleDataImport extends Module {
         this.datatables.push(datatable_desc);
 
         // Création de la table dataimportcolumn
-        label_field = new ModuleTableField('title', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Fichier)', true);
-        let field_data_import_format_id: ModuleTableField<number> = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', true, true, 0);
+        label_field = new ModuleTableField(field_names<DataImportColumnVO>().title, ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Fichier)', true);
+        let field_data_import_format_id: ModuleTableField<number> = new ModuleTableField(field_names<DataImportColumnVO>().data_import_format_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', true, true, 0);
         datatable_fields = [
             field_data_import_format_id,
-            new ModuleTableField('column_index', ModuleTableField.FIELD_TYPE_int, 'Index de la colonne (1ère colonne = 0)', false),
+            new ModuleTableField(field_names<DataImportColumnVO>().column_index, ModuleTableField.FIELD_TYPE_int, 'Index de la colonne (1ère colonne = 0)', false),
             label_field,
-            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true),
-            new ModuleTableField('mandatory', ModuleTableField.FIELD_TYPE_boolean, 'Obligatoire', true, true, false),
-            new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
-            new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', false)
+            new ModuleTableField(field_names<DataImportColumnVO>().type, ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true),
+            new ModuleTableField(field_names<DataImportColumnVO>().mandatory, ModuleTableField.FIELD_TYPE_boolean, 'Obligatoire', true, true, false),
+            new ModuleTableField(field_names<DataImportColumnVO>().vo_field_name, ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
+            new ModuleTableField(field_names<DataImportColumnVO>().other_column_labels, ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', false)
         ];
         let dt2 = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, () => new DataImportColumnVO(), datatable_fields, label_field, "Colonnes importées");
         field_data_import_format_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
         this.datatables.push(dt2);
 
-        label_field = new ModuleTableField('historic_uid', ModuleTableField.FIELD_TYPE_string, 'ID unique', false);
-        field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
-        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
-        field_file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
-        let reimport_of_dih_id = new ModuleTableField('reimport_of_dih_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Réimport de ...', false);
+        label_field = new ModuleTableField(field_names<DataImportHistoricVO>().historic_uid, ModuleTableField.FIELD_TYPE_string, 'ID unique', false);
+        field_data_import_format_id = new ModuleTableField(field_names<DataImportHistoricVO>().data_import_format_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
+        let field_user_id = new ModuleTableField(field_names<DataImportHistoricVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
+        field_file_id = new ModuleTableField(field_names<DataImportHistoricVO>().file_id, ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
+        let reimport_of_dih_id = new ModuleTableField(field_names<DataImportHistoricVO>().reimport_of_dih_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Réimport de ...', false);
         datatable_fields = [
             field_data_import_format_id,
             field_file_id,
             field_user_id,
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Etat de l\'import', true).setEnumValues({
+            new ModuleTableField(field_names<DataImportHistoricVO>().state, ModuleTableField.FIELD_TYPE_enum, 'Etat de l\'import', true).setEnumValues({
                 [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
                 [ModuleDataImport.IMPORTATION_STATE_FORMATTING]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTING],
                 [ModuleDataImport.IMPORTATION_STATE_FORMATTED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTED],
@@ -319,7 +317,7 @@ export default class ModuleDataImport extends Module {
                 [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]
             }),
             reimport_of_dih_id,
-            new ModuleTableField('status_before_reimport', ModuleTableField.FIELD_TYPE_enum, 'Sauvegarde de l\'état pour réimport', false).setEnumValues({
+            new ModuleTableField(field_names<DataImportHistoricVO>().status_before_reimport, ModuleTableField.FIELD_TYPE_enum, 'Sauvegarde de l\'état pour réimport', false).setEnumValues({
                 [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
                 [ModuleDataImport.IMPORTATION_STATE_FORMATTING]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTING],
                 [ModuleDataImport.IMPORTATION_STATE_FORMATTED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTED],
@@ -333,7 +331,7 @@ export default class ModuleDataImport extends Module {
                 [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT],
                 [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]
             }),
-            new ModuleTableField('status_of_last_reimport', ModuleTableField.FIELD_TYPE_enum, 'Etat du réimport le plus récent', false).setEnumValues({
+            new ModuleTableField(field_names<DataImportHistoricVO>().status_of_last_reimport, ModuleTableField.FIELD_TYPE_enum, 'Etat du réimport le plus récent', false).setEnumValues({
                 [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
                 [ModuleDataImport.IMPORTATION_STATE_FORMATTING]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTING],
                 [ModuleDataImport.IMPORTATION_STATE_FORMATTED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTED],
@@ -349,30 +347,30 @@ export default class ModuleDataImport extends Module {
             }),
 
             label_field,
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de démarrage', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
-            new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_tstz, 'Segment cible', false),
-            new ModuleTableField('segment_type', ModuleTableField.FIELD_TYPE_enum, 'Type de segment', false).setEnumValues({
+            new ModuleTableField(field_names<DataImportHistoricVO>().start_date, ModuleTableField.FIELD_TYPE_tstz, 'Date de démarrage', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            new ModuleTableField(field_names<DataImportHistoricVO>().segment_date_index, ModuleTableField.FIELD_TYPE_tstz, 'Segment cible', false),
+            new ModuleTableField(field_names<DataImportHistoricVO>().segment_type, ModuleTableField.FIELD_TYPE_enum, 'Type de segment', false).setEnumValues({
                 [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
                 [TimeSegment.TYPE_MONTH]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MONTH],
                 [TimeSegment.TYPE_DAY]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_DAY],
                 [TimeSegment.TYPE_WEEK]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_WEEK],
                 [TimeSegment.TYPE_ROLLING_YEAR_MONTH_START]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_ROLLING_YEAR_MONTH_START],
             }),
-            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Modification', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).index(),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de fin', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
-            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'Vo importé', false),
-            new ModuleTableField('import_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import', true).setEnumValues({
+            new ModuleTableField(field_names<DataImportHistoricVO>().last_up_date, ModuleTableField.FIELD_TYPE_tstz, 'Modification', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).index(),
+            new ModuleTableField(field_names<DataImportHistoricVO>().end_date, ModuleTableField.FIELD_TYPE_tstz, 'Date de fin', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            new ModuleTableField(field_names<DataImportHistoricVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField(field_names<DataImportHistoricVO>().params, ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
+            new ModuleTableField(field_names<DataImportHistoricVO>().api_type_id, ModuleTableField.FIELD_TYPE_string, 'Vo importé', false),
+            new ModuleTableField(field_names<DataImportHistoricVO>().import_type, ModuleTableField.FIELD_TYPE_enum, 'Type d\'import', true).setEnumValues({
                 [DataImportHistoricVO.IMPORT_TYPE_EDIT]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_EDIT],
                 [DataImportHistoricVO.IMPORT_TYPE_REPLACE]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_REPLACE],
             }),
-            new ModuleTableField('nb_row_validated', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({
+            new ModuleTableField(field_names<DataImportHistoricVO>().nb_row_validated, ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({
                 'fr-fr': 'Nb. de lignes validées'
             }), false),
-            new ModuleTableField('nb_row_unvalidated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
-            new ModuleTableField('autovalidate', ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),
-            new ModuleTableField('use_fast_track', ModuleTableField.FIELD_TYPE_boolean, 'Fast Track', true, true, false),
+            new ModuleTableField(field_names<DataImportHistoricVO>().nb_row_unvalidated, ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
+            new ModuleTableField(field_names<DataImportHistoricVO>().autovalidate, ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),
+            new ModuleTableField(field_names<DataImportHistoricVO>().use_fast_track, ModuleTableField.FIELD_TYPE_boolean, 'Fast Track', true, true, false),
         ];
         let datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
         field_data_import_format_id.addManyToOneRelation(datatable_desc);
@@ -383,17 +381,17 @@ export default class ModuleDataImport extends Module {
         this.datatables.push(datatable_historic);
 
 
-        label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', false).set_segmentation_type(TimeSegment.TYPE_MINUTE);
-        field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
-        let field_data_import_historic_id = new ModuleTableField('data_import_historic_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', false);
+        label_field = new ModuleTableField(field_names<DataImportLogVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', false).set_segmentation_type(TimeSegment.TYPE_MINUTE);
+        field_data_import_format_id = new ModuleTableField(field_names<DataImportLogVO>().data_import_format_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
+        let field_data_import_historic_id = new ModuleTableField(field_names<DataImportLogVO>().data_import_historic_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', false);
         datatable_fields = [
             field_data_import_format_id,
             field_data_import_historic_id,
             label_field,
-            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'VO cible', false),
-            new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Message (traduit)', false),
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message (statique)', false),
-            new ModuleTableField('log_level', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, DataImportLogVO.LOG_LEVEL_INFO).setEnumValues({
+            new ModuleTableField(field_names<DataImportLogVO>().api_type_id, ModuleTableField.FIELD_TYPE_string, 'VO cible', false),
+            new ModuleTableField(field_names<DataImportLogVO>().code_text, ModuleTableField.FIELD_TYPE_string, 'Message (traduit)', false),
+            new ModuleTableField(field_names<DataImportLogVO>().message, ModuleTableField.FIELD_TYPE_string, 'Message (statique)', false),
+            new ModuleTableField(field_names<DataImportLogVO>().log_level, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, DataImportLogVO.LOG_LEVEL_INFO).setEnumValues({
                 [DataImportLogVO.LOG_LEVEL_DEBUG]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_DEBUG],
                 [DataImportLogVO.LOG_LEVEL_INFO]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_INFO],
                 [DataImportLogVO.LOG_LEVEL_SUCCESS]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_SUCCESS],
@@ -408,8 +406,8 @@ export default class ModuleDataImport extends Module {
         this.datatables.push(datatable_log);
 
         //Création de la table dataimporterrorlogs
-        label_field = new ModuleTableField('msg_import', ModuleTableField.FIELD_TYPE_string, 'Message d\'import', true);
-        let field_dih_id = new ModuleTableField('dih_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', true);
+        label_field = new ModuleTableField(field_names<DataImportErrorLogVO>().msg_import, ModuleTableField.FIELD_TYPE_string, 'Message d\'import', true);
+        let field_dih_id = new ModuleTableField(field_names<DataImportErrorLogVO>().dih_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', true);
         datatable_fields = [
             label_field,
             field_dih_id

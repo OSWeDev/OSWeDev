@@ -1,6 +1,7 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
@@ -417,9 +418,6 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeUser();
         // Pour le moment on initialize pas car conflit entre la génération de la table et le module pgsession
         this.initializeUserSession();
@@ -433,25 +431,25 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUser() {
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': 'Langue' }), true, true, 1);
-        let label_field = (new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Login' }), true)).unique();
+        let field_lang_id = new ModuleTableField(field_names<UserVO>().lang_id, ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': 'Langue' }), true, true, 1);
+        let label_field = (new ModuleTableField(field_names<UserVO>().name, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Login' }), true)).unique();
         let datatable_fields = [
             label_field,
-            new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Prénom' }), false),
-            new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), false),
-            (new ModuleTableField('email', ModuleTableField.FIELD_TYPE_email, new DefaultTranslation({ 'fr-fr': 'E-mail' }), true)).unique(),
-            (new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Téléphone' }))).unique(),
-            new ModuleTableField('blocked', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Compte bloqué' }), true, true, false).set_boolean_default_icons("fa-lock", "fa-unlock").set_boolean_invert_colors(),
-            new ModuleTableField('password', ModuleTableField.FIELD_TYPE_password, new DefaultTranslation({ 'fr-fr': 'Mot de passe' }), true),
-            new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de changement du mot de passe' }), false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
-            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Premier rappel envoyé' }), true, true, false),
-            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Second rappel envoyé' }), true, true, false),
-            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Mot de passe expiré' }), true, true, false),
+            new ModuleTableField(field_names<UserVO>().firstname, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Prénom' }), false),
+            new ModuleTableField(field_names<UserVO>().lastname, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), false),
+            (new ModuleTableField(field_names<UserVO>().email, ModuleTableField.FIELD_TYPE_email, new DefaultTranslation({ 'fr-fr': 'E-mail' }), true)).unique(),
+            (new ModuleTableField(field_names<UserVO>().phone, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Téléphone' }))).unique(),
+            new ModuleTableField(field_names<UserVO>().blocked, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Compte bloqué' }), true, true, false).set_boolean_default_icons("fa-lock", "fa-unlock").set_boolean_invert_colors(),
+            new ModuleTableField(field_names<UserVO>().password, ModuleTableField.FIELD_TYPE_password, new DefaultTranslation({ 'fr-fr': 'Mot de passe' }), true),
+            new ModuleTableField(field_names<UserVO>().password_change_date, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de changement du mot de passe' }), false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            new ModuleTableField(field_names<UserVO>().reminded_pwd_1, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Premier rappel envoyé' }), true, true, false),
+            new ModuleTableField(field_names<UserVO>().reminded_pwd_2, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Second rappel envoyé' }), true, true, false),
+            new ModuleTableField(field_names<UserVO>().invalidated, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Mot de passe expiré' }), true, true, false),
             field_lang_id,
-            new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Challenge de récupération' }), false, true, ""),
-            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Expiration du challenge' }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('logged_once', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Connecté au moins 1 fois' }), true, true, false),
-            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
+            new ModuleTableField(field_names<UserVO>().recovery_challenge, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Challenge de récupération' }), false, true, ""),
+            new ModuleTableField(field_names<UserVO>().recovery_expiration, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Expiration du challenge' }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<UserVO>().logged_once, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Connecté au moins 1 fois' }), true, true, false),
+            new ModuleTableField(field_names<UserVO>().creation_date, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Utilisateurs" }));
@@ -466,12 +464,12 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserSession() {
-        let label_field = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'SID' })).unique(true);
+        let label_field = new ModuleTableField(field_names<UserSessionVO>().sid, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'SID' })).unique(true);
 
         let datatable_fields = [
             label_field,
-            new ModuleTableField('sess', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Information session' })),
-            new ModuleTableField('expire', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<UserSessionVO>().sess, ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Information session' })),
+            new ModuleTableField(field_names<UserSessionVO>().expire, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserSessionVO.API_TYPE_ID, () => new UserSessionVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Sessions des utilisateurs" }));
@@ -480,13 +478,13 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeRole() {
-        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
-        let parent_role_id = new ModuleTableField('parent_role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle parent');
+        let label_field = new ModuleTableField(field_names<RoleVO>().translatable_name, ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
+        let parent_role_id = new ModuleTableField(field_names<RoleVO>().parent_role_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle parent');
 
         let datatable_fields = [
             label_field,
             parent_role_id,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<RoleVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Rôles" }));
@@ -496,8 +494,8 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserRoles() {
-        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, true, 0);
-        let field_role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
+        let field_user_id = new ModuleTableField(field_names<UserRoleVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, true, 0);
+        let field_role_id = new ModuleTableField(field_names<UserRoleVO>().role_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
         let datatable_fields = [
             field_user_id,
             field_role_id,
@@ -513,10 +511,10 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeModuleAccessPolicyGroup() {
 
-        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
+        let label_field = new ModuleTableField(field_names<AccessPolicyGroupVO>().translatable_name, ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
         let datatable_fields = [
             label_field,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField(field_names<AccessPolicyGroupVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, () => new AccessPolicyGroupVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Groupe de droits" }));
@@ -525,19 +523,19 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeModuleAccessPolicy() {
-        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
-        let field_accpolgroup_id = new ModuleTableField('group_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Group', false);
-        let field_module_id = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Module', false);
+        let label_field = new ModuleTableField(field_names<AccessPolicyVO>().translatable_name, ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
+        let field_accpolgroup_id = new ModuleTableField(field_names<AccessPolicyVO>().group_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Group', false);
+        let field_module_id = new ModuleTableField(field_names<AccessPolicyVO>().module_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Module', false);
         let datatable_fields = [
             label_field,
             field_accpolgroup_id,
             field_module_id,
-            new ModuleTableField('default_behaviour', ModuleTableField.FIELD_TYPE_enum, 'Comportement par défaut', true, true, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN).setEnumValues({
+            new ModuleTableField(field_names<AccessPolicyVO>().default_behaviour, ModuleTableField.FIELD_TYPE_enum, 'Comportement par défaut', true, true, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN).setEnumValues({
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN],
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS],
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE]
             }),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField(field_names<AccessPolicyVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Droit" }));
@@ -549,12 +547,12 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeModulePolicyDependency() {
-        let src_pol_id = new ModuleTableField('src_pol_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Droit source', true);
-        let depends_on_pol_id = new ModuleTableField('depends_on_pol_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Droit cible', false);
+        let src_pol_id = new ModuleTableField(field_names<PolicyDependencyVO>().src_pol_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Droit source', true);
+        let depends_on_pol_id = new ModuleTableField(field_names<PolicyDependencyVO>().depends_on_pol_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Droit cible', false);
         let datatable_fields = [
             src_pol_id,
             depends_on_pol_id,
-            new ModuleTableField('default_behaviour', ModuleTableField.FIELD_TYPE_enum, 'Comportement par défaut', true, true, PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED).setEnumValues({
+            new ModuleTableField(field_names<PolicyDependencyVO>().default_behaviour, ModuleTableField.FIELD_TYPE_enum, 'Comportement par défaut', true, true, PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED).setEnumValues({
                 [PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED]: PolicyDependencyVO.DEFAULT_BEHAVIOUR_LABELS[PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED],
                 [PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED]: PolicyDependencyVO.DEFAULT_BEHAVIOUR_LABELS[PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED]
             })
@@ -572,19 +570,19 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeUserLogVO() {
 
-        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true);
+        let field_user_id = new ModuleTableField(field_names<UserLogVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', true);
 
         let datatable_fields = [
             field_user_id,
-            new ModuleTableField('log_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, UserLogVO.LOG_TYPE_LOGIN).setEnumValues(UserLogVO.LOG_TYPE_LABELS),
-            new ModuleTableField('log_time', ModuleTableField.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('impersonated', ModuleTableField.FIELD_TYPE_boolean, 'Via fonction LogAs', true, true, false),
-            new ModuleTableField('referer', ModuleTableField.FIELD_TYPE_string, 'URL référente', false),
-            new ModuleTableField('comment', ModuleTableField.FIELD_TYPE_textarea, 'Commentaire', false),
-            new ModuleTableField('data', ModuleTableField.FIELD_TYPE_string, 'JSON', false),
+            new ModuleTableField(field_names<UserLogVO>().log_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, UserLogVO.LOG_TYPE_LOGIN).setEnumValues(UserLogVO.LOG_TYPE_LABELS),
+            new ModuleTableField(field_names<UserLogVO>().log_time, ModuleTableField.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField(field_names<UserLogVO>().impersonated, ModuleTableField.FIELD_TYPE_boolean, 'Via fonction LogAs', true, true, false),
+            new ModuleTableField(field_names<UserLogVO>().referer, ModuleTableField.FIELD_TYPE_string, 'URL référente', false),
+            new ModuleTableField(field_names<UserLogVO>().comment, ModuleTableField.FIELD_TYPE_textarea, 'Commentaire', false),
+            new ModuleTableField(field_names<UserLogVO>().data, ModuleTableField.FIELD_TYPE_string, 'JSON', false),
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_id, NumSegment.TYPE_INT);
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
 
         field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
@@ -592,12 +590,12 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeRolesPolicies() {
-        let field_accpol_id = new ModuleTableField('accpol_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Droit', true, true, 0);
-        let field_role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
+        let field_accpol_id = new ModuleTableField(field_names<RolePolicyVO>().accpol_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Droit', true, true, 0);
+        let field_role_id = new ModuleTableField(field_names<RolePolicyVO>().role_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
         let datatable_fields = [
             field_role_id,
             field_accpol_id,
-            new ModuleTableField('granted', ModuleTableField.FIELD_TYPE_boolean, 'Granted', false, true, false),
+            new ModuleTableField(field_names<RolePolicyVO>().granted, ModuleTableField.FIELD_TYPE_boolean, 'Granted', false, true, false),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, RolePolicyVO.API_TYPE_ID, () => new RolePolicyVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Droits des rôles" }));

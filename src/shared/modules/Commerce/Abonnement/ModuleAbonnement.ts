@@ -1,3 +1,4 @@
+import { field_names } from '../../../tools/ObjectHandler';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
@@ -24,24 +25,21 @@ export default class ModuleAbonnement extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeAbonnement();
         this.initializePackAbonnement();
     }
 
     public initializeAbonnement(): void {
         // Création de la table Abonnement
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
+        let default_label_field: ModuleTableField<string> = new ModuleTableField(field_names<AbonnementVO>().echeance, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
             'fr-fr': 'Date echeance'
         }));
         let datatable_fields = [
-            new ModuleTableField('renouvellement', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({
+            new ModuleTableField(field_names<AbonnementVO>().renouvellement, ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({
                 'fr-fr': 'Renouvellement'
             })),
             default_label_field,
-            new ModuleTableField('resiliation', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
+            new ModuleTableField(field_names<AbonnementVO>().resiliation, ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
                 'fr-fr': 'Date resiliation'
             })),
         ];
@@ -52,10 +50,10 @@ export default class ModuleAbonnement extends Module {
 
     public initializePackAbonnement(): void {
         // Création de la table PackAbonnement
-        let field_ligne_commande_id: ModuleTableField<number> = new ModuleTableField('ligne_commande_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
+        let field_ligne_commande_id: ModuleTableField<number> = new ModuleTableField(field_names<PackAbonnementVO>().ligne_commande_id, ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
             'fr-fr': 'Ligne Commande'
         }), true);
-        let field_abonnement_id: ModuleTableField<number> = new ModuleTableField('abonnement_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
+        let field_abonnement_id: ModuleTableField<number> = new ModuleTableField(field_names<PackAbonnementVO>().abonnement_id, ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
             'fr-fr': 'Abonnement'
         }), true);
 
