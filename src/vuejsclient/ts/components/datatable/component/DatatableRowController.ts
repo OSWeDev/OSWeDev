@@ -7,7 +7,8 @@ import OneToManyReferenceDatatableFieldVO from "../../../../../shared/modules/DA
 import RefRangesReferenceDatatableFieldVO from "../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO";
 import SimpleDatatableFieldVO from "../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import IDistantVOBase from "../../../../../shared/modules/IDistantVOBase";
-import ModuleTableField from "../../../../../shared/modules/ModuleTableField";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../../../shared/modules/ModuleTableFieldVO";
 import TableFieldTypesManager from "../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
 import RangeHandler from "../../../../../shared/tools/RangeHandler";
@@ -138,7 +139,7 @@ export default class DatatableRowController {
 
                     let value = field.dataToReadIHM(raw_data[simpleField.moduleTableField.field_id], raw_data);
                     // Limite à 300 cars si c'est du html et strip html
-                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
+                    if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html) {
 
                         if (value) {
                             try {
@@ -161,7 +162,7 @@ export default class DatatableRowController {
                         }
                     }
 
-                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+                    if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) {
 
                         for (let vi in value) {
                             let v = value[vi];

@@ -4,7 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/DataFilterOptionsHandler';
 import DataFilterOption from '../../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
 import ArrayHandler from '../../../../shared/tools/ArrayHandler';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -413,7 +413,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return {};
     }
 
-    get moduletable(): ModuleTable<any> {
+    get moduletable(): ModuleTableVO<any> {
         return VOsTypesManager.moduleTables_by_voType[this.api_type_id];
     }
 

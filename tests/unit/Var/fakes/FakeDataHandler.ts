@@ -2,7 +2,8 @@
 import moment from 'moment';
 import TSRange from '../../../../src/shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
-import ModuleTableField from '../../../../src/shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../src/shared/modules/ModuleTableFieldVO';
 import VarsInitController from '../../../../src/shared/modules/Var/VarsInitController';
 import VarDAG from '../../../../src/server/modules/Var/vos/VarDAG';
 import VarDAGNode from '../../../../src/server/modules/Var/vos/VarDAGNode';
@@ -14,7 +15,7 @@ export default class FakeDataHandler {
     public static initializeFakeDataVO() {
 
         let datatable_fields = [
-            new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
+            ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
         VarsInitController.getInstance().register_var_data(FakeDataVO.API_TYPE_ID, () => new FakeDataVO(), datatable_fields, null, true);

@@ -2,8 +2,9 @@ import AccessPolicyTools from "../../../../tools/AccessPolicyTools";
 import { field_names } from "../../../../tools/ObjectHandler";
 import ModuleDataImport from "../../../DataImport/ModuleDataImport";
 import Module from "../../../Module";
-import ModuleTable from "../../../ModuleTable";
-import ModuleTableField from "../../../ModuleTableField";
+import ModuleTableVO from "../../../ModuleTableVO";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../ModuleTableFieldVO";
 import AnimationImportModuleVO from "./vos/AnimationImportModuleVO";
 
 
@@ -34,22 +35,22 @@ export default class ModuleAnimationImportModule extends Module {
     private intializeImport() {
         let datatable_fields = [
 
-            new ModuleTableField(field_names<AnimationImportModuleVO>().description, ModuleTableField.FIELD_TYPE_string, 'description', false),
-            new ModuleTableField(field_names<AnimationImportModuleVO>().messages, ModuleTableField.FIELD_TYPE_string, 'messages', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'description', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().messages, ModuleTableFieldVO.FIELD_TYPE_string, 'messages', false),
 
-            new ModuleTableField(field_names<AnimationImportModuleVO>().name, ModuleTableField.FIELD_TYPE_string, 'name', false),
-            new ModuleTableField(field_names<AnimationImportModuleVO>().computed_name, ModuleTableField.FIELD_TYPE_string, 'computed_name', false),
-            new ModuleTableField(field_names<AnimationImportModuleVO>().weight, ModuleTableField.FIELD_TYPE_string, 'weight', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'name', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().computed_name, ModuleTableFieldVO.FIELD_TYPE_string, 'computed_name', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_string, 'weight', false),
 
-            new ModuleTableField(field_names<AnimationImportModuleVO>().document_id, ModuleTableField.FIELD_TYPE_string, 'document_id', false),
-            new ModuleTableField(field_names<AnimationImportModuleVO>().role_id_ranges, ModuleTableField.FIELD_TYPE_string, 'role_id_ranges', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().document_id, ModuleTableFieldVO.FIELD_TYPE_string, 'document_id', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().role_id_ranges, ModuleTableFieldVO.FIELD_TYPE_string, 'role_id_ranges', false),
 
-            new ModuleTableField(field_names<AnimationImportModuleVO>().id_import, ModuleTableField.FIELD_TYPE_string, 'id_import', false),
-            new ModuleTableField(field_names<AnimationImportModuleVO>().theme_id_import, ModuleTableField.FIELD_TYPE_string, 'theme_id_import', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().id_import, ModuleTableFieldVO.FIELD_TYPE_string, 'id_import', false),
+            ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().theme_id_import, ModuleTableFieldVO.FIELD_TYPE_string, 'theme_id_import', false),
         ];
 
 
-        let datatable = new ModuleTable(this, AnimationImportModuleVO.API_TYPE_ID, () => new AnimationImportModuleVO(), datatable_fields, null, "Import des traductions");
+        let datatable = new ModuleTableVO(this, AnimationImportModuleVO.API_TYPE_ID, () => new AnimationImportModuleVO(), datatable_fields, null, "Import des traductions");
         ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
         this.datatables.push(datatable);
     }

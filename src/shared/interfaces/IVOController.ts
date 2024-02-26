@@ -1,5 +1,5 @@
-import ModuleTable from '../modules/ModuleTable';
+import ModuleTableVO from '../modules/ModuleTableVO';
 
 export default interface IVOController {
-    registerModuleTable(moduleTable: ModuleTable<any>);
+    registerModuleTable(moduleTable: ModuleTableVO<any>);
 }

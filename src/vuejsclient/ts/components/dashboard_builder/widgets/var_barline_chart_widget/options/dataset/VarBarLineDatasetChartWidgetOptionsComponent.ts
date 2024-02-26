@@ -1,7 +1,8 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleTableField from '../../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../../shared/modules/ModuleTableFieldVO';
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
@@ -109,8 +110,8 @@ export default class VarBarLineDatasetChartWidgetOptionsComponent extends VueCom
         for (let i in fields) {
             let field = fields[i];
 
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
                 res.push(field.field_id);
                 if (typeof this.custom_filter_names[field.field_id] === "undefined") {
                     this.custom_filter_names[field.field_id] = null;

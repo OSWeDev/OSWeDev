@@ -14,8 +14,9 @@ import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vo
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
@@ -696,7 +697,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         }
     }
 
-    private get_advanced_ref_field_filter(context_filter: ContextFilterVO, advanced_filter: AdvancedRefFieldFilter, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO, previous_filter: AdvancedRefFieldFilter): ContextFilterVO {
+    private get_advanced_ref_field_filter(context_filter: ContextFilterVO, advanced_filter: AdvancedRefFieldFilter, field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO, previous_filter: AdvancedRefFieldFilter): ContextFilterVO {
         let new_context_filter = this.get_ContextFilterVO_from_AdvancedRefFieldFilter(advanced_filter, field, vo_field_ref);
 
         if (!new_context_filter) {
@@ -1008,7 +1009,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+            let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
             if (
                 base_table &&
@@ -1397,13 +1398,13 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
         this.tmp_active_filter_options_lvl2 = tmp_active_filter_options_lvl2;
     }
 
-    private get_ContextFilterVO_from_AdvancedRefFieldFilter(advanced_filter: AdvancedRefFieldFilter, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+    private get_ContextFilterVO_from_AdvancedRefFieldFilter(advanced_filter: AdvancedRefFieldFilter, field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         let translated_active_options = null;
 
         switch (field.field_type) {
-            case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_file_ref:
-            case ModuleTableField.FIELD_TYPE_image_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_image_ref:
 
                 switch (advanced_filter.filter_type) {
                     case AdvancedRefFieldFilter.FILTER_TYPE_EQ:
@@ -1433,44 +1434,44 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
-            case ModuleTableField.FIELD_TYPE_enum:
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            case ModuleTableField.FIELD_TYPE_hour:
-            case ModuleTableField.FIELD_TYPE_tstz:
-            case ModuleTableField.FIELD_TYPE_boolean:
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableField.FIELD_TYPE_string_array:
-            case ModuleTableField.FIELD_TYPE_html_array:
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
-            case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_hourrange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
-            case ModuleTableField.FIELD_TYPE_int_array:
-            case ModuleTableField.FIELD_TYPE_float_array:
-            case ModuleTableField.FIELD_TYPE_tstz_array:
-            case ModuleTableField.FIELD_TYPE_date:
-            case ModuleTableField.FIELD_TYPE_day:
-            case ModuleTableField.FIELD_TYPE_month:
-            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableFieldVO.FIELD_TYPE_hour:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_boolean:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_string_array:
+            case ModuleTableFieldVO.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_daterange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_int_array:
+            case ModuleTableFieldVO.FIELD_TYPE_float_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_date:
+            case ModuleTableFieldVO.FIELD_TYPE_day:
+            case ModuleTableFieldVO.FIELD_TYPE_month:
+            case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
                 throw new Error('Not Implemented');
         }
 
@@ -1933,7 +1934,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
             return false;
         }
 
-        return field.field_type == ModuleTableField.FIELD_TYPE_translatable_text;
+        return field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text;
     }
 
     get base_filter(): string {

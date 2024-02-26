@@ -16,7 +16,8 @@ import TSRange from '../../DataRender/vos/TSRange';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTableField from '../../ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ContextFilterVOManager from '../manager/ContextFilterVOManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
@@ -652,39 +653,39 @@ export default class ContextFilterVOHandler {
         return new_query_filters;
     }
 
-    public static get_ContextFilterVO_None(field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): number {
+    public static get_ContextFilterVO_None(field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO): number {
         let field_type = null;
 
         if ((!field) && (vo_field_ref.field_name == 'id')) {
-            field_type = ModuleTableField.FIELD_TYPE_int;
+            field_type = ModuleTableFieldVO.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;
         }
 
         switch (field_type) {
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
                 return ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
 
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 return ContextFilterVO.TYPE_TEXT_EQUALS_NONE;
 
-            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
                 return ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
 
-            case ModuleTableField.FIELD_TYPE_tstz:
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableField.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 throw new Error('Not Implemented');
 
 
@@ -697,7 +698,7 @@ export default class ContextFilterVOHandler {
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
      * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
      */
-    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         return ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
     }
 
@@ -1290,14 +1291,14 @@ export default class ContextFilterVOHandler {
     }
 
     private static get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_name: string, raw_data: IDistantVOBase) {
-        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+        if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
             let raw_value = raw_data[module_table_field_name + '__raw'];
             return RangeHandler.humanizeRanges(raw_value);
         }
 
         let value = simpleField.dataToReadIHM(raw_data[module_table_field_name], raw_data);
         // Limite à 300 cars si c'est du html et strip html
-        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
+        if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html) {
 
             if (value) {
                 try {
@@ -1321,7 +1322,7 @@ export default class ContextFilterVOHandler {
             }
         }
 
-        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+        if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) {
 
             for (let vi in value) {
                 let v = value[vi];

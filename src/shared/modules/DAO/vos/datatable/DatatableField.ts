@@ -1,8 +1,9 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
 import WeightHandler from '../../../../tools/WeightHandler';
 import Alert from '../../../Alert/vos/Alert';
-import ModuleTableField from '../../../ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../ModuleTableFieldVO';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 import ModuleTableController from '../../ModuleTableFieldController';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
@@ -29,7 +30,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
     public static VueAppBase = null;
 
-    public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
+    public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
 
     /**
      * Field uniquement côté client..... a voir si on a pas plus propre comme système
@@ -45,7 +46,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
 
     /**
-     * Surcharges du ModuleTableField
+     * Surcharges du ModuleTableFieldVO
      */
     public field_type: string;
     public enum_values: { [value: number]: string };
@@ -149,7 +150,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         this.update_moduleTableField();
     }
 
-    public setModuleTable(moduleTable: ModuleTable<any>): this {
+    public setModuleTable(moduleTable: ModuleTableVO<any>): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
         return this;
@@ -169,7 +170,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         this.update_moduleTableField();
     }
 
-    get moduleTable(): ModuleTable<any> {
+    get moduleTable(): ModuleTableVO<any> {
         if (!this.vo_type_id) {
             return null;
         }
@@ -177,7 +178,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return VOsTypesManager.moduleTables_by_voType[this.vo_type_id];
     }
 
-    get moduleTableField(): ModuleTableField<T> {
+    get moduleTableField(): ModuleTableFieldVO<T> {
         if (!this.moduleTable) {
             return null;
         }
@@ -478,7 +479,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
+    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
         DatatableField.computed_value[this.datatable_field_uid] = computed_value;
 
         return this;

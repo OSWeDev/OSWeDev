@@ -11,7 +11,8 @@ import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import Durations from '../modules/FormatDatesNombres/Dates/Durations';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
-import ModuleTableField from '../modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../modules/ModuleTableFieldVO';
 import ConsoleHandler from './ConsoleHandler';
 import HourSegmentHandler from './HourSegmentHandler';
 import MatroidIndexHandler from './MatroidIndexHandler';
@@ -1487,20 +1488,20 @@ export default class RangeHandler {
     }
 
 
-    public static getRangeType(table_field: ModuleTableField<any>): number {
+    public static getRangeType(table_field: ModuleTableFieldVO<any>): number {
         switch (table_field.field_type) {
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                 return NumRange.RANGE_TYPE;
 
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_daterange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                 return TSRange.RANGE_TYPE;
 
-            case ModuleTableField.FIELD_TYPE_hourrange:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                 return HourRange.RANGE_TYPE;
 
             default:
@@ -1508,20 +1509,20 @@ export default class RangeHandler {
         }
     }
 
-    public static getMaxRange(table_field: ModuleTableField<any>): IRange {
+    public static getMaxRange(table_field: ModuleTableFieldVO<any>): IRange {
         switch (table_field.field_type) {
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                 return RangeHandler.getMaxNumRange() as any as IRange;
 
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_daterange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                 return RangeHandler.getMaxTSRange() as any as IRange;
 
-            case ModuleTableField.FIELD_TYPE_hourrange:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                 return RangeHandler.getMaxHourRange() as any as IRange;
 
             default:

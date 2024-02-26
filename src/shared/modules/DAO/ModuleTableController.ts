@@ -1,13 +1,21 @@
 import { isArray } from "lodash";
 import TableFieldTypesManager from "../TableFieldTypes/TableFieldTypesManager";
-import DefaultTranslation from "../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import IDistantVOBase from "../IDistantVOBase";
 import VOsTypesManager from "../VO/manager/VOsTypesManager";
+import ModuleTableVO from "./vos/ModuleTableVO";
 
 export default class ModuleTableController {
 
     public static create_new(
+        tmp_module: Module,
+        tmp_vo_type: string,
+        voConstructor: () => T,
+        tmp_fields: Array<ModuleTableFieldVO<any>>,
+        default_label_field: ModuleTableFieldVO<any>,
+        label: string | DefaultTranslationVO = null
     ) {
 
         let res: ModuleTableVO = new ModuleTableVO();

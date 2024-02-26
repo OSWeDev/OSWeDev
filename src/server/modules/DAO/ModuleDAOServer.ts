@@ -29,14 +29,15 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
@@ -104,7 +105,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }, 1);
     }
 
-    public get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
+    public get_all_ranges_from_segmented_table(moduleTable: ModuleTableVO<any>): NumRange[] {
         let segmentations: { [table_name: string]: number } = DAOServerController.segmented_known_databases[moduleTable.database];
         if (!segmentations) {
             return null;
@@ -130,7 +131,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let group_overall: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         promises.push((async () => {
             group_overall.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL;
-            group_overall = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_overall, new DefaultTranslation({
+            group_overall = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_overall, DefaultTranslationVO.create_new({
                 'fr-fr': '!!! Accès à toutes les tables'
             }));
         })());
@@ -138,7 +139,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let group_datas: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         promises.push((async () => {
             group_datas.translatable_name = ModuleDAO.POLICY_GROUP_DATAS;
-            group_datas = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_datas, new DefaultTranslation({
+            group_datas = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_datas, DefaultTranslationVO.create_new({
                 'fr-fr': 'Données'
             }));
         })());
@@ -146,7 +147,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let group_modules_conf: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         promises.push((async () => {
             group_modules_conf.translatable_name = ModuleDAO.POLICY_GROUP_MODULES_CONF;
-            group_modules_conf = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_modules_conf, new DefaultTranslation({
+            group_modules_conf = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_modules_conf, DefaultTranslationVO.create_new({
                 'fr-fr': 'Paramètres des modules'
             }));
         })());
@@ -159,7 +160,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS.group_id = group_overall.id;
             POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS.translatable_name = ModuleDAO.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS;
-            POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS, new DefaultTranslation({
+            POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS, DefaultTranslationVO.create_new({
                 'fr-fr': 'Configurer les champs masqués des CRUD'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -170,7 +171,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             query_access.group_id = group_overall.id;
             query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             query_access.translatable_name = ModuleDAO.DAO_ACCESS_QUERY;
-            query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
+            query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Utiliser la fonction QUERY'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -181,7 +182,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             global_access.group_id = group_overall.id;
             global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             global_access.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL + '.' + ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS + "." + "___GLOBAL_ACCESS___";
-            global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access, new DefaultTranslation({
+            global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Outrepasser les droits d\'accès'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -190,9 +191,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         promises = [];
 
         // On doit déclarer les access policies de tous les VO
-        let lang: LangVO = is_generator ? await ModuleTranslation.getInstance().getLang(DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION) : null;
+        let lang: LangVO = is_generator ? await ModuleTranslation.getInstance().getLang(DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION) : null;
         for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[i];
+            let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[i];
             let vo_type: string = moduleTable.vo_type;
 
             // Uniquement si le module est actif, mais là encore est-ce une erreur ? ...
@@ -214,7 +215,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     vo_translation = translation_from_bdd.translated;
                 } else {
                     if (DefaultTranslationManager.registered_default_translations[vo_type_translatable_code]) {
-                        let default_translation: string = DefaultTranslationManager.registered_default_translations[vo_type_translatable_code].default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                        let default_translation: string = DefaultTranslationManager.registered_default_translations[vo_type_translatable_code].default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION];
                         vo_translation = (default_translation && (default_translation != "")) ? default_translation : vo_translation;
                     }
                 }
@@ -267,7 +268,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             DAOServerController.get_dao_policy(
                                 DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE),
-                            (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Lister les données de type "' + vo_translation + '"' }) : null,
+                            (vo_translation && (vo_translation != "")) ? DefaultTranslationVO.create_new({ 'fr-fr': 'Lister les données de type "' + vo_translation + '"' }) : null,
                             module_);
                     })(),
                     (async () => {
@@ -275,7 +276,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             DAOServerController.get_dao_policy(
                                 DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE),
-                            (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Consulter les données de type "' + vo_translation + '"' }) : null,
+                            (vo_translation && (vo_translation != "")) ? DefaultTranslationVO.create_new({ 'fr-fr': 'Consulter les données de type "' + vo_translation + '"' }) : null,
                             module_);
                     })(),
                     (async () => {
@@ -283,7 +284,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             DAOServerController.get_dao_policy(
                                 DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN),
-                            (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null,
+                            (vo_translation && (vo_translation != "")) ? DefaultTranslationVO.create_new({ 'fr-fr': 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null,
                             module_);
                     })(),
                     (async () => {
@@ -291,7 +292,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             DAOServerController.get_dao_policy(
                                 DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN),
-                            (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Supprimer des données de type "' + vo_translation + '"' }) : null,
+                            (vo_translation && (vo_translation != "")) ? DefaultTranslationVO.create_new({ 'fr-fr': 'Supprimer des données de type "' + vo_translation + '"' }) : null,
                             module_);
                     })(),
                 ]);
@@ -355,7 +356,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
         if (!moduleTable) {
             ConsoleHandler.error("Impossible de trouver le moduleTable de ce _type ! " + JSON.stringify(vo));
@@ -380,7 +381,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const setters = [];
             let fields = moduleTable.get_fields();
             for (let i in fields) {
-                let field: ModuleTableField<any> = fields[i];
+                let field: ModuleTableFieldVO<any> = fields[i];
 
                 if (typeof vo[field.field_id] == "undefined") {
                     if (!field.has_default || typeof field.field_default == 'undefined') {
@@ -395,14 +396,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 /**
                  * Cas des ranges
                  */
-                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+                if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                     setters.push(field.field_id + '_ndx = ${' + field.field_id + '_ndx}');
                 }
@@ -435,7 +436,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const tableFields = [];
             const placeHolders = [];
             for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+                let field: ModuleTableFieldVO<any> = moduleTable.get_fields()[f];
 
                 if (typeof vo[field.field_id] == "undefined") {
                     if (!field.has_default || typeof field.field_default == 'undefined') {
@@ -451,14 +452,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 /**
                  * Cas des ranges
                  */
-                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+                if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                     tableFields.push(field.field_id + '_ndx');
                     placeHolders.push('${' + field.field_id + '_ndx}');
@@ -573,124 +574,124 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DAOServerController.post_delete_trigger_hook = new DAOPostDeleteTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
         ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.post_delete_trigger_hook);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modifier'
         }, 'editable_page_switch.edit.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Consulter'
         }, 'editable_page_switch.read.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annuler les modifications en cours ?'
         }, 'crud.inline_input_mode_semaphore.confirm.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Des modifications sont en cours'
         }, 'crud.inline_input_mode_semaphore.confirm.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modifications annulées'
         }, 'crud.inline_input_mode_semaphore.canceled.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Demande refusée : Le système est en lecture seule'
         }, 'dao.global_update_blocker.actif'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Suppression impossible, consulter les logs du serveur'
         }, 'dao.truncate.error'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrement...'
         }, 'EditablePageController.save.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur lors de l\'enregistrement'
         }, 'EditablePageController.save.error.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrement terminé'
         }, 'EditablePageController.save.success.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher / masquer les {ranges_length} elts...'
         }, 'ranges.limited.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Toutes les dates'
         }, 'tsrange.max_range.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Toutes les heures'
         }, 'hourrange.max_range.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Tous/Toutes'
         }, 'numrange.max_range.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Impossible d'enregistrer les données"
         }, 'dao.check_uniq_indexes.error.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Gérer les champs cachés"
         }, 'crud_update_form_body.edit_removed_crud_fields.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Masquer les champs cachés"
         }, 'crud_update_form_body.donot_edit_removed_crud_fields.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Afficher le champs {field_id}"
         }, 'crud_update_form_body.delete_removed_crud_field_id.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Masquer le champs {field_id}"
         }, 'crud_update_form_body.add_removed_crud_field_id.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification en cours..."
         }, 'crud_update_form_body_delete_removed_crud_field_id.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification terminée. Recharger pour voir les changements"
         }, 'crud_update_form_body_delete_removed_crud_field_id.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification échouée. Veuillez réessayer"
         }, 'crud_update_form_body_delete_removed_crud_field_id.failed.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification en cours..."
         }, 'crud_update_form_body_add_removed_crud_field_id.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification terminée"
         }, 'crud_update_form_body_add_removed_crud_field_id.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification échouée. Veuillez réessayer"
         }, 'crud_update_form_body_add_removed_crud_field_id.failed.___LABEL___'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Gérer les champs cachés"
         }, 'crud_create_form_body.edit_removed_crud_fields.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Masquer les champs cachés"
         }, 'crud_create_form_body.donot_edit_removed_crud_fields.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Afficher le champs {field_id}"
         }, 'crud_create_form_body.delete_removed_crud_field_id.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Masquer le champs {field_id}"
         }, 'crud_create_form_body.add_removed_crud_field_id.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification en cours..."
         }, 'crud_create_form_body_delete_removed_crud_field_id.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification terminée. Recharger pour voir les changements"
         }, 'crud_create_form_body_delete_removed_crud_field_id.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification échouée. Veuillez réessayer"
         }, 'crud_create_form_body_delete_removed_crud_field_id.failed.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification en cours..."
         }, 'crud_create_form_body_add_removed_crud_field_id.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification terminée"
         }, 'crud_create_form_body_add_removed_crud_field_id.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification échouée. Veuillez réessayer"
         }, 'crud_create_form_body_add_removed_crud_field_id.failed.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Format incorrect"
         }, 'crud.field_error_format.___LABEL___'));
     }
@@ -756,7 +757,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
     }
 
-    public async preload_segmented_known_database(t: ModuleTable<any>) {
+    public async preload_segmented_known_database(t: ModuleTableVO<any>) {
         let segments_by_segmented_value: { [segmented_value: number]: string } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(t);
 
         for (let i in segments_by_segmented_value) {
@@ -780,7 +781,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let moduleTable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!moduleTable) {
             return null;
@@ -843,7 +844,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public getWhereClauseForRangeArray(
         api_type_id: string,
-        field: ModuleTableField<any>,
+        field: ModuleTableFieldVO<any>,
         ranges: IRange[],
     ): string {
         if (!field) {
@@ -999,7 +1000,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
-        let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTable<any>, vos: { [id: number]: IDistantVOBase[] } } } = {};
+        let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTableVO<any>, vos: { [id: number]: IDistantVOBase[] } } } = {};
 
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
@@ -1008,7 +1009,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let i in vos) {
             let vo: IDistantVOBase = vos[i];
 
-            let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+            let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
             let tablename: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name_from_vo(vo) : moduleTable.full_name;
 
             if (!vos_by_vo_tablename_and_ids[tablename]) {
@@ -1054,24 +1055,24 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let tablename in vos_by_vo_tablename_and_ids) {
             let tableFields: string[] = [];
 
-            let moduleTable: ModuleTable<any> = vos_by_vo_tablename_and_ids[tablename].moduletable;
+            let moduleTable: ModuleTableVO<any> = vos_by_vo_tablename_and_ids[tablename].moduletable;
 
             for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+                let field: ModuleTableFieldVO<any> = moduleTable.get_fields()[f];
 
                 tableFields.push(field.field_id);
 
                 /**
                  * Cas des ranges
                  */
-                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+                if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                     tableFields.push(field.field_id + '_ndx');
                 }
@@ -1108,7 +1109,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let vo_values: any[] = [];
 
                     for (const f in moduleTable.get_fields()) {
-                        let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+                        let field: ModuleTableFieldVO<any> = moduleTable.get_fields()[f];
 
                         let fieldValue = vo[field.field_id];
 
@@ -1136,14 +1137,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         /**
                          * Cas des ranges
                          */
-                        if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                            (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                            (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                            (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                            (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                            (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+                        if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                             securized_fieldValue = pgPromise.as.format('$1', [vo[field.field_id + '_ndx']]);
                             setters.push(field.field_id + '_ndx = ' + securized_fieldValue);
@@ -1360,7 +1361,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         vos = insert_vos;
 
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vos[0]._type];
+        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vos[0]._type];
 
         if (moduleTable.is_segmented && !segmented_value) {
             throw new Error('Not implemented');
@@ -1377,21 +1378,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let fields = moduleTable.get_fields();
 
         for (let i in fields) {
-            let field: ModuleTableField<any> = fields[i];
+            let field: ModuleTableFieldVO<any> = fields[i];
 
             tableFields.push(field.field_id);
 
             /**
              * Cas des ranges
              */
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                 tableFields.push(field.field_id + '_ndx');
             }
@@ -1405,7 +1406,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let is_valid: boolean = true;
 
             for (let f in fields) {
-                let field: ModuleTableField<any> = fields[f];
+                let field: ModuleTableFieldVO<any> = fields[f];
 
                 let fieldValue = vo[field.field_id];
 
@@ -1442,8 +1443,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  * Cas des arrays
                  */
                 if (Array.isArray(fieldValue) &&
-                    ((field.field_type == ModuleTableField.FIELD_TYPE_html_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_string_array))) {
+                    ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) ||
+                        (field.field_type == ModuleTableFieldVO.FIELD_TYPE_string_array))) {
 
                     let string_array = (fieldValue as string[]);
                     string_array = string_array.map((str) => {
@@ -1453,9 +1454,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     stringified = (string_array.length == 0) ? '{}' :
                         "'{''" + string_array.join("'',''") + "''}'";
                 } else if (Array.isArray(fieldValue) &&
-                    ((field.field_type == ModuleTableField.FIELD_TYPE_int_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_tstz_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_float_array))) {
+                    ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_int_array) ||
+                        (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstz_array) ||
+                        (field.field_type == ModuleTableFieldVO.FIELD_TYPE_float_array))) {
 
                     let num_array = (fieldValue as number[]);
                     let string_array = num_array.map((str) => {
@@ -1470,14 +1471,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 /**
                  * Cas des ranges
                  */
-                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+                if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                     let fieldValue_ndx = vo[field.field_id + '_ndx'];
 
@@ -1658,7 +1659,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!datatable) {
             ConsoleHandler.error("Impossible de trouver le datatable ! " + api_type_id);
@@ -1709,7 +1710,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
         distinct: boolean = false, ranges: IRange[] = null, limit: number = 0, offset: number = 0): Promise<T[]> {
 
-        let moduleTable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
         if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
@@ -1816,7 +1817,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @deprecated use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vo<T>();]
      */
     public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
-        let moduleTable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
         if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
@@ -1934,7 +1935,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Cas très spécifique de la connexion où l'on a évidemment pas le droit de lister les comptes, mais il faut tout de même pouvoir se connecter...
      */
     public async selectOneUser(login: string, password: string, check_pwd: boolean = true): Promise<UserVO> {
-        // let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        // let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
 
@@ -1988,7 +1989,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @returns true if uniq
      */
     public async selectUsersForCheckUnicity(name: string, email: string, phone: string, user_id: number): Promise<boolean> {
-        // let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        // let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
 
@@ -2048,7 +2049,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Cas très spécifique du recover de MDP => attention cette fonction ne doit jamais être utiliser en dehors sinon on offre le listage des users à tous (c'est pas le but...)
      */
     public async selectOneUserForRecovery(login: string): Promise<UserVO> {
-        let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
             let query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(" + login.toLowerCase().trim();
@@ -2071,7 +2072,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Cas très spécifique du recover de MDP => attention cette fonction ne doit jamais être utiliser en dehors sinon on offre le listage des users à tous (c'est pas le but...)
      */
     public async selectOneUserForRecoveryUID(uid: number): Promise<UserVO> {
-        let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         let query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = " + uid + " and blocked = false";
         let query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOneUserForRecoveryUID', query_string);
@@ -2155,7 +2156,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let time_in = Dates.now_ms();
 
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'IN');
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
         if (!moduleTable) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'USELESS');
@@ -2180,8 +2181,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
 
                     if (!(vo[field.field_id] as any[]).length) {
                         // champs vide, inutile de checker
@@ -2224,7 +2225,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * On checke les indexs uniques, et si on trouve que l'objet existe, on renvoie l'id de l'objet identifié
      */
-    private async check_uniq_indexes(vo: IDistantVOBase, moduleTable: ModuleTable<any>): Promise<number> {
+    private async check_uniq_indexes(vo: IDistantVOBase, moduleTable: ModuleTableVO<any>): Promise<number> {
         if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
             for (let j in moduleTable.uniq_indexes) {
                 let uniq_index = moduleTable.uniq_indexes[j];
@@ -2250,27 +2251,27 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let filter_: ContextFilterVO = null;
 
                     switch (field.field_type) {
-                        case ModuleTableField.FIELD_TYPE_string:
-                        case ModuleTableField.FIELD_TYPE_email:
-                        case ModuleTableField.FIELD_TYPE_html:
-                        case ModuleTableField.FIELD_TYPE_password:
-                        case ModuleTableField.FIELD_TYPE_textarea:
+                        case ModuleTableFieldVO.FIELD_TYPE_string:
+                        case ModuleTableFieldVO.FIELD_TYPE_email:
+                        case ModuleTableFieldVO.FIELD_TYPE_html:
+                        case ModuleTableFieldVO.FIELD_TYPE_password:
+                        case ModuleTableFieldVO.FIELD_TYPE_textarea:
                             filter_ = filter(moduleTable.vo_type, field.field_id).by_text_has(vo[field.field_id]);
                             break;
-                        case ModuleTableField.FIELD_TYPE_amount:
-                        case ModuleTableField.FIELD_TYPE_date:
-                        case ModuleTableField.FIELD_TYPE_enum:
-                        case ModuleTableField.FIELD_TYPE_file_ref:
-                        case ModuleTableField.FIELD_TYPE_float:
-                        case ModuleTableField.FIELD_TYPE_geopoint:
-                        case ModuleTableField.FIELD_TYPE_image_ref:
-                        case ModuleTableField.FIELD_TYPE_int:
-                        case ModuleTableField.FIELD_TYPE_isoweekdays:
-                        case ModuleTableField.FIELD_TYPE_month:
-                        case ModuleTableField.FIELD_TYPE_month:
-                        case ModuleTableField.FIELD_TYPE_prct:
-                        case ModuleTableField.FIELD_TYPE_tstz:
-                        case ModuleTableField.FIELD_TYPE_foreign_key:
+                        case ModuleTableFieldVO.FIELD_TYPE_amount:
+                        case ModuleTableFieldVO.FIELD_TYPE_date:
+                        case ModuleTableFieldVO.FIELD_TYPE_enum:
+                        case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                        case ModuleTableFieldVO.FIELD_TYPE_float:
+                        case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+                        case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                        case ModuleTableFieldVO.FIELD_TYPE_int:
+                        case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                        case ModuleTableFieldVO.FIELD_TYPE_month:
+                        case ModuleTableFieldVO.FIELD_TYPE_month:
+                        case ModuleTableFieldVO.FIELD_TYPE_prct:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                        case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
                             filter_ = filter(moduleTable.vo_type, field.field_id).by_num_eq(vo[field.field_id]); // pas has ?
                             break;
                         default:
@@ -2308,7 +2309,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
                             if (uid && CLIENT_TAB_ID) {
-                                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
+                                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION, true);
                             }
                             StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'error');
 
@@ -2391,7 +2392,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+                let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
                 if (!moduletable) {
                     StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'no_moduletable');
@@ -2535,7 +2536,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * @depracated do not use anymore, use context queries instead - will be deleted soon
      */
-    private async filterVOAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vo: T): Promise<T> {
+    private async filterVOAccess<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, access_type: string, vo: T): Promise<T> {
 
         if (!ModuleAccessPolicy.getInstance().actif) {
             return vo;
@@ -2562,7 +2563,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (vo && !DAOServerController.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
             for (let i in datatable.get_fields()) {
-                let field: ModuleTableField<any> = datatable.get_fields()[i];
+                let field: ModuleTableFieldVO<any> = datatable.get_fields()[i];
 
                 if (datatable.default_label_field &&
                     (field.field_id == datatable.default_label_field.field_id)) {
@@ -2594,7 +2595,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return 0;
         }
 
-        let moduleTable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
         if (moduleTable.is_segmented) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'countVosByIdsRanges', 'segmented');
@@ -2620,7 +2621,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!datatable) {
             return null;
@@ -2672,7 +2673,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!datatable) {
             return null;
@@ -2822,7 +2823,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let i in vos) {
                 let vo: IDistantVOBase = vos[i];
 
-                let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+                let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
                 if (!moduleTable) {
                     return null;
@@ -2995,7 +2996,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     //     vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
                     // }
-                    vo = ModuleTable.default_get_api_version(vo, false);
+                    vo = ModuleTableVO.default_get_api_version(vo, false);
 
                     let update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
                     if (update_res && update_res.length) {
@@ -3033,7 +3034,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             //     vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
             // }
-            vo = ModuleTable.default_get_api_version(vo, false);
+            vo = ModuleTableVO.default_get_api_version(vo, false);
 
             let res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
             if (res && res.length) {

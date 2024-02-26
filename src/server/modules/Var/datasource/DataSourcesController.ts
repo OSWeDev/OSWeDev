@@ -1,5 +1,5 @@
 import DefaultTranslationManager from '../../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
@@ -57,7 +57,7 @@ export default class DataSourcesController {
 
     private static register_ds_default_translations(ds: DataSourceControllerBase) {
         if (!!ds.ds_name_default_translations) {
-            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 ds.ds_name_default_translations,
                 VarsController.get_translatable_ds_name(ds.name)));
         }

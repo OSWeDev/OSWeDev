@@ -1,7 +1,7 @@
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
-import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 
 /**
@@ -58,6 +58,6 @@ export default class TableWidgetOptions extends TableWidgetOptionsVO {
             return null;
         }
 
-        return TableWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return TableWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 }

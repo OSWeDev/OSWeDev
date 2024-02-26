@@ -6,8 +6,8 @@ import ContextQueryFieldVO from "../../../shared/modules/ContextFilter/vos/Conte
 import ContextQueryVO, { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import IUserData from "../../../shared/modules/DAO/interface/IUserData";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
-import ModuleTable from "../../../shared/modules/ModuleTable";
-import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
+import ModuleTableVO from "../../../shared/modules/ModuleTableVO";
+import DefaultTranslationVO from "../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarConfVO from "../../../shared/modules/Var/vos/VarConfVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import PushDataServerController from "../PushData/PushDataServerController";
@@ -50,7 +50,7 @@ export default class ServerAnonymizationController {
         ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_name][anonymization_user_conf.user_id] = anonymization_user_conf;
     }
 
-    public static async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
+    public static async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
         let res: T[] = [];
 
         for (let i in vos) {
@@ -59,7 +59,7 @@ export default class ServerAnonymizationController {
             if (ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type] &&
                 ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type][uid]) {
 
-                await PushDataServerController.getInstance().notifySimpleWARN(uid, null, "check_is_anonymise.failed" + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
+                await PushDataServerController.getInstance().notifySimpleWARN(uid, null, "check_is_anonymise.failed" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION, true);
                 ConsoleHandler.warn("Refused CUD on anonymized VO:" + vo._type + ":id:" + vo.id + ":uid:" + uid + ":");
                 continue;
             }
@@ -78,7 +78,7 @@ export default class ServerAnonymizationController {
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    public static async anonymiseContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    public static async anonymiseContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[moduletable.vo_type]) {
             // FIXME TODO très chaud ça... comment on peut faire ça sous forme de context filter ... ?
@@ -95,7 +95,7 @@ export default class ServerAnonymizationController {
         return null;
     }
 
-    public static anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): T[] {
+    public static anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, vos: T[], uid: number, user_data: IUserData): T[] {
         let res: T[] = [];
 
         for (let i in vos) {

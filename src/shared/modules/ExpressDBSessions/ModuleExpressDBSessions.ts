@@ -1,7 +1,8 @@
 import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import ExpressSessionVO from './vos/ExpressSessionVO';
 
 export default class ModuleExpressDBSessions extends Module {
@@ -30,15 +31,15 @@ export default class ModuleExpressDBSessions extends Module {
     }
 
     private initializeExpressSessionVO() {
-        let sid = new ModuleTableField(field_names<ExpressSessionVO>().sid, ModuleTableField.FIELD_TYPE_string, 'SID', true).unique(true);
+        let sid = ModuleTableFieldController.create_new(ExpressSessionVO.API_TYPE_ID, field_names<ExpressSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, 'SID', true).unique(true);
 
         let fields = [
             sid,
-            new ModuleTableField(field_names<ExpressSessionVO>().sess, ModuleTableField.FIELD_TYPE_string, 'Session JSON', false),
-            new ModuleTableField(field_names<ExpressSessionVO>().expire, ModuleTableField.FIELD_TYPE_tstz, 'Date d\'expiration', false),
+            ModuleTableFieldController.create_new(ExpressSessionVO.API_TYPE_ID, field_names<ExpressSessionVO>().sess, ModuleTableFieldVO.FIELD_TYPE_string, 'Session JSON', false),
+            ModuleTableFieldController.create_new(ExpressSessionVO.API_TYPE_ID, field_names<ExpressSessionVO>().expire, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'expiration', false),
         ];
 
-        let table = new ModuleTable(this, ExpressSessionVO.API_TYPE_ID, () => new ExpressSessionVO(), fields, sid, 'Sessions Express');
+        let table = new ModuleTableVO(this, ExpressSessionVO.API_TYPE_ID, () => new ExpressSessionVO(), fields, sid, 'Sessions Express');
         this.datatables.push(table);
     }
 

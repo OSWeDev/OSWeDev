@@ -85,25 +85,25 @@ export default class ModuleMailer extends Module {
     }
 
     private initializeMailVO() {
-        let category_id = new ModuleTableField(field_names<MailVO>().category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', true, false);
-        let sent_by_id = new ModuleTableField(field_names<MailVO>().sent_by_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Envoyé par', false);
-        let sent_to_id = new ModuleTableField(field_names<MailVO>().sent_to_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Envoyé à', false);
+        let category_id = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', true, false);
+        let sent_by_id = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().sent_by_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Envoyé par', false);
+        let sent_to_id = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().sent_to_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Envoyé à', false);
 
-        let label = new ModuleTableField(field_names<MailVO>().message_id, ModuleTableField.FIELD_TYPE_string, 'ID de suivi', true);
+        let label = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().message_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID de suivi', true);
 
         let datatable_fields = [
             category_id,
             sent_by_id,
             sent_to_id,
 
-            new ModuleTableField(field_names<MailVO>().last_state, ModuleTableField.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
+            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().last_state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
 
-            new ModuleTableField(field_names<MailVO>().email, ModuleTableField.FIELD_TYPE_string, 'Email', true).index(),
+            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().email, ModuleTableFieldVO.FIELD_TYPE_string, 'Email', true).index(),
             label,
-            new ModuleTableField(field_names<MailVO>().send_date, ModuleTableField.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField(field_names<MailVO>().last_up_date, ModuleTableField.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().send_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
-        let datatable = new ModuleTable(this, MailVO.API_TYPE_ID, () => new MailVO(), datatable_fields, label, "Mails");
+        let datatable = new ModuleTableVO(this, MailVO.API_TYPE_ID, () => new MailVO(), datatable_fields, label, "Mails");
         category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailCategoryVO.API_TYPE_ID]);
         sent_by_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         sent_to_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
@@ -111,25 +111,25 @@ export default class ModuleMailer extends Module {
     }
 
     private initializeMailCategoryVO() {
-        let label = new ModuleTableField(field_names<MailCategoryVO>().name, ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
+        let label = ModuleTableFieldController.create_new(MailCategoryVO.API_TYPE_ID, field_names<MailCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
         let datatable_fields = [
             label
         ];
-        let datatable = new ModuleTable(this, MailCategoryVO.API_TYPE_ID, () => new MailCategoryVO(), datatable_fields, label, "Catégories de mail");
+        let datatable = new ModuleTableVO(this, MailCategoryVO.API_TYPE_ID, () => new MailCategoryVO(), datatable_fields, label, "Catégories de mail");
         this.datatables.push(datatable);
     }
 
     private initializeMailEventVO() {
-        let mail_id = new ModuleTableField(field_names<MailEventVO>().mail_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Mail', true, false);
-        let label = new ModuleTableField(field_names<MailEventVO>().event_date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        let mail_id = ModuleTableFieldController.create_new(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().mail_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Mail', true, false);
+        let label = ModuleTableFieldController.create_new(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().event_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
 
         let datatable_fields = [
             mail_id,
             label,
-            new ModuleTableField(field_names<MailEventVO>().event, ModuleTableField.FIELD_TYPE_enum, 'Evènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
-            new ModuleTableField(field_names<MailEventVO>().reason, ModuleTableField.FIELD_TYPE_string, 'Raison', false),
+            ModuleTableFieldController.create_new(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().event, ModuleTableFieldVO.FIELD_TYPE_enum, 'Evènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
+            ModuleTableFieldController.create_new(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().reason, ModuleTableFieldVO.FIELD_TYPE_string, 'Raison', false),
         ];
-        let datatable = new ModuleTable(this, MailEventVO.API_TYPE_ID, () => new MailEventVO(), datatable_fields, label, "Evènements de mail");
+        let datatable = new ModuleTableVO(this, MailEventVO.API_TYPE_ID, () => new MailEventVO(), datatable_fields, label, "Evènements de mail");
         mail_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }

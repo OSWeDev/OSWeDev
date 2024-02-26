@@ -11,7 +11,7 @@ import StackContext from '../../../StackContext';
 import DAOServerController from '../../DAO/DAOServerController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 
 export default class PasswordReset {
@@ -154,7 +154,7 @@ export default class PasswordReset {
 
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
         await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>(
-            ModuleTable.default_get_api_version(user, false)
+            ModuleTableVO.default_get_api_version(user, false)
         );
 
         return true;

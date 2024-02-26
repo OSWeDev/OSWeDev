@@ -12,7 +12,7 @@ import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
 import IPlanFacilitator from '../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
@@ -20,7 +20,7 @@ import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVC
 import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
@@ -69,80 +69,80 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this, this.handleTriggerPreDeletePrep);
         }
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Confirmer ?'
         }, 'programplan.create_cr.confirmation.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrer le compte-rendu'
         }, 'programplan.create_cr.confirmation.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrement en cours...'
         }, 'programplan.create_cr.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur lors de l\'enregistrement du compte-rendu'
         }, 'programplan.create_cr.error.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrement du compte-rendu terminé'
         }, 'programplan.create_cr.ok.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____manager_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____region_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____user_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Boutique'
         }, 'fields.labels.ref.module_sfam_program_plan_boutique.___LABEL____enseigne_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Contact'
         }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____contact_type_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Contact'
         }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____user_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Manager'
         }, 'fields.labels.ref.module_sfam_program_plan_manager.___LABEL____user_id'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Création interdite'
         }, 'programplan.fc.create.denied.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur de création'
         }, 'programplan.fc.create.error.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Suppression interdite'
         }, 'programplan.fc.delete.denied.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur de suppression'
         }, 'programplan.delete.error.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modification interdite'
         }, 'programplan.fc.update.denied.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur de modification'
         }, 'programplan.fc.update.error.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Date'
         }, 'programplan.rdv_modal.rdv_date.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Archiver ce RDV ?'
         }, 'ProgramPlanComponentModalHistoric.confirm_archive.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Confirmer l\'archivage'
         }, 'ProgramPlanComponentModalHistoric.confirm_archive.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Archivage en cours...'
         }, 'ProgramPlanComponentModalHistoric.confirm_archive.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur lors de l\'archivage'
         }, 'ProgramPlanComponentModalHistoric.confirm_archive.ko.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Archivage terminé'
         }, 'ProgramPlanComponentModalHistoric.confirm_archive.ok.___LABEL___'));
     }
@@ -200,7 +200,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.programplan_shared_module.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'ProgramPlan - ' + this.programplan_shared_module.name
         }));
 
@@ -210,7 +210,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             bo_access.group_id = group.id;
             bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             bo_access.translatable_name = this.programplan_shared_module.POLICY_BO_ACCESS;
-            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Administration du ProgramPlan - ' + this.programplan_shared_module.name
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -225,7 +225,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             fo_access.group_id = group.id;
             fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             fo_access.translatable_name = this.programplan_shared_module.POLICY_FO_ACCESS;
-            fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+            fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Accès au ProgramPlan - ' + this.programplan_shared_module.name
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -235,7 +235,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             fo_see_fc.group_id = group.id;
             fo_see_fc.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             fo_see_fc.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_FC;
-            fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, new DefaultTranslation({
+            fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, DefaultTranslationVO.create_new({
                 'fr-fr': 'Vision calendrier du ProgramPlan - ' + this.programplan_shared_module.name
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -245,7 +245,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             fo_edit.group_id = group.id;
             fo_edit.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             fo_edit.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT;
-            fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, new DefaultTranslation({
+            fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, DefaultTranslationVO.create_new({
                 'fr-fr': 'Edition du ProgramPlan - ' + this.programplan_shared_module.name
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -338,7 +338,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         see_own_team.group_id = group.id;
         see_own_team.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         see_own_team.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM;
-        see_own_team = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_own_team, new DefaultTranslation({
+        see_own_team = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_own_team, DefaultTranslationVO.create_new({
             'fr-fr': 'Voir son équipe - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -351,7 +351,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         see_all_teams.group_id = group.id;
         see_all_teams.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         see_all_teams.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS;
-        see_all_teams = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_all_teams, new DefaultTranslation({
+        see_all_teams = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_all_teams, DefaultTranslationVO.create_new({
             'fr-fr': 'Voir toutes les équipes - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
@@ -372,7 +372,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         archive_rdvs.group_id = group.id;
         archive_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         archive_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_CAN_ARCHIVE_RDV;
-        archive_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(archive_rdvs, new DefaultTranslation({
+        archive_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(archive_rdvs, DefaultTranslationVO.create_new({
             'fr-fr': 'Archiver les RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -385,7 +385,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_rdvs.group_id = group.id;
         edit_own_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_own_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_RDVS;
-        edit_own_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_rdvs, new DefaultTranslation({
+        edit_own_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_rdvs, DefaultTranslationVO.create_new({
             'fr-fr': 'Modifier ses propres RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
@@ -398,7 +398,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_team_rdvs.group_id = group.id;
         edit_own_team_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_own_team_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_TEAM_RDVS;
-        edit_own_team_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_team_rdvs, new DefaultTranslation({
+        edit_own_team_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_team_rdvs, DefaultTranslationVO.create_new({
             'fr-fr': 'Modifier les RDVs de son équipe - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
@@ -416,7 +416,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_all_teams_rdvs.group_id = group.id;
         edit_all_teams_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_all_teams_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_ALL_RDVS;
-        edit_all_teams_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_all_teams_rdvs, new DefaultTranslation({
+        edit_all_teams_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_all_teams_rdvs, DefaultTranslationVO.create_new({
             'fr-fr': 'Modifier tous les RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
@@ -440,7 +440,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterIPlanFacilitatorByManagerByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterIPlanFacilitatorByManagerByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
@@ -482,7 +482,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
+    private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTableVO<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -501,7 +501,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterManagerByIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterManagerByIdByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
@@ -543,7 +543,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterManagerByIdByAccess(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
+    private async filterManagerByIdByAccess(datatable: ModuleTableVO<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -553,7 +553,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return null;
     }
 
-    private async filterManagerByIdByAccess_own_team(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
+    private async filterManagerByIdByAccess_own_team(datatable: ModuleTableVO<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
 
         if (!this.programplan_shared_module.manager_type_id) {
             return null;
@@ -631,7 +631,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return res;
     }
 
-    private async filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
+    private async filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable: ModuleTableVO<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
 
         if (!this.programplan_shared_module.manager_type_id) {
             return null;
@@ -723,7 +723,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterRDVsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterRDVsByFacilitatorIdByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
@@ -750,7 +750,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
+    private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTableVO<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -760,7 +760,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return null;
     }
 
-    private async filterRDVsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
+    private async filterRDVsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTableVO<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
         let res: IPlanRDV[] = [];
 
         let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.vosArray_to_vosByIds(
@@ -784,7 +784,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterRDVCRPrepsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterRDVCRPrepsByFacilitatorIdByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
@@ -813,7 +813,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
+    private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTableVO<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -823,7 +823,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return null;
     }
 
-    private async filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
+    private async filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTableVO<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
         let res = [];
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(

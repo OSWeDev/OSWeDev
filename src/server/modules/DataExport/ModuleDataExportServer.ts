@@ -27,13 +27,14 @@ import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
@@ -96,51 +97,51 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this, this.handleTriggerExportHistoricVOCreate);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exports'
         }, 'fields.labels.ref.module_data_export_export_log.___LABEL____user_id'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Fichier exporté : %%VAR%%EXPORT_TYPE_ID%%'
         }, 'export.default_mail.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Echec de l\'export du fichier : %%VAR%%EXPORT_TYPE_ID%%"
         }, 'export.default_mail_error.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour télécharger le fichier exporté.'
         }, 'export.default_mail.html'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Veuillez refaire votre demande d'export et nous excuser pour la gène occasionnée. Si le probleme persiste n'hésitez pas à nous en alerter"
         }, 'export.default_mail_error.html'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Télécharger'
         }, 'export.default_mail.download'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec de l\'exportation des données : si l\'erreur persiste merci de nous contacter.'
         }, 'exportation_failed.error_vars_loading.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export de données en cours...'
         }, 'DataExportBGThread.handleHistoric.start'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export de données terminé, vous devriez le recevoir par mail'
         }, 'DataExportBGThread.handleHistoric.success'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec de l\'export de données'
         }, 'DataExportBGThread.handleHistoric.failed'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export en cours... vous recevrez un lien dans les notifications et par mail pour télécharger le fichier une fois l\'export terminé.'
         }, 'exportContextQueryToXLSX.starting.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export terminé'
         }, 'exportContextQueryToXLSX.file_ready.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cette fonctionnalité est actuellement en maintenance. Elle sera de retour prochainement.'
         }, 'exportContextQueryToXLSX.maintenance.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Téléchargement de votre tableau'
         }, 'mails.export.dashboard.subject'));
     }
@@ -1290,7 +1291,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
      */
-    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTable<any>, e: T): Promise<any> {
+    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTableVO<any>, e: T): Promise<any> {
         if (!e) {
             return null;
         }
@@ -1324,7 +1325,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
     private async field_to_xlsx(
-        field: ModuleTableField<any>,
+        field: ModuleTableFieldVO<any>,
         src_vo: any,
         dest_vo: any,
         field_alias: string = null,
@@ -1338,7 +1339,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             // TODO FIXME  export des ranges dans xlsx à réfléchir...
 
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                 let tab_tstzrange_array = src_vo[src_field_id];
                 dest_vo[dest_field_id] = '';
 
@@ -1354,7 +1355,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
                 }
                 break;
-            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                 const _src_field_id = (field_alias ? field_alias : field.field_id);
 
                 // Many to Many relation: we need to get the related vo
@@ -1377,9 +1378,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 break;
 
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                 let tab = src_vo[src_field_id];
                 dest_vo[dest_field_id] = '';
 
@@ -1403,18 +1404,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                 dest_vo[dest_field_id] = Dates.format_segment(
                     RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
                     Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset), src_vo[src_field_id].segment_type);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
                 dest_vo[dest_field_id] = RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                 if (field instanceof DatatableField) {
                     dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
@@ -1428,7 +1429,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                 if (field instanceof DatatableField) {
                     dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
                 } else if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
@@ -1443,11 +1444,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                 delete dest_vo[dest_field_id];
                 break;
 
-            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
                 let user = await ModuleAccessPolicy.getInstance().getSelfUser();
                 let trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
                     .filter_by_text_eq('code_text', field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
@@ -1458,15 +1459,15 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 break;
 
 
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_image_field:
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_image_field:
                 /**
                  * Si on a un type string, mais que la bdd renvoie un array, on join(',') pour avoir une string
                  */
@@ -1477,17 +1478,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_file_ref:
-            case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_hour:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_hour:
             default:
                 dest_vo[dest_field_id] = src_vo[src_field_id];
         }

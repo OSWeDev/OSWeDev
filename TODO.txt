@@ -1,0 +1,4 @@
+TODO
+
+Register default translations dans le générateur pour les modules tables fields - inutile partout ailleurs - à la fin de la déclaration des types de contenus
+ou a l'inverse il faudra vider du cache mémoire ModuleTableFieldController.GENERATOR_default_field_translations dès que c'est inutile (donc tout de suite ou après intégration des trads / jamais côté générateur)

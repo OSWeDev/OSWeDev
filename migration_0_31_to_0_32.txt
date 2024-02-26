@@ -1,0 +1,48 @@
+= MIGRATION  0.31.x => 0.32.x
+
+
+== REPLACE ALL
+Toujours les faire dans cet ordre
+
+=== Sans paramètres
+FROM :
+'new DefaultTranslation('
+TO :
+'DefaultTranslationVO.create_new('
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'DefaultTranslation'
+TO :
+'DefaultTranslationVO'
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'ModuleTableField'
+TO :
+'ModuleTableFieldVO'
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'ModuleTable'
+TO :
+'ModuleTableVO'
+
+=== REGEXP
+FROM : 
+'new ModuleTableFieldVO\(([^)]+)\)'
+TO:
+'ModuleTableFieldController.create_new($1)'
+
+=== Sans paramètres
+FROM : 
+'import ModuleTableFieldVO from '
+TO :
+'import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '
+
+=== REGEXP
+FROM : 
+'ModuleTableFieldController.create_new\(field_names<([^>]+)>\('
+TO:
+'ModuleTableFieldController.create_new($1.API_TYPE_ID, field_names<$1>('

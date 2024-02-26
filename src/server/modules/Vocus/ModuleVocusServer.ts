@@ -8,10 +8,11 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
@@ -40,28 +41,28 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.Vocus.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.VocusAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'CRUD'
         }, 'vocus.crud.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ID'
         }, 'vocus.id.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Label'
         }, 'vocus.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Type'
         }, 'vocus.vo_type.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Limité à 1000 lignes...'
         }, 'vocus.limit1000.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }, 'vocus.vocus.___LABEL___'));
     }
@@ -73,7 +74,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVocus.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }));
 
@@ -81,7 +82,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleVocus.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration du Vocus'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -111,13 +112,13 @@ export default class ModuleVocusServer extends ModuleServerBase {
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
         }
 
-        let refFields: Array<ModuleTableField<any>> = [];
+        let refFields: Array<ModuleTableFieldVO<any>> = [];
 
         for (let i in VOsTypesManager.moduleTables_by_voType) {
             let table = VOsTypesManager.moduleTables_by_voType[i];

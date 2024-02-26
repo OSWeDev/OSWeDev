@@ -6,8 +6,9 @@ import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
 import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import Module from '../../Module';
-import ModuleTable from '../../ModuleTable';
-import ModuleTableField from '../../ModuleTableField';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ModuleClient from '../Client/ModuleClient';
 import ClientVO from '../Client/vos/ClientVO';
@@ -91,11 +92,11 @@ export default class ModuleCommande extends Module {
 
     public initializeCommande(): void {
         // Table Commande
-        let field_client_id: ModuleTableField<number> = new ModuleTableField(field_names<CommandeVO>().client_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Client', true);
+        let field_client_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().client_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Client', true);
         let datatable_fields = [
-            new ModuleTableField(field_names<CommandeVO>().identifiant, ModuleTableField.FIELD_TYPE_string, 'Identifiant', true),
-            new ModuleTableField(field_names<CommandeVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
-            new ModuleTableField(field_names<CommandeVO>().statut, ModuleTableField.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
+            ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().identifiant, ModuleTableFieldVO.FIELD_TYPE_string, 'Identifiant', true),
+            ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true),
+            ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().statut, ModuleTableFieldVO.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
                 [CommandeVO.STATUT_PANIER]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_PANIER],
                 [CommandeVO.STATUT_ANNULE]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_ANNULE],
                 [CommandeVO.STATUT_EN_ATTENTE]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_EN_ATTENTE],
@@ -107,25 +108,25 @@ export default class ModuleCommande extends Module {
             }),
             field_client_id
         ];
-        let dt = new ModuleTable<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
+        let dt = new ModuleTableVO<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
         field_client_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClientVO.API_TYPE_ID]);
         this.datatables.push(dt);
     }
 
     public initializeLigneCommande(): void {
         // Table Ligne De Commande
-        let field_commande_id: ModuleTableField<number> = new ModuleTableField(field_names<LigneCommandeVO>().commande_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Commande', true);
-        let field_produit_id: ModuleTableField<number> = new ModuleTableField(field_names<LigneCommandeVO>().produit_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Produit', true);
-        let field_informations_id: ModuleTableField<number> = new ModuleTableField(field_names<LigneCommandeVO>().informations_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Informations', true);
+        let field_commande_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().commande_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Commande', true);
+        let field_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Produit', true);
+        let field_informations_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
 
         let datatable_fields = [
-            new ModuleTableField(field_names<LigneCommandeVO>().prix_unitaire, ModuleTableField.FIELD_TYPE_amount, 'Prix unitaire', true),
-            new ModuleTableField(field_names<LigneCommandeVO>().quantite, ModuleTableField.FIELD_TYPE_float, 'Quantite', true),
+            ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().prix_unitaire, ModuleTableFieldVO.FIELD_TYPE_amount, 'Prix unitaire', true),
+            ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().quantite, ModuleTableFieldVO.FIELD_TYPE_float, 'Quantite', true),
             field_commande_id,
             field_produit_id,
             field_informations_id
         ];
-        let dt = new ModuleTable<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
+        let dt = new ModuleTableVO<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
         field_commande_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
         field_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
         field_informations_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[InformationsVO.API_TYPE_ID]);

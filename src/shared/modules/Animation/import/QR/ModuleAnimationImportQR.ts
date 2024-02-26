@@ -2,8 +2,9 @@ import AccessPolicyTools from "../../../../tools/AccessPolicyTools";
 import { field_names } from "../../../../tools/ObjectHandler";
 import ModuleDataImport from "../../../DataImport/ModuleDataImport";
 import Module from "../../../Module";
-import ModuleTable from "../../../ModuleTable";
-import ModuleTableField from "../../../ModuleTableField";
+import ModuleTableVO from "../../../ModuleTableVO";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../ModuleTableFieldVO";
 import AnimationImportQRVO from "./vos/AnimationImportQRVO";
 
 
@@ -35,21 +36,21 @@ export default class ModuleAnimationImportQR extends Module {
 
 
         let datatable_fields = [
-            new ModuleTableField(field_names<AnimationImportQRVO>().description, ModuleTableField.FIELD_TYPE_string, 'description', false),
-            new ModuleTableField(field_names<AnimationImportQRVO>().reponses, ModuleTableField.FIELD_TYPE_string, 'reponses', false),
-            new ModuleTableField(field_names<AnimationImportQRVO>().explicatif, ModuleTableField.FIELD_TYPE_string, 'explicatif', false),
-            new ModuleTableField(field_names<AnimationImportQRVO>().external_video, ModuleTableField.FIELD_TYPE_string, 'external_video', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'description', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().reponses, ModuleTableFieldVO.FIELD_TYPE_string, 'reponses', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().explicatif, ModuleTableFieldVO.FIELD_TYPE_string, 'explicatif', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().external_video, ModuleTableFieldVO.FIELD_TYPE_string, 'external_video', false),
 
-            new ModuleTableField(field_names<AnimationImportQRVO>().name, ModuleTableField.FIELD_TYPE_string, 'name', false),
-            new ModuleTableField(field_names<AnimationImportQRVO>().weight, ModuleTableField.FIELD_TYPE_string, 'weight', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'name', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().weight, ModuleTableFieldVO.FIELD_TYPE_string, 'weight', false),
 
-            new ModuleTableField(field_names<AnimationImportQRVO>().question_file_id, ModuleTableField.FIELD_TYPE_string, 'question_file_id', false),
-            new ModuleTableField(field_names<AnimationImportQRVO>().reponse_file_id, ModuleTableField.FIELD_TYPE_string, 'reponse_file_id', false),
-            new ModuleTableField(field_names<AnimationImportQRVO>().module_id_import, ModuleTableField.FIELD_TYPE_string, 'module_id_import', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().question_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'question_file_id', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().reponse_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'reponse_file_id', false),
+            ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().module_id_import, ModuleTableFieldVO.FIELD_TYPE_string, 'module_id_import', false),
         ];
 
 
-        let datatable = new ModuleTable(this, AnimationImportQRVO.API_TYPE_ID, () => new AnimationImportQRVO(), datatable_fields, null, "Import des traductions");
+        let datatable = new ModuleTableVO(this, AnimationImportQRVO.API_TYPE_ID, () => new AnimationImportQRVO(), datatable_fields, null, "Import des traductions");
         ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
         this.datatables.push(datatable);
     }

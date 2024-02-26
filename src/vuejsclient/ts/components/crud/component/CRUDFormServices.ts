@@ -16,7 +16,8 @@ import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
@@ -225,7 +226,7 @@ export default class CRUDFormServices {
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                 let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
 
                     if (res[field.datatable_field_uid]) {
 
@@ -245,30 +246,30 @@ export default class CRUDFormServices {
                     }
                 }
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                     // TODO FIXME ASAP VARS
                 }
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
-                    // TODO FIXME ASAP VARS
-                }
-
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_numrange_array) {
                     // TODO FIXME ASAP VARS
                 }
 
-                // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) {
+                    // TODO FIXME ASAP VARS
+                }
+
+                // if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange_array) {
                 //     // TODO FIXME ASAP VARS
                 // }
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
                     // TODO FIXME ASAP VARS
                 }
 
-                if ((simpleFieldType == ModuleTableField.FIELD_TYPE_tstz_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_float_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_string_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_html_array)) {
+                if ((simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstz_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_float_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_int_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_string_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_html_array)) {
                     res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
                 }
 
@@ -311,27 +312,27 @@ export default class CRUDFormServices {
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                 let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
                         res[field.datatable_field_uid + "_start"] = undefined;
                         res[field.datatable_field_uid + "_end"] = undefined;
                     }
 
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                         // TODO FIXME ASAP VARS
                     }
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_numrange_array) {
                         // TODO FIXME ASAP VARS
                     }
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) {
                         // TODO FIXME ASAP VARS
                     }
 
-                    // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
+                    // if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange_array) {
                     //     // TODO FIXME ASAP VARS
                     // }
 
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
                         // TODO FIXME ASAP VARS
                     }
 
@@ -371,14 +372,14 @@ export default class CRUDFormServices {
                 let q = query(field.targetModuleTable.vo_type);
 
                 switch (field.destField.field_type) {
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
                         q.filter_by_num_eq(
                             field.destField.field_id,
                             db_vo.id);
                         break;
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         q.filter_by_num_x_ranges(
                             field.destField.field_id,
                             [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)]);
@@ -412,7 +413,7 @@ export default class CRUDFormServices {
                             continue;
                         }
 
-                        if (field.destField.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+                        if (field.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                             if (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
                                 getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
                             }

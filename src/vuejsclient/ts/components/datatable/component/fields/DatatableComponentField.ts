@@ -13,7 +13,8 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IRange from '../../../../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -105,7 +106,7 @@ export default class DatatableComponentField extends VueComponentBase {
     private is_load: boolean = false;
 
     get field_type(): string {
-        return this.field?.field_type || ModuleTableField.FIELD_TYPE_int; // Pour le cas de l'id
+        return this.field?.field_type || ModuleTableFieldVO.FIELD_TYPE_int; // Pour le cas de l'id
     }
     private var_value: VarDataValueResVO = null;
 
@@ -294,7 +295,7 @@ export default class DatatableComponentField extends VueComponentBase {
         //     case DatatableField.SIMPLE_FIELD_TYPE:
 
         //         switch (this.simple_field.field_type) {
-        //             case ModuleTableField.FIELD_TYPE_enum:
+        //             case ModuleTableFieldVO.FIELD_TYPE_enum:
 
         //                 let enum_val = this.vo[this.field.datatable_field_uid];
         //                 return this.t(this.simple_field.enum_values[enum_val]);
@@ -307,13 +308,13 @@ export default class DatatableComponentField extends VueComponentBase {
         // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
         if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
             if (
-                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html) ||
-                (this.simple_field.field_type == ModuleTableField.FIELD_TYPE_html_array)
+                (this.simple_field.field_type == ModuleTableFieldVO.FIELD_TYPE_html) ||
+                (this.simple_field.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array)
             ) {
                 return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
             }
 
-            if (this.field.field_type == ModuleTableField.FIELD_TYPE_translatable_text) {
+            if (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) {
                 if (!this.vo[this.field.datatable_field_uid + '__raw']) {
                     return null;
                 }

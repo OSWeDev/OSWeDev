@@ -2,7 +2,8 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../VueComponentBase';
 import '../RangeComponent.scss';
@@ -22,7 +23,7 @@ export default class NumRangeComponent extends VueComponentBase {
     private range: NumRange;
 
     @Prop({ default: null })
-    private vo_field: ModuleTableField<any>;
+    private vo_field: ModuleTableFieldVO<any>;
 
     private segmented_min: string = null;
     private segmented_max: string = null;

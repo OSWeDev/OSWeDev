@@ -16,7 +16,7 @@ import DocumentTagVO from '../../../shared/modules/Document/vos/DocumentTagVO';
 import DocumentVO from '../../../shared/modules/Document/vos/DocumentVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import FileHandler from '../../../shared/tools/FileHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
@@ -52,7 +52,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDocument.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Documents'
         }));
 
@@ -60,7 +60,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleDocument.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration des Documents'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -73,7 +73,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         POLICY_FO_ACCESS.group_id = group.id;
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_FO_ACCESS.translatable_name = ModuleDocument.POLICY_FO_ACCESS;
-        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
+        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès front - Documents'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
@@ -81,80 +81,80 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Documents' },
             'fields.labels.ref.module_document_document.___LABEL____file_id'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Youtube' },
             'DOCUMENT.DOCUMENT_TYPE.YOUTUBE'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'PDF' },
             'DOCUMENT.DOCUMENT_TYPE.PDF'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'PPT' },
             'DOCUMENT.DOCUMENT_TYPE.PPT'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'XLS' },
             'DOCUMENT.DOCUMENT_TYPE.XLS'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'DOC' },
             'DOCUMENT.DOCUMENT_TYPE.DOC'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'AUTRE' },
             'DOCUMENT.DOCUMENT_TYPE.OTHER'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'XS' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XS'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'S' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.S'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'M' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.M'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'L' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.L'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'XL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XL'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'XXL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XXL'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Documents' },
             'menu.menuelements.admin.DocumentAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Feedbacks' },
             'menu.menuelements.admin.FeedbackAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Documents' },
             'menu.menuelements.admin.document.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Tags' },
             'menu.menuelements.admin.dt.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Groupes de tags' },
             'menu.menuelements.admin.dtg.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Feedbacks' },
             'menu.menuelements.admin.feedback.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': ' ' },
             'tstz_input.placeholder.date_debut.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Documentation' },
             'document_handler.modal_title.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Tous' },
             'document_handler.tags.tous.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Besoin d'infos" },
             'document_handler.need_info.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Aucun document disponible" },
             'document_handler_component.no_document.___LABEL___')
         );

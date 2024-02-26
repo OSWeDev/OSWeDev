@@ -10,7 +10,8 @@ import TimeSegment from "../../DataRender/vos/TimeSegment";
 import IIsServerField from "../../IIsServerField";
 import MatroidController from "../../Matroid/MatroidController";
 import IMatroid from "../../Matroid/interfaces/IMatroid";
-import ModuleTableField from "../../ModuleTableField";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../ModuleTableFieldVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import VarConfVO from "../../Var/vos/VarConfVO";
@@ -764,7 +765,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
+        let matroid_fields: Array<ModuleTableFieldVO<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];
@@ -782,18 +783,18 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
                 let this_filter = null;
                 switch (target_moduletable_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_is_in_ranges(matroid[matroid_field_id]);
                         break;
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_hourrange:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_is_in_ranges(matroid[matroid_field_id]);
                         break;
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_x_ranges(matroid[matroid_field_id]);
                         break;
                     default:
@@ -843,7 +844,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
+        let matroid_fields: Array<ModuleTableFieldVO<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];
@@ -860,7 +861,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
                 let this_filter = null;
                 switch (matroid_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_x_ranges(matroid[matroid_field_id]);
                         break;
                     default:

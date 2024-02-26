@@ -9,9 +9,10 @@ import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
-import DefaultTranslation from '../Translation/vos/DefaultTranslation';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
 
@@ -19,10 +20,10 @@ export default class ModuleMaintenance extends Module {
 
     public static MODULE_NAME: string = 'Maintenance';
 
-    public static MSG1_code_text = 'maintenance.msg1' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    public static MSG2_code_text = 'maintenance.msg2' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    public static MSG3_code_text = 'maintenance.msg3' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    public static MSG4_code_text = 'maintenance.msg4' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public static MSG1_code_text = 'maintenance.msg1' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    public static MSG2_code_text = 'maintenance.msg2' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    public static MSG3_code_text = 'maintenance.msg3' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    public static MSG4_code_text = 'maintenance.msg4' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
 
     public static PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg1_minutes';
     public static PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg2_minutes';
@@ -84,22 +85,22 @@ export default class ModuleMaintenance extends Module {
     }
 
     private initializeMaintenanceVO() {
-        let author_id = new ModuleTableField(field_names<MaintenanceVO>().author_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
+        let author_id = ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         let fields = [
-            new ModuleTableField(field_names<MaintenanceVO>().start_ts, ModuleTableField.FIELD_TYPE_tstz, 'Début de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
-            new ModuleTableField(field_names<MaintenanceVO>().end_ts, ModuleTableField.FIELD_TYPE_tstz, 'Fin de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
-            new ModuleTableField(field_names<MaintenanceVO>().broadcasted_msg1, ModuleTableField.FIELD_TYPE_boolean, 'MSG1 broadcasté', true, true, false),
-            new ModuleTableField(field_names<MaintenanceVO>().broadcasted_msg2, ModuleTableField.FIELD_TYPE_boolean, 'MSG2 broadcasté', true, true, false),
-            new ModuleTableField(field_names<MaintenanceVO>().broadcasted_msg3, ModuleTableField.FIELD_TYPE_boolean, 'MSG3 broadcasté', true, true, false),
-            new ModuleTableField(field_names<MaintenanceVO>().maintenance_over, ModuleTableField.FIELD_TYPE_boolean, 'Maintenance terminée', true, true, false),
-            new ModuleTableField(field_names<MaintenanceVO>().creation_date, ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().start_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Début de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().end_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Fin de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().broadcasted_msg1, ModuleTableFieldVO.FIELD_TYPE_boolean, 'MSG1 broadcasté', true, true, false),
+            ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().broadcasted_msg2, ModuleTableFieldVO.FIELD_TYPE_boolean, 'MSG2 broadcasté', true, true, false),
+            ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().broadcasted_msg3, ModuleTableFieldVO.FIELD_TYPE_boolean, 'MSG3 broadcasté', true, true, false),
+            ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().maintenance_over, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Maintenance terminée', true, true, false),
+            ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
             author_id,
         ];
 
         author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
-        let table = new ModuleTable(this, MaintenanceVO.API_TYPE_ID, () => new MaintenanceVO(), fields, null, 'Maintenances');
+        let table = new ModuleTableVO(this, MaintenanceVO.API_TYPE_ID, () => new MaintenanceVO(), fields, null, 'Maintenances');
         this.datatables.push(table);
     }
 }

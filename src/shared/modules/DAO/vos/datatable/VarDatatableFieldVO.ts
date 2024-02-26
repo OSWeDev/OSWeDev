@@ -1,5 +1,5 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 
 export default class VarDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
@@ -31,6 +31,6 @@ export default class VarDatatableFieldVO<T, U> extends DatatableField<T, U> {
             return null;
         }
 
-        return "fields.labels." + this.vo_type_full_name + ".__var__" + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return "fields.labels." + this.vo_type_full_name + ".__var__" + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 }

@@ -1,8 +1,9 @@
 import { field_names } from '../../tools/ObjectHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import ModulesManager from '../ModulesManager';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarConfVO from './vos/VarConfVO';
@@ -54,10 +55,10 @@ export default class VarsInitController {
     public register_var_data(
         api_type_id: string,
         constructor: () => VarDataBaseVO,
-        var_fields: Array<ModuleTableField<any>>,
+        var_fields: Array<ModuleTableFieldVO<any>>,
         module: Module = null,
-        is_test: boolean = false): ModuleTable<any> {
-        let var_id = new ModuleTableField(field_names<VarDataBaseVO>().var_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
+        is_test: boolean = false): ModuleTableVO<any> {
+        let var_id = ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var conf');
 
         if (!VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id]) {
             VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id] = [];
@@ -77,24 +78,24 @@ export default class VarsInitController {
             let var_field = var_fields[i];
 
             switch (var_field.field_type) {
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     var_field.index();
             }
         }
 
         var_fields.unshift(var_id);
         var_fields = var_fields.concat([
-            new ModuleTableField(field_names<VarDataBaseVO>().value, ModuleTableField.FIELD_TYPE_float, 'Valeur'),
-            new ModuleTableField(field_names<VarDataBaseVO>().value_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
-            new ModuleTableField(field_names<VarDataBaseVO>().value_ts, ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField(field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
-            new ModuleTableField(field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableField.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
+            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
+            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
+            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
+            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
+            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
         ]);
 
-        let datatable = new ModuleTable(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
+        let datatable = new ModuleTableVO(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
         if (!is_test) {
             var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
         }

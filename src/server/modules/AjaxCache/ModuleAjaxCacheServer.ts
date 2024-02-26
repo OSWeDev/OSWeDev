@@ -7,7 +7,7 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -46,7 +46,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAjaxCache.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Cache de requêtes'
         }));
 
@@ -54,7 +54,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         fo_access.group_id = group.id;
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
         fo_access.translatable_name = ModuleAjaxCache.POLICY_FO_ACCESS;
-        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Configuration sur le front'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }

@@ -1,4 +1,5 @@
-import ModuleTableField from "../../../../shared/modules/ModuleTableField";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../../shared/modules/ModuleTableFieldVO";
 
 export default class FieldPathWrapper {
 
@@ -8,7 +9,7 @@ export default class FieldPathWrapper {
      * @param is_manytoone Le sens de la relation (manytoone/true ou onetomany/false)
      */
     public constructor(
-        public field: ModuleTableField<any>,
+        public field: ModuleTableFieldVO<any>,
         public is_manytoone: boolean = true
     ) { }
 }

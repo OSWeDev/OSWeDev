@@ -2,7 +2,8 @@ import ObjectHandler from '../../../../tools/ObjectHandler';
 import Datatable from '../../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
-import ModuleTableField from '../../../ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../ModuleTableFieldVO';
 import TableFieldTypeControllerBase from '../../../TableFieldTypes/vos/TableFieldTypeControllerBase';
 import AnimationMessageModuleVO from './vos/AnimationMessageModuleVO';
 
@@ -64,14 +65,14 @@ export default class MessageModuleTableFieldTypeController extends TableFieldTyp
         return res;
     }
 
-    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase): any {
         return field_value;
     }
-    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase): any {
         return value;
     }
 
-    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableField<any>) {
+    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableFieldVO<any>) {
 
         if ((!e) || (!field) || (!e[field.field_id])) {
             return;

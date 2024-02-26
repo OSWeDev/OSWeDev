@@ -9,7 +9,7 @@ import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/Insert
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
 import IPlanEnseigne from '../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
@@ -814,7 +814,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     let partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
 
                     let target_name: string = (!!target) ? target.name : "";
-                    let target_table: ModuleTable<IPlanTarget> = VOsTypesManager.moduleTables_by_voType[this.program_plan_shared_module.target_type_id];
+                    let target_table: ModuleTableVO<IPlanTarget> = VOsTypesManager.moduleTables_by_voType[this.program_plan_shared_module.target_type_id];
                     if (target_table && target_table.default_label_field) {
                         target_name = (!!target) ? target[target_table.default_label_field.field_id] : "";
                     } else if (target_table && target_table.table_label_function) {

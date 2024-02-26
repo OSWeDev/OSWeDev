@@ -13,7 +13,8 @@ import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/v
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
@@ -729,7 +730,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
-    get field(): ModuleTableField<any> {
+    get field(): ModuleTableFieldVO<any> {
         if (!this.vo_field_ref) {
             return null;
         }

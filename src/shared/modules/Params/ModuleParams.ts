@@ -7,7 +7,7 @@ import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
+import ModuleTableVO from '../ModuleTableVO';
 import GetParamParamAsBooleanVO, { GetParamParamAsBooleanVOStatic } from './vos/apis/GetParamParamAsBooleanVO';
 import GetParamParamAsNumberVO, { GetParamParamAsNumberVOStatic } from './vos/apis/GetParamParamAsNumberVO';
 import GetParamParamAsStringVO, { GetParamParamAsStringVOStatic } from './vos/apis/GetParamParamAsStringVO';
@@ -125,14 +125,14 @@ export default class ModuleParams extends Module {
     }
 
     public initialize() {
-        let label_field = new ModuleTableField(field_names<ParamVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
+        let label_field = ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
         let datatable_fields = [
             label_field,
-            new ModuleTableField(field_names<ParamVO>().value, ModuleTableField.FIELD_TYPE_string, 'Valeur', false),
-            new ModuleTableField(field_names<ParamVO>().last_up_date, ModuleTableField.FIELD_TYPE_tstz, 'Dernière mise à jour', false)
+            ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur', false),
+            ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière mise à jour', false)
         ];
 
-        this.datatables.push(new ModuleTable(this, ParamVO.API_TYPE_ID, () => new ParamVO(), datatable_fields, label_field, "Params"));
+        this.datatables.push(new ModuleTableVO(this, ParamVO.API_TYPE_ID, () => new ParamVO(), datatable_fields, label_field, "Params"));
     }
 
     public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {

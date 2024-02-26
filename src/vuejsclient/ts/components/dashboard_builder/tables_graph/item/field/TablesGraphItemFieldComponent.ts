@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VueComponentBase from '../../../../VueComponentBase';
 import './TablesGraphItemFieldComponent.scss';
 
@@ -11,7 +12,7 @@ import './TablesGraphItemFieldComponent.scss';
 export default class TablesGraphItemFieldComponent extends VueComponentBase {
 
     @Prop()
-    private field: ModuleTableField<any>;
+    private field: ModuleTableFieldVO<any>;
 
     get field_label(): string {
         if (!this.field) {

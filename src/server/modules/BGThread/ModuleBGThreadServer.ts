@@ -7,7 +7,7 @@ import ModuleBGThread from '../../../shared/modules/BGThread/ModuleBGThread';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -68,7 +68,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleBGThread.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'BGThreads'
         }));
 
@@ -76,7 +76,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleBGThread.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration des BGThreads'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();

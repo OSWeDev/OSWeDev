@@ -5,7 +5,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -635,19 +635,19 @@ export default class VarsServerController {
 
     private static register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {
         if (!!controller.var_name_default_translations) {
-            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 controller.var_name_default_translations,
                 VarsController.get_translatable_name_code(varConf_name)));
         }
 
         if (!!controller.var_description_default_translations) {
-            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 controller.var_description_default_translations,
                 VarsController.get_translatable_description_code(varConf_name)));
         }
 
         if (!!controller.var_explaination_default_translations) {
-            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 controller.var_explaination_default_translations,
                 VarsController.get_translatable_explaination(varConf_name)));
         }
@@ -661,7 +661,7 @@ export default class VarsServerController {
                 if (!controller.var_deps_names_default_translations[i]) {
                     continue;
                 }
-                DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+                DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                     controller.var_deps_names_default_translations[i],
                     VarsController.get_translatable_dep_name(i)));
             }

@@ -17,8 +17,9 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
@@ -435,7 +436,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
+            let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
             if (
                 base_table &&
@@ -561,7 +562,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return true;
     }
 
-    private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableField<any>): ContextFilterVO {
+    private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableFieldVO<any>): ContextFilterVO {
         let context_filter = new ContextFilterVO();
 
         context_filter.field_id = this.vo_field_ref.field_id;
@@ -569,7 +570,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let field_type = null;
         if ((!field) && (this.vo_field_ref.field_id == 'id')) {
-            field_type = ModuleTableField.FIELD_TYPE_int;
+            field_type = ModuleTableFieldVO.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;
         }
@@ -577,13 +578,13 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         let need_value: boolean = false;
 
         switch (field_type) {
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_boolean:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_boolean:
                 switch (advanced_filter.filter_type) {
                     case AdvancedNumberFilter.FILTER_TYPE_EST_NULL:
                         context_filter.filter_type = ContextFilterVO.TYPE_NULL_ANY;

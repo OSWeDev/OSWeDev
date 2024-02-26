@@ -188,23 +188,23 @@ export default class VarsDeployDepsHandler {
         //     let pixellised = pixellised_fields_by_id[matroid_field.field_name];
 
         //     switch (matroid_field.field_type) {
-        //         case ModuleTableField.FIELD_TYPE_numrange_array:
-        //         case ModuleTableField.FIELD_TYPE_refrange_array:
-        //         case ModuleTableField.FIELD_TYPE_isoweekdays:
+        //         case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
         //             if (pixellised) {
         //                 pixel_query.filter_by_num_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
         //                 pixel_query.filter_by_num_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
         //             if (pixellised) {
         //                 pixel_query.filter_by_date_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
         //                 pixel_query.filter_by_date_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_hourrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
         //         default:
         //             throw new Error('Not implemented');
         //     }
@@ -333,23 +333,23 @@ export default class VarsDeployDepsHandler {
         //     let pixellised = pixellised_fields_by_id[matroid_field.field_name];
 
         //     switch (matroid_field.field_type) {
-        //         case ModuleTableField.FIELD_TYPE_numrange_array:
-        //         case ModuleTableField.FIELD_TYPE_refrange_array:
-        //         case ModuleTableField.FIELD_TYPE_isoweekdays:
+        //         case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
         //             if (pixellised) {
         //                 known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
         //                 known_pixels_query.filter_by_num_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
         //             if (pixellised) {
         //                 known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
         //                 known_pixels_query.filter_by_date_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_hourrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
         //         default:
         //             throw new Error('Not implemented');
         //     }

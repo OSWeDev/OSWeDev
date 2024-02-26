@@ -1,7 +1,8 @@
 import { Cell, Geometry, Graph, Rectangle } from "@maxgraph/core";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
-import ModuleTable from "../../../../../../shared/modules/ModuleTable";
-import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
+import ModuleTableVO from "../../../../../../shared/modules/ModuleTableVO";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../../../../shared/modules/ModuleTableFieldVO";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import VueAppBase from "../../../../../VueAppBase";
@@ -52,7 +53,7 @@ export default class MaxGraphCellMapper {
     public graphvoref: DashboardGraphVORefVO = null;
 
     public api_type_id: string = null;
-    public moduletable: ModuleTable<any> = null;
+    public moduletable: ModuleTableVO<any> = null;
     public label: string = null;
 
     public incoming_edges: MaxGraphEdgeMapper[] = [];
@@ -91,7 +92,7 @@ export default class MaxGraphCellMapper {
         return newcell;
     }
 
-    public add_edge(target_cell: MaxGraphCellMapper, field: ModuleTableField<any>): MaxGraphEdgeMapper {
+    public add_edge(target_cell: MaxGraphCellMapper, field: ModuleTableFieldVO<any>): MaxGraphEdgeMapper {
 
         if (!!this.outgoing_edges[field.field_id]) {
             return null;

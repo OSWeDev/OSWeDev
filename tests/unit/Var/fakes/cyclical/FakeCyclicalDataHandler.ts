@@ -6,7 +6,8 @@ import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSe
 import TSRange from '../../../../../src/shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../src/shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidCutResult from '../../../../../src/shared/modules/Matroid/vos/MatroidCutResult';
-import ModuleTableField from '../../../../../src/shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../src/shared/modules/ModuleTableFieldVO';
 import VarsInitController from '../../../../../src/shared/modules/Var/VarsInitController';
 import ConsoleHandler from '../../../../../src/shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../src/shared/tools/RangeHandler';
@@ -25,8 +26,8 @@ export default class FakeCyclicalDataHandler {
     public static initializeFakeEmpDayDataVO() {
 
         let datatable_fields = [
-            new ModuleTableField('employee_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Employes').set_segmentation_type(NumSegment.TYPE_INT),
-            new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
+            ModuleTableFieldController.create_new('employee_id_ranges', ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Employes').set_segmentation_type(NumSegment.TYPE_INT),
+            ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
         VarsInitController.getInstance().register_var_data(FakeEmpDayDataVO.API_TYPE_ID, () => new FakeEmpDayDataVO(), datatable_fields, null, true);

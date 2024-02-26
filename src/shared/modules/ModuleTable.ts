@@ -17,9 +17,10 @@
 // import IDistantVOBase from './IDistantVOBase';
 // import MatroidController from './Matroid/MatroidController';
 // import Module from './Module';
-// import ModuleTableField from './ModuleTableField';
+// import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from './ModuleTableFieldVO';
 // import DefaultTranslationManager from './Translation/DefaultTranslationManager';
-// import DefaultTranslation from './Translation/vos/DefaultTranslation';
+// import DefaultTranslationVO from './Translation/vos/DefaultTranslationVO';
 // import VarDataBaseVO from './Var/vos/VarDataBaseVO';
 // import cloneDeep from 'lodash/cloneDeep';
 // import VOsTypesManager from './VO/manager/VOsTypesManager';
@@ -29,7 +30,7 @@
 // import StatsController from './Stats/StatsController';
 
 
-// export default class ModuleTable<T extends IDistantVOBase> {
+// export default class ModuleTableVO<T extends IDistantVOBase> {
 
 //     public static defaultforceNumeric<T extends IDistantVOBase>(e: T) {
 
@@ -81,7 +82,7 @@
 
 //     public static defaultforceNumerics<T extends IDistantVOBase>(es: T[]): T[] {
 //         for (let i in es) {
-//             es[i] = ModuleTable.defaultforceNumeric(es[i]);
+//             es[i] = ModuleTableVO.defaultforceNumeric(es[i]);
 //         }
 //         return es;
 //     }
@@ -255,7 +256,7 @@
 //     ];
 
 //     private static getNextUID(): number {
-//         return ModuleTable.UID++;
+//         return ModuleTableVO.UID++;
 //     }
 
 //     /**
@@ -276,26 +277,26 @@
 //     public is_segmented: boolean = false;
 //     public is_versioned: boolean = false;
 //     public is_archived: boolean = false;
-//     public table_segmented_field: ModuleTableField<any> = null;
+//     public table_segmented_field: ModuleTableFieldVO<any> = null;
 //     public table_segmented_field_range_type: number = null;
 //     public table_segmented_field_segment_type: number = null;
 
 //     public hook_datatable_install: (db) => {} = null;
 
 //     public module: Module;
-//     // public fields: Array<ModuleTableField<any>>;
+//     // public fields: Array<ModuleTableFieldVO<any>>;
 //     public suffix: string;
 //     public prefix: string;
 //     public database: string;
 //     public vo_type: string;
-//     public label: DefaultTranslation = null;
+//     public label: DefaultTranslationVO = null;
 
 //     /**
 //      * On défini les champs uniques directement sur les champs,
 //      *  et on remonte ici le fait qu'on a un index unique sur un champs, et on le fait pour chaque champs unique.
 //      *  On peut aussi indiquer un index unique, sur un tableau de fields, et dans ce cas on le fait directement ici
 //      */
-//     public uniq_indexes: Array<Array<ModuleTableField<any>>> = [];
+//     public uniq_indexes: Array<Array<ModuleTableFieldVO<any>>> = [];
 
 //     /**
 //      * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
@@ -308,7 +309,7 @@
 
 //     public get_bdd_version: (e: T) => T = null;
 
-//     public default_label_field: ModuleTableField<any> = null;
+//     public default_label_field: ModuleTableFieldVO<any> = null;
 //     public table_label_function: (vo: T) => string = null;
 //     public table_label_function_field_names_deps: string[] = null;
 //     public importable: boolean = false;
@@ -332,11 +333,11 @@
 
 //     private vo_interfaces: { [interface_name: string]: boolean } = {};
 
-//     private fields_: Array<ModuleTableField<any>> = [];
-//     private fields_by_ids: { [field_name: string]: ModuleTableField<any> } = {};
-//     private readonlyfields_by_ids: { [field_name: string]: ModuleTableField<any> } = {};
+//     private fields_: Array<ModuleTableFieldVO<any>> = [];
+//     private fields_by_ids: { [field_name: string]: ModuleTableFieldVO<any> } = {};
+//     private readonlyfields_by_ids: { [field_name: string]: ModuleTableFieldVO<any> } = {};
 
-//     private sortedFields: Array<ModuleTableField<any>> = [];
+//     private sortedFields: Array<ModuleTableFieldVO<any>> = [];
 
 //     private fieldIdToAPIMap: { [field_name: string]: string } = null;
 //     /**
@@ -347,16 +348,16 @@
 //         tmp_module: Module,
 //         tmp_vo_type: string,
 //         voConstructor: () => T,
-//         tmp_fields: Array<ModuleTableField<any>>,
-//         default_label_field: ModuleTableField<any>,
-//         label: string | DefaultTranslation = null
+//         tmp_fields: Array<ModuleTableFieldVO<any>>,
+//         default_label_field: ModuleTableFieldVO<any>,
+//         label: string | DefaultTranslationVO = null
 //     ) {
 
 //         this.voConstructor = voConstructor;
 
 //         this.default_label_field = default_label_field;
-//         this.forceNumeric = ModuleTable.defaultforceNumeric;
-//         this.forceNumerics = ModuleTable.defaultforceNumerics;
+//         this.forceNumeric = ModuleTableVO.defaultforceNumeric;
+//         this.forceNumerics = ModuleTableVO.defaultforceNumerics;
 
 //         this.get_bdd_version = this.default_get_bdd_version;
 
@@ -368,13 +369,13 @@
 //         }
 
 //         if (!label) {
-//             label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.name });
+//             label = DefaultTranslationVO.create_new({ [DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.name });
 //         }
 //         if (typeof label === "string") {
-//             label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: label });
+//             label = DefaultTranslationVO.create_new({ [DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION]: label });
 //         } else {
-//             if ((!label.default_translations) || (!label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
-//                 label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.name;
+//             if ((!label.default_translations) || (!label.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
+//                 label.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.name;
 //             }
 //         }
 //         this.label = label;
@@ -398,61 +399,61 @@
 //      * On ne peut segmenter que sur un field de type range ou ranges pour le moment
 //      *  techniquement rien n'empeche d'étendre ça à tous les autres types de données
 //      */
-//     public segment_on_field(field_name: string, segment_type: number): ModuleTable<any> {
+//     public segment_on_field(field_name: string, segment_type: number): ModuleTableVO<any> {
 
 //         let field = this.getFieldFromId(field_name);
 
 //         switch (field.field_type) {
-//             case ModuleTableField.FIELD_TYPE_file_ref:
-//             case ModuleTableField.FIELD_TYPE_image_field:
-//             case ModuleTableField.FIELD_TYPE_image_ref:
-//             case ModuleTableField.FIELD_TYPE_html:
-//             case ModuleTableField.FIELD_TYPE_html_array:
-//             case ModuleTableField.FIELD_TYPE_boolean:
-//             case ModuleTableField.FIELD_TYPE_password:
-//             case ModuleTableField.FIELD_TYPE_email:
-//             case ModuleTableField.FIELD_TYPE_string:
-//             case ModuleTableField.FIELD_TYPE_file_field:
-//             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-//             case ModuleTableField.FIELD_TYPE_textarea:
-//             case ModuleTableField.FIELD_TYPE_geopoint:
-//             case ModuleTableField.FIELD_TYPE_string_array:
-//             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-//             case ModuleTableField.FIELD_TYPE_date:
-//             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-//             case ModuleTableField.FIELD_TYPE_tstz:
-//             case ModuleTableField.FIELD_TYPE_tstz_array:
-//             case ModuleTableField.FIELD_TYPE_hour:
-//             case ModuleTableField.FIELD_TYPE_day:
-//             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-//             case ModuleTableField.FIELD_TYPE_month:
-//             case ModuleTableField.FIELD_TYPE_translatable_text:
+//             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+//             case ModuleTableFieldVO.FIELD_TYPE_image_field:
+//             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+//             case ModuleTableFieldVO.FIELD_TYPE_html:
+//             case ModuleTableFieldVO.FIELD_TYPE_html_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_boolean:
+//             case ModuleTableFieldVO.FIELD_TYPE_password:
+//             case ModuleTableFieldVO.FIELD_TYPE_email:
+//             case ModuleTableFieldVO.FIELD_TYPE_string:
+//             case ModuleTableFieldVO.FIELD_TYPE_file_field:
+//             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+//             case ModuleTableFieldVO.FIELD_TYPE_textarea:
+//             case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+//             case ModuleTableFieldVO.FIELD_TYPE_string_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+//             case ModuleTableFieldVO.FIELD_TYPE_date:
+//             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_hour:
+//             case ModuleTableFieldVO.FIELD_TYPE_day:
+//             case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
+//             case ModuleTableFieldVO.FIELD_TYPE_month:
+//             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
 //             default:
 //                 return null;
 
-//             case ModuleTableField.FIELD_TYPE_hourrange:
-//             case ModuleTableField.FIELD_TYPE_hourrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
 //                 this.table_segmented_field_range_type = HourRange.RANGE_TYPE;
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_daterange:
-//             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-//             case ModuleTableField.FIELD_TYPE_tsrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_daterange:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
 //                 this.table_segmented_field_range_type = TSRange.RANGE_TYPE;
 //                 break;
-//             case ModuleTableField.FIELD_TYPE_numrange:
-//             case ModuleTableField.FIELD_TYPE_enum:
-//             case ModuleTableField.FIELD_TYPE_int:
-//             case ModuleTableField.FIELD_TYPE_float:
-//             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-//             case ModuleTableField.FIELD_TYPE_amount:
-//             case ModuleTableField.FIELD_TYPE_prct:
-//             case ModuleTableField.FIELD_TYPE_foreign_key:
-//             case ModuleTableField.FIELD_TYPE_int_array:
-//             case ModuleTableField.FIELD_TYPE_float_array:
-//             case ModuleTableField.FIELD_TYPE_numrange_array:
-//             case ModuleTableField.FIELD_TYPE_refrange_array:
-//             case ModuleTableField.FIELD_TYPE_isoweekdays:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_enum:
+//             case ModuleTableFieldVO.FIELD_TYPE_int:
+//             case ModuleTableFieldVO.FIELD_TYPE_float:
+//             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+//             case ModuleTableFieldVO.FIELD_TYPE_amount:
+//             case ModuleTableFieldVO.FIELD_TYPE_prct:
+//             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+//             case ModuleTableFieldVO.FIELD_TYPE_int_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_float_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
 //                 this.table_segmented_field_range_type = NumRange.RANGE_TYPE;
 
 //         }
@@ -540,26 +541,26 @@
 //         // On doit avoir un cardinal 1 dans tous les cas, mais on check pas sinon c'est trop lourd
 
 //         switch (this.table_segmented_field.field_type) {
-//             case ModuleTableField.FIELD_TYPE_hourrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
 //                 return RangeHandler.getSegmentedMin(field_value as HourRange, this.table_segmented_field_segment_type);
 
-//             case ModuleTableField.FIELD_TYPE_hourrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
 //                 return RangeHandler.getSegmentedMin_from_ranges(field_value as HourRange[], this.table_segmented_field_segment_type);
 
-//             case ModuleTableField.FIELD_TYPE_prct:
-//             case ModuleTableField.FIELD_TYPE_int_array:
-//             case ModuleTableField.FIELD_TYPE_float_array:
-//             case ModuleTableField.FIELD_TYPE_daterange:
-//             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-//             case ModuleTableField.FIELD_TYPE_tsrange:
-//             case ModuleTableField.FIELD_TYPE_numrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_prct:
+//             case ModuleTableFieldVO.FIELD_TYPE_int_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_float_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_daterange:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange:
 //                 // TODO
 //                 ConsoleHandler.error('Not Implemented');
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_foreign_key:
-//             case ModuleTableField.FIELD_TYPE_enum:
-//             case ModuleTableField.FIELD_TYPE_int:
+//             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+//             case ModuleTableFieldVO.FIELD_TYPE_enum:
+//             case ModuleTableFieldVO.FIELD_TYPE_int:
 //                 if (this.table_segmented_field_segment_type == NumSegment.TYPE_INT) {
 //                     return field_value;
 //                 } else {
@@ -567,9 +568,9 @@
 //                 }
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_float:
-//             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-//             case ModuleTableField.FIELD_TYPE_amount:
+//             case ModuleTableFieldVO.FIELD_TYPE_float:
+//             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+//             case ModuleTableFieldVO.FIELD_TYPE_amount:
 //                 if (this.table_segmented_field_segment_type == NumSegment.TYPE_INT) {
 //                     return Math.floor(field_value);
 //                 } else {
@@ -577,9 +578,9 @@
 //                 }
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_numrange_array:
-//             case ModuleTableField.FIELD_TYPE_isoweekdays:
-//             case ModuleTableField.FIELD_TYPE_refrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+//             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 //                 return RangeHandler.getSegmentedMin_from_ranges(field_value as NumRange[], this.table_segmented_field_segment_type);
 //         }
 
@@ -599,15 +600,15 @@
 //         return vo[this.table_segmented_field.field_name];
 //     }
 
-//     public get_fields(): Array<ModuleTableField<any>> {
+//     public get_fields(): Array<ModuleTableFieldVO<any>> {
 //         return this.fields_;
 //     }
 
-//     public get_field_by_id(field_name: string): ModuleTableField<any> {
+//     public get_field_by_id(field_name: string): ModuleTableFieldVO<any> {
 //         return this.fields_by_ids[field_name];
 //     }
 
-//     public push_field(field: ModuleTableField<any>) {
+//     public push_field(field: ModuleTableFieldVO<any>) {
 //         this.fields_.push(field);
 //         this.fields_by_ids[field.field_name] = field;
 //         if (field.is_readonly) {
@@ -633,8 +634,8 @@
 //         this.set_sortedFields();
 //     }
 
-//     //remplis fields_ avec les ModuleTableField et fields_by_ids avec le ModuleTableField et leur field_name
-//     public set_fields(fields: Array<ModuleTableField<any>>) {
+//     //remplis fields_ avec les ModuleTableFieldVO et fields_by_ids avec le ModuleTableFieldVO et leur field_name
+//     public set_fields(fields: Array<ModuleTableFieldVO<any>>) {
 //         this.fields_ = fields;
 
 //         this.fields_by_ids = {};
@@ -667,7 +668,7 @@
 //         this.set_sortedFields();
 //     }
 
-//     public addAlias(api_type_id_alias: string): ModuleTable<any> {
+//     public addAlias(api_type_id_alias: string): ModuleTableVO<any> {
 //         VOsTypesManager.addAlias(api_type_id_alias, this.vo_type);
 //         return this;
 //     }
@@ -677,22 +678,22 @@
 //      *  et sur tous les vos pour indiquer vers quels params on peut mapper des champs (pour des intersections également en base)
 //      * @param mapping_by_api_type_ids
 //      */
-//     public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_name_a: string]: string } }): ModuleTable<any> {
+//     public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_name_a: string]: string } }): ModuleTableVO<any> {
 //         this.mapping_by_api_type_ids = mapping_by_api_type_ids;
 //         return this;
 //     }
 
-//     public defineAsMatroid(): ModuleTable<any> {
+//     public defineAsMatroid(): ModuleTableVO<any> {
 //         this.isMatroidTable = true;
 //         return this;
 //     }
 
-//     public set_inherit_rights_from_vo_type(inherit_rights_from_vo_type: string): ModuleTable<any> {
+//     public set_inherit_rights_from_vo_type(inherit_rights_from_vo_type: string): ModuleTableVO<any> {
 //         this.inherit_rights_from_vo_type = inherit_rights_from_vo_type;
 //         return this;
 //     }
 
-//     public hideAnyToManyByDefault(): ModuleTable<any> {
+//     public hideAnyToManyByDefault(): ModuleTableVO<any> {
 //         this.any_to_many_default_behaviour_show = false;
 //         return this;
 //     }
@@ -702,7 +703,7 @@
 //         return this.vo_interfaces[interface_name];
 //     }
 
-//     public defineVOInterfaces(interface_names: string[]): ModuleTable<any> {
+//     public defineVOInterfaces(interface_names: string[]): ModuleTableVO<any> {
 
 //         for (let i in interface_names) {
 //             let interface_name = interface_names[i];
@@ -715,7 +716,7 @@
 
 //     public define_default_label_function(
 //         table_label_function: (vo: T) => string,
-//         table_label_function_field_names_deps: string[]): ModuleTable<any> {
+//         table_label_function_field_names_deps: string[]): ModuleTableVO<any> {
 
 //         this.default_label_field = null;
 //         this.table_label_function = table_label_function;
@@ -724,7 +725,7 @@
 //         return this;
 //     }
 
-//     public defineVOConstructor(voConstructor: () => T): ModuleTable<any> {
+//     public defineVOConstructor(voConstructor: () => T): ModuleTableVO<any> {
 //         this.voConstructor = voConstructor;
 
 //         return this;
@@ -737,12 +738,12 @@
 //         return null;
 //     }
 
-//     public defineAsModuleParamTable(): ModuleTable<any> {
+//     public defineAsModuleParamTable(): ModuleTableVO<any> {
 //         this.isModuleParamTable = true;
 //         return this;
 //     }
 
-//     public defineAsImportable(): ModuleTable<any> {
+//     public defineAsImportable(): ModuleTableVO<any> {
 
 //         // Il faut créer le moduleTable des datas raws.
 //         // this.registerImportableModuleTable();
@@ -751,7 +752,7 @@
 //         return this;
 //     }
 
-//     public getFieldFromId(field_name: string): ModuleTableField<any> {
+//     public getFieldFromId(field_name: string): ModuleTableFieldVO<any> {
 //         if (!field_name) {
 //             return null;
 //         }
@@ -775,13 +776,13 @@
 //      * On part du principe que les refs on en trouve une par type sur une table, en tout cas on renvoie la premiere
 //      * @param vo_type
 //      */
-//     public getRefFieldFromTargetVoType(vo_type: string): ModuleTableField<any> {
+//     public getRefFieldFromTargetVoType(vo_type: string): ModuleTableFieldVO<any> {
 //         if (!vo_type) {
 //             return null;
 //         }
 
 //         for (let i in this.fields_) {
-//             let field: ModuleTableField<any> = this.fields_[i];
+//             let field: ModuleTableFieldVO<any> = this.fields_[i];
 
 //             if (field && field.has_relation && field.manyToOne_target_moduletable && field.manyToOne_target_moduletable.vo_type == vo_type) {
 //                 return field;
@@ -805,7 +806,7 @@
 //     }
 
 
-//     public default_get_field_api_version(e: any, field: ModuleTableField<any>, table: ModuleTable<any>, translate_field_name: boolean = true): any {
+//     public default_get_field_api_version(e: any, field: ModuleTableFieldVO<any>, table: ModuleTableVO<any>, translate_field_name: boolean = true): any {
 //         if ((!field) || (field.is_readonly)) {
 //             throw new Error('Should not ask for readonly fields');
 //         }
@@ -822,23 +823,23 @@
 
 //         switch (field.field_type) {
 
-//             case ModuleTableField.FIELD_TYPE_numrange_array:
-//             case ModuleTableField.FIELD_TYPE_refrange_array:
-//             case ModuleTableField.FIELD_TYPE_isoweekdays:
-//             case ModuleTableField.FIELD_TYPE_hourrange_array:
-//             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
 //                 return RangeHandler.translate_to_api(e);
 
-//             case ModuleTableField.FIELD_TYPE_numrange:
-//             case ModuleTableField.FIELD_TYPE_tsrange:
-//             case ModuleTableField.FIELD_TYPE_hourrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
 //                 return RangeHandler.translate_range_to_api(e);
 
-//             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+//             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
 
 //                 if (e && e._type) {
 
-//                     let trans_plain_vo_obj = e ? ModuleTable.default_get_api_version(e, translate_field_name) : null;
+//                     let trans_plain_vo_obj = e ? ModuleTableVO.default_get_api_version(e, translate_field_name) : null;
 //                     return trans_plain_vo_obj ? JSON.stringify(trans_plain_vo_obj) : null;
 
 //                 } else if ((!!e) && isArray(e)) {
@@ -864,14 +865,14 @@
 //                     return null;
 //                 }
 
-//             case ModuleTableField.FIELD_TYPE_tstz_array:
-//             case ModuleTableField.FIELD_TYPE_tstz:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz:
 //             default:
 //                 return e;
 //         }
 //     }
 
-//     public default_field_from_api_version(e: any, field: ModuleTableField<any>, table: ModuleTable<any>): any {
+//     public default_field_from_api_version(e: any, field: ModuleTableFieldVO<any>, table: ModuleTableVO<any>): any {
 //         if ((!field) || field.is_readonly) {
 //             throw new Error('Should no ask for readonly fields');
 //         }
@@ -893,32 +894,32 @@
 
 //         switch (field.field_type) {
 
-//             case ModuleTableField.FIELD_TYPE_numrange_array:
-//             case ModuleTableField.FIELD_TYPE_refrange_array:
-//             case ModuleTableField.FIELD_TYPE_isoweekdays:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
 //                 return RangeHandler.translate_from_api(NumRange.RANGE_TYPE, e);
 
-//             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
 //                 return RangeHandler.translate_from_api(TSRange.RANGE_TYPE, e);
 
-//             case ModuleTableField.FIELD_TYPE_hourrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
 //                 return RangeHandler.translate_from_api(HourRange.RANGE_TYPE, e);
 
-//             case ModuleTableField.FIELD_TYPE_numrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange:
 //                 return MatroidIndexHandler.from_normalized_range(e, NumRange.RANGE_TYPE);
 
-//             case ModuleTableField.FIELD_TYPE_hourrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
 //                 return MatroidIndexHandler.from_normalized_range(e, HourRange.RANGE_TYPE);
 
-//             case ModuleTableField.FIELD_TYPE_tsrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
 //                 return MatroidIndexHandler.from_normalized_range(e, TSRange.RANGE_TYPE);
 
-//             case ModuleTableField.FIELD_TYPE_hour:
-//             case ModuleTableField.FIELD_TYPE_tstz:
+//             case ModuleTableFieldVO.FIELD_TYPE_hour:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz:
 //                 return ConversionHandler.forceNumber(e);
 
-//             case ModuleTableField.FIELD_TYPE_int_array:
-//             case ModuleTableField.FIELD_TYPE_float_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_int_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_float_array:
 //                 if (Array.isArray(e)) {
 //                     return e;
 //                 }
@@ -937,8 +938,8 @@
 
 //                 return res;
 
-//             case ModuleTableField.FIELD_TYPE_string_array:
-//             case ModuleTableField.FIELD_TYPE_html_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_string_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_html_array:
 //                 if (Array.isArray(e)) {
 //                     return e;
 //                 }
@@ -949,7 +950,7 @@
 
 //                 return (e.length > 2) ? e.substr(1, e.length - 2).split(',') : e;
 
-//             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+//             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
 
 //                 if ((e == null) || (e == '{}')) {
 //                     return null;
@@ -965,7 +966,7 @@
 //                         let new_array = [];
 //                         for (let i in trans_) {
 //                             let transi = trans_[i];
-//                             new_array.push(ModuleTable.default_from_api_version(ObjectHandler.try_get_json(transi)));
+//                             new_array.push(ModuleTableVO.default_from_api_version(ObjectHandler.try_get_json(transi)));
 //                         }
 //                         trans_ = new_array;
 //                     } else {
@@ -980,17 +981,17 @@
 //                             let new_obj = new Object();
 //                             for (let i in trans_) {
 //                                 let transi = trans_[i];
-//                                 new_obj[i] = ModuleTable.default_from_api_version(ObjectHandler.try_get_json(transi));
+//                                 new_obj[i] = ModuleTableVO.default_from_api_version(ObjectHandler.try_get_json(transi));
 //                             }
 //                             trans_ = new_obj;
 //                         } else {
-//                             trans_ = Object.assign(field_table.voConstructor(), ModuleTable.default_from_api_version(trans_));
+//                             trans_ = Object.assign(field_table.voConstructor(), ModuleTableVO.default_from_api_version(trans_));
 //                         }
 //                     }
 //                 }
 //                 return trans_;
 
-//             case ModuleTableField.FIELD_TYPE_tstz_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
 //                 if (!e || (e == '{}')) {
 //                     return null;
@@ -1014,7 +1015,7 @@
 //      * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
 //      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_name utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
 //      */
-//     public force_numeric_field(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
+//     public force_numeric_field(field: ModuleTableFieldVO<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
 
 //         if (field.is_readonly) {
 //             return;
@@ -1029,8 +1030,8 @@
 
 //         switch (field.field_type) {
 
-//             case ModuleTableField.FIELD_TYPE_string_array:
-//             case ModuleTableField.FIELD_TYPE_html_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_string_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_html_array:
 //                 if (Array.isArray(field_value)) {
 //                     dest_vo[field_name] = field_value;
 //                 } else {
@@ -1038,32 +1039,32 @@
 //                 }
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_float:
-//             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-//             case ModuleTableField.FIELD_TYPE_amount:
-//             case ModuleTableField.FIELD_TYPE_file_ref:
-//             case ModuleTableField.FIELD_TYPE_image_ref:
-//             case ModuleTableField.FIELD_TYPE_foreign_key:
-//             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-//             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-//             case ModuleTableField.FIELD_TYPE_int:
-//             case ModuleTableField.FIELD_TYPE_enum:
-//             case ModuleTableField.FIELD_TYPE_prct:
+//             case ModuleTableFieldVO.FIELD_TYPE_float:
+//             case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+//             case ModuleTableFieldVO.FIELD_TYPE_amount:
+//             case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+//             case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+//             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+//             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+//             case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+//             case ModuleTableFieldVO.FIELD_TYPE_int:
+//             case ModuleTableFieldVO.FIELD_TYPE_enum:
+//             case ModuleTableFieldVO.FIELD_TYPE_prct:
 
-//             case ModuleTableField.FIELD_TYPE_hour:
-//             case ModuleTableField.FIELD_TYPE_tstz:
+//             case ModuleTableFieldVO.FIELD_TYPE_hour:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz:
 //                 dest_vo[field_name] = ConversionHandler.forceNumber(field_value);
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_float_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_float_array:
 //                 dest_vo[field_name] = field_value.map(Number);
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_int_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_int_array:
 //                 dest_vo[field_name] = field_value.map(Number);
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_numrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange:
 //                 let field_index_n = src_vo[field_name.toLowerCase() + '_ndx'] ? src_vo[field_name.toLowerCase() + '_ndx'] : src_vo[field_name + '_ndx'];
 //                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
 //                 // KEEP dest_vo[field_name] = MatroidIndexHandler.from_normalized_range(field_index_n, NumRange.RANGE_TYPE);
@@ -1073,7 +1074,7 @@
 //                     dest_vo[field_name] = RangeHandler.parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
 //                 }
 //                 break;
-//             case ModuleTableField.FIELD_TYPE_tsrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
 //                 let field_index_t = src_vo[field_name.toLowerCase() + '_ndx'] ? src_vo[field_name.toLowerCase() + '_ndx'] : src_vo[field_name + '_ndx'];
 //                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
 //                 // KEEP dest_vo[field_name] = MatroidIndexHandler.from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
@@ -1083,7 +1084,7 @@
 //                     dest_vo[field_name] = RangeHandler.parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
 //                 }
 //                 break;
-//             case ModuleTableField.FIELD_TYPE_hourrange:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
 //                 let field_index_h = src_vo[field_name.toLowerCase() + '_ndx'] ? src_vo[field_name.toLowerCase() + '_ndx'] : src_vo[field_name + '_ndx'];
 //                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
 //                 // KEEP dest_vo[field_name] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -1095,9 +1096,9 @@
 //                 break;
 
 
-//             case ModuleTableField.FIELD_TYPE_numrange_array:
-//             case ModuleTableField.FIELD_TYPE_refrange_array:
-//             case ModuleTableField.FIELD_TYPE_isoweekdays:
+//             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
 //                 let field_index_ns = src_vo[field_name.toLowerCase() + '_ndx'] ? src_vo[field_name.toLowerCase() + '_ndx'] : src_vo[field_name + '_ndx'];
 //                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
 //                 // KEEP dest_vo[field_name] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -1107,7 +1108,7 @@
 //                     dest_vo[field_name] = RangeHandler.translate_from_bdd(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
 //                 }
 //                 break;
-//             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
 //                 let field_index_ts = src_vo[field_name.toLowerCase() + '_ndx'] ? src_vo[field_name.toLowerCase() + '_ndx'] : src_vo[field_name + '_ndx'];
 //                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
 //                 // KEEP dest_vo[field_name] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -1117,7 +1118,7 @@
 //                     dest_vo[field_name] = RangeHandler.translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
 //                 }
 //                 break;
-//             case ModuleTableField.FIELD_TYPE_hourrange_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
 //                 let field_index_hs = src_vo[field_name.toLowerCase() + '_ndx'] ? src_vo[field_name.toLowerCase() + '_ndx'] : src_vo[field_name + '_ndx'];
 //                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
 //                 // KEEP dest_vo[field_name] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -1128,31 +1129,31 @@
 //                 }
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_day:
-//             case ModuleTableField.FIELD_TYPE_date:
-//             case ModuleTableField.FIELD_TYPE_month:
+//             case ModuleTableFieldVO.FIELD_TYPE_day:
+//             case ModuleTableFieldVO.FIELD_TYPE_date:
+//             case ModuleTableFieldVO.FIELD_TYPE_month:
 //                 dest_vo[field_name] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true).unix());
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_tstz_array:
+//             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 //                 if (!((field_value === null) || (typeof field_value === 'undefined'))) {
 //                     dest_vo[field_name] = field_value.map((ts: string) => ConversionHandler.forceNumber(ts));
 //                 }
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_geopoint:
+//             case ModuleTableFieldVO.FIELD_TYPE_geopoint:
 //                 if (field_value) {
 //                     dest_vo[field_name] = GeoPointVO.clone(field_value);
 //                 }
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_email:
+//             case ModuleTableFieldVO.FIELD_TYPE_email:
 //                 if (field_value && field_value.trim) {
 //                     dest_vo[field_name] = field_value.trim();
 //                 }
 //                 break;
 
-//             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+//             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
 //                 let trans_ = ObjectHandler.try_get_json(field_value);
 
 //                 if (!!trans_) {
@@ -1161,7 +1162,7 @@
 //                      * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
 //                      */
 //                     if (isArray(trans_)) {
-//                         trans_ = ModuleTable.defaultforceNumerics(trans_);
+//                         trans_ = ModuleTableVO.defaultforceNumerics(trans_);
 //                     } else {
 
 //                         /**
@@ -1174,11 +1175,11 @@
 //                             let new_obj = new Object();
 //                             for (let i in trans_) {
 //                                 let transi_ = trans_[i];
-//                                 new_obj[i] = ModuleTable.defaultforceNumeric(ObjectHandler.try_get_json(transi_));
+//                                 new_obj[i] = ModuleTableVO.defaultforceNumeric(ObjectHandler.try_get_json(transi_));
 //                             }
 //                             trans_ = new_obj;
 //                         } else {
-//                             trans_ = Object.assign(field_table.voConstructor(), ModuleTable.defaultforceNumeric(trans_));
+//                             trans_ = Object.assign(field_table.voConstructor(), ModuleTableVO.defaultforceNumeric(trans_));
 //                         }
 //                     }
 //                 }
@@ -1216,14 +1217,14 @@
 //             this.fields_[i].setTargetDatatable(this);
 //         }
 
-//         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+//         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
 //         DefaultTranslationManager.registerDefaultTranslation(this.label);
 //     }
 
-//     public set_is_archived(): ModuleTable<any> {
+//     public set_is_archived(): ModuleTableVO<any> {
 //         this.is_archived = true;
 
-//         this.push_field((new ModuleTableField(field_names<>().archived, ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)).setModuleTable(this));
+//         this.push_field((ModuleTableFieldController.create_new(field_names<>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)).setModuleTable(this));
 
 //         return this;
 //     }
@@ -1243,7 +1244,7 @@
 //         for (let i in this.sortedFields) {
 //             let field = this.sortedFields[i];
 
-//             res[field.field_name] = ModuleTable.OFFUSC_IDs[n];
+//             res[field.field_name] = ModuleTableVO.OFFUSC_IDs[n];
 //             n++;
 //         }
 
@@ -1261,7 +1262,7 @@
 //     //     for (let i in this.sortedFields) {
 //     //         let field = this.sortedFields[i];
 
-//     //         res[ModuleTable.OFFUSC_IDs[n]] = field.field_name;
+//     //         res[ModuleTableVO.OFFUSC_IDs[n]] = field.field_name;
 //     //         n++;
 //     //     }
 
@@ -1290,29 +1291,29 @@
 
 //             switch (field.field_type) {
 
-//                 case ModuleTableField.FIELD_TYPE_numrange_array:
-//                 case ModuleTableField.FIELD_TYPE_refrange_array:
-//                 case ModuleTableField.FIELD_TYPE_isoweekdays:
-//                 case ModuleTableField.FIELD_TYPE_hourrange_array:
-//                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
+//                 case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+//                 case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+//                 case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+//                 case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+//                 case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
 //                     res[field.field_name + '_ndx'] = MatroidIndexHandler.get_normalized_ranges(res[field.field_name] as IRange[]);
 //                     res[field.field_name] = RangeHandler.translate_to_bdd(res[field.field_name]);
 //                     break;
 
-//                 case ModuleTableField.FIELD_TYPE_numrange:
-//                 case ModuleTableField.FIELD_TYPE_tsrange:
-//                 case ModuleTableField.FIELD_TYPE_hourrange:
+//                 case ModuleTableFieldVO.FIELD_TYPE_numrange:
+//                 case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+//                 case ModuleTableFieldVO.FIELD_TYPE_hourrange:
 //                     res[field.field_name + '_ndx'] = MatroidIndexHandler.get_normalized_range(res[field.field_name] as IRange);
 //                     res[field.field_name] = RangeHandler.translate_range_to_bdd(res[field.field_name]);
 //                     break;
 
-//                 case ModuleTableField.FIELD_TYPE_geopoint:
+//                 case ModuleTableFieldVO.FIELD_TYPE_geopoint:
 //                     if (res[field.field_name]) {
 //                         res[field.field_name] = GeoPointHandler.getInstance().format(res[field.field_name]);
 //                     }
 //                     break;
 
-//                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+//                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
 //                     if (e[field.field_name] && e[field.field_name]._type) {
 //                         let field_table = VOsTypesManager.moduleTables_by_voType[e[field.field_name]._type];
 
@@ -1325,15 +1326,15 @@
 //                     }
 //                     break;
 
-//                 case ModuleTableField.FIELD_TYPE_email:
+//                 case ModuleTableFieldVO.FIELD_TYPE_email:
 //                     if (res[field.field_name] && res[field.field_name].trim) {
 //                         res[field.field_name] = res[field.field_name].trim();
 //                     }
 //                     break;
 
-//                 case ModuleTableField.FIELD_TYPE_float_array:
-//                 case ModuleTableField.FIELD_TYPE_int_array:
-//                 case ModuleTableField.FIELD_TYPE_string_array:
+//                 case ModuleTableFieldVO.FIELD_TYPE_float_array:
+//                 case ModuleTableFieldVO.FIELD_TYPE_int_array:
+//                 case ModuleTableFieldVO.FIELD_TYPE_string_array:
 //                     // ATTENTION - INTERDITION DE METTRE UNE VIRGULE DANS UN CHAMP DE TYPE ARRAY SINON CA FAIT X VALEURS
 //                     if (res[field.field_name]) {
 //                         let values: any[] = [];
@@ -1363,7 +1364,7 @@
 //     private set_sortedFields() {
 //         this.sortedFields = Array.from(this.fields_);
 
-//         this.sortedFields.sort((a: ModuleTableField<any>, b: ModuleTableField<any>) => {
+//         this.sortedFields.sort((a: ModuleTableFieldVO<any>, b: ModuleTableFieldVO<any>) => {
 //             if (a.field_name < b.field_name) {
 //                 return -1;
 //             }
@@ -1375,7 +1376,7 @@
 //     }
 
 
-//     private check_unicity_field_names(tmp_fields: Array<ModuleTableField<any>>) {
+//     private check_unicity_field_names(tmp_fields: Array<ModuleTableFieldVO<any>>) {
 //         let field_names: { [field_name: string]: boolean } = {};
 
 //         for (let i in tmp_fields) {

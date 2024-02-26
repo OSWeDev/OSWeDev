@@ -1,5 +1,5 @@
 import ObjectHandler from "../../../tools/ObjectHandler";
-import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import TableColumnDescVO from "./TableColumnDescVO";
@@ -98,7 +98,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return TableWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return TableWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): { [current_code_text: string]: string } {
@@ -110,7 +110,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
             res[placeholder_name_code_text] =
                 TableWidgetOptionsVO.TITLE_CODE_PREFIX +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         }
 
         return res;

@@ -8,7 +8,7 @@ import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
@@ -57,23 +57,23 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         // On enregistre le BGThread d'avancement/information sur les maintenances
         ModuleBGThreadServer.getInstance().registerBGThread(MaintenanceBGThread.getInstance());
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Terminer la maintenance' },
             'fields.labels.ref.module_maintenance_maintenance.__component__end_maintenance.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Terminer la maintenance' },
             'endmaintenance_component.endmaintenance.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Maintenances' },
             'menu.menuelements.admin.MaintenanceAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Maintenances' },
             'menu.menuelements.admin.MaintenanceVO.___LABEL___'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             {
                 'fr-fr': 'Une opération de maintenance est prévue dans moins de 2H.',
                 'de-de': 'Eine Wartung ist in weniger als 2 Stunden geplant.',
@@ -82,7 +82,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG1_code_text
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             {
                 'fr-fr': 'Une opération de maintenance est imminente. Enregistrez votre travail.',
                 'de-de': 'Ein Wartungsvorgang steht unmittelbar bevor. Speichern Sie Ihre Arbeit.',
@@ -91,7 +91,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG2_code_text
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             {
                 'fr-fr': 'Une opération de maintenance est en cours, votre travail ne sera pas enregistré.',
                 'de-de': 'Ein Wartungsvorgang wird ausgeführt, Ihre Arbeit wird nicht gespeichert.',
@@ -100,7 +100,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG3_code_text
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             {
                 'fr-fr': 'L\'opération de maintenance est terminée',
                 'de-de': 'Der Wartungsvorgang ist abgeschlossen',
@@ -109,7 +109,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG4_code_text
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Maintenance',
             'de-de': 'Wartung',
             'es-es': 'Mantenimiento'

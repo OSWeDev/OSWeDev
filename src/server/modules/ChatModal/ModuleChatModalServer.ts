@@ -4,7 +4,7 @@ import AccessPolicyGroupVO from "../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from "../../../shared/modules/AccessPolicy/vos/AccessPolicyVO";
 import PolicyDependencyVO from "../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO";
 import ModuleChatModal from '../../../shared/modules/ChatModal/ModuleChatModal';
-import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import AccessPolicyServerController from "../AccessPolicy/AccessPolicyServerController";
 import ModuleAccessPolicyServer from "../AccessPolicy/ModuleAccessPolicyServer";
 import ModuleServerBase from '../ModuleServerBase';
@@ -39,7 +39,7 @@ export default class ModuleChatModalServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleChatModal.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'ChatModal'
         }));
 
@@ -47,7 +47,7 @@ export default class ModuleChatModalServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleChatModal.POLICY_FO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès ChatModal'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();

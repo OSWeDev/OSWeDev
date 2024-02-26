@@ -17,7 +17,7 @@ import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableField
 import VarDatatableFieldVO from '../../DAO/vos/datatable/VarDatatableFieldVO';
 import ExportVarcolumnConfVO from '../../DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import ModuleTable from '../../ModuleTable';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
 import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import VarConfVO from '../../Var/vos/VarConfVO';
 import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
@@ -750,7 +750,7 @@ export default class TableWidgetManager {
 
         for (const i in columns) {
             const column: TableColumnDescVO = columns[i];
-            let moduleTable: ModuleTable<any>;
+            let moduleTable: ModuleTableVO<any>;
 
             if (column?.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];

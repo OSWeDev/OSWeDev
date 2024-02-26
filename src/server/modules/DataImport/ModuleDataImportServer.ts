@@ -20,11 +20,12 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
@@ -81,7 +82,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDataImport.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Imports'
         }));
 
@@ -90,7 +91,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         logs_access.group_id = group.id;
         logs_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         logs_access.translatable_name = ModuleDataImport.POLICY_LOGS_ACCESS;
-        logs_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(logs_access, new DefaultTranslation({
+        logs_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(logs_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès aux logs des imports'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -103,7 +104,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         bo_full_menu_access.group_id = group.id;
         bo_full_menu_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_full_menu_access.translatable_name = ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS;
-        bo_full_menu_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_full_menu_access, new DefaultTranslation({
+        bo_full_menu_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_full_menu_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès complet aux imports - ADMIN'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         admin_access_dependency = new PolicyDependencyVO();
@@ -116,7 +117,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleDataImport.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration des imports'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let logs_access_dependency = new PolicyDependencyVO();
@@ -164,265 +165,265 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             postUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, force_run_asap);
         }
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annuler les imports en cours'
         }, 'import.cancel_unfinished_imports.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annulation des imports en cours...'
         }, 'import.cancel_unfinished_imports.cancelling.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annuler les imports en cours?'
         }, 'import.cancel_unfinished_imports.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Remplacer l\'import existant ?'
         }, 'import.new_historic_confirmation.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Remplacer l\'import existant'
         }, 'import.new_historic_confirmation.title.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Windows1252'
         }, 'import.encoding.windows1252.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'UTF8'
         }, 'import.encoding.utf8.name'));
 
 
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Réimporter'
         }, 'reimport_component.reimporter.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Réimporter'
         }, 'fields.labels.ref.module_data_import_dih.__component__reimporter.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Ré-importation planifiée'
         }, 'imports.reimport.planified.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annuler'
         }, 'import.format.modal.cancel.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Continuer'
         }, 'import.format.modal.continue.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Lignes KO'
         }, 'import.format.modal.nb_unvalidated_format_elements.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Lignes OK'
         }, 'import.format.modal.nb_validated_format_elements.___LABEL___'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Format d\'import'
         }, 'fields.labels.ref.module_data_import_dif.___LABEL____file_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Format d\'import'
         }, 'fields.labels.ref.module_data_import_dif.___LABEL____post_exec_module_id'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Fichier importé'
         }, 'fields.labels.ref.module_data_import_dih.file_id.dih___file_id.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ID unique'
         }, 'fields.labels.ref.module_data_import_dih.historic_uid.dih___historic_uid.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modification'
         }, 'fields.labels.ref.module_data_import_dih.last_up_date.dih___last_up_date.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Nb. de lignes validées'
         }, 'fields.labels.ref.module_data_import_dih.nb_row_validated.dih___nb_row_validated.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Paramètres'
         }, 'fields.labels.ref.module_data_import_dih.params.dih___params.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Réimport de ...'
         }, 'fields.labels.ref.module_data_import_dih.reimport_of_dih_id.dih___reimport_of_dih_id.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Date de démarrage'
         }, 'fields.labels.ref.module_data_import_dih.start_date.dih___start_date.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Etat de l\'import'
         }, 'fields.labels.ref.module_data_import_dih.state.dih___state.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Sauvegarde de l\'état pour réimport'
         }, 'fields.labels.ref.module_data_import_dih.status_before_reimport.dih___status_before_reimport.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Etat du réimport le plus récent'
         }, 'fields.labels.ref.module_data_import_dih.status_of_last_reimport.dih___status_of_last_reimport.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Poids'
         }, 'fields.labels.ref.module_data_import_dih.weight.dih___weight.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Date'
         }, 'fields.labels.ref.module_data_import_dil.date.dil___date.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Type'
         }, 'fields.labels.ref.module_data_import_dil.log_level.dil___log_level.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Message (statique)'
         }, 'fields.labels.ref.module_data_import_dil.message.dil___message.___LABEL___'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Format'
         }, 'fields.labels.ref.module_data_import_difc.___LABEL____data_import_format_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Index'
         }, 'import.column_position.index.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Titre'
         }, 'import.column_position.label.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'CSV'
         }, 'import.file_types.CSV.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'XLS'
         }, 'import.file_types.XLS.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'XLSX'
         }, 'import.file_types.XLSX.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Compléter'
         }, 'import.historic.types.EDIT'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Remplacer'
         }, 'import.historic.types.REPLACE'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'DEBUG'
         }, 'import.logs.lvl.DEBUG'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ERREUR'
         }, 'import.logs.lvl.ERROR'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'CRITIQUE'
         }, 'import.logs.lvl.FATAL'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'INFO'
         }, 'import.logs.lvl.INFO'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'OK'
         }, 'import.logs.lvl.SUCCESS'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ATTENTION'
         }, 'import.logs.lvl.WARN'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Le changement de statut est interdit'
         }, 'handleImportHistoricDateUpdate.change_state.error'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Par index'
         }, 'import.sheet_position.index.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Par nom'
         }, 'import.sheet_position.label.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'SCAN'
         }, 'import.sheet_position.scan.name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec lors de l\'importation'
         }, 'import.state.failed_importation'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec lors du post-traitement'
         }, 'import.state.failed_posttreatment'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Formatté'
         }, 'import.state.formatted'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Formattage...'
         }, 'import.state.formatting'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Importation interdite'
         }, 'import.state.importation_not_allowed'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Importé'
         }, 'import.state.imported'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Importation...'
         }, 'import.state.importing'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'En attente de ré-importation'
         }, 'import.state.needs_reimport'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Post-traité'
         }, 'import.state.posttreated'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Post-traitement...'
         }, 'import.state.posttreating'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Prêt à importer'
         }, 'import.state.ready_to_import'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Uploadé'
         }, 'import.state.uploaded'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Imports'
         }, 'menu.menuelements.admin.DataImportAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Colonnes'
         }, 'menu.menuelements.admin.DataImportColumnVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Formats'
         }, 'menu.menuelements.admin.DataImportFormatVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Historiques'
         }, 'menu.menuelements.admin.DataImportHistoricVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Logs'
         }, 'menu.menuelements.admin.DataImportLogVO.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Import échoué. Voir les logs.'
         }, 'import.errors.failed_importation_see_logs'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Télécharger' },
             'file.download.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Upload : OK' },
             'file.upload.success'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Echec lors de l\'import voir les logs ' },
             'import.errors.failed_post_treatement_see_logs'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Format' },
             'import.format.modal.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Import' },
             'import.import.modal.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Télécharger le fichier importé' },
             'import.modal.imported_file_link.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nouvel import' },
             'import.modal.new_import.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Voir les logs' },
             'import.modal.see_logs.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Post-traitement' },
             'import.posttreat.modal.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Formatté' },
             'import.success.formatted'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Importé' },
             'import.success.imported'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Post-traité' },
             'import.success.posttreated'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Upload en cours...' },
             'import.upload_started.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Autovalidation' },
             'import.success.autovalidation'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Import impossible' },
             'importJSON.failed.___LABEL___'));
     }
@@ -457,7 +458,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     throw new Error('unknown table:' + vo._type);
                 }
 
-                vo = ModuleTable.default_from_api_version(vo);
+                vo = ModuleTableVO.default_from_api_version(vo);
                 if (!vos_by_type_and_initial_id[vo._type]) {
                     vos_by_type_and_initial_id[vo._type] = {};
                 }
@@ -600,7 +601,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let all_formats_datas: { [format_id: number]: IImportedData[] } = {};
 
         let max_formattedDatasStats: FormattedDatasStats = new FormattedDatasStats();
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[raw_api_type_id];
+        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[raw_api_type_id];
 
         let has_datas: boolean = false;
 
@@ -1198,7 +1199,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return true;
     }
 
-    private async countValidatedDataAndColumnsBatchMode(raw_api_type_id: string, moduletable: ModuleTable<any>, data_import_format_id: number): Promise<FormattedDatasStats> {
+    private async countValidatedDataAndColumnsBatchMode(raw_api_type_id: string, moduletable: ModuleTableVO<any>, data_import_format_id: number): Promise<FormattedDatasStats> {
 
         let res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
@@ -1206,14 +1207,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         res.nb_row_unvalidated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
         query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_row_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
-        let fields = moduletable.get_fields().map((field: ModuleTableField<any>) => field.field_name).join(') + COUNT(');
+        let fields = moduletable.get_fields().map((field: ModuleTableFieldVO<any>) => field.field_name).join(') + COUNT(');
         query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_fields_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
 
         return res;
     }
 
-    private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTable<any>, data_import_format_id: number): FormattedDatasStats {
+    private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTableVO<any>, data_import_format_id: number): FormattedDatasStats {
         let res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
 
@@ -1464,9 +1465,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         for (let i in fields) {
             let field = fields[i];
 
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_string) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_plain_vo_obj) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_textarea)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_string) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_textarea)) {
                 if (!vo[field.field_name]) {
                     continue;
                 }

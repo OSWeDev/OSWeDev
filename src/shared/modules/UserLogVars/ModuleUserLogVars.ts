@@ -5,7 +5,8 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import VarsInitController from '../Var/VarsInitController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import UserDataRangesVO from './vars/vos/UserDataRangesVO';
@@ -40,7 +41,7 @@ export default class ModuleUserLogVars extends Module {
         this.initializeUserDataRangesVO();
     }
     private initializeUserDataRangesVO() {
-        let user_id_ranges = new ModuleTableField(field_names<UserDataRangesVO>().user_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = ModuleTableFieldController.create_new(UserDataRangesVO.API_TYPE_ID, field_names<UserDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
 
         let datatable_fields = [
             user_id_ranges,
@@ -51,11 +52,11 @@ export default class ModuleUserLogVars extends Module {
     }
 
     private initializeUserMinDataRangesVO() {
-        let user_id_ranges = new ModuleTableField(field_names<UserMinDataRangesVO>().user_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = ModuleTableFieldController.create_new(UserMinDataRangesVO.API_TYPE_ID, field_names<UserMinDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
 
         let datatable_fields = [
             user_id_ranges,
-            new ModuleTableField(field_names<UserMinDataRangesVO>().ts_ranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(false),
+            ModuleTableFieldController.create_new(UserMinDataRangesVO.API_TYPE_ID, field_names<UserMinDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(false),
         ];
 
         VarsInitController.getInstance().register_var_data(UserMinDataRangesVO.API_TYPE_ID, () => new UserMinDataRangesVO(), datatable_fields, this);

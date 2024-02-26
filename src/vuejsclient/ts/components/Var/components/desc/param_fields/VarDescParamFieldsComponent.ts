@@ -3,7 +3,8 @@ import HourRange from '../../../../../../../shared/modules/DataRender/vos/HourRa
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -18,11 +19,11 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
     @Prop()
     private var_param: VarDataBaseVO;
 
-    private async copy_card_field_code(field: ModuleTableField<any>) {
+    private async copy_card_field_code(field: ModuleTableFieldVO<any>) {
         await navigator.clipboard.writeText(this.get_card_field_code(field));
     }
 
-    private get_card_field_code(field: ModuleTableField<any>) {
+    private get_card_field_code(field: ModuleTableFieldVO<any>) {
         return '{' + VarsController.get_card_field_code(field.field_id) + '}';
     }
 
@@ -48,7 +49,7 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
     /**
      * All fields names except the ts_range field
      */
-    get var_data_other_fields(): Array<ModuleTableField<any>> {
+    get var_data_other_fields(): Array<ModuleTableFieldVO<any>> {
         if (!this.var_param) {
             return null;
         }

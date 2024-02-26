@@ -11,9 +11,9 @@ import DataRenderingLogVO from '../../../shared/modules/DataRender/vos/DataRende
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -39,44 +39,44 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Jour'
         }, 'timesegment.day.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mois'
         }, 'timesegment.month.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année glissante'
         }, 'timesegment.rolling_year_month_start.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Semaine'
         }, 'timesegment.week.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année'
         }, 'timesegment.year.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Heure'
         }, 'timesegment.hour.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Minute'
         }, 'timesegment.minute.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Seconde'
         }, 'timesegment.second.type_name'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Jour'
         }, 'HourSegment.day.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mois'
         }, 'HourSegment.month.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année glissante'
         }, 'HourSegment.rolling_year_month_start.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Semaine'
         }, 'HourSegment.week.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année'
         }, 'HourSegment.year.type_name'));
     }
@@ -124,7 +124,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
      * @param rendered_data_time_segment_type
      */
     public async getDataSegment<T extends IDistantVOBase>(
-        datatable: ModuleTable<T>,
+        datatable: ModuleTableVO<T>,
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: number): Promise<T[]> {
 
@@ -138,7 +138,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             .select_vos<T>();
     }
 
-    public async clearDataSegments(moduletable: ModuleTable<any>, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegments(moduletable: ModuleTableVO<any>, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
 
         let timeSegments_in: string = null;
         for (let i in timeSegments) {
@@ -154,7 +154,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
     }
 
-    public async clearDataSegment(moduletable: ModuleTable<any>, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegment(moduletable: ModuleTableVO<any>, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
         await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index]);
     }
 

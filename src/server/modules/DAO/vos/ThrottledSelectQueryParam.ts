@@ -3,7 +3,8 @@ import ContextQueryVO from "../../../../shared/modules/ContextFilter/vos/Context
 import ParameterizedQueryWrapperField from "../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField";
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import ModuleTableField from '../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 
@@ -83,10 +84,10 @@ export default class ThrottledSelectQueryParam {
                             throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery field found');
                         }
 
-                        table_field_type = (sub_field.field_name == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                        table_field_type = (sub_field.field_name == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int :
                             VOsTypesManager.moduleTables_by_voType[sub_field.api_type_id].getFieldFromId(sub_field.field_name)?.field_type ?? 'N/A';
                     } else {
-                        table_field_type = (field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                        table_field_type = (field.field_id == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int :
                             VOsTypesManager.moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';
                     }
                 } catch (error) {

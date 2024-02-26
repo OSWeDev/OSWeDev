@@ -1,9 +1,10 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleTableController from '../../ModuleTableFieldController';
 
 export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
@@ -12,7 +13,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTable<any>,
+        targetModuleTable: ModuleTableVO<any>,
         sortedTargetFields: Array<DatatableField<any, any>>): ManyToOneReferenceDatatableFieldVO<any> {
 
         let res = new ManyToOneReferenceDatatableFieldVO();
@@ -49,7 +50,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
         this.onupdateSrcField();
     }
 
-    public setModuleTable(moduleTable: ModuleTable<any>): this {
+    public setModuleTable(moduleTable: ModuleTableVO<any>): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
 
@@ -58,7 +59,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
         return this;
     }
 
-    get srcField(): ModuleTableField<any> {
+    get srcField(): ModuleTableFieldVO<any> {
         if (!this.moduleTable) {
             return null;
         }
@@ -77,7 +78,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
 
         let e = this.srcField.field_label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
             return e;
         }

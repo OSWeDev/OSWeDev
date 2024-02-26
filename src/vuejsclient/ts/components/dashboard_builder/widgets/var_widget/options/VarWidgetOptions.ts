@@ -1,5 +1,5 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
-import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
@@ -60,7 +60,7 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
             return null;
         }
 
-        return VarWidgetOptions.TITLE_CODE_PREFIX + this.var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarWidgetOptions.TITLE_CODE_PREFIX + this.var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
@@ -74,7 +74,7 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
                 '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id + '}}' +
                 '.' +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         }
         return res;
     }

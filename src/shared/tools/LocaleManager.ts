@@ -1,4 +1,4 @@
-import DefaultTranslation from '../modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../modules/Translation/vos/DefaultTranslationVO';
 
 export default class LocaleManager {
 
@@ -21,7 +21,7 @@ export default class LocaleManager {
 
     public label(txt: string, params = {}): string {
         let res = this.t(
-            txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
+            txt + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION,
             params
         );
 

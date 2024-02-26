@@ -43,8 +43,9 @@ import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExpor
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
-import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -285,11 +286,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             let field = moduleTable.get_field_by_id(column.field_id);
 
             switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_html:
+                case ModuleTableFieldVO.FIELD_TYPE_password:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_email:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
                     if (raw_value == null) {
                         context_filter.has_null();
                     } else {
@@ -297,7 +298,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     }
                     break;
 
-                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
                     if (raw_value == null) {
                         context_filter.has_null();
                     } else {
@@ -305,13 +306,13 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     }
                     break;
 
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableFieldVO.FIELD_TYPE_int:
+                case ModuleTableFieldVO.FIELD_TYPE_float:
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
                     if (raw_value == null) {
                         context_filter.has_null();
                     } else {
@@ -319,35 +320,35 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     }
                     break;
 
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_field:
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_html_array:
-                case ModuleTableField.FIELD_TYPE_boolean:
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_geopoint:
-                case ModuleTableField.FIELD_TYPE_numrange:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_float_array:
-                case ModuleTableField.FIELD_TYPE_int_array:
-                case ModuleTableField.FIELD_TYPE_string_array:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableField.FIELD_TYPE_daterange:
-                case ModuleTableField.FIELD_TYPE_tstz:
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                case ModuleTableField.FIELD_TYPE_hour:
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_day:
-                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                case ModuleTableField.FIELD_TYPE_month:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                case ModuleTableFieldVO.FIELD_TYPE_boolean:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                case ModuleTableFieldVO.FIELD_TYPE_hour:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_day:
+                case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
+                case ModuleTableFieldVO.FIELD_TYPE_month:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 default:
                     throw new Error('Not implemented');
             }
@@ -432,58 +433,58 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             let field = moduleTable.get_field_by_id(column.field_id);
 
             switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_html:
+                case ModuleTableFieldVO.FIELD_TYPE_password:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_email:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
                     if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
                         return row[column.datatable_field_uid + '__raw'] == null;
                     }
                     return row[column.datatable_field_uid + '__raw'] == this.filtering_by_active_field_filter.param_text;
 
-                case ModuleTableField.FIELD_TYPE_enum:
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_int:
+                case ModuleTableFieldVO.FIELD_TYPE_float:
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
                     if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
                         return row[column.datatable_field_uid + '__raw'] == null;
                     }
                     return row[column.datatable_field_uid + '__raw'] == this.filtering_by_active_field_filter.param_numeric;
 
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_field:
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_html_array:
-                case ModuleTableField.FIELD_TYPE_boolean:
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_geopoint:
-                case ModuleTableField.FIELD_TYPE_numrange:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_int_array:
-                case ModuleTableField.FIELD_TYPE_float_array:
-                case ModuleTableField.FIELD_TYPE_string_array:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableField.FIELD_TYPE_daterange:
-                case ModuleTableField.FIELD_TYPE_tstz:
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                case ModuleTableField.FIELD_TYPE_hour:
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_day:
-                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                case ModuleTableField.FIELD_TYPE_month:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                case ModuleTableFieldVO.FIELD_TYPE_boolean:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                case ModuleTableFieldVO.FIELD_TYPE_hour:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_day:
+                case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
+                case ModuleTableFieldVO.FIELD_TYPE_month:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 default:
                     throw new Error('Not implemented');
             }
@@ -1162,7 +1163,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         for (let i in this.columns) {
             let column: TableColumnDescVO = this.columns[i];
-            let moduleTable: ModuleTable<any>;
+            let moduleTable: ModuleTableVO<any>;
 
             if (column?.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1224,7 +1225,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
         // for (let i in this.widget_options.columns) {
         //     let column: TableColumnDescVO = this.widget_options.columns[i];
-        //     let moduleTable: ModuleTable<any>;
+        //     let moduleTable: ModuleTableVO<any>;
 
         //     if (column.type != TableColumnDescVO.TYPE_header) {
         //         moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1304,7 +1305,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         for (let i in this.default_widget_options_columns) {
             let column: TableColumnDescVO = this.default_widget_options_columns[i];
-            let moduleTable: ModuleTable<any>;
+            let moduleTable: ModuleTableVO<any>;
 
             if (column.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1357,7 +1358,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
 
-    private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTable<any>) {
+    private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTableVO<any>) {
         let res: DatatableField<any, any>;
         switch (column?.type) {
             case TableColumnDescVO.TYPE_component:
@@ -1645,7 +1646,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+        let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
         if (
             base_table &&
@@ -2601,11 +2602,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return res;
         }
 
-        if ((field.field_type == ModuleTableField.FIELD_TYPE_int)
-            || (field.field_type == ModuleTableField.FIELD_TYPE_float)
-            || (field.field_type == ModuleTableField.FIELD_TYPE_prct)
-            || (field.field_type == ModuleTableField.FIELD_TYPE_decimal_full_precision)
-            || (field.field_type == ModuleTableField.FIELD_TYPE_amount)) {
+        if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_int)
+            || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_float)
+            || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_prct)
+            || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision)
+            || (field.field_type == ModuleTableFieldVO.FIELD_TYPE_amount)) {
             res = true;
         }
 
@@ -2659,7 +2660,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
                     if (column_total) {
                         // Si pourcentage, on fait la somme des prct qu'on divise par le nbr de res
-                        if ((field.field_type == ModuleTableField.FIELD_TYPE_prct) && this.pagination_count) {
+                        if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_prct) && this.pagination_count) {
                             column_total /= this.pagination_count;
                         }
 

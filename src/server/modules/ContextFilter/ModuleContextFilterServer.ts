@@ -8,7 +8,8 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
@@ -113,7 +114,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         let filter_: ContextFilterVO = null;
 
         switch (field.field_type) {
-            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
                 filter_ = filter(api_type_id, field.field_id).by_text_has(unique_field_value);
                 break;
             default:

@@ -2,7 +2,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleEnvParam from '../../../shared/modules/EnvParam/ModuleEnvParam';
 import EnvParamsVO from '../../../shared/modules/EnvParam/vos/EnvParamsVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
@@ -30,23 +30,23 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Modification du paramètre..."
         }, 'EnvParamsComponent.on_edit_field.start.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Erreur lors de la modification du paramètre."
         }, 'EnvParamsComponent.on_edit_field.error.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Paramètre modifié avec succès."
         }, 'EnvParamsComponent.on_edit_field.ok.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Static Env Params"
         }, 'menu.menuelements.admin.EnvParams.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Static Env Params"
         }, 'menu.menuelements.admin.EnvParamsAdminVueModule.___LABEL___'));
     }

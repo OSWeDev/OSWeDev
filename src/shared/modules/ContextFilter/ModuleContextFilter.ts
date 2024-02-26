@@ -9,8 +9,9 @@ import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import StatsController from '../Stats/StatsController';
 import VarConfVO from '../Var/vos/VarConfVO';
 import BuildSelectQueryParamVO, { BuildSelectQueryParamVOStatic } from './vos/BuildSelectQueryParamVO';
@@ -333,108 +334,108 @@ export default class ModuleContextFilter extends Module {
     private init_SortByVO() {
 
         let datatable_fields = [
-            new ModuleTableField(field_names<SortByVO>().alias, ModuleTableField.FIELD_TYPE_string, 'Alias'),
-            new ModuleTableField(field_names<SortByVO>().vo_type, ModuleTableField.FIELD_TYPE_string, 'API TYPE ID'),
-            new ModuleTableField(field_names<SortByVO>().field_name, ModuleTableField.FIELD_TYPE_string, 'FIELD ID'),
-            new ModuleTableField(field_names<SortByVO>().sort_asc, ModuleTableField.FIELD_TYPE_boolean, 'ASC', true, true, true),
-            new ModuleTableField(field_names<SortByVO>().modifier, ModuleTableField.FIELD_TYPE_enum, 'Modificateur').setEnumValues(SortByVO.MODIFIER_LABELS),
+            ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias'),
+            ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'API TYPE ID'),
+            ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FIELD ID'),
+            ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().sort_asc, ModuleTableFieldVO.FIELD_TYPE_boolean, 'ASC', true, true, true),
+            ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur').setEnumValues(SortByVO.MODIFIER_LABELS),
         ];
 
-        let datatable = new ModuleTable(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
+        let datatable = new ModuleTableVO(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
         this.datatables.push(datatable);
     }
 
     private init_ContextFilterVO() {
         let datatable_fields = [
-            new ModuleTableField(field_names<ContextFilterVO>().vo_type, ModuleTableField.FIELD_TYPE_string, 'API TYPE ID', true),
-            new ModuleTableField(field_names<ContextFilterVO>().field_name, ModuleTableField.FIELD_TYPE_string, 'FIELD ID', true),
-            new ModuleTableField(field_names<ContextFilterVO>().filter_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true).setEnumValues(ContextFilterVO.TYPE_LABELS),
-            new ModuleTableField(field_names<ContextFilterVO>().param_text, ModuleTableField.FIELD_TYPE_string, 'param_text', false),
-            new ModuleTableField(field_names<ContextFilterVO>().param_numeric, ModuleTableField.FIELD_TYPE_float, 'param_numeric', false),
-            new ModuleTableField(field_names<ContextFilterVO>().param_numeric_array, ModuleTableField.FIELD_TYPE_int_array, 'param_numeric_array', false),
-            new ModuleTableField(field_names<ContextFilterVO>().param_textarray, ModuleTableField.FIELD_TYPE_string_array, 'param_textarray', false),
-            new ModuleTableField(field_names<ContextFilterVO>().param_tsranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'param_tsranges', false),
-            new ModuleTableField(field_names<ContextFilterVO>().param_numranges, ModuleTableField.FIELD_TYPE_numrange_array, 'param_numranges', false),
-            new ModuleTableField(field_names<ContextFilterVO>().param_hourranges, ModuleTableField.FIELD_TYPE_hourrange_array, 'param_hourranges', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'API TYPE ID', true),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FIELD ID', true),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().filter_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true).setEnumValues(ContextFilterVO.TYPE_LABELS),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_text, ModuleTableFieldVO.FIELD_TYPE_string, 'param_text', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_numeric, ModuleTableFieldVO.FIELD_TYPE_float, 'param_numeric', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_numeric_array, ModuleTableFieldVO.FIELD_TYPE_int_array, 'param_numeric_array', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_textarray, ModuleTableFieldVO.FIELD_TYPE_string_array, 'param_textarray', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_tsranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'param_tsranges', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_numranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'param_numranges', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_hourranges, ModuleTableFieldVO.FIELD_TYPE_hourrange_array, 'param_hourranges', false),
 
-            new ModuleTableField(field_names<ContextFilterVO>().left_hook, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false),
-            new ModuleTableField(field_names<ContextFilterVO>().right_hook, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().left_hook, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'left_hook', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().right_hook, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'right_hook', false),
 
-            new ModuleTableField(field_names<ContextFilterVO>().text_ignore_case, ModuleTableField.FIELD_TYPE_boolean, 'text_ignore_case', true, true, true),
-            // new ModuleTableField(field_names<ContextFilterVO>().text_trim, ModuleTableField.FIELD_TYPE_boolean, 'text_trim', true, true, false),
-            new ModuleTableField(field_names<ContextFilterVO>().param_alias, ModuleTableField.FIELD_TYPE_string, 'alias', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().text_ignore_case, ModuleTableFieldVO.FIELD_TYPE_boolean, 'text_ignore_case', true, true, true),
+            // ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().text_trim, ModuleTableFieldVO.FIELD_TYPE_boolean, 'text_trim', true, true, false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().param_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'alias', false),
 
-            new ModuleTableField(field_names<ContextFilterVO>().sub_query, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
+            ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().sub_query, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
         ];
 
-        let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
+        let datatable = new ModuleTableVO(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryJoinOnFieldVO() {
 
         let datatable_fields = [
-            new ModuleTableField(field_names<ContextQueryJoinOnFieldVO>().joined_table_alias, ModuleTableField.FIELD_TYPE_string, 'joined_table_alias', true),
-            new ModuleTableField(field_names<ContextQueryJoinOnFieldVO>().joined_table_field_alias, ModuleTableField.FIELD_TYPE_string, 'joined_table_field_alias', true),
-            new ModuleTableField(field_names<ContextQueryJoinOnFieldVO>().initial_context_query_api_type_id, ModuleTableField.FIELD_TYPE_string, 'initial_context_query_api_type_id', true),
-            new ModuleTableField(field_names<ContextQueryJoinOnFieldVO>().initial_context_query_field_name_or_alias, ModuleTableField.FIELD_TYPE_string, 'initial_context_query_field_name_or_alias', true),
+            ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().joined_table_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'joined_table_alias', true),
+            ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().joined_table_field_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'joined_table_field_alias', true),
+            ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().initial_context_query_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'initial_context_query_api_type_id', true),
+            ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().initial_context_query_field_name_or_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'initial_context_query_field_name_or_alias', true),
         ];
 
-        let datatable = new ModuleTable(this, ContextQueryJoinOnFieldVO.API_TYPE_ID, () => new ContextQueryJoinOnFieldVO(), datatable_fields, null, "Champs pour join de requêtes");
+        let datatable = new ModuleTableVO(this, ContextQueryJoinOnFieldVO.API_TYPE_ID, () => new ContextQueryJoinOnFieldVO(), datatable_fields, null, "Champs pour join de requêtes");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryJoinVO() {
 
         let datatable_fields = [
-            new ModuleTableField(field_names<ContextQueryJoinVO>().joined_context_query, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_query', true),
-            new ModuleTableField(field_names<ContextQueryJoinVO>().joined_table_alias, ModuleTableField.FIELD_TYPE_string, 'joined_table_alias', true),
-            new ModuleTableField(field_names<ContextQueryJoinVO>().join_on_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'join_on_fields', true),
-            new ModuleTableField(field_names<ContextQueryJoinVO>().join_type, ModuleTableField.FIELD_TYPE_enum, 'join_type', true, true, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN).setEnumValues(ContextQueryJoinVO.JOIN_TYPE_LABELS),
+            ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().joined_context_query, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'joined_context_query', true),
+            ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().joined_table_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'joined_table_alias', true),
+            ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().join_on_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'join_on_fields', true),
+            ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().join_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'join_type', true, true, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN).setEnumValues(ContextQueryJoinVO.JOIN_TYPE_LABELS),
         ];
 
-        let datatable = new ModuleTable(this, ContextQueryJoinVO.API_TYPE_ID, () => new ContextQueryJoinVO(), datatable_fields, null, "Join de requête");
+        let datatable = new ModuleTableVO(this, ContextQueryJoinVO.API_TYPE_ID, () => new ContextQueryJoinVO(), datatable_fields, null, "Join de requête");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryFieldVO() {
 
         let datatable_fields = [
-            new ModuleTableField(field_names<ContextQueryFieldVO>().api_type_id, ModuleTableField.FIELD_TYPE_string, 'Api_type_id', true),
-            new ModuleTableField(field_names<ContextQueryFieldVO>().field_name, ModuleTableField.FIELD_TYPE_string, 'ID du champs', true),
-            new ModuleTableField(field_names<ContextQueryFieldVO>().alias, ModuleTableField.FIELD_TYPE_string, 'Alias', false),
-            new ModuleTableField(field_names<ContextQueryFieldVO>().aggregator, ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
-            new ModuleTableField(field_names<ContextQueryFieldVO>().modifier, ModuleTableField.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
-            new ModuleTableField(field_names<ContextQueryFieldVO>().cast_with, ModuleTableField.FIELD_TYPE_string, 'Caster avec', false),
+            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Api_type_id', true),
+            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du champs', true),
+            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias', false),
+            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
+            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().cast_with, ModuleTableFieldVO.FIELD_TYPE_string, 'Caster avec', false),
         ];
-        let datatable = new ModuleTable(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
+        let datatable = new ModuleTableVO(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryVO() {
 
         let datatable_fields = [
-            new ModuleTableField(field_names<ContextQueryVO>().base_api_type_id, ModuleTableField.FIELD_TYPE_string, 'base_api_type_id', true),
-            new ModuleTableField(field_names<ContextQueryVO>().fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'fields', false),
-            new ModuleTableField(field_names<ContextQueryVO>().filters, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'filters', false),
-            new ModuleTableField(field_names<ContextQueryVO>().active_api_type_ids, ModuleTableField.FIELD_TYPE_string_array, 'active_api_type_ids', false),
-            new ModuleTableField(field_names<ContextQueryVO>().query_limit, ModuleTableField.FIELD_TYPE_int, 'query_limit', true, true, 0),
-            new ModuleTableField(field_names<ContextQueryVO>().query_offset, ModuleTableField.FIELD_TYPE_int, 'query_offset', true, true, 0),
-            new ModuleTableField(field_names<ContextQueryVO>().sort_by, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sort_by', false),
-            new ModuleTableField(field_names<ContextQueryVO>().query_tables_prefix, ModuleTableField.FIELD_TYPE_string, 'query_tables_prefix', false),
-            new ModuleTableField(field_names<ContextQueryVO>().is_admin, ModuleTableField.FIELD_TYPE_boolean, 'is_admin', true, true, false).flag_as_secure_boolean_switch_only_server_side(),
-            new ModuleTableField(field_names<ContextQueryVO>().use_technical_field_versioning, ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
-            new ModuleTableField(field_names<ContextQueryVO>().query_distinct, ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
-            new ModuleTableField(field_names<ContextQueryVO>().discarded_field_paths, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
-            new ModuleTableField(field_names<ContextQueryVO>().union_queries, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'union_queries', false),
-            new ModuleTableField(field_names<ContextQueryVO>().joined_context_queries, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_queries', false),
-            new ModuleTableField(field_names<ContextQueryVO>().do_count_results, ModuleTableField.FIELD_TYPE_boolean, 'do_count_results', true, true, false),
-            new ModuleTableField(field_names<ContextQueryVO>().max_age_ms, ModuleTableField.FIELD_TYPE_int, 'max_age_ms', true, true, 0),
-            new ModuleTableField(field_names<ContextQueryVO>().request_id, ModuleTableField.FIELD_TYPE_int, 'request_id', false),
-            new ModuleTableField(field_names<ContextQueryVO>().throttle_query_select, ModuleTableField.FIELD_TYPE_boolean, 'throttle_query_select', true, true, true),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().base_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'base_api_type_id', true),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'fields', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().filters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'filters', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().active_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'active_api_type_ids', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().query_limit, ModuleTableFieldVO.FIELD_TYPE_int, 'query_limit', true, true, 0),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().query_offset, ModuleTableFieldVO.FIELD_TYPE_int, 'query_offset', true, true, 0),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().sort_by, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sort_by', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().query_tables_prefix, ModuleTableFieldVO.FIELD_TYPE_string, 'query_tables_prefix', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().is_admin, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_admin', true, true, false).flag_as_secure_boolean_switch_only_server_side(),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().use_technical_field_versioning, ModuleTableFieldVO.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().query_distinct, ModuleTableFieldVO.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().discarded_field_paths, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().union_queries, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'union_queries', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().joined_context_queries, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'joined_context_queries', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().do_count_results, ModuleTableFieldVO.FIELD_TYPE_boolean, 'do_count_results', true, true, false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().max_age_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'max_age_ms', true, true, 0),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().request_id, ModuleTableFieldVO.FIELD_TYPE_int, 'request_id', false),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().throttle_query_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'throttle_query_select', true, true, true),
         ];
 
-        let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
+        let datatable = new ModuleTableVO(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
         this.datatables.push(datatable);
     }
 }

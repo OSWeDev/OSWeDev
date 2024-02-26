@@ -2,8 +2,9 @@ import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../shared/modules/DataRender/vos/NumRange';
 import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../shared/modules/ModuleTable';
-import ModuleTableField from '../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../shared/modules/ModuleTableFieldVO';
 import StatsController from '../../shared/modules/Stats/StatsController';
 import StatsTypeVO from '../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../shared/modules/Stats/vos/StatVO';
@@ -34,7 +35,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test datatable_install
-    public async datatable_install(moduleTable: ModuleTable<any>) {
+    public async datatable_install(moduleTable: ModuleTableVO<any>) {
 
         await this.create_or_update_datatable(moduleTable);
 
@@ -43,14 +44,14 @@ export default class ModuleTableDBService {
 
     // Après installation de tous les modules
     // istanbul ignore next: nothing to test
-    public async datatable_configure(moduleTable: ModuleTable<any>) {
+    public async datatable_configure(moduleTable: ModuleTableVO<any>) {
         return true;
     }
 
     /**
      * Returns the tablename, without schema
      */
-    public async get_existing_segmentations_tables_of_moduletable(moduleTable: ModuleTable<any>): Promise<{ [segmented_value: number]: string }> {
+    public async get_existing_segmentations_tables_of_moduletable(moduleTable: ModuleTableVO<any>): Promise<{ [segmented_value: number]: string }> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'get_existing_segmentations_tables_of_moduletable', '-');
 
@@ -73,7 +74,7 @@ export default class ModuleTableDBService {
         return segments_by_segmented_value;
     }
 
-    public async create_or_update_datatable(moduleTable: ModuleTable<any>, segments: IRange[] = null) {
+    public async create_or_update_datatable(moduleTable: ModuleTableVO<any>, segments: IRange[] = null) {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_or_update_datatable', '-');
 
@@ -252,7 +253,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test handle_check_segment
-    private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
+    private async handle_check_segment(moduleTable: ModuleTableVO<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'handle_check_segment', '-');
 
@@ -284,7 +285,7 @@ export default class ModuleTableDBService {
      * @returns true if causes a change in the db structure
      */
     // istanbul ignore next: cannot test do_check_or_update_moduletable
-    private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
+    private async do_check_or_update_moduletable(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'do_check_or_update_moduletable', '-');
 
@@ -317,11 +318,11 @@ export default class ModuleTableDBService {
     /**
      * @returns true if causes a change in the db structure
      */
-    private async check_datatable_structure(moduleTable: ModuleTable<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
+    private async check_datatable_structure(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_datatable_structure', '-');
 
-        let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
+        let fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> } = {};
         for (let i in moduleTable.get_fields()) {
             let field = moduleTable.get_fields()[i];
             fields_by_field_id[field.field_id.toLowerCase()] = field;
@@ -357,8 +358,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkConstraintsOnForeignKey
     private async checkConstraintsOnForeignKey(
-        moduleTable: ModuleTable<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        moduleTable: ModuleTableVO<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -448,8 +449,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkMissingInTS
     private async checkMissingInTS(
-        moduleTable: ModuleTable<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        moduleTable: ModuleTableVO<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -504,8 +505,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkMissingInDB
     private async checkMissingInDB(
-        moduleTable: ModuleTable<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        moduleTable: ModuleTableVO<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -537,14 +538,14 @@ export default class ModuleTableDBService {
             /**
              * Cas des ranges
              */
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                 let index = field.field_id.toLowerCase() + '_ndx';
                 if (!table_cols_by_name[index]) {
@@ -576,8 +577,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkColumnsStrutInDB
     private async checkColumnsStrutInDB(
-        moduleTable: ModuleTable<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        moduleTable: ModuleTableVO<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -629,14 +630,14 @@ export default class ModuleTableDBService {
             }
 
             // Cas des ranges on check l'index
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                 let index = field.field_id.toLowerCase() + '_ndx';
                 if (!table_cols_by_name[index]) {
@@ -660,7 +661,7 @@ export default class ModuleTableDBService {
      * @returns true if causes a change in the db structure
      */
     // istanbul ignore next: cannot test chec_indexes
-    private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string): Promise<boolean> {
+    private async chec_indexes(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'chec_indexes', '-');
 
@@ -687,7 +688,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test create_new_datatable
-    private async create_new_datatable(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
+    private async create_new_datatable(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string) {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_new_datatable', '-');
 
@@ -700,14 +701,14 @@ export default class ModuleTableDBService {
 
             pgSQL += ', ' + field.getPGSqlFieldDescription();
 
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
                 pgSQL += ', ' + field.field_id.toLowerCase() + '_ndx' + ' text';
             }
@@ -717,7 +718,7 @@ export default class ModuleTableDBService {
         for (let i = 0; i < moduleTable.get_fields().length; i++) {
             let field = moduleTable.get_fields()[i];
 
-            if (field.field_type != ModuleTableField.FIELD_TYPE_foreign_key) {
+            if (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) {
                 continue;
             }
             if (field.has_single_relation) {
@@ -755,7 +756,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: nothing to test
-    private get_segmented_table_common_limited_seq_label(moduletable: ModuleTable<any>): string {
+    private get_segmented_table_common_limited_seq_label(moduletable: ModuleTableVO<any>): string {
         return moduletable.name.substring(0, 63 - '_common_id_seq'.length) + '_common_id_seq';
     }
 }

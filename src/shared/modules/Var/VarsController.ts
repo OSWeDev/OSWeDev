@@ -1,7 +1,7 @@
 import RangeHandler from '../../tools/RangeHandler';
 import IRange from '../DataRender/interfaces/IRange';
 import MatroidController from '../Matroid/MatroidController';
-import DefaultTranslation from '../Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import MainAggregateOperatorsHandlers from './MainAggregateOperatorsHandlers';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
@@ -115,57 +115,57 @@ export default class VarsController {
 
 
     public static get_translatable_ds_name(ds_name: string): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DS__' + ds_name + '.name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DS__' + ds_name + '.name' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public static get_translatable_name_code_by_var_id(var_id: number): string {
         return (var_id && VarsController.var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public static get_translatable_description_code_by_var_id(var_id: number): string {
         return (var_id && VarsController.var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public static get_translatable_public_explaination_by_var_id(var_id: number): string {
         return (var_id && VarsController.var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_public_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_public_explaination' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public static get_translatable_explaination_by_var_id(var_id: number): string {
         return (var_id && VarsController.var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public static get_translatable_explaination(var_name: string): string {
-        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_explaination' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public static get_translatable_dep_name(dep_id: string): string {
-        return dep_id ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DEPS__' + dep_id + '.name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
+        return dep_id ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DEPS__' + dep_id + '.name' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public static get_translatable_params_desc_code_by_var_id(var_id: number): string {
         return (var_id && VarsController.var_conf_by_id[var_id]) ?
-            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION :
             null;
     }
 
     public static get_translatable_name_code(var_name: string): string {
-        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_name' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public static get_translatable_description_code(var_name: string): string {
-        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_description' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public static get_translatable_params_desc_code(var_name: string): string {
-        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public static getValueOrDefault(data: VarDataBaseVO, default_value: any): number {

@@ -1,6 +1,7 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import IDistantVOBase from "../../IDistantVOBase";
-import ModuleTableField from "../../ModuleTableField";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../ModuleTableFieldVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesHandler from "../../VO/handler/VOsTypesHandler";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
@@ -188,7 +189,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             return false;
         }
 
-        return (field.field_type == ModuleTableField.FIELD_TYPE_enum);
+        return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_enum);
     }
 
     get is_number(): boolean {

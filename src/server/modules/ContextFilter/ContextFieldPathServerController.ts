@@ -1,6 +1,7 @@
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 
 export default class ContextFieldPathServerController {
@@ -196,7 +197,7 @@ export default class ContextFieldPathServerController {
         active_api_type_ids_by_name: { [api_type_id: string]: boolean },
         deployed_deps_from: { [api_type_id: string]: boolean }): FieldPathWrapper[] {
 
-        let moduletable: ModuleTable<any> = null;
+        let moduletable: ModuleTableVO<any> = null;
 
         /**
          * Si on démarre on part du type cible
@@ -239,7 +240,7 @@ export default class ContextFieldPathServerController {
         /**
          * si on trouve un des point de départ (une des cibles) dans les targets des fields, on a terminé on a un chemin valide on le renvoie
          */
-        let manytoone_fields_to_sources: Array<ModuleTableField<any>> = manytoone_fields.filter((field) => from_types_by_name[field.manyToOne_target_moduletable.vo_type]);
+        let manytoone_fields_to_sources: Array<ModuleTableFieldVO<any>> = manytoone_fields.filter((field) => from_types_by_name[field.manyToOne_target_moduletable.vo_type]);
         manytoone_fields_to_sources = manytoone_fields_to_sources.filter((field) => !ContextFieldPathServerController.filter_technical_field(use_technical_field_versioning, field));
 
         /**
@@ -282,7 +283,7 @@ export default class ContextFieldPathServerController {
         /**
          * On passe aux onetomany. idem on charge toutes les refs et on filtres les types déjà connus (exclus) et les types actifs (inclus)
          */
-        let onetomany_fields: Array<ModuleTableField<any>> = VOsTypesManager.get_type_references(moduletable.vo_type);
+        let onetomany_fields: Array<ModuleTableFieldVO<any>> = VOsTypesManager.get_type_references(moduletable.vo_type);
         onetomany_fields = onetomany_fields.filter((ref) =>
             (!(discarded_field_paths && discarded_field_paths[ref.module_table.vo_type] && discarded_field_paths[ref.module_table.vo_type][ref.field_id])) &&
             active_api_type_ids_by_name[ref.module_table.vo_type] && !deployed_deps_from[ref.module_table.vo_type]);
@@ -309,7 +310,7 @@ export default class ContextFieldPathServerController {
         /**
          * si on trouve un des point de départ (une des cibles) dans les tables des fields, on a terminé on a un chemin valide on le renvoie
          */
-        let onetomany_fields_to_sources: Array<ModuleTableField<any>> = onetomany_fields.filter((field) => from_types_by_name[field.module_table.vo_type]);
+        let onetomany_fields_to_sources: Array<ModuleTableFieldVO<any>> = onetomany_fields.filter((field) => from_types_by_name[field.module_table.vo_type]);
         if (onetomany_fields_to_sources && onetomany_fields_to_sources.length) {
             actual_path.push(new FieldPathWrapper(onetomany_fields_to_sources[0], false));
             return actual_path;
@@ -375,7 +376,7 @@ export default class ContextFieldPathServerController {
     //  * @param field
     //  * @returns le poids du champs
     //  */
-    // private static get_field_weight(field: ModuleTableField<any>): number {
+    // private static get_field_weight(field: ModuleTableFieldVO<any>): number {
     //     if (!field) {
     //         return 1000;
     //     }
@@ -407,7 +408,7 @@ export default class ContextFieldPathServerController {
      * @param field
      * @returns true si c'est un field technique (versioning, ...) et si la query filtre ce type de champs
      */
-    private static filter_technical_field(use_technical_field_versioning: boolean, field: ModuleTableField<any>): boolean {
+    private static filter_technical_field(use_technical_field_versioning: boolean, field: ModuleTableFieldVO<any>): boolean {
         if (use_technical_field_versioning) {
             return false;
         }

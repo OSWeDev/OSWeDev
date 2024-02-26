@@ -10,7 +10,7 @@ import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImpor
 import ModuleTranslationsImport from '../../../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ImportTranslationRaw from '../../../../shared/modules/Translation/import/vos/ImportTranslationTaw';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
@@ -53,7 +53,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
         access.group_id = group.id;
         access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         access.translatable_name = ModuleTranslationsImport.POLICY_BO_ACCESS;
-        access = await ModuleAccessPolicyServer.getInstance().registerPolicy(access, new DefaultTranslation({
+        access = await ModuleAccessPolicyServer.getInstance().registerPolicy(access, DefaultTranslationVO.create_new({
             'fr-fr': 'Importer les traductions'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();

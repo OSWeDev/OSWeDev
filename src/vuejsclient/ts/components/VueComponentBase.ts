@@ -11,7 +11,7 @@ import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
 import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
-import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
@@ -29,7 +29,8 @@ import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import VOsTypesHandler from "../../../shared/modules/VO/handler/VOsTypesHandler";
 import VOsTypesManager from "../../../shared/modules/VO/manager/VOsTypesManager";
-import ModuleTableField from "../../../shared/modules/ModuleTableField";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../shared/modules/ModuleTableFieldVO";
 
 // MONTHS MIXIN
 let months = [
@@ -349,7 +350,7 @@ export default class VueComponentBase extends Vue
             return txt;
         }
         return this.t(
-            txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
+            txt + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION,
             params
         );
     }
@@ -1165,19 +1166,19 @@ export default class VueComponentBase extends Vue
             }
 
             let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            let field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
             switch (field_type) {
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_enum:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_float:
+                case ModuleTableFieldVO.FIELD_TYPE_int:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
                     if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
                         (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
                         throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
@@ -1189,15 +1190,15 @@ export default class VueComponentBase extends Vue
                     }
                     break;
 
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_string:
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_image_field:
+                case ModuleTableFieldVO.FIELD_TYPE_html:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_email:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_password:
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ALL) &&
                         (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ANY)) {
                         throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
@@ -1284,31 +1285,31 @@ export default class VueComponentBase extends Vue
             let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
 
             let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            let field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
             switch (field_type) {
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_enum:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_float:
+                case ModuleTableFieldVO.FIELD_TYPE_int:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
                     room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_numeric;
                     break;
 
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_string:
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_image_field:
+                case ModuleTableFieldVO.FIELD_TYPE_html:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_email:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_password:
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_text;
                     break;
 

@@ -1,5 +1,5 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 
 export default class SelectBoxDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
@@ -18,6 +18,6 @@ export default class SelectBoxDatatableFieldVO<T, U> extends DatatableField<T, U
             return null;
         }
 
-        return "fields.labels." + this.vo_type_full_name + ".__select_box__" + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return "fields.labels." + this.vo_type_full_name + ".__select_box__" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 }

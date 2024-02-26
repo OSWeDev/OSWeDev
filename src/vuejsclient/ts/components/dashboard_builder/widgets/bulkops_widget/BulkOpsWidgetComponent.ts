@@ -19,7 +19,7 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../../../../shared/modules/ModuleTableVO';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
@@ -127,7 +127,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         return this.field ? CRUD.get_dt_field(this.field).setModuleTable(this.moduletable).setUID_for_readDuplicateOnly(this.tablecolumn_field_id) : null;
     }
 
-    get moduletable(): ModuleTable<any> {
+    get moduletable(): ModuleTableVO<any> {
         if (!this.api_type_id) {
             return null;
         }

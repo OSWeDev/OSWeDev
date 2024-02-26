@@ -1,7 +1,7 @@
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
@@ -114,7 +114,7 @@ export default class DefaultTranslationsServerManager {
     }
 
     private async saveDefaultTranslation(
-        default_translation: DefaultTranslation,
+        default_translation: DefaultTranslationVO,
         langs: LangVO[],
         translatable_by_code_text: { [code_text: string]: TranslatableTextVO },
         translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } }) {
@@ -149,12 +149,12 @@ export default class DefaultTranslationsServerManager {
             if (translation_str == null) {
                 // Si pas de trad, on passe au suivant pour ne pas créer de trad par defaut sur les autres langues
 
-                // if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
+                // if ((default_translation.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
                 //     ConsoleHandler.error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
                 //     continue;
                 // }
 
-                // translation_str = default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                // translation_str = default_translation.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION];
                 continue;
             }
 
@@ -181,8 +181,8 @@ export default class DefaultTranslationsServerManager {
         }
     }
 
-    private clean_registered_default_translations(): { [code_text: string]: DefaultTranslation } {
-        let res: { [code_text: string]: DefaultTranslation } = {};
+    private clean_registered_default_translations(): { [code_text: string]: DefaultTranslationVO } {
+        let res: { [code_text: string]: DefaultTranslationVO } = {};
 
         for (let i in DefaultTranslationManager.registered_default_translations) {
             let registered_default_translation = DefaultTranslationManager.registered_default_translations[i];

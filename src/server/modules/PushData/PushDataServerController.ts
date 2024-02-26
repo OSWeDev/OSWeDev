@@ -9,7 +9,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
@@ -36,9 +36,9 @@ export default class PushDataServerController {
 
     public static NOTIF_INTERVAL_MS: number = 1000;
 
-    public static NOTIFY_SESSION_INVALIDATED: string = 'PushDataServerController.session_invalidated' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    public static NOTIFY_USER_LOGGED: string = 'PushDataServerController.user_logged' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    public static NOTIFY_RELOAD: string = 'PushDataServerController.reload' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public static NOTIFY_SESSION_INVALIDATED: string = 'PushDataServerController.session_invalidated' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    public static NOTIFY_USER_LOGGED: string = 'PushDataServerController.user_logged' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    public static NOTIFY_RELOAD: string = 'PushDataServerController.reload' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
 
     public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
     public static TASK_NAME_notifyUserLoggedAndRedirectHome: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirectHome';

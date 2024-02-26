@@ -1,20 +1,24 @@
 import TableFieldTypesManager from "../TableFieldTypes/TableFieldTypesManager";
-import DefaultTranslation from "../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 
-export default class ModuleTableController {
+export default class ModuleTableFieldController {
 
-    public static create_new_field<T>(
-        field_id: string,                    //titre de la colonne en base
+    public static GENERATOR_default_field_translations: { [vo_type: string]: { [field_name: string]: DefaultTranslationVO } } = {};
+
+    public static create_new<T>(
+        vo_type: string,
+        field_name: string,                    //titre de la colonne en base
         field_type: string,                  //type de donnée dans la colonne
-        field_label: string | DefaultTranslation,   //titre de la colonne a afficher
+        field_label: string | DefaultTranslationVO,   //titre de la colonne a afficher
         field_required: boolean = false,     //si champ obligatoire
         has_default: boolean = false,        //si valeur par defaut
         field_default: T = null              //valeur par defaut
     ) {
-
         let res: ModuleTableFieldVO = new ModuleTableFieldVO();
-        res.field_id = field_id;
+
+        res.module_table_name = vo_type;
+        res.field_name = field_name;
         res.field_type = field_type;
         res.field_required = field_required;
         res.has_default = has_default;
@@ -23,22 +27,21 @@ export default class ModuleTableController {
         res.cascade_on_delete = field_required;
 
         if (!field_label) {
-            field_label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: res.field_id });
+            field_label = DefaultTranslationVO.create_new({ [DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION]: res.field_name });
         }
 
         if (typeof field_label === "string") {
-            field_label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: field_label });
+            field_label = DefaultTranslationVO.create_new({ [DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION]: field_label });
         } else {
-            if ((!field_label.default_translations) || (!field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
-                field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] = res.field_id;
+            if ((!field_label.default_translations) || (!field_label.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
+                field_label.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION] = res.field_name;
             }
         }
 
-        res.field_label = field_label;                     //titre colonne a afficher
-
-        res.target_database = null;                        //la database en base avec laquelle il y a une relation (generalement "ref")
-
-        return res;
+        if (!ModuleTableFieldController.GENERATOR_default_field_translations[vo_type]) {
+            ModuleTableFieldController.GENERATOR_default_field_translations[vo_type] = {};
+        }
+        ModuleTableFieldController.GENERATOR_default_field_translations[vo_type][field_name] = field_label;
     }
 
     public static validate_field_value(field: ModuleTableFieldVO, data: any): string {
@@ -54,7 +57,7 @@ export default class ModuleTableController {
                 return null;
 
             case ModuleTableFieldVO.FIELD_TYPE_password:
-                return ModuleTableController.passwordIsValidProposition(data);
+                return ModuleTableFieldController.passwordIsValidProposition(data);
 
             case ModuleTableFieldVO.FIELD_TYPE_image_field:
             case ModuleTableFieldVO.FIELD_TYPE_image_ref:

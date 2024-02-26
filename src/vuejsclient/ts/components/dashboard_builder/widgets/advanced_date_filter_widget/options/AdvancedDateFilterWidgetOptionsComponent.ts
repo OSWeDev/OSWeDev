@@ -16,7 +16,8 @@ import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsCont
 import AdvancedDateFilterWidgetOptions from './AdvancedDateFilterWidgetOptions';
 import './AdvancedDateFilterWidgetOptionsComponent.scss';
 import AdvancedDateFilterWidgetOptionsOptComponent from './opt/AdvancedDateFilterWidgetOptionsOptComponent';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetOptionsComponent.pug'),
@@ -204,10 +205,10 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         }
 
         switch (field.field_type) {
-            case ModuleTableField.FIELD_TYPE_tstz:
-            case ModuleTableField.FIELD_TYPE_tsrange:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                 return true;
 
             default:

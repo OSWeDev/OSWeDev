@@ -1,5 +1,6 @@
 import { Cell, Graph } from "@maxgraph/core";
-import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../../../../shared/modules/ModuleTableFieldVO";
 import MaxGraphCellMapper from "./MaxGraphCellMapper";
 
 export default class MaxGraphEdgeMapper {
@@ -9,7 +10,7 @@ export default class MaxGraphEdgeMapper {
     public maxgraph_cell: Cell = null;
 
     public api_type_id: string = null;
-    public field: ModuleTableField<any> = null;
+    public field: ModuleTableFieldVO<any> = null;
     public label: string = null;
 
     public source_cell: MaxGraphCellMapper = null;

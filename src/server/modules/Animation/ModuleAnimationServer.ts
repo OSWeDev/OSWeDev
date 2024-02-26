@@ -23,10 +23,10 @@ import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterO
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -85,7 +85,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAnimation.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Animation'
         }));
 
@@ -96,7 +96,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             bo_access.group_id = group.id;
             bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             bo_access.translatable_name = ModuleAnimation.POLICY_BO_ACCESS;
-            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Administration Animation'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let admin_access_dependency_bo: PolicyDependencyVO = new PolicyDependencyVO();
@@ -111,7 +111,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             fo_access.group_id = group.id;
             fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             fo_access.translatable_name = ModuleAnimation.POLICY_FO_ACCESS;
-            fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+            fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Front Animation'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let admin_access_dependency_fo: PolicyDependencyVO = new PolicyDependencyVO();
@@ -126,7 +126,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             fo_inline_edit_access.group_id = group.id;
             fo_inline_edit_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             fo_inline_edit_access.translatable_name = ModuleAnimation.POLICY_FO_INLINE_EDIT_ACCESS;
-            fo_inline_edit_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_inline_edit_access, new DefaultTranslation({
+            fo_inline_edit_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_inline_edit_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Front Animation - Inline Edit'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let admin_access_dependency_fo_inline_edit: PolicyDependencyVO = new PolicyDependencyVO();
@@ -141,7 +141,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             fo_reporting_access.group_id = group.id;
             fo_reporting_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             fo_reporting_access.translatable_name = ModuleAnimation.POLICY_FO_REPORTING_ACCESS;
-            fo_reporting_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_reporting_access, new DefaultTranslation({
+            fo_reporting_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_reporting_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Front Animation Reporting'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let admin_access_dependency_fo_reporting: PolicyDependencyVO = new PolicyDependencyVO();
@@ -548,7 +548,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterAnimationModuleContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterAnimationModuleContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (this.isAdmin()) {
             return null;
@@ -578,7 +578,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterAnimationModule(datatable: ModuleTable<AnimationModuleVO>, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
+    private async filterAnimationModule(datatable: ModuleTableVO<AnimationModuleVO>, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
         if (this.isAdmin()) {
             return vos;
         }
@@ -641,82 +641,82 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private async initializeTranslations() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Mes formations' }, 'animation.titre.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Animation' }, 'client.menu-gauche.anim.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Mes formations' }, 'client.menu-gauche.anim.formation.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Reporting Formations' }, 'client.menu-gauche.anim.reporting.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Animation' }, 'menu.menuelements.admin.AnimationAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Modules' }, 'menu.menuelements.admin.AnimationModuleVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Questions/Réponses' }, 'menu.menuelements.admin.AnimationQRVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Thèmes' }, 'menu.menuelements.admin.AnimationThemeVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'User Modules' }, 'menu.menuelements.admin.AnimationUserModuleVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'User Questions/Réponses' }, 'menu.menuelements.admin.AnimationUserQRVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Question ' }, 'animation.question.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'VALIDER' }, 'animation.validation.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Retour' }, 'animation.back.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Réponse' }, 'fields.labels.ref.module_animation_anim_reponse.name.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Valide' }, 'fields.labels.ref.module_animation_anim_reponse.valid.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'N°' }, 'fields.labels.ref.module_animation_anim_reponse.weight.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Réponses justes' }, 'animation.reponse.valid.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Mes réponses' }, 'animation.reponse.votre_reponse.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Vous avez totalisé un score de :' }, 'animation.prct_reussite.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Vous avez jugé ce module :' }, 'animation.feedback.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'VALIDER' }, 'animation.feedback.valider.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Accéder à mes formations' }, 'animation.retour_formations.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Pas très utile' }, 'animation_um.like_vote.bad'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Utile' }, 'animation_um.like_vote.good'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Très utile' }, 'animation_um.like_vote.very_good'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Mobile' }, 'animation_um.support.mobile'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Tablette' }, 'animation_um.support.tablette'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'PC' }, 'animation_um.support.pc'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': ' (en cours)' }, 'animation.module.en_cours.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Voulez-vous recommencer le module' }, 'animation.modal.restart_module.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Merci de confirmer si vous souhaitez redémarrer le module ou consulter le module' }, 'animation.modal.restart_module.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Consulter' }, 'animation.modal.restart_module.consulter.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Redémarrer' }, 'animation.modal.restart_module.restart.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'BRAVO!' }, 'animation.qr.is_validated.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'OUPS' }, 'animation.qr.is_validated.nok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Max' }, 'fields.labels.ref.module_animation_anim_message_module.max.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Message' }, 'fields.labels.ref.module_animation_anim_message_module.message.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Min' }, 'fields.labels.ref.module_animation_anim_message_module.min.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____module_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____question_file_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Réponses' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____reponse_file_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Parametres' }, 'menu.menuelements.admin.AnimationParametersVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Télécharger le document' }, 'animation.documents.download.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Documentations' }, 'animation.documents.titre.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Consultez la documentation' }, 'animation.module.document.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Modules' }, 'fields.labels.ref.module_animation_anim_module.___LABEL____theme_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Numéro' }, 'crud.container_mms.numero.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Numéro' }, 'crud.container_reponses.numero.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Commentaire' }, 'animation.reporting.commentaire.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Fin' }, 'animation.reporting.end.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Module' }, 'animation.reporting.filtre.anim_module.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Thème' }, 'animation.reporting.filtre.anim_theme.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Rôle' }, 'animation.reporting.filtre.role.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Utilisateur' }, 'animation.reporting.filtre.user.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Feedback' }, 'animation.reporting.like_vote.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Support utilisé' }, 'animation.reporting.support.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Module' }, 'animation.reporting.module.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Réussite' }, 'animation.reporting.prct_reussite.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Début' }, 'animation.reporting.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Thème' }, 'animation.reporting.theme.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Utilisateur' }, 'animation.reporting.user.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Roles' }, 'animation.reporting.roles.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Temps passé' }, 'animation.reporting.temps_passe.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Filtres' }, 'animation.reporting.filtre.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Afficher les modules terminés' }, 'animation.reporting.filtre.module_termine.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Afficher les modules validés' }, 'animation.reporting.filtre.module_valide.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Activer mode édition' }, 'animation.inline_input_mode.off.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Désactiver mode édition' }, 'animation.inline_input_mode.on.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Total' }, 'animation.reporting.total.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Mes formations' }, 'animation.titre.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Animation' }, 'client.menu-gauche.anim.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Mes formations' }, 'client.menu-gauche.anim.formation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Reporting Formations' }, 'client.menu-gauche.anim.reporting.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Animation' }, 'menu.menuelements.admin.AnimationAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }, 'menu.menuelements.admin.AnimationModuleVO.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Questions/Réponses' }, 'menu.menuelements.admin.AnimationQRVO.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Thèmes' }, 'menu.menuelements.admin.AnimationThemeVO.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'User Modules' }, 'menu.menuelements.admin.AnimationUserModuleVO.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'User Questions/Réponses' }, 'menu.menuelements.admin.AnimationUserQRVO.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Question ' }, 'animation.question.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'VALIDER' }, 'animation.validation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Retour' }, 'animation.back.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Réponse' }, 'fields.labels.ref.module_animation_anim_reponse.name.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Valide' }, 'fields.labels.ref.module_animation_anim_reponse.valid.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'N°' }, 'fields.labels.ref.module_animation_anim_reponse.weight.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Réponses justes' }, 'animation.reponse.valid.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Mes réponses' }, 'animation.reponse.votre_reponse.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Vous avez totalisé un score de :' }, 'animation.prct_reussite.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Vous avez jugé ce module :' }, 'animation.feedback.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'VALIDER' }, 'animation.feedback.valider.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Accéder à mes formations' }, 'animation.retour_formations.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Pas très utile' }, 'animation_um.like_vote.bad'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Utile' }, 'animation_um.like_vote.good'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Très utile' }, 'animation_um.like_vote.very_good'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Mobile' }, 'animation_um.support.mobile'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Tablette' }, 'animation_um.support.tablette'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'PC' }, 'animation_um.support.pc'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': ' (en cours)' }, 'animation.module.en_cours.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Voulez-vous recommencer le module' }, 'animation.modal.restart_module.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Merci de confirmer si vous souhaitez redémarrer le module ou consulter le module' }, 'animation.modal.restart_module.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Consulter' }, 'animation.modal.restart_module.consulter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Redémarrer' }, 'animation.modal.restart_module.restart.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'BRAVO!' }, 'animation.qr.is_validated.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'OUPS' }, 'animation.qr.is_validated.nok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Max' }, 'fields.labels.ref.module_animation_anim_message_module.max.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Message' }, 'fields.labels.ref.module_animation_anim_message_module.message.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Min' }, 'fields.labels.ref.module_animation_anim_message_module.min.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____module_id'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____question_file_id'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Réponses' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____reponse_file_id'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Parametres' }, 'menu.menuelements.admin.AnimationParametersVO.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Télécharger le document' }, 'animation.documents.download.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Documentations' }, 'animation.documents.titre.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Consultez la documentation' }, 'animation.module.document.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }, 'fields.labels.ref.module_animation_anim_module.___LABEL____theme_id'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Numéro' }, 'crud.container_mms.numero.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Numéro' }, 'crud.container_reponses.numero.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Commentaire' }, 'animation.reporting.commentaire.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Fin' }, 'animation.reporting.end.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Module' }, 'animation.reporting.filtre.anim_module.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Thème' }, 'animation.reporting.filtre.anim_theme.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Rôle' }, 'animation.reporting.filtre.role.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Utilisateur' }, 'animation.reporting.filtre.user.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Feedback' }, 'animation.reporting.like_vote.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Support utilisé' }, 'animation.reporting.support.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Module' }, 'animation.reporting.module.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Réussite' }, 'animation.reporting.prct_reussite.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Début' }, 'animation.reporting.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Thème' }, 'animation.reporting.theme.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Utilisateur' }, 'animation.reporting.user.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Roles' }, 'animation.reporting.roles.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Temps passé' }, 'animation.reporting.temps_passe.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Filtres' }, 'animation.reporting.filtre.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Afficher les modules terminés' }, 'animation.reporting.filtre.module_termine.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Afficher les modules validés' }, 'animation.reporting.filtre.module_valide.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Activer mode édition' }, 'animation.inline_input_mode.off.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Désactiver mode édition' }, 'animation.inline_input_mode.on.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Total' }, 'animation.reporting.total.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Theme', 'en-us': 'Import/Export Theme', 'es-es': 'Importar/Exportar Tema' }, 'menu.menuelements.importThemeAnimation.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Module', 'en-us': 'Import/Export Module', 'es-es': 'Importar/Exportar Módulo' }, 'menu.menuelements.importModuleAnimation.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export QR', 'en-us': 'Import/Export Q&A', 'es-es': 'Importar/Exportar Q&A' }, 'menu.menuelements.importQRAnimation.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Theme', 'en-us': 'Import/Export Theme', 'es-es': 'Importar/Exportar Tema' }, 'anim_import_theme_import.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Module', 'en-us': 'Import/Export Module', 'es-es': 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export QR', 'en-us': 'Import/Export Q&A', 'es-es': 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Import/Export Theme', 'en-us': 'Import/Export Theme', 'es-es': 'Importar/Exportar Tema' }, 'menu.menuelements.importThemeAnimation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Import/Export Module', 'en-us': 'Import/Export Module', 'es-es': 'Importar/Exportar Módulo' }, 'menu.menuelements.importModuleAnimation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Import/Export QR', 'en-us': 'Import/Export Q&A', 'es-es': 'Importar/Exportar Q&A' }, 'menu.menuelements.importQRAnimation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Import/Export Theme', 'en-us': 'Import/Export Theme', 'es-es': 'Importar/Exportar Tema' }, 'anim_import_theme_import.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Import/Export Module', 'en-us': 'Import/Export Module', 'es-es': 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Import/Export QR', 'en-us': 'Import/Export Q&A', 'es-es': 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
 
     }
 

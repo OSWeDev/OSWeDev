@@ -5,8 +5,9 @@ import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2Par
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import SupervisedCRONController from './SupervisedCRONController';
 import SupervisionController from './SupervisionController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
@@ -64,14 +65,14 @@ export default class ModuleSupervision extends Module {
     }
 
     private initializeSupervisedCategoryVO() {
-        let name_field = new ModuleTableField(field_names<SupervisedCategoryVO>().name, ModuleTableField.FIELD_TYPE_string, "Nom", true);
+        let name_field = ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom", true);
 
         let fields = [
             name_field,
-            new ModuleTableField(field_names<SupervisedCategoryVO>().notify, ModuleTableField.FIELD_TYPE_boolean, "Notification", true, true, false),
+            ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
         ];
 
-        let datatable = new ModuleTable(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
+        let datatable = new ModuleTableVO(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
 
         this.datatables.push(datatable);
     }
@@ -79,11 +80,11 @@ export default class ModuleSupervision extends Module {
     private initializeSupervisedCRONVO() {
 
         let fields = [
-            new ModuleTableField(field_names<SupervisedCRONVO>().planification_uid, ModuleTableField.FIELD_TYPE_string, "Planification UID", true),
-            new ModuleTableField(field_names<SupervisedCRONVO>().worker_uid, ModuleTableField.FIELD_TYPE_string, "Worker UID", true),
+            ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Planification UID", true),
+            ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true),
         ];
 
-        let datatable = new ModuleTable(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
+        let datatable = new ModuleTableVO(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
         this.datatables.push(datatable);
         SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
     }

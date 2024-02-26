@@ -9,7 +9,8 @@ import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuil
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
@@ -189,7 +190,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
                 let matroid_field = matroid_fields[i];
 
-                if ((matroid_field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array)
+                if ((matroid_field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array)
                     && (!this.var_custom_filters[matroid_field.field_id])) {
                     can_exit = false;
                     break;

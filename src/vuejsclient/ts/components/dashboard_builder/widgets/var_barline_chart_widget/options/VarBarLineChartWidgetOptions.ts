@@ -1,6 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
-import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 import VarBarLineDatasetChartWidgetOptions from "./dataset/VarBarLineDatasetChartWidgetOptions";
@@ -96,7 +96,7 @@ export default class VarBarLineChartWidgetOptions implements IExportableWidgetOp
         if (!page_widget_id) {
             return null;
         }
-        return VarBarLineChartWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarBarLineChartWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_var_name_code_text(page_widget_id: number, var_id: number): string {
@@ -104,7 +104,7 @@ export default class VarBarLineChartWidgetOptions implements IExportableWidgetOp
         if ((!page_widget_id) || (!var_id)) {
             return null;
         }
-        return VarBarLineChartWidgetOptions.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarBarLineChartWidgetOptions.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
@@ -116,7 +116,7 @@ export default class VarBarLineChartWidgetOptions implements IExportableWidgetOp
             res[placeholder_name_code_text] =
                 VarBarLineChartWidgetOptions.TITLE_CODE_PREFIX +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         }
 
         if (this.datasets && this.datasets.length) {
@@ -132,7 +132,7 @@ export default class VarBarLineChartWidgetOptions implements IExportableWidgetOp
                         '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + dataset.var_id + '}}' +
                         '.' +
                         '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                        DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                        DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
                 }
             }
         }

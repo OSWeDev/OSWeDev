@@ -3,8 +3,9 @@ import ModuleContextFilter from "../../../../../../shared/modules/ContextFilter/
 import ContextFilterVO from "../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
-import ModuleTable from "../../../../../../shared/modules/ModuleTable";
-import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
+import ModuleTableVO from "../../../../../../shared/modules/ModuleTableVO";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../../../../../shared/modules/ModuleTableFieldVO";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
@@ -59,7 +60,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
 
         for (let i in api_type_ids) {
             let api_type_id: string = api_type_ids[i];
-            let module_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+            let module_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (module_table && module_table.is_segmented) {
 
@@ -100,7 +101,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
             let segmented_moduletable = VOsTypesManager.moduleTables_by_voType[has_segmented_too_much_options_api_type_id];
             let fields = segmented_moduletable.get_fields();
             for (let i in fields) {
-                let field: ModuleTableField<any> = fields[i];
+                let field: ModuleTableFieldVO<any> = fields[i];
                 if (!field.manyToOne_target_moduletable) {
                     continue;
                 }

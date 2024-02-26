@@ -6,14 +6,14 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import IModuleBase from '../../../../shared/modules/IModuleBase';
 import ModulesManager from '../../../../shared/modules/ModulesManager';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
 import ModuleServerBase from '../../ModuleServerBase';
 
 export default abstract class DataRenderModuleBase extends ModuleServerBase implements IRenderDataModule, IModuleBase {
 
     public static ROLE_NAME: string = "DataRenderRoleName";
 
-    public abstract database: ModuleTable<IDistantVOBase & IRenderedData>;
+    public abstract database: ModuleTableVO<IDistantVOBase & IRenderedData>;
     public abstract data_timesegment_type: number;
 
     protected constructor(public name: string) {

@@ -5,7 +5,8 @@ import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSe
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -45,7 +46,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     /**
      * Utilisé pour trouver la trad du champ. on prend le premier vo_type qui contient ce champ
      */
-    private fields: { [field_id: string]: ModuleTableField<IRange> } = {};
+    private fields: { [field_id: string]: ModuleTableFieldVO<IRange> } = {};
 
     private fields_filters_is_valid: { [field_id: string]: boolean } = {};
     private filtered_vo_types: { [vo_type: string]: boolean } = {};
@@ -70,7 +71,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         let filtered_vo_types: { [vo_type: string]: boolean } = {};
         let fields_filters_is_valid: { [field_id: string]: boolean } = {};
         let valid_vars_ids_by_field_id: { [field_id: string]: { [var_id: number]: boolean } } = {};
-        let fields: { [field_id: string]: ModuleTableField<IRange> } = {};
+        let fields: { [field_id: string]: ModuleTableFieldVO<IRange> } = {};
         let empty_fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
 
         let enum_initial_options_promises: { [field_id: string]: Promise<void> } = {};
@@ -379,21 +380,21 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         this.set_params();
     }
 
-    private is_ts_range_type(field: ModuleTableField<IRange>): boolean {
-        return (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-            (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-            (field.field_type == ModuleTableField.FIELD_TYPE_daterange);
+    private is_ts_range_type(field: ModuleTableFieldVO<IRange>): boolean {
+        return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
+            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_daterange);
     }
 
-    private is_hour_range_type(field: ModuleTableField<IRange>): boolean {
-        return (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array);
+    private is_hour_range_type(field: ModuleTableFieldVO<IRange>): boolean {
+        return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
+            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array);
     }
 
-    private is_num_range_type(field: ModuleTableField<IRange>): boolean {
-        return (field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-            (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-            (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array);
+    private is_num_range_type(field: ModuleTableFieldVO<IRange>): boolean {
+        return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
+            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
+            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array);
     }
 
     /**
@@ -460,12 +461,12 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         this.set_filter_params(this.params);
     }
 
-    private enum_field_label_handler(field: ModuleTableField<any>) {
+    private enum_field_label_handler(field: ModuleTableFieldVO<any>) {
         return (e: IDistantVOBase) =>
             NumRangeComponentController.getInstance().get_enum_handler(field.module_table.vo_type, field.field_id).sync_label_handler(e);
     }
 
-    private async enum_search_handler(field: ModuleTableField<any>) {
+    private async enum_search_handler(field: ModuleTableFieldVO<any>) {
         return NumRangeComponentController.getInstance().get_enum_handler(field.module_table.vo_type, field.field_id).enum_query_options_handler;
     }
 

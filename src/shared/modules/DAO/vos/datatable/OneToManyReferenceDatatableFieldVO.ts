@@ -1,9 +1,10 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import RangeHandler from '../../../../tools/RangeHandler';
 import NumRange from '../../../DataRender/vos/NumRange';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
@@ -15,8 +16,8 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTable<any>,
-        destField: ModuleTableField<any>,
+        targetModuleTable: ModuleTableVO<any>,
+        destField: ModuleTableFieldVO<any>,
         sortedTargetFields: Array<DatatableField<any, any>>): OneToManyReferenceDatatableFieldVO<any> {
 
         let res = new OneToManyReferenceDatatableFieldVO();
@@ -49,7 +50,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
         this.onupdatedestField();
     }
 
-    get destField(): ModuleTableField<any> {
+    get destField(): ModuleTableFieldVO<any> {
         if ((!this.dest_field_id) || (!this.target_module_table_type_id)) {
             return null;
         }
@@ -73,7 +74,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
 
         let e = this.destField.field_id ? this.targetModuleTable.label.code_text + '_' + this.destField.field_id : this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
             return e;
         }
@@ -93,7 +94,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
             let targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];
 
             // Cas particulier du refranges où on cherche l'intersection
-            if (this.destField.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+            if (this.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
 
                 if ((!targetVo) || (!targetVo[this.destField.field_id])) {
                     continue;

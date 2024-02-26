@@ -7,7 +7,7 @@ import ContextFilterTestsTools from './tools/ContextFilterTestsTools';
 import VOsTypesManager from '../../../src/shared/modules/VO/manager/VOsTypesManager';
 import UserVO from '../../../src/shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterServerController from '../../../src/server/modules/ContextFilter/ContextFilterServerController';
-import ModuleTable from '../../../src/shared/modules/ModuleTable';
+import ModuleTableVO from '../../../src/shared/modules/ModuleTableVO';
 import LangVO from '../../../src/shared/modules/Translation/vos/LangVO';
 import UserRoleVO from '../../../src/shared/modules/AccessPolicy/vos/UserRoleVO';
 import RoleVO from '../../../src/shared/modules/AccessPolicy/vos/RoleVO';
@@ -27,7 +27,7 @@ test('ContextFilterServer: test updates_jointures - User => Lang', async () => {
 
     let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
     let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> } = {};
 
     let aliases_n: number = 1;
     let tables_aliases_by_type: { [vo_type: string]: string } = {
@@ -69,7 +69,7 @@ test('ContextFilterServer: test updates_jointures - Lang => User', async () => {
 
     let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
     let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> } = {};
 
     let aliases_n = 1;
     let tables_aliases_by_type = {
@@ -111,7 +111,7 @@ test('ContextFilterServer: test updates_jointures - User => Role', async () => {
 
     let userrole_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
     let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> } = {};
 
     let aliases_n = 1;
     let tables_aliases_by_type = {
@@ -157,7 +157,7 @@ test('ContextFilterServer: test updates_jointures - UserRole => Role & User', as
 
     let userrole_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
     let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> } = {};
 
     let aliases_n = 1;
     let tables_aliases_by_type = {
@@ -229,7 +229,7 @@ test('ContextFilterServer: test updates_jointures - UserRoleVO => AnonymizationF
     let UserRoleVO_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
     let AnonymizationUserConfVO_modultable = VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
     let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> } = {};
 
     let aliases_n = 1;
     let tables_aliases_by_type = {
@@ -280,7 +280,7 @@ test('ContextFilterServer: test updates_jointures - RoleVO => AnonymizationField
     let UserRoleVO_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
     let AnonymizationUserConfVO_modultable = VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
     let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> } = {};
 
     let aliases_n = 1;
     let tables_aliases_by_type = {

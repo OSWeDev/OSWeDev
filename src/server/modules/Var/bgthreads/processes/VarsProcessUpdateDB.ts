@@ -1,5 +1,6 @@
 import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -136,7 +137,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
         for (let _type in nodes_by_type_and_index) {
             let nodes: { [index: string]: VarDAGNode } = nodes_by_type_and_index[_type];
 
-            let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getMatroidFields(_type);
+            let matroid_fields: Array<ModuleTableFieldVO<any>> = MatroidController.getMatroidFields(_type);
 
             for (let i in nodes) {
                 let node = nodes[i];

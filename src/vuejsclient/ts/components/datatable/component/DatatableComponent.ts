@@ -19,8 +19,9 @@ import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates'
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IArchivedVOBase from '../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
@@ -47,7 +48,7 @@ import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 })
 export default class DatatableComponent extends VueComponentBase {
 
-    private static ACTIONS_COLUMN_TRANSLATABLE_CODE: string = "datatable.actions_column" + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    private static ACTIONS_COLUMN_TRANSLATABLE_CODE: string = "datatable.actions_column" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
@@ -180,7 +181,7 @@ export default class DatatableComponent extends VueComponentBase {
                     let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                     switch (simpleField.field_type) {
-                        case ModuleTableField.FIELD_TYPE_boolean:
+                        case ModuleTableFieldVO.FIELD_TYPE_boolean:
                             if (j == 'FILTER__' + field.datatable_field_uid) {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
@@ -192,7 +193,7 @@ export default class DatatableComponent extends VueComponentBase {
                             }
                             continue;
 
-                        case ModuleTableField.FIELD_TYPE_tstz:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstz:
                             switch (simpleField.segmentation_type) {
                                 case TimeSegment.TYPE_YEAR:
                                     if (simpleField.segmentation_type == TimeSegment.TYPE_YEAR) {
@@ -228,12 +229,12 @@ export default class DatatableComponent extends VueComponentBase {
                             }
                             continue;
 
-                        case ModuleTableField.FIELD_TYPE_date:
-                        case ModuleTableField.FIELD_TYPE_daterange:
-                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        case ModuleTableField.FIELD_TYPE_day:
-                        case ModuleTableField.FIELD_TYPE_month:
-                        case ModuleTableField.FIELD_TYPE_tsrange:
+                        case ModuleTableFieldVO.FIELD_TYPE_date:
+                        case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_day:
+                        case ModuleTableFieldVO.FIELD_TYPE_month:
+                        case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                             if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
@@ -254,7 +255,7 @@ export default class DatatableComponent extends VueComponentBase {
                             }
                             continue;
 
-                        case ModuleTableField.FIELD_TYPE_tstz_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         // TODO ?
                     }
                 }
@@ -287,13 +288,13 @@ export default class DatatableComponent extends VueComponentBase {
                     let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                     switch (simpleField.field_type) {
-                        case ModuleTableField.FIELD_TYPE_date:
-                        case ModuleTableField.FIELD_TYPE_daterange:
-                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        case ModuleTableField.FIELD_TYPE_day:
-                        case ModuleTableField.FIELD_TYPE_month:
-                        case ModuleTableField.FIELD_TYPE_tsrange:
-                        case ModuleTableField.FIELD_TYPE_tstz:
+                        case ModuleTableFieldVO.FIELD_TYPE_date:
+                        case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_day:
+                        case ModuleTableFieldVO.FIELD_TYPE_month:
+                        case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstz:
                             if (!!this.embed_filter[field.datatable_field_uid].start) {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
@@ -314,7 +315,7 @@ export default class DatatableComponent extends VueComponentBase {
                             }
                             continue;
 
-                        case ModuleTableField.FIELD_TYPE_boolean:
+                        case ModuleTableFieldVO.FIELD_TYPE_boolean:
                             this.preload_custom_filters.push(field.datatable_field_uid);
 
                             if (!this.custom_filters_values[field.datatable_field_uid]) {
@@ -426,21 +427,21 @@ export default class DatatableComponent extends VueComponentBase {
 
                 switch (simpleField.field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (simpleField.segmentation_type == TimeSegment.TYPE_YEAR) {
                             break;
                         }
 
-                    case ModuleTableField.FIELD_TYPE_date:
-                    case ModuleTableField.FIELD_TYPE_daterange:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_day:
-                    case ModuleTableField.FIELD_TYPE_month:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_date:
+                    case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_day:
+                    case ModuleTableFieldVO.FIELD_TYPE_month:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         res.push(field);
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                     //TODO ?
                     default:
                 }
@@ -462,21 +463,21 @@ export default class DatatableComponent extends VueComponentBase {
 
                 switch (simpleField.field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (simpleField.segmentation_type == TimeSegment.TYPE_YEAR) {
                             res.push(field);
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
                         res.push(field);
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                     //TODO ?
                     default:
                 }
@@ -497,22 +498,22 @@ export default class DatatableComponent extends VueComponentBase {
                 let simpleField = (field as SimpleDatatableFieldVO<any, any>);
 
                 switch (simpleField.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (simpleField.segmentation_type == TimeSegment.TYPE_YEAR) {
                             break;
                         }
 
-                    case ModuleTableField.FIELD_TYPE_boolean:
-                    case ModuleTableField.FIELD_TYPE_date:
-                    case ModuleTableField.FIELD_TYPE_daterange:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_day:
-                    case ModuleTableField.FIELD_TYPE_month:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_html_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_boolean:
+                    case ModuleTableFieldVO.FIELD_TYPE_date:
+                    case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_day:
+                    case ModuleTableFieldVO.FIELD_TYPE_month:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         //TODO ?
                         continue;
                 }
@@ -553,7 +554,7 @@ export default class DatatableComponent extends VueComponentBase {
             switch (field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     let simpleField = (field as SimpleDatatableFieldVO<any, any>);
-                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_enum) {
+                    if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum) {
                         res.push(field);
                     }
                     break;
@@ -577,7 +578,7 @@ export default class DatatableComponent extends VueComponentBase {
             let field = this.datatable.fields[i];
 
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-                ((field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+                ((field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableFieldVO.FIELD_TYPE_boolean)) {
                 res.push(field);
             }
         }
@@ -613,7 +614,7 @@ export default class DatatableComponent extends VueComponentBase {
             switch (datatable_field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     let simpleField = (datatable_field as SimpleDatatableFieldVO<any, any>);
-                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_enum) {
+                    if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum) {
 
                         for (let j in simpleField.enum_values) {
                             let enum_value = simpleField.enum_values[j];
@@ -733,18 +734,18 @@ export default class DatatableComponent extends VueComponentBase {
                 let simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
 
                 switch (simpleField.field_type) {
-                    case ModuleTableField.FIELD_TYPE_boolean:
+                    case ModuleTableFieldVO.FIELD_TYPE_boolean:
                         this.changeBooleanFilterValue(field);
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_daterange:
-                    case ModuleTableField.FIELD_TYPE_tstz:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_date:
-                    case ModuleTableField.FIELD_TYPE_day:
-                    case ModuleTableField.FIELD_TYPE_month:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_date:
+                    case ModuleTableFieldVO.FIELD_TYPE_day:
+                    case ModuleTableFieldVO.FIELD_TYPE_month:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                     //TODO ?
                     default:
                         this.changeTextFilterValue(field);
@@ -998,7 +999,7 @@ export default class DatatableComponent extends VueComponentBase {
             // if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
             //     let simpleField: SimpleDatatableFieldVO<any, any> = this.datatable.fields[i] as SimpleDatatableFieldVO<any, any>;
 
-            //     if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
+            //     if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html) {
             //         continue;
             //     }
             // }
@@ -1036,7 +1037,7 @@ export default class DatatableComponent extends VueComponentBase {
                             let simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
 
                             switch (simpleField.field_type) {
-                                case ModuleTableField.FIELD_TYPE_boolean:
+                                case ModuleTableFieldVO.FIELD_TYPE_boolean:
 
                                     if ((query_cf == null) || (typeof query_cf == 'undefined')) {
                                         return true;
@@ -1047,14 +1048,14 @@ export default class DatatableComponent extends VueComponentBase {
                                     let data_is_true = (!!row[field.datatable_field_uid]) && ((row[field.datatable_field_uid] == 'true') || (TypesHandler.getInstance().isBoolean(row[field.datatable_field_uid])));
                                     return (data_is_true && istrue) || ((!data_is_true) && !istrue);
 
-                                case ModuleTableField.FIELD_TYPE_daterange:
-                                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                                case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                                     if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
 
                                     let daterange_array = null;
-                                    if (simpleField.field_type == ModuleTableField.FIELD_TYPE_daterange) {
+                                    if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_daterange) {
                                         daterange_array = [row[field.datatable_field_uid]];
                                     } else {
                                         daterange_array = row[field.datatable_field_uid].split(', ');
@@ -1086,7 +1087,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     return false;
 
-                                case ModuleTableField.FIELD_TYPE_tstz:
+                                case ModuleTableFieldVO.FIELD_TYPE_tstz:
                                     if (simpleField.segmentation_type == TimeSegment.TYPE_YEAR) {
                                         if (!query_cf) {
                                             return true;
@@ -1113,8 +1114,8 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
                                     return true;
 
-                                case ModuleTableField.FIELD_TYPE_date:
-                                case ModuleTableField.FIELD_TYPE_day:
+                                case ModuleTableFieldVO.FIELD_TYPE_date:
+                                case ModuleTableFieldVO.FIELD_TYPE_day:
                                     if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
@@ -1136,7 +1137,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     return true;
 
-                                case ModuleTableField.FIELD_TYPE_month:
+                                case ModuleTableFieldVO.FIELD_TYPE_month:
                                     if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
@@ -1154,7 +1155,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     return true;
 
-                                case ModuleTableField.FIELD_TYPE_tsrange:
+                                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                                     if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
@@ -1198,7 +1199,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     return is_ok;
 
-                                case ModuleTableField.FIELD_TYPE_enum:
+                                case ModuleTableFieldVO.FIELD_TYPE_enum:
                                     if ((!query_cf) || (!query_cf.length)) {
                                         return true;
                                     }
@@ -1210,7 +1211,7 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
                                     return false;
 
-                                case ModuleTableField.FIELD_TYPE_tstz_array:
+                                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                                 //TODO ?
                                 default:
                                     if (!query_cf) {

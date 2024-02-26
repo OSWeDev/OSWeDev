@@ -1,7 +1,8 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VOsTypesHandler from '../../../../../../shared/modules/VO/handler/VOsTypesHandler';
 import VueComponentBase from '../../../VueComponentBase';
@@ -101,23 +102,23 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
         return false;
     }
 
-    private is_type_boolean(field: ModuleTableField<any>): boolean {
+    private is_type_boolean(field: ModuleTableFieldVO<any>): boolean {
         return VOsTypesHandler.is_type_boolean(field);
     }
 
-    private is_type_enum(field: ModuleTableField<any>): boolean {
+    private is_type_enum(field: ModuleTableFieldVO<any>): boolean {
         return VOsTypesHandler.is_type_enum(field);
     }
 
-    private is_type_date(field: ModuleTableField<any>): boolean {
+    private is_type_date(field: ModuleTableFieldVO<any>): boolean {
         return VOsTypesHandler.is_type_date(field);
     }
 
-    private is_type_string(field: ModuleTableField<any>): boolean {
+    private is_type_string(field: ModuleTableFieldVO<any>): boolean {
         return VOsTypesHandler.is_type_string(field);
     }
 
-    private is_type_number(field: ModuleTableField<any>, field_id: string): boolean {
+    private is_type_number(field: ModuleTableFieldVO<any>, field_id: string): boolean {
         if (!field) {
 
             /**

@@ -2,7 +2,7 @@ import RoleVO from '../../AccessPolicy/vos/RoleVO';
 import UserVO from '../../AccessPolicy/vos/UserVO';
 import ContextQueryVO from '../../ContextFilter/vos/ContextQueryVO';
 import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTable from '../../ModuleTable';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
 import IUserData from './IUserData';
 
 /**
@@ -14,4 +14,4 @@ import IUserData from './IUserData';
  * @param user_data les données de l'utilisateur qui initie la demande
  * @param user_roles les roles de l'utilisateur qui initie la demande
  */
-export type IContextHookFilterVos<T extends IDistantVOBase> = (moduletable: ModuleTable<T>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]) => Promise<ContextQueryVO>;
+export type IContextHookFilterVos<T extends IDistantVOBase> = (moduletable: ModuleTableVO<T>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]) => Promise<ContextQueryVO>;

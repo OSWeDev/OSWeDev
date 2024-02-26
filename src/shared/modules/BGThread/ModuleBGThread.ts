@@ -2,8 +2,9 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import BGThreadVO from './vos/BGThreadVO';
 
 export default class ModuleBGThread extends Module {
@@ -30,12 +31,12 @@ export default class ModuleBGThread extends Module {
     }
 
     public initialize() {
-        let label_field = new ModuleTableField(field_names<BGThreadVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         let datatable_fields = [
             label_field,
-            new ModuleTableField(field_names<BGThreadVO>().last_up_date, ModuleTableField.FIELD_TYPE_tstz, 'Dernière exécution', false).set_segmentation_type(TimeSegment.TYPE_SECOND)
+            ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière exécution', false).set_segmentation_type(TimeSegment.TYPE_SECOND)
         ];
 
-        this.datatables.push(new ModuleTable(this, BGThreadVO.API_TYPE_ID, () => new BGThreadVO(), datatable_fields, label_field, "BGThreads"));
+        this.datatables.push(new ModuleTableVO(this, BGThreadVO.API_TYPE_ID, () => new BGThreadVO(), datatable_fields, label_field, "BGThreads"));
     }
 }

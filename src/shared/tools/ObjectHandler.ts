@@ -1,6 +1,6 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
-import ModuleTable from '../modules/ModuleTable';
+import ModuleTableVO from '../modules/ModuleTableVO';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
@@ -50,7 +50,7 @@ export default class ObjectHandler {
      * Copie d'object VO. Pas opti mais fonctionnel
      */
     public static clone_vo<T extends IDistantVOBase>(vo: T): T {
-        return ModuleTable.default_from_api_version(ModuleTable.default_get_api_version(vo));
+        return ModuleTableVO.default_from_api_version(ModuleTableVO.default_get_api_version(vo));
     }
 
     public static clone_vos<T extends IDistantVOBase>(vos: T[]): T[] {

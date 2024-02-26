@@ -1,8 +1,8 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 
 export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistantVOBase, Inter extends IDistantVOBase> extends ReferenceDatatableField<Target> {
@@ -11,8 +11,8 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTable<any>,
-        interModuleTable: ModuleTable<any>,
+        targetModuleTable: ModuleTableVO<any>,
+        interModuleTable: ModuleTableVO<any>,
         sortedTargetFields: Array<DatatableField<any, any>>): ManyToManyReferenceDatatableFieldVO<any, any> {
 
         let res = new ManyToManyReferenceDatatableFieldVO();
@@ -53,13 +53,13 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
 
         let e = this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substring(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substring(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
             return e;
         }
     }
 
-    get interModuleTable(): ModuleTable<Inter> {
+    get interModuleTable(): ModuleTableVO<Inter> {
         return this.inter_module_table_type_id ? VOsTypesManager.moduleTables_by_voType[this.inter_module_table_type_id] : null;
     }
 

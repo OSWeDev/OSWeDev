@@ -10,8 +10,9 @@ import FileVO from '../File/vos/FileVO';
 import Dates from '../FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../FormatDatesNombres/ModuleFormatDatesNombres';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IPlanContact from './interfaces/IPlanContact';
 import IPlanContactType from './interfaces/IPlanContactType';
@@ -199,93 +200,93 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgramCategory();
-    protected initializePlanProgramCategory(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramCategory) {
+    protected initializePlanProgramCategory(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramCategory) {
         if (!this.program_category_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanProgramCategory>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField(field_names<IPlanProgramCategory>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgramCategory>().description, ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField(field_names<IPlanProgramCategory>().nb_targets, ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgramCategory>().total_days, ModuleTableField.FIELD_TYPE_int, 'Nb total de jours des programmes', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().nb_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().total_days, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb total de jours des programmes', true, true, 0),
 
-            new ModuleTableField(field_names<IPlanProgramCategory>().start_date, ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
-            new ModuleTableField(field_names<IPlanProgramCategory>().end_date, ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Début', false),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Fin', false),
 
-            new ModuleTableField(field_names<IPlanProgramCategory>().nb_created_targets, ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgramCategory>().nb_late_targets, ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgramCategory>().nb_ongoing_targets, ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgramCategory>().nb_closed_targets, ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().nb_created_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'En attente', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().nb_late_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'En retard', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().nb_ongoing_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'En cours', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().nb_closed_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'Terminés', true, true, 0),
         );
 
-        let datatable = new ModuleTable(this, this.program_category_type_id, constructor, additional_fields, label_field, "Catégories de programmes");
+        let datatable = new ModuleTableVO(this, this.program_category_type_id, constructor, additional_fields, label_field, "Catégories de programmes");
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanContactType();
-    protected initializePlanContactType(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanContactType) {
+    protected initializePlanContactType(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanContactType) {
         if (!this.contact_type_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanContactType>().name, ModuleTableField.FIELD_TYPE_string, 'Type de contact', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanContactType.API_TYPE_ID, field_names<IPlanContactType>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de contact', true);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.contact_type_type_id, constructor, additional_fields, label_field, "Types de contact");
+        let datatable = new ModuleTableVO(this, this.contact_type_type_id, constructor, additional_fields, label_field, "Types de contact");
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanFacilitatorRegion();
-    protected initializePlanFacilitatorRegion(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanFacilitatorRegion) {
+    protected initializePlanFacilitatorRegion(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanFacilitatorRegion) {
         if (!this.facilitator_region_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanFacilitatorRegion>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanFacilitatorRegion.API_TYPE_ID, field_names<IPlanFacilitatorRegion>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.facilitator_region_type_id, constructor, additional_fields, label_field, "Régions des animateurs");
+        let datatable = new ModuleTableVO(this, this.facilitator_region_type_id, constructor, additional_fields, label_field, "Régions des animateurs");
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTargetGroup();
-    protected initializePlanTargetgroup(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetGroup) {
+    protected initializePlanTargetgroup(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetGroup) {
         if (!this.target_group_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanTargetGroup>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let user_id = new ModuleTableField(field_names<IPlanTargetGroup>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let label_field = ModuleTableFieldController.create_new(IPlanTargetGroup.API_TYPE_ID, field_names<IPlanTargetGroup>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        let user_id = ModuleTableFieldController.create_new(IPlanTargetGroup.API_TYPE_ID, field_names<IPlanTargetGroup>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         additional_fields.unshift(
             label_field,
             user_id
         );
 
-        let datatable = new ModuleTable(this, this.target_group_type_id, constructor, additional_fields, label_field, "Groupe d'établissements");
+        let datatable = new ModuleTableVO(this, this.target_group_type_id, constructor, additional_fields, label_field, "Groupe d'établissements");
 
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTargetRegion();
-    protected initializePlanTargetRegion(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetRegion) {
+    protected initializePlanTargetRegion(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetRegion) {
         if (!this.target_region_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanTargetRegion>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let region_director_uid = new ModuleTableField(field_names<IPlanTargetRegion>().region_director_uid, ModuleTableField.FIELD_TYPE_foreign_key, 'Directeur de région', false);
+        let label_field = ModuleTableFieldController.create_new(IPlanTargetRegion.API_TYPE_ID, field_names<IPlanTargetRegion>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        let region_director_uid = ModuleTableFieldController.create_new(IPlanTargetRegion.API_TYPE_ID, field_names<IPlanTargetRegion>().region_director_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Directeur de région', false);
 
 
         additional_fields.unshift(
@@ -293,7 +294,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             region_director_uid
         );
 
-        let datatable = new ModuleTable(this, this.target_region_type_id, constructor, additional_fields, label_field, "Régions d'établissements");
+        let datatable = new ModuleTableVO(this, this.target_region_type_id, constructor, additional_fields, label_field, "Régions d'établissements");
 
 
         region_director_uid.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
@@ -301,18 +302,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanTargetZone();
-    protected initializePlanTargetZone(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetZone) {
+    protected initializePlanTargetZone(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetZone) {
         if (!this.target_zone_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanTargetZone>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let zone_manager_uid = new ModuleTableField(field_names<IPlanTargetZone>().zone_manager_uid, ModuleTableField.FIELD_TYPE_foreign_key, 'Manager de Zone', false);
+        let label_field = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        let zone_manager_uid = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().zone_manager_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager de Zone', false);
 
         let region_id;
 
         if (!!this.target_region_type_id) {
-            region_id = new ModuleTableField(field_names<IPlanTargetZone>().region_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
+            region_id = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().region_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Région', false);
             additional_fields.unshift(region_id);
         }
 
@@ -321,7 +322,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             zone_manager_uid
         );
 
-        let datatable = new ModuleTable(this, this.target_zone_type_id, constructor, additional_fields, label_field, "Zones d'établissements");
+        let datatable = new ModuleTableVO(this, this.target_zone_type_id, constructor, additional_fields, label_field, "Zones d'établissements");
         if (!!this.target_region_type_id) {
             region_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_region_type_id]);
         }
@@ -330,31 +331,31 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanContact();
-    protected initializePlanContact(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanContact) {
+    protected initializePlanContact(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanContact) {
         if (!this.contact_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanContact>().lastname, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let user_id = new ModuleTableField(field_names<IPlanContact>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let label_field = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        let user_id = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         let contact_type_id = null;
 
         if (!!this.contact_type_type_id) {
-            contact_type_id = new ModuleTableField(field_names<IPlanContact>().contact_type_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contact', false);
+            contact_type_id = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().contact_type_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Type de contact', false);
             additional_fields.unshift(contact_type_id);
         }
 
         additional_fields.unshift(
             user_id,
-            new ModuleTableField(field_names<IPlanContact>().firstname, ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
+            ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().firstname, ModuleTableFieldVO.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField(field_names<IPlanContact>().mail, ModuleTableField.FIELD_TYPE_email, 'Mail', false),
-            new ModuleTableField(field_names<IPlanContact>().mobile, ModuleTableField.FIELD_TYPE_string, 'Portable', false),
-            new ModuleTableField(field_names<IPlanContact>().infos, ModuleTableField.FIELD_TYPE_string, 'Infos', false)
+            ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().mail, ModuleTableFieldVO.FIELD_TYPE_email, 'Mail', false),
+            ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().mobile, ModuleTableFieldVO.FIELD_TYPE_string, 'Portable', false),
+            ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().infos, ModuleTableFieldVO.FIELD_TYPE_string, 'Infos', false)
         );
 
-        let datatable = new ModuleTable(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
+        let datatable = new ModuleTableVO(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.contact_type_type_id) {
@@ -365,20 +366,20 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanTargetContact();
-    protected initializePlanTargetContact(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetContact) {
+    protected initializePlanTargetContact(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetContact) {
         if (!this.target_contact_type_id) {
             return;
         }
 
-        let target_id = new ModuleTableField(field_names<IPlanTargetContact>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Cible', true);
-        let contact_id = new ModuleTableField(field_names<IPlanTargetContact>().contact_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
+        let target_id = ModuleTableFieldController.create_new(IPlanTargetContact.API_TYPE_ID, field_names<IPlanTargetContact>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Cible', true);
+        let contact_id = ModuleTableFieldController.create_new(IPlanTargetContact.API_TYPE_ID, field_names<IPlanTargetContact>().contact_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Contact', true);
 
         additional_fields.unshift(
             target_id,
             contact_id
         );
 
-        let datatable = new ModuleTable(this, this.target_contact_type_id, constructor, additional_fields, null, "Contacts par cible");
+        let datatable = new ModuleTableVO(this, this.target_contact_type_id, constructor, additional_fields, null, "Contacts par cible");
         target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
         contact_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_id]);
 
@@ -386,72 +387,72 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgram();
-    protected initializePlanProgram(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgram) {
+    protected initializePlanProgram(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgram) {
         if (!this.program_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanProgram>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let category_id = new ModuleTableField(field_names<IPlanProgram>().category_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', false);
+        let label_field = ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        let category_id = ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', false);
 
         additional_fields.unshift(
             label_field,
             category_id,
-            new ModuleTableField(field_names<IPlanProgram>().start_date, ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
-            new ModuleTableField(field_names<IPlanProgram>().end_date, ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
-            new ModuleTableField(field_names<IPlanProgram>().days_by_target, ModuleTableField.FIELD_TYPE_float, 'Nb. de jours par établissement', true, true, 1),
-            new ModuleTableField(field_names<IPlanProgram>().nb_targets, ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgram>().nb_created_targets, ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgram>().nb_late_targets, ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgram>().nb_ongoing_targets, ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgram>().nb_closed_targets, ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Début', false),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Fin', false),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().days_by_target, ModuleTableFieldVO.FIELD_TYPE_float, 'Nb. de jours par établissement', true, true, 1),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().nb_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().nb_created_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'En attente', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().nb_late_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'En retard', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().nb_ongoing_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'En cours', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().nb_closed_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'Terminés', true, true, 0),
 
-            new ModuleTableField(field_names<IPlanProgram>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField(field_names<IPlanProgram>().description, ModuleTableField.FIELD_TYPE_string, 'Description', false)
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false)
         );
 
-        let datatable = new ModuleTable(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
+        let datatable = new ModuleTableVO(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
         category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_category_type_id]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanFacilitator();
-    protected initializePlanFacilitator(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanFacilitator) {
+    protected initializePlanFacilitator(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanFacilitator) {
         if (!this.facilitator_type_id) {
             return;
         }
 
         let manager_id;
         let partner_id;
-        let label_field = new ModuleTableField(field_names<IPlanFacilitator>().lastname, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let user_id = new ModuleTableField(field_names<IPlanFacilitator>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let label_field = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        let user_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
         let region_id;
 
         additional_fields.unshift(
             user_id);
 
         if (!!this.manager_type_id) {
-            manager_id = new ModuleTableField(field_names<IPlanFacilitator>().manager_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', false);
+            manager_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().manager_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager', false);
             additional_fields.unshift(manager_id);
         }
 
         if (!!this.partner_type_id) {
-            partner_id = new ModuleTableField(field_names<IPlanFacilitator>().partner_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
+            partner_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().partner_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', false);
             additional_fields.unshift(partner_id);
         }
 
         if (!!this.facilitator_region_type_id) {
-            region_id = new ModuleTableField(field_names<IPlanFacilitator>().region_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
+            region_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().region_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Région', false);
             additional_fields.unshift(region_id);
         }
 
         additional_fields.unshift(
-            new ModuleTableField(field_names<IPlanFacilitator>().firstname, ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
+            ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().firstname, ModuleTableFieldVO.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField(field_names<IPlanFacilitator>().activated, ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
+            ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
-        let datatable = new ModuleTable(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
+        let datatable = new ModuleTableVO(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.manager_type_id) {
@@ -471,29 +472,29 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
 
     protected abstract callInitializePlanManager();
-    protected initializePlanManager(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanManager) {
+    protected initializePlanManager(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanManager) {
         if (!this.manager_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanManager>().lastname, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         let partner_id;
-        let user_id = new ModuleTableField(field_names<IPlanManager>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let user_id = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         additional_fields.unshift(user_id);
 
         if (!!this.partner_type_id) {
-            partner_id = new ModuleTableField(field_names<IPlanManager>().partner_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
+            partner_id = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().partner_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', false);
             additional_fields.unshift(partner_id);
         }
 
         additional_fields.unshift(
-            new ModuleTableField(field_names<IPlanManager>().firstname, ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
+            ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().firstname, ModuleTableFieldVO.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField(field_names<IPlanManager>().activated, ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
+            ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
-        let datatable = new ModuleTable(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
+        let datatable = new ModuleTableVO(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.partner_type_id) {
@@ -504,66 +505,66 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanEnseigne();
-    protected initializePlanEnseigne(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanEnseigne) {
+    protected initializePlanEnseigne(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanEnseigne) {
         if (!this.enseigne_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanEnseigne>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanEnseigne.API_TYPE_ID, field_names<IPlanEnseigne>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.enseigne_type_id, constructor, additional_fields, label_field, "Enseignes");
+        let datatable = new ModuleTableVO(this, this.enseigne_type_id, constructor, additional_fields, label_field, "Enseignes");
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTaskType();
-    protected initializePlanTaskType(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTaskType) {
+    protected initializePlanTaskType(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTaskType) {
         if (!this.task_type_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanTaskType>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanTaskType.API_TYPE_ID, field_names<IPlanTaskType>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
         );
 
         additional_fields.push(
-            new ModuleTableField(field_names<IPlanTaskType>().order_tasks_on_same_target, ModuleTableField.FIELD_TYPE_boolean, 'Choix automatique de la tâche', true, true, false));
+            ModuleTableFieldController.create_new(IPlanTaskType.API_TYPE_ID, field_names<IPlanTaskType>().order_tasks_on_same_target, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Choix automatique de la tâche', true, true, false));
         additional_fields.push(
-            new ModuleTableField(field_names<IPlanTaskType>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
+            ModuleTableFieldController.create_new(IPlanTaskType.API_TYPE_ID, field_names<IPlanTaskType>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0));
 
-        let datatable = new ModuleTable(this, this.task_type_type_id, constructor, additional_fields, label_field, "Type de tâche");
+        let datatable = new ModuleTableVO(this, this.task_type_type_id, constructor, additional_fields, label_field, "Type de tâche");
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTask();
-    protected initializePlanTask(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTask) {
+    protected initializePlanTask(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTask) {
         if (!this.task_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanTask>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(label_field);
 
         let task_type_id;
         if (!!this.task_type_type_id) {
-            task_type_id = new ModuleTableField(field_names<IPlanTask>().task_type_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Type de tâche', false);
+            task_type_id = ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().task_type_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Type de tâche', false);
             additional_fields.unshift(task_type_id);
         }
 
         additional_fields.push(
-            new ModuleTableField(field_names<IPlanTask>().is_facilitator_specific, ModuleTableField.FIELD_TYPE_boolean, 'Tâche liée à l\'animateur/admin', true, true, false));
+            ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().is_facilitator_specific, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Tâche liée à l\'animateur/admin', true, true, false));
         additional_fields.push(
-            new ModuleTableField(field_names<IPlanTask>().limit_on_same_target, ModuleTableField.FIELD_TYPE_int, 'Nombre max de RDV de ce type', false));
+            ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().limit_on_same_target, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre max de RDV de ce type', false));
         additional_fields.push(
-            new ModuleTableField(field_names<IPlanTask>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
+            ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0));
 
-        let datatable = new ModuleTable(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
+        let datatable = new ModuleTableVO(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
         if (!!this.task_type_type_id) {
             task_type_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.task_type_type_id]);
         }
@@ -571,41 +572,41 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanTarget();
-    protected initializePlanTarget(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTarget) {
+    protected initializePlanTarget(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTarget) {
         if (!this.target_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanTarget>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         let enseigne_id;
         let zone_id;
         let group_id;
         additional_fields.unshift(label_field);
 
         if (!!this.target_zone_type_id) {
-            zone_id = new ModuleTableField(field_names<IPlanTarget>().zone_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Zone', false);
+            zone_id = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().zone_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Zone', false);
             additional_fields.unshift(zone_id);
         }
         if (!!this.target_group_type_id) {
-            group_id = new ModuleTableField(field_names<IPlanTarget>().group_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Groupe', false);
+            group_id = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().group_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Groupe', false);
             additional_fields.unshift(group_id);
         }
         if (!!this.enseigne_type_id) {
-            enseigne_id = new ModuleTableField(field_names<IPlanTarget>().enseigne_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', true);
+            enseigne_id = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().enseigne_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Enseigne', true);
             additional_fields.unshift(enseigne_id);
         }
 
         additional_fields.unshift(
-            new ModuleTableField(field_names<IPlanTarget>().address, ModuleTableField.FIELD_TYPE_string, 'Adresse', false),
-            new ModuleTableField(field_names<IPlanTarget>().cp, ModuleTableField.FIELD_TYPE_string, 'Code Postal', false),
-            new ModuleTableField(field_names<IPlanTarget>().city, ModuleTableField.FIELD_TYPE_string, 'Ville', false),
-            new ModuleTableField(field_names<IPlanTarget>().country, ModuleTableField.FIELD_TYPE_string, 'Pays', false),
+            ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().address, ModuleTableFieldVO.FIELD_TYPE_string, 'Adresse', false),
+            ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().cp, ModuleTableFieldVO.FIELD_TYPE_string, 'Code Postal', false),
+            ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().city, ModuleTableFieldVO.FIELD_TYPE_string, 'Ville', false),
+            ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().country, ModuleTableFieldVO.FIELD_TYPE_string, 'Pays', false),
 
-            new ModuleTableField(field_names<IPlanTarget>().infos_horaires, ModuleTableField.FIELD_TYPE_string, 'Infos horaires', false),
-            new ModuleTableField(field_names<IPlanTarget>().activated, ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
+            ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().infos_horaires, ModuleTableFieldVO.FIELD_TYPE_string, 'Infos horaires', false),
+            ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
-        let datatable = new ModuleTable(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
+        let datatable = new ModuleTableVO(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
 
         if (!!this.enseigne_type_id) {
             enseigne_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.enseigne_type_id]);
@@ -621,17 +622,17 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanRDVPrep();
-    protected initializePlanRDVPrep(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDVPrep) {
+    protected initializePlanRDVPrep(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanRDVPrep) {
         if (!this.rdv_prep_type_id) {
             return;
         }
 
         let rdv_id;
-        let prep_file_id = new ModuleTableField(field_names<IPlanRDVPrep>().prep_file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier Préparation', false).not_add_to_crud();
-        let author_id = new ModuleTableField(field_names<IPlanRDVPrep>().author_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
+        let prep_file_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().prep_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier Préparation', false).not_add_to_crud();
+        let author_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         if (!!this.rdv_type_id) {
-            rdv_id = new ModuleTableField(field_names<IPlanRDVPrep>().rdv_id, ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
+            rdv_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().rdv_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'RDV', false);
             additional_fields.unshift(rdv_id);
         }
 
@@ -640,7 +641,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             prep_file_id
         );
 
-        let datatable = new ModuleTable(this, this.rdv_prep_type_id, constructor, additional_fields, null, "Préparations");
+        let datatable = new ModuleTableVO(this, this.rdv_prep_type_id, constructor, additional_fields, null, "Préparations");
 
         if (!!this.rdv_type_id) {
             rdv_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.rdv_type_id]);
@@ -652,17 +653,17 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanRDVCR();
-    protected initializePlanRDVCR(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDVCR) {
+    protected initializePlanRDVCR(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanRDVCR) {
         if (!this.rdv_cr_type_id) {
             return;
         }
 
         let rdv_id;
-        let cr_file_id = new ModuleTableField(field_names<IPlanRDVCR>().cr_file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier CR', false).not_add_to_crud();
-        let author_id = new ModuleTableField(field_names<IPlanRDVCR>().author_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
+        let cr_file_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().cr_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier CR', false).not_add_to_crud();
+        let author_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         if (!!this.rdv_type_id) {
-            rdv_id = new ModuleTableField(field_names<IPlanRDVCR>().rdv_id, ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
+            rdv_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().rdv_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'RDV', false);
             additional_fields.unshift(rdv_id);
         }
 
@@ -671,7 +672,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             cr_file_id
         );
 
-        let datatable = new ModuleTable(this, this.rdv_cr_type_id, constructor, additional_fields, null, "Compte-rendus");
+        let datatable = new ModuleTableVO(this, this.rdv_cr_type_id, constructor, additional_fields, null, "Compte-rendus");
 
         if (!!this.rdv_type_id) {
             rdv_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.rdv_type_id]);
@@ -685,7 +686,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     protected abstract callInitializePlanRDV();
     protected initializePlanRDV(
         states: { [state_id: number]: string },
-        additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDV,
+        additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanRDV,
         start_time_segmentation_type: number = TimeSegment.TYPE_DAY,
         end_time_segmentation_type: number = TimeSegment.TYPE_DAY,
     ) {
@@ -703,43 +704,43 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let task_id;
         let target_id;
-        let label_field = new ModuleTableField(field_names<IPlanRDV>().start_time, ModuleTableField.FIELD_TYPE_tstz, 'Début', false).set_segmentation_type(start_time_segmentation_type);
+        let label_field = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().start_time, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Début', false).set_segmentation_type(start_time_segmentation_type);
         let facilitator_id;
         let program_id;
 
         if (!!this.facilitator_type_id) {
-            facilitator_id = new ModuleTableField(field_names<IPlanRDV>().facilitator_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', false);
+            facilitator_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', false);
             additional_fields.unshift(facilitator_id);
         }
 
         if (!!this.target_type_id) {
-            target_id = new ModuleTableField(field_names<IPlanRDV>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', false);
+            target_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', false);
             additional_fields.unshift(target_id);
         }
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField(field_names<IPlanRDV>().end_time, ModuleTableField.FIELD_TYPE_tstz, 'Fin', false).set_segmentation_type(end_time_segmentation_type),
-            new ModuleTableField(field_names<IPlanRDV>().state, ModuleTableField.FIELD_TYPE_enum, 'Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
+            ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().end_time, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Fin', false).set_segmentation_type(end_time_segmentation_type),
+            ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
                 states),
-            new ModuleTableField(field_names<IPlanRDV>().archived, ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)
+            ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)
         );
 
         if (!!this.program_type_id) {
-            program_id = new ModuleTableField(field_names<IPlanRDV>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
+            program_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', false);
             additional_fields.unshift(
                 program_id);
         }
 
         if (!!this.task_type_id) {
-            task_id = new ModuleTableField(field_names<IPlanRDV>().task_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Tâche', false);
+            task_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().task_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Tâche', false);
             additional_fields.unshift(
                 task_id);
         }
 
-        additional_fields.push(new ModuleTableField(field_names<IPlanRDV>().target_validation, ModuleTableField.FIELD_TYPE_boolean, 'RDV confirmé', false));
+        additional_fields.push(ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().target_validation, ModuleTableFieldVO.FIELD_TYPE_boolean, 'RDV confirmé', false));
 
-        let datatable = new ModuleTable(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
+        let datatable = new ModuleTableVO(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
 
         if (!!this.task_type_id) {
             task_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.task_type_id]);
@@ -761,118 +762,118 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgramFacilitator();
-    protected initializePlanProgramFacilitator(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramFacilitator) {
+    protected initializePlanProgramFacilitator(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramFacilitator) {
         if (!this.program_facilitator_type_id) {
             return;
         }
 
-        let facilitator_id = new ModuleTableField(field_names<IPlanProgramFacilitator>().facilitator_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
-        let program_id = new ModuleTableField(field_names<IPlanProgramFacilitator>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
+        let facilitator_id = ModuleTableFieldController.create_new(IPlanProgramFacilitator.API_TYPE_ID, field_names<IPlanProgramFacilitator>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', true);
+        let program_id = ModuleTableFieldController.create_new(IPlanProgramFacilitator.API_TYPE_ID, field_names<IPlanProgramFacilitator>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             facilitator_id,
             program_id
         );
 
-        let datatable = new ModuleTable(this, this.program_facilitator_type_id, constructor, additional_fields, null, "Animateurs par programme");
+        let datatable = new ModuleTableVO(this, this.program_facilitator_type_id, constructor, additional_fields, null, "Animateurs par programme");
         facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
         program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanProgramManager();
-    protected initializePlanProgramManager(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramManager) {
+    protected initializePlanProgramManager(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramManager) {
         if (!this.program_manager_type_id) {
             return;
         }
 
-        let manager_id = new ModuleTableField(field_names<IPlanProgramManager>().manager_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', true);
-        let program_id = new ModuleTableField(field_names<IPlanProgramManager>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
+        let manager_id = ModuleTableFieldController.create_new(IPlanProgramManager.API_TYPE_ID, field_names<IPlanProgramManager>().manager_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager', true);
+        let program_id = ModuleTableFieldController.create_new(IPlanProgramManager.API_TYPE_ID, field_names<IPlanProgramManager>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             manager_id,
             program_id
         );
 
-        let datatable = new ModuleTable(this, this.program_manager_type_id, constructor, additional_fields, null, "Animateurs par programme");
+        let datatable = new ModuleTableVO(this, this.program_manager_type_id, constructor, additional_fields, null, "Animateurs par programme");
         manager_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.manager_type_id]);
         program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanProgramTarget();
-    protected initializePlanProgramTarget(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramTarget) {
+    protected initializePlanProgramTarget(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramTarget) {
         if (!this.program_target_type_id) {
             return;
         }
 
-        let target_id = new ModuleTableField(field_names<IPlanProgramTarget>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
-        let program_id = new ModuleTableField(field_names<IPlanProgramTarget>().program_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
+        let target_id = ModuleTableFieldController.create_new(IPlanProgramTarget.API_TYPE_ID, field_names<IPlanProgramTarget>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        let program_id = ModuleTableFieldController.create_new(IPlanProgramTarget.API_TYPE_ID, field_names<IPlanProgramTarget>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             target_id,
             program_id
         );
 
-        let datatable = new ModuleTable(this, this.program_target_type_id, constructor, additional_fields, null, "Etablissements par programme");
+        let datatable = new ModuleTableVO(this, this.program_target_type_id, constructor, additional_fields, null, "Etablissements par programme");
         target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
         program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanPartner();
-    protected initializePlanPartner(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanPartner) {
+    protected initializePlanPartner(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanPartner) {
         if (!this.partner_type_id) {
             return;
         }
 
-        let label_field = new ModuleTableField(field_names<IPlanPartner>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let label_field = ModuleTableFieldController.create_new(IPlanPartner.API_TYPE_ID, field_names<IPlanPartner>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.partner_type_id, constructor, additional_fields, label_field, "Partenaires");
+        let datatable = new ModuleTableVO(this, this.partner_type_id, constructor, additional_fields, label_field, "Partenaires");
         this.datatables.push(datatable);
     }
 
 
 
     protected abstract callInitializePlanTargetFacilitator();
-    protected initializePlanTargetFacilitator(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetFacilitator) {
+    protected initializePlanTargetFacilitator(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetFacilitator) {
         if (!this.target_facilitator_type_id) {
             return;
         }
 
-        let target_id = new ModuleTableField(field_names<IPlanTargetFacilitator>().target_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
-        let facilitator_id = new ModuleTableField(field_names<IPlanTargetFacilitator>().facilitator_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
+        let target_id = ModuleTableFieldController.create_new(IPlanTargetFacilitator.API_TYPE_ID, field_names<IPlanTargetFacilitator>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        let facilitator_id = ModuleTableFieldController.create_new(IPlanTargetFacilitator.API_TYPE_ID, field_names<IPlanTargetFacilitator>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', true);
 
         additional_fields.unshift(
             target_id,
             facilitator_id
         );
 
-        let datatable = new ModuleTable(this, this.target_facilitator_type_id, constructor, additional_fields, null, "Animateurs par établissements");
+        let datatable = new ModuleTableVO(this, this.target_facilitator_type_id, constructor, additional_fields, null, "Animateurs par établissements");
         target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
         facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTargetGroupContact();
-    protected initializePlanTargetGroupContact(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetGroupContact) {
+    protected initializePlanTargetGroupContact(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetGroupContact) {
         if (!this.target_group_contact_type_id) {
             return;
         }
 
-        let target_group_id = new ModuleTableField(field_names<IPlanTargetGroupContact>().target_group_id, ModuleTableField.FIELD_TYPE_foreign_key, "Groupe d'établissements", true);
-        let contact_id = new ModuleTableField(field_names<IPlanTargetGroupContact>().contact_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
+        let target_group_id = ModuleTableFieldController.create_new(IPlanTargetGroupContact.API_TYPE_ID, field_names<IPlanTargetGroupContact>().target_group_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Groupe d'établissements", true);
+        let contact_id = ModuleTableFieldController.create_new(IPlanTargetGroupContact.API_TYPE_ID, field_names<IPlanTargetGroupContact>().contact_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Contact', true);
 
         additional_fields.unshift(
             target_group_id,
             contact_id
         );
 
-        let datatable = new ModuleTable(this, this.target_group_contact_type_id, constructor, additional_fields, null, "Contacts par groupe d'établissements");
+        let datatable = new ModuleTableVO(this, this.target_group_contact_type_id, constructor, additional_fields, null, "Contacts par groupe d'établissements");
         target_group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_group_type_id]);
         contact_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_id]);
         this.datatables.push(datatable);

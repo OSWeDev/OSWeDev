@@ -11,7 +11,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -707,7 +707,7 @@ export default class AccessPolicyServerController {
      * @param role Le rôle à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public static async registerRole(role: RoleVO, default_translation: DefaultTranslation): Promise<RoleVO> {
+    public static async registerRole(role: RoleVO, default_translation: DefaultTranslationVO): Promise<RoleVO> {
         if ((!role) || (!role.translatable_name)) {
             return null;
         }
@@ -726,7 +726,7 @@ export default class AccessPolicyServerController {
         }
 
         if (default_translation) {
-            default_translation.code_text = role.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            default_translation.code_text = role.translatable_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
             DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
@@ -786,7 +786,7 @@ export default class AccessPolicyServerController {
      * @param group Le group à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public static async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslation): Promise<AccessPolicyGroupVO> {
+    public static async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslationVO): Promise<AccessPolicyGroupVO> {
         if ((!group) || (!group.translatable_name)) {
             return null;
         }
@@ -802,7 +802,7 @@ export default class AccessPolicyServerController {
         }
 
         if (default_translation) {
-            default_translation.code_text = group.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            default_translation.code_text = group.translatable_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
             DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
@@ -841,7 +841,7 @@ export default class AccessPolicyServerController {
      * @param policy La policy à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public static async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
+    public static async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslationVO, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
         if ((!policy) || (!policy.translatable_name)) {
             return null;
         }
@@ -863,7 +863,7 @@ export default class AccessPolicyServerController {
         }
 
         if (default_translation) {
-            default_translation.code_text = policy.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            default_translation.code_text = policy.translatable_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
             DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 

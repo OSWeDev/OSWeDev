@@ -6,7 +6,8 @@ import CheckPointVO from '../../../../../shared/modules/CheckList/vos/CheckPoint
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../VueComponentBase';
@@ -69,7 +70,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             this.global_route_path + '/' + this.checklist_item.checklist_id + '/' + this.checklist_item.id);
     }
 
-    private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableField<any>) {
+    private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableFieldVO<any>) {
 
         let res = field.dataToHumanReadableField(this.checklist_item);
 
@@ -77,7 +78,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             return null;
         }
 
-        if ((field.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+        if ((field.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableFieldVO.FIELD_TYPE_boolean)) {
             if (res == null) {
                 res = '';
             } else if (res && res == "true") {
@@ -115,7 +116,7 @@ export default class CheckListItemComponent extends VueComponentBase {
         let checkpoint_description: string = '<ul>';
         for (let j in this.all_editable_fields) {
             let field: DatatableField<any, any> = this.all_editable_fields[j];
-            let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
+            let table_field: ModuleTableFieldVO<any> = moduletable.get_field_by_id(field.module_table_field_id);
 
             checkpoint_description += this.get_field_text(field, table_field);
         }
@@ -237,7 +238,7 @@ export default class CheckListItemComponent extends VueComponentBase {
                     let field: DatatableField<any, any> = this.checkpoints_editable_fields[checkpoint.id][j];
 
                     if (field) {
-                        let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
+                        let table_field: ModuleTableFieldVO<any> = moduletable.get_field_by_id(field.module_table_field_id);
 
                         checkpoint_description += this.get_field_text(field, table_field);
                     }

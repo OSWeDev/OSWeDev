@@ -1,8 +1,9 @@
 
 import moment from 'moment';
 import DAOUpdateVOHolder from '../../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
-import ModuleTable from '../../../../src/shared/modules/ModuleTable';
-import ModuleTableField from '../../../../src/shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../src/shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../src/shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../src/shared/modules/VO/manager/VOsTypesManager';
 import FakeDistantVO from './vos/FakeDistantVO';
 
@@ -11,11 +12,11 @@ export default class FakeDistantHandler {
     public static initializeFakeDistantVO() {
 
         let datatable_fields = [
-            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date'),
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur'),
+            ModuleTableFieldController.create_new('date', ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date'),
+            ModuleTableFieldController.create_new('value', ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
         ];
 
-        VOsTypesManager.registerModuleTable(new ModuleTable(null, FakeDistantVO.API_TYPE_ID, () => new FakeDistantVO(), datatable_fields, null));
+        VOsTypesManager.registerModuleTable(new ModuleTableVO(null, FakeDistantVO.API_TYPE_ID, () => new FakeDistantVO(), datatable_fields, null));
     }
 
     public static get_distant_A(): FakeDistantVO {

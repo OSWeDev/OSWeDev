@@ -1,6 +1,6 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
 import WeightHandler from '../../../../tools/WeightHandler';
 import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 
@@ -17,7 +17,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         this._target_module_table_type_id = target_module_table_type_id;
     }
 
-    get targetModuleTable(): ModuleTable<Target> {
+    get targetModuleTable(): ModuleTableVO<Target> {
         return this.target_module_table_type_id ? VOsTypesManager.moduleTables_by_voType[this.target_module_table_type_id] : null;
     }
 
@@ -57,7 +57,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         _type: string,
         type: string,
         datatable_field_uid: string,
-        targetModuleTable: ModuleTable<Target>,
+        targetModuleTable: ModuleTableVO<Target>,
         sortedTargetFields: Array<DatatableField<any, any>>
     ) {
         this.init(_type, type, datatable_field_uid);

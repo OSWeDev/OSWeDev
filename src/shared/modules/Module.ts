@@ -1,6 +1,6 @@
 import IModuleBase from './IModuleBase';
 import ModuleParamChange from './ModuleParamChange';
-import ModuleTable from './ModuleTable';
+import ModuleTableVO from './ModuleTableVO';
 import ModulesManager from './ModulesManager';
 
 export default abstract class Module implements IModuleBase {
@@ -13,7 +13,7 @@ export default abstract class Module implements IModuleBase {
 
     public actif: boolean = false;
 
-    public datatables: Array<ModuleTable<any>> = [];
+    public datatables: Array<ModuleTableVO<any>> = [];
     public name: string;
     public reflexiveClassName: string;
     public specificImportPath: string;
@@ -52,7 +52,7 @@ export default abstract class Module implements IModuleBase {
     public async hook_module_async_login_initialization(): Promise<any> { }
     public async hook_module_async_test_initialization(): Promise<any> { }
 
-    public getDataTableBySuffixPrefixDatabase(suffix = "", prefix = "module", database = "ref"): ModuleTable<any> {
+    public getDataTableBySuffixPrefixDatabase(suffix = "", prefix = "module", database = "ref"): ModuleTableVO<any> {
         if (this.datatables) {
             for (var i = 0; i < this.datatables.length; i++) {
                 var datatable = this.datatables[i];
@@ -65,7 +65,7 @@ export default abstract class Module implements IModuleBase {
         return null;
     }
 
-    public add_datatable(datatable: ModuleTable<any>) {
+    public add_datatable(datatable: ModuleTableVO<any>) {
 
         if (!this.datatables) {
             this.datatables = [];

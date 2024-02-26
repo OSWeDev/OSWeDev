@@ -11,8 +11,9 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
@@ -318,7 +319,7 @@ export default class ModuleDAO extends Module {
     public async late_configuration(is_generator: boolean) {
 
         for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[i];
+            let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[i];
             if (!moduleTable) {
                 continue;
             }
@@ -342,15 +343,15 @@ export default class ModuleDAO extends Module {
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 
-    private init_CRUDFieldRemoverConfVO(): ModuleTable<any> {
+    private init_CRUDFieldRemoverConfVO(): ModuleTableVO<any> {
 
         let datatable_fields = [
-            new ModuleTableField(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, ModuleTableField.FIELD_TYPE_string, 'Vo Type', true, false),
-            new ModuleTableField(field_names<CRUDFieldRemoverConfVO>().module_table_field_ids, ModuleTableField.FIELD_TYPE_string_array, 'Types', false),
-            new ModuleTableField(field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableField.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
+            ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Vo Type', true, false),
+            ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_field_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Types', false),
+            ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableFieldVO.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
         ];
 
-        let res = new ModuleTable(this, CRUDFieldRemoverConfVO.API_TYPE_ID, () => new CRUDFieldRemoverConfVO(), datatable_fields, null, "Champs supprimés du CRUD");
+        let res = new ModuleTableVO(this, CRUDFieldRemoverConfVO.API_TYPE_ID, () => new CRUDFieldRemoverConfVO(), datatable_fields, null, "Champs supprimés du CRUD");
         this.datatables.push(res);
         return res;
     }

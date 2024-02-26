@@ -7,8 +7,9 @@ import ActionURLVO from '../ActionURL/vos/ActionURLVO';
 import FileVO from '../File/vos/FileVO';
 import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import OseliaPromptVO from '../Oselia/vos/OseliaPromptVO';
 import OseliaThreadFeedbackVO from '../Oselia/vos/OseliaThreadFeedbackVO';
 import OseliaThreadMessageFeedbackVO from '../Oselia/vos/OseliaThreadMessageFeedbackVO';
@@ -134,18 +135,18 @@ export default class ModuleGPT extends Module {
     }
 
     private initialize_OseliaPromptVO() {
-        let label_field = new ModuleTableField(field_names<OseliaPromptVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
-        let default_assistant_id = new ModuleTableField(field_names<OseliaPromptVO>().default_assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant par défaut', false);
+        let label_field = ModuleTableFieldController.create_new(OseliaPromptVO.API_TYPE_ID, field_names<OseliaPromptVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        let default_assistant_id = ModuleTableFieldController.create_new(OseliaPromptVO.API_TYPE_ID, field_names<OseliaPromptVO>().default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant par défaut', false);
 
         let datatable_fields = [
             label_field,
-            new ModuleTableField(field_names<OseliaPromptVO>().prompt, ModuleTableField.FIELD_TYPE_string, 'Prompt', true),
-            new ModuleTableField(field_names<OseliaPromptVO>().prompt_description, ModuleTableField.FIELD_TYPE_string, 'Description', true),
-            new ModuleTableField(field_names<OseliaPromptVO>().prompt_parameters_description, ModuleTableField.FIELD_TYPE_string, 'Description des paramètres', true),
+            ModuleTableFieldController.create_new(OseliaPromptVO.API_TYPE_ID, field_names<OseliaPromptVO>().prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt', true),
+            ModuleTableFieldController.create_new(OseliaPromptVO.API_TYPE_ID, field_names<OseliaPromptVO>().prompt_description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', true),
+            ModuleTableFieldController.create_new(OseliaPromptVO.API_TYPE_ID, field_names<OseliaPromptVO>().prompt_parameters_description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description des paramètres', true),
             default_assistant_id,
         ];
 
-        let datatable = new ModuleTable(this, OseliaPromptVO.API_TYPE_ID, () => new OseliaPromptVO(), datatable_fields, label_field, "Prompts Osélia");
+        let datatable = new ModuleTableVO(this, OseliaPromptVO.API_TYPE_ID, () => new OseliaPromptVO(), datatable_fields, label_field, "Prompts Osélia");
         this.datatables.push(datatable);
         default_assistant_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIAssistantVO.API_TYPE_ID]);
 
@@ -153,17 +154,17 @@ export default class ModuleGPT extends Module {
     }
 
     private initialize_OseliaUserPromptVO() {
-        let user_id = new ModuleTableField(field_names<OseliaUserPromptVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let prompt_id = new ModuleTableField(field_names<OseliaUserPromptVO>().prompt_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Prompt', true);
+        let user_id = ModuleTableFieldController.create_new(OseliaUserPromptVO.API_TYPE_ID, field_names<OseliaUserPromptVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let prompt_id = ModuleTableFieldController.create_new(OseliaUserPromptVO.API_TYPE_ID, field_names<OseliaUserPromptVO>().prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt', true);
 
         let datatable_fields = [
             prompt_id,
             user_id,
-            new ModuleTableField(field_names<OseliaUserPromptVO>().adapted_prompt, ModuleTableField.FIELD_TYPE_string, 'Prompt adapté', true),
-            new ModuleTableField(field_names<OseliaUserPromptVO>().why_and_what_we_adapted_description, ModuleTableField.FIELD_TYPE_string, 'Description de la spécialisation (raison et impact)', true),
+            ModuleTableFieldController.create_new(OseliaUserPromptVO.API_TYPE_ID, field_names<OseliaUserPromptVO>().adapted_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt adapté', true),
+            ModuleTableFieldController.create_new(OseliaUserPromptVO.API_TYPE_ID, field_names<OseliaUserPromptVO>().why_and_what_we_adapted_description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description de la spécialisation (raison et impact)', true),
         ];
 
-        let datatable = new ModuleTable(this, OseliaUserPromptVO.API_TYPE_ID, () => new OseliaUserPromptVO(), datatable_fields, null, "Prompts Osélia - surcharge par utilisateur");
+        let datatable = new ModuleTableVO(this, OseliaUserPromptVO.API_TYPE_ID, () => new OseliaUserPromptVO(), datatable_fields, null, "Prompts Osélia - surcharge par utilisateur");
         this.datatables.push(datatable);
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         prompt_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[OseliaPromptVO.API_TYPE_ID]);
@@ -172,21 +173,21 @@ export default class ModuleGPT extends Module {
     }
 
     private initialize_OseliaThreadMessageFeedbackVO() {
-        let assistant_thread_message_id = new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().assistant_thread_message_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Message Osélia', true);
-        let assistant_id = new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant', true);
-        let prompt_id = new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().prompt_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Prompt', false);
-        let user_id = new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let assistant_thread_message_id = ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().assistant_thread_message_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Message Osélia', true);
+        let assistant_id = ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true);
+        let prompt_id = ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt', false);
+        let user_id = ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
 
         let datatable_fields = [
             user_id,
             assistant_thread_message_id,
             assistant_id,
             prompt_id,
-            new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().feedback_positive, ModuleTableField.FIELD_TYPE_boolean, 'Feedback positif', true, true, true),
-            new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().feedback, ModuleTableField.FIELD_TYPE_string, 'Feedback', false),
+            ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().feedback_positive, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Feedback positif', true, true, true),
+            ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().feedback, ModuleTableFieldVO.FIELD_TYPE_string, 'Feedback', false),
         ];
 
-        let datatable = new ModuleTable(this, OseliaThreadMessageFeedbackVO.API_TYPE_ID, () => new OseliaThreadMessageFeedbackVO(), datatable_fields, null, "Retour expérience Osélia - Message");
+        let datatable = new ModuleTableVO(this, OseliaThreadMessageFeedbackVO.API_TYPE_ID, () => new OseliaThreadMessageFeedbackVO(), datatable_fields, null, "Retour expérience Osélia - Message");
         this.datatables.push(datatable);
         assistant_thread_message_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIThreadMessageVO.API_TYPE_ID]);
         assistant_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIAssistantVO.API_TYPE_ID]);
@@ -197,17 +198,17 @@ export default class ModuleGPT extends Module {
     }
 
     private initialize_OseliaThreadFeedbackVO() {
-        let assistant_thread_id = new ModuleTableField(field_names<OseliaThreadFeedbackVO>().assistant_thread_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Thread Osélia', true);
-        let user_id = new ModuleTableField(field_names<OseliaThreadFeedbackVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let assistant_thread_id = ModuleTableFieldController.create_new(OseliaThreadFeedbackVO.API_TYPE_ID, field_names<OseliaThreadFeedbackVO>().assistant_thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread Osélia', true);
+        let user_id = ModuleTableFieldController.create_new(OseliaThreadFeedbackVO.API_TYPE_ID, field_names<OseliaThreadFeedbackVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
 
         let datatable_fields = [
             user_id,
             assistant_thread_id,
-            new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().feedback_positive, ModuleTableField.FIELD_TYPE_boolean, 'Feedback positif', true, true, true),
-            new ModuleTableField(field_names<OseliaThreadMessageFeedbackVO>().feedback, ModuleTableField.FIELD_TYPE_string, 'Feedback', false),
+            ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().feedback_positive, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Feedback positif', true, true, true),
+            ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().feedback, ModuleTableFieldVO.FIELD_TYPE_string, 'Feedback', false),
         ];
 
-        let datatable = new ModuleTable(this, OseliaThreadFeedbackVO.API_TYPE_ID, () => new OseliaThreadFeedbackVO(), datatable_fields, null, "Retour expérience Osélia - Thread");
+        let datatable = new ModuleTableVO(this, OseliaThreadFeedbackVO.API_TYPE_ID, () => new OseliaThreadFeedbackVO(), datatable_fields, null, "Retour expérience Osélia - Thread");
         this.datatables.push(datatable);
         assistant_thread_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIThreadVO.API_TYPE_ID]);
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
@@ -217,18 +218,18 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTCompletionAPIMessageVO() {
 
-        let user_id = new ModuleTableField(field_names<GPTCompletionAPIMessageVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', false);
-        let conversation_id = new ModuleTableField(field_names<GPTCompletionAPIMessageVO>().conversation_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Conversation', false);
+        let user_id = ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', false);
+        let conversation_id = ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().conversation_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Conversation', false);
 
         let fields = [
             conversation_id,
             user_id,
-            new ModuleTableField(field_names<GPTCompletionAPIMessageVO>().role_type, ModuleTableField.FIELD_TYPE_enum, 'Type de rôle', true, true, GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_SYSTEM).setEnumValues(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_LABELS),
-            new ModuleTableField(field_names<GPTCompletionAPIMessageVO>().content, ModuleTableField.FIELD_TYPE_string, 'Contenu', false),
-            new ModuleTableField(field_names<GPTCompletionAPIMessageVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
+            ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().role_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de rôle', true, true, GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_SYSTEM).setEnumValues(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_LABELS),
+            ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().content, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false),
+            ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true),
         ];
 
-        let table = new ModuleTable(this, GPTCompletionAPIMessageVO.API_TYPE_ID, () => new GPTCompletionAPIMessageVO(), fields, null, 'GPT Completion API - Message');
+        let table = new ModuleTableVO(this, GPTCompletionAPIMessageVO.API_TYPE_ID, () => new GPTCompletionAPIMessageVO(), fields, null, 'GPT Completion API - Message');
         this.datatables.push(table);
 
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
@@ -237,56 +238,56 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTCompletionAPIConversationVO() {
 
-        let label = new ModuleTableField(field_names<GPTCompletionAPIConversationVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true);
+        let label = ModuleTableFieldController.create_new(GPTCompletionAPIConversationVO.API_TYPE_ID, field_names<GPTCompletionAPIConversationVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true);
         let fields = [
             label
         ];
 
-        let table = new ModuleTable(this, GPTCompletionAPIConversationVO.API_TYPE_ID, () => new GPTCompletionAPIConversationVO(), fields, label, 'GPT Completion API - Conversation');
+        let table = new ModuleTableVO(this, GPTCompletionAPIConversationVO.API_TYPE_ID, () => new GPTCompletionAPIConversationVO(), fields, label, 'GPT Completion API - Conversation');
         this.datatables.push(table);
     }
 
     private initializeGPTAssistantAPIAssistantVO() {
 
-        let label = new ModuleTableField(field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, ModuleTableField.FIELD_TYPE_string, 'GPT ID', true).unique();
+        let label = ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
         let fields = [
             label,
-            new ModuleTableField(field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableField.FIELD_TYPE_string, 'Nom', false),
-            new ModuleTableField(field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false),
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIAssistantVO.API_TYPE_ID, () => new GPTAssistantAPIAssistantVO(), fields, label, 'GPT Assistant API - Assistant');
+        let table = new ModuleTableVO(this, GPTAssistantAPIAssistantVO.API_TYPE_ID, () => new GPTAssistantAPIAssistantVO(), fields, label, 'GPT Assistant API - Assistant');
         this.datatables.push(table);
     }
 
     private initializeGPTAssistantAPIFunctionVO() {
 
-        let label = new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, ModuleTableField.FIELD_TYPE_string, 'GPT - Nom', true).unique();
+        let label = ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().gpt_function_name, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT - Nom', true).unique();
 
         let fields = [
             label,
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleTableField.FIELD_TYPE_string, 'Module', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().module_function, ModuleTableField.FIELD_TYPE_string, 'Fonction', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().gpt_function_description, ModuleTableField.FIELD_TYPE_string, 'GPT - Description', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionVO>().prepend_thread_vo, ModuleTableField.FIELD_TYPE_boolean, 'Thread VO en 1er param', true, true, true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Module', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().module_function, ModuleTableFieldVO.FIELD_TYPE_string, 'Fonction', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().gpt_function_description, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT - Description', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().prepend_thread_vo, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Thread VO en 1er param', true, true, true),
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionVO(), fields, label, 'GPT Assistant API - Fonction');
+        let table = new ModuleTableVO(this, GPTAssistantAPIFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionVO(), fields, label, 'GPT Assistant API - Fonction');
         this.datatables.push(table);
     }
 
     private initializeGPTAssistantAPIAssistantFunctionVO() {
 
-        let assistant_id = new ModuleTableField(field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant', true);
-        let function_id = new ModuleTableField(field_names<GPTAssistantAPIAssistantFunctionVO>().function_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fonction', true);
+        let assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantFunctionVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true);
+        let function_id = ModuleTableFieldController.create_new(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantFunctionVO>().function_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fonction', true);
 
         let fields = [
             assistant_id,
             function_id
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIAssistantFunctionVO(), fields, null, 'GPT Assistant API - Assistant/Fonction');
+        let table = new ModuleTableVO(this, GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIAssistantFunctionVO(), fields, null, 'GPT Assistant API - Assistant/Fonction');
         this.datatables.push(table);
 
         assistant_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIAssistantVO.API_TYPE_ID]);
@@ -296,20 +297,20 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIFileVO() {
 
-        let file_id = new ModuleTableField(field_names<GPTAssistantAPIFileVO>().file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant', true).unique();
-        let label = new ModuleTableField(field_names<GPTAssistantAPIFileVO>().gpt_file_id, ModuleTableField.FIELD_TYPE_string, 'GPT ID', true).unique();
+        let file_id = ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true).unique();
+        let label = ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
         let fields = [
             file_id,
             label,
-            new ModuleTableField(field_names<GPTAssistantAPIFileVO>().purpose, ModuleTableField.FIELD_TYPE_enum, 'Params', true, true, GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS).setEnumValues(GPTAssistantAPIFileVO.PURPOSE_LABELS),
-            new ModuleTableField(field_names<GPTAssistantAPIFileVO>().status, ModuleTableField.FIELD_TYPE_enum, 'Etat', true, true, GPTAssistantAPIFileVO.STATUS_UPLOADED).setEnumValues(GPTAssistantAPIFileVO.STATUS_LABELS),
-            new ModuleTableField(field_names<GPTAssistantAPIFileVO>().filename, ModuleTableField.FIELD_TYPE_string, 'Nom du fichier', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFileVO>().created_at, ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFileVO>().bytes, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Bytes', true, true, 0),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().purpose, ModuleTableFieldVO.FIELD_TYPE_enum, 'Params', true, true, GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS).setEnumValues(GPTAssistantAPIFileVO.PURPOSE_LABELS),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().status, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, GPTAssistantAPIFileVO.STATUS_UPLOADED).setEnumValues(GPTAssistantAPIFileVO.STATUS_LABELS),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().filename, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du fichier', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().bytes, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Bytes', true, true, 0),
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIFileVO.API_TYPE_ID, () => new GPTAssistantAPIFileVO(), fields, label, 'GPT Assistant API - Fichier');
+        let table = new ModuleTableVO(this, GPTAssistantAPIFileVO.API_TYPE_ID, () => new GPTAssistantAPIFileVO(), fields, label, 'GPT Assistant API - Fichier');
         this.datatables.push(table);
 
         file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
@@ -317,23 +318,23 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIFunctionParamVO() {
 
-        let function_id = new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().function_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fonction', true);
+        let function_id = ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().function_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fonction', true);
 
         let fields = [
             function_id,
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, GPTAssistantAPIFunctionParamVO.TYPE_STRING).setEnumValues(GPTAssistantAPIFunctionParamVO.TYPE_LABELS),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, ModuleTableField.FIELD_TYPE_string, 'Nom du paramètre', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_description, ModuleTableField.FIELD_TYPE_string, 'Description', true),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().required, ModuleTableField.FIELD_TYPE_boolean, 'Requis', true, true, true),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().string_enum, ModuleTableField.FIELD_TYPE_string_array, 'Options string enum', false),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().number_enum, ModuleTableField.FIELD_TYPE_float_array, 'Options numebr enum', false),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().object_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Champs (type objet)', false),
-            new ModuleTableField(field_names<GPTAssistantAPIFunctionParamVO>().array_items_type, ModuleTableField.FIELD_TYPE_enum, 'Type des éléments (type array)', false).setEnumValues(GPTAssistantAPIFunctionParamVO.TYPE_LABELS),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, GPTAssistantAPIFunctionParamVO.TYPE_STRING).setEnumValues(GPTAssistantAPIFunctionParamVO.TYPE_LABELS),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du paramètre', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Requis', true, true, true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().string_enum, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Options string enum', false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().number_enum, ModuleTableFieldVO.FIELD_TYPE_float_array, 'Options numebr enum', false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().object_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champs (type objet)', false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().array_items_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type des éléments (type array)', false).setEnumValues(GPTAssistantAPIFunctionParamVO.TYPE_LABELS),
 
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIFunctionParamVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionParamVO(), fields, null, 'GPT Assistant API - Param de Fonction');
+        let table = new ModuleTableVO(this, GPTAssistantAPIFunctionParamVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionParamVO(), fields, null, 'GPT Assistant API - Param de Fonction');
         this.datatables.push(table);
 
         function_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIFunctionVO.API_TYPE_ID]);
@@ -341,22 +342,22 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIThreadVO() {
 
-        let user_id = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let label = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, ModuleTableField.FIELD_TYPE_string, 'GPT ID', true).unique();
-        let current_default_assistant_id = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().current_default_assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant par défaut pour les prochains messages / prompts', false);
-        let current_oselia_assistant_id = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().current_oselia_assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant Osélia en cours de run', false);
-        let current_oselia_prompt_id = new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().current_oselia_prompt_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Prompt Osélia en cours de réponse', false);
+        let user_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        let current_default_assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant par défaut pour les prochains messages / prompts', false);
+        let current_oselia_assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia en cours de run', false);
+        let current_oselia_prompt_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt Osélia en cours de réponse', false);
 
         let fields = [
             user_id,
             label,
             current_default_assistant_id,
-            new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableField.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false),
             current_oselia_assistant_id,
             current_oselia_prompt_id
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIThreadVO.API_TYPE_ID, () => new GPTAssistantAPIThreadVO(), fields, label, 'GPT Assistant API - Thread');
+        let table = new ModuleTableVO(this, GPTAssistantAPIThreadVO.API_TYPE_ID, () => new GPTAssistantAPIThreadVO(), fields, label, 'GPT Assistant API - Thread');
         this.datatables.push(table);
 
         user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
@@ -370,9 +371,9 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIRunVO() {
 
-        let thread_id = new ModuleTableField(field_names<GPTAssistantAPIRunVO>().thread_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Thread', true);
-        let assistant_id = new ModuleTableField(field_names<GPTAssistantAPIRunVO>().assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant', true);
-        let label = new ModuleTableField(field_names<GPTAssistantAPIRunVO>().gpt_run_id, ModuleTableField.FIELD_TYPE_string, 'GPT ID', true).unique();
+        let thread_id = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', true);
+        let assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true);
+        let label = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
         let fields = [
             thread_id,
@@ -380,7 +381,7 @@ export default class ModuleGPT extends Module {
             label
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIRunVO.API_TYPE_ID, () => new GPTAssistantAPIRunVO(), fields, label, 'GPT Assistant API - Tâche');
+        let table = new ModuleTableVO(this, GPTAssistantAPIRunVO.API_TYPE_ID, () => new GPTAssistantAPIRunVO(), fields, label, 'GPT Assistant API - Tâche');
         this.datatables.push(table);
 
         thread_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIThreadVO.API_TYPE_ID]);
@@ -390,14 +391,14 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIThreadMessageVO() {
 
-        let thread_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Thread', true);
-        let run_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().run_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Tâche', false);
-        let user_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let thread_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', true);
+        let run_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Tâche', false);
+        let user_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
 
-        let label = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().gpt_message_id, ModuleTableField.FIELD_TYPE_string, 'GPT ID', true).unique();
+        let label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().gpt_message_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
-        let assistant_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().assistant_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Assistant', false);
-        let prompt_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().prompt_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Prompt Osélia', false);
+        let assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', false);
+        let prompt_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt Osélia', false);
 
         let fields = [
             label,
@@ -409,11 +410,11 @@ export default class ModuleGPT extends Module {
             assistant_id,
             prompt_id,
 
-            new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().role_type, ModuleTableField.FIELD_TYPE_enum, 'Rôle', true, true, GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER).setEnumValues(GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_LABELS),
-            new ModuleTableField(field_names<GPTAssistantAPIThreadMessageVO>().date, ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
+            ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().role_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Rôle', true, true, GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER).setEnumValues(GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_LABELS),
+            ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true),
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIThreadMessageVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageVO(), fields, label, 'GPT Assistant API - Thread Message');
+        let table = new ModuleTableVO(this, GPTAssistantAPIThreadMessageVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageVO(), fields, label, 'GPT Assistant API - Thread Message');
         this.datatables.push(table);
 
         thread_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIThreadVO.API_TYPE_ID]);
@@ -425,15 +426,15 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIThreadMessageFileVO() {
 
-        let thread_message_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageFileVO>().thread_message_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Message', true);
-        let file_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageFileVO>().file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier', true);
+        let thread_message_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageFileVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageFileVO>().thread_message_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Message', true);
+        let file_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageFileVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageFileVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier', true);
 
         let fields = [
             thread_message_id,
             file_id
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIThreadMessageFileVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageFileVO(), fields, null, 'GPT Assistant API - Thread Message File');
+        let table = new ModuleTableVO(this, GPTAssistantAPIThreadMessageFileVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageFileVO(), fields, null, 'GPT Assistant API - Thread Message File');
         this.datatables.push(table);
 
         thread_message_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIThreadMessageVO.API_TYPE_ID]);
@@ -442,25 +443,25 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIThreadMessageContentVO() {
 
-        let thread_message_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Message', true);
-        let assistant_file_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().assistant_file_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier/image', false);
-        let action_url_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().action_url_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Action URL', false);
-        let email_id = new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().email_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Email', false);
+        let thread_message_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Message', true);
+        let assistant_file_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().assistant_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier/image', false);
+        let action_url_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().action_url_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Action URL', false);
+        let email_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().email_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Email', false);
 
         let fields = [
             thread_message_id,
             assistant_file_id,
 
-            new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().value, ModuleTableField.FIELD_TYPE_string, 'Contenu', false),
-            new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().annotations, ModuleTableField.FIELD_TYPE_string_array, 'Annotations', false),
-            new ModuleTableField(field_names<GPTAssistantAPIThreadMessageContentVO>().content_type, ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT).setEnumValues(GPTAssistantAPIThreadMessageContentVO.TYPE_LABELS),
+            ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().annotations, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Annotations', false),
+            ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().content_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT).setEnumValues(GPTAssistantAPIThreadMessageContentVO.TYPE_LABELS),
 
             action_url_id,
             email_id
         ];
 
-        let table = new ModuleTable(this, GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageContentVO(), fields, null, 'GPT Assistant API - Thread Message Content');
+        let table = new ModuleTableVO(this, GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageContentVO(), fields, null, 'GPT Assistant API - Thread Message Content');
         this.datatables.push(table);
         thread_message_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIThreadMessageVO.API_TYPE_ID]);
         assistant_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[GPTAssistantAPIFileVO.API_TYPE_ID]);

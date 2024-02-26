@@ -68,7 +68,7 @@ export default class ModuleTableServerController {
      * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
-    public static translate_field_from_db(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
+    public static translate_field_from_db(field: ModuleTableFieldVO<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
 
         if (field.is_readonly) {
             return;
@@ -83,8 +83,8 @@ export default class ModuleTableServerController {
 
         switch (field.field_type) {
 
-            case ModuleTableField.FIELD_TYPE_string_array:
-            case ModuleTableField.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_string_array:
+            case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 if (Array.isArray(field_value)) {
                     dest_vo[field_id] = field_value;
                 } else {
@@ -92,32 +92,32 @@ export default class ModuleTableServerController {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_file_ref:
-            case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_enum:
-            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
 
-            case ModuleTableField.FIELD_TYPE_hour:
-            case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_hour:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
                 dest_vo[field_id] = ConversionHandler.forceNumber(field_value);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_float_array:
+            case ModuleTableFieldVO.FIELD_TYPE_float_array:
                 dest_vo[field_id] = field_value.map(Number);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableFieldVO.FIELD_TYPE_int_array:
                 dest_vo[field_id] = field_value.map(Number);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
                 let field_index_n = src_vo[field_id.toLowerCase() + '_ndx'] ? src_vo[field_id.toLowerCase() + '_ndx'] : src_vo[field_id + '_ndx'];
                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                 // KEEP dest_vo[field_id] = MatroidIndexHandler.from_normalized_range(field_index_n, NumRange.RANGE_TYPE);
@@ -127,7 +127,7 @@ export default class ModuleTableServerController {
                     dest_vo[field_id] = RangeHandler.parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
                 }
                 break;
-            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                 let field_index_t = src_vo[field_id.toLowerCase() + '_ndx'] ? src_vo[field_id.toLowerCase() + '_ndx'] : src_vo[field_id + '_ndx'];
                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                 // KEEP dest_vo[field_id] = MatroidIndexHandler.from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
@@ -137,7 +137,7 @@ export default class ModuleTableServerController {
                     dest_vo[field_id] = RangeHandler.parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
                 }
                 break;
-            case ModuleTableField.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
                 let field_index_h = src_vo[field_id.toLowerCase() + '_ndx'] ? src_vo[field_id.toLowerCase() + '_ndx'] : src_vo[field_id + '_ndx'];
                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                 // KEEP dest_vo[field_id] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -149,9 +149,9 @@ export default class ModuleTableServerController {
                 break;
 
 
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                 let field_index_ns = src_vo[field_id.toLowerCase() + '_ndx'] ? src_vo[field_id.toLowerCase() + '_ndx'] : src_vo[field_id + '_ndx'];
                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                 // KEEP dest_vo[field_id] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -161,7 +161,7 @@ export default class ModuleTableServerController {
                     dest_vo[field_id] = RangeHandler.translate_from_bdd(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
                 }
                 break;
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                 let field_index_ts = src_vo[field_id.toLowerCase() + '_ndx'] ? src_vo[field_id.toLowerCase() + '_ndx'] : src_vo[field_id + '_ndx'];
                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                 // KEEP dest_vo[field_id] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -171,7 +171,7 @@ export default class ModuleTableServerController {
                     dest_vo[field_id] = RangeHandler.translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
                 }
                 break;
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                 let field_index_hs = src_vo[field_id.toLowerCase() + '_ndx'] ? src_vo[field_id.toLowerCase() + '_ndx'] : src_vo[field_id + '_ndx'];
                 // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                 // KEEP dest_vo[field_id] = MatroidIndexHandler.from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
@@ -182,31 +182,31 @@ export default class ModuleTableServerController {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_day:
-            case ModuleTableField.FIELD_TYPE_date:
-            case ModuleTableField.FIELD_TYPE_month:
+            case ModuleTableFieldVO.FIELD_TYPE_day:
+            case ModuleTableFieldVO.FIELD_TYPE_date:
+            case ModuleTableFieldVO.FIELD_TYPE_month:
                 dest_vo[field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true).unix());
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                 if (!((field_value === null) || (typeof field_value === 'undefined'))) {
                     dest_vo[field_id] = field_value.map((ts: string) => ConversionHandler.forceNumber(ts));
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableFieldVO.FIELD_TYPE_geopoint:
                 if (field_value) {
                     dest_vo[field_id] = GeoPointVO.clone(field_value);
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
                 if (field_value && field_value.trim) {
                     dest_vo[field_id] = field_value.trim();
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                 let trans_ = ObjectHandler.try_get_json(field_value);
 
                 if (!!trans_) {
@@ -215,7 +215,7 @@ export default class ModuleTableServerController {
                      * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
                      */
                     if (isArray(trans_)) {
-                        trans_ = ModuleTable.defaultforceNumerics(trans_);
+                        trans_ = ModuleTableVO.defaultforceNumerics(trans_);
                     } else {
 
                         /**
@@ -228,11 +228,11 @@ export default class ModuleTableServerController {
                             let new_obj = new Object();
                             for (let i in trans_) {
                                 let transi_ = trans_[i];
-                                new_obj[i] = ModuleTable.defaultforceNumeric(ObjectHandler.try_get_json(transi_));
+                                new_obj[i] = ModuleTableVO.defaultforceNumeric(ObjectHandler.try_get_json(transi_));
                             }
                             trans_ = new_obj;
                         } else {
-                            trans_ = Object.assign(field_table.voConstructor(), ModuleTable.defaultforceNumeric(trans_));
+                            trans_ = Object.assign(field_table.voConstructor(), ModuleTableVO.defaultforceNumeric(trans_));
                         }
                     }
                 }

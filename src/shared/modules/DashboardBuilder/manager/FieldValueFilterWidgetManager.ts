@@ -7,8 +7,9 @@ import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOM
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../ContextFilter/vos/ContextQueryVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
-import ModuleTable from "../../ModuleTable";
-import ModuleTableField from "../../ModuleTableField";
+import ModuleTableVO from "../../ModuleTableVO";
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from "../../ModuleTableFieldVO";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import VOFieldRefVOHandler from "../handlers/VOFieldRefVOHandler";
 import BooleanFilterModel from "../models/BooleanFilterModel";
@@ -658,7 +659,7 @@ export default class FieldValueFilterWidgetManager {
 
         for (let i in api_type_ids) {
             let api_type_id: string = api_type_ids[i];
-            let module_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+            let module_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (module_table && module_table.is_segmented) {
 
@@ -719,7 +720,7 @@ export default class FieldValueFilterWidgetManager {
             let fields = segmented_moduletable.get_fields();
 
             for (let i in fields) {
-                let field: ModuleTableField<any> = fields[i];
+                let field: ModuleTableFieldVO<any> = fields[i];
 
                 if (!field.manyToOne_target_moduletable) {
                     continue;

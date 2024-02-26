@@ -7,9 +7,10 @@ import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import HourHandler from '../../../../../shared/tools/HourHandler';
@@ -47,16 +48,16 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
         try {
             switch (this.field_type) {
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                     return field_value;
 
-                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
                     return percentFilter.read(field_value, 2);
 
-                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
                     return amountFilter.read(field_value);
 
-                case ModuleTableField.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     if (!!this.moduleTableField.translatable_params_field_name) {
                         let params = null;
                         try {
@@ -69,22 +70,22 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         return LocaleManager.getInstance().label(field_value);
                     }
 
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     return hourFilter.read(field_value);
 
-                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
                     return LocaleManager.getInstance().t(this.enum_values[field_value]);
 
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_day:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_day:
 
                     return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment.unix(this.getMomentDateFieldInclusif(field_value, true)).utc());
 
-                case ModuleTableField.FIELD_TYPE_month:
+                case ModuleTableFieldVO.FIELD_TYPE_month:
                     return Dates.format(field_value, 'MMM YYYY');
 
-                case ModuleTableField.FIELD_TYPE_daterange:
+                case ModuleTableFieldVO.FIELD_TYPE_daterange:
 
                     // On stocke au format day - day
                     if (!field_value) {
@@ -92,7 +93,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
 
                     let daterange_array = null;
-                    if (this.field_type == ModuleTableField.FIELD_TYPE_daterange) {
+                    if (this.field_type == ModuleTableFieldVO.FIELD_TYPE_daterange) {
                         daterange_array = [field_value];
                     } else {
                         daterange_array = field_value;
@@ -119,7 +120,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return res;
 
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     if (!field_value) {
                         return field_value;
                     }
@@ -140,7 +141,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return res_tstzranges;
 
-                case ModuleTableField.FIELD_TYPE_hourrange:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange:
                     if (!field_value) {
                         return field_value;
                     }
@@ -159,10 +160,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return res_hourrange;
 
-                case ModuleTableField.FIELD_TYPE_hour:
+                case ModuleTableFieldVO.FIELD_TYPE_hour:
                     return HourHandler.getInstance().formatHourForIHM(field_value, this.segmentation_type);
 
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                     if (!field_value) {
                         return field_value;
                     }
@@ -183,9 +184,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return res_hourranges;
 
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                     if (!field_value) {
                         return field_value;
                     }
@@ -206,7 +207,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return res_numranges;
 
-                case ModuleTableField.FIELD_TYPE_tsrange:
+                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     let res_tsrange: string[] = [];
 
                     let none: boolean = true;
@@ -248,7 +249,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return none ? '∞' : res_tsrange.join(' - ');
 
-                case ModuleTableField.FIELD_TYPE_numrange:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     let res_numrange: string[] = [];
 
                     let none_number: boolean = true;
@@ -275,18 +276,18 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return none_number ? '∞' : res_numrange.join(' - ');
 
-                case ModuleTableField.FIELD_TYPE_int_array:
-                case ModuleTableField.FIELD_TYPE_float_array:
-                case ModuleTableField.FIELD_TYPE_string_array:
-                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                case ModuleTableField.FIELD_TYPE_geopoint:
+                case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
+                case ModuleTableFieldVO.FIELD_TYPE_geopoint:
                     return field_value;
 
-                case ModuleTableField.FIELD_TYPE_tstz:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz:
                     let date = this.getMomentDateFieldInclusif(field_value, true);
                     return Dates.format_segment(date, this.segmentation_type, this.format_localized_time);
 
-                case ModuleTableField.FIELD_TYPE_tstz_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                     let res_tstz_array = '';
 
                     for (let i in field_value) {
@@ -301,7 +302,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
                     return res_tstz_array;
 
-                case ModuleTableField.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 default:
 
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
@@ -328,36 +329,36 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         try {
             switch (this.field_type) {
 
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                     return field_value;
 
-                case ModuleTableField.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     return field_value;
 
-                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
                     return field_value;
 
-                case ModuleTableField.FIELD_TYPE_boolean:
+                case ModuleTableFieldVO.FIELD_TYPE_boolean:
                     if (this.is_required) {
                         return (!field_value) ? false : true;
                     }
                     return field_value;
 
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_day:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_day:
                     return DateHandler.getInstance().formatDayForVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true).unix(), true));
-                case ModuleTableField.FIELD_TYPE_month:
+                case ModuleTableFieldVO.FIELD_TYPE_month:
                     return DateHandler.getInstance().formatMonthFromVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true).unix(), true));
 
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                case ModuleTableField.FIELD_TYPE_numrange:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                case ModuleTableField.FIELD_TYPE_tstz:
-                case ModuleTableField.FIELD_TYPE_tsrange:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     return field_value;
 
                 default:
@@ -377,34 +378,34 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         try {
 
             switch (this.field_type) {
-                case ModuleTableField.FIELD_TYPE_boolean:
+                case ModuleTableFieldVO.FIELD_TYPE_boolean:
                     if ((value === true) || (value === "true")) {
                         return true;
                     }
                     return false;
 
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                     return value;
 
-                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
                     return percentFilter.write(value);
 
-                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
                     return amountFilter.write(value);
 
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
                     return hourFilter.write(value);
 
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableFieldVO.FIELD_TYPE_float:
+                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
                     let efloat = parseFloat(value);
                     return (isNaN(efloat)) ? null : efloat;
-                case ModuleTableField.FIELD_TYPE_int:
+                case ModuleTableFieldVO.FIELD_TYPE_int:
                     let eint = parseInt(value);
                     return (isNaN(eint)) ? null : eint;
 
-                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
                     for (let i in this.enum_values) {
                         if (LocaleManager.getInstance().i18n.t(this.enum_values[i]) == value) {
                             return i;
@@ -412,7 +413,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
                     return null;
 
-                case ModuleTableField.FIELD_TYPE_daterange:
+                case ModuleTableFieldVO.FIELD_TYPE_daterange:
                     // On stocke au format "day day"
                     if (!value) {
                         return value;
@@ -435,15 +436,15 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return res;
 
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_day:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_day:
                     return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value).utc(true).unix(), false)) : null;
-                case ModuleTableField.FIELD_TYPE_month:
+                case ModuleTableFieldVO.FIELD_TYPE_month:
                     return value ? DateHandler.getInstance().formatDayForSQL(moment(value).utc(true).startOf('month').unix()) : null;
 
-                case ModuleTableField.FIELD_TYPE_float_array:
-                case ModuleTableField.FIELD_TYPE_int_array:
-                case ModuleTableField.FIELD_TYPE_string_array:
+                case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                case ModuleTableFieldVO.FIELD_TYPE_string_array:
                     // ATTENTION - INTERDITION DE METTRE UNE VIRGULE DANS UN CHAMP DE TYPE ARRAY SINON CA FAIT X VALEURS
                     let values: any[] = [];
 
@@ -459,9 +460,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return '{' + values + '}';
 
-                case ModuleTableField.FIELD_TYPE_html_array:
+                case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
-                case ModuleTableField.FIELD_TYPE_tstz:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz:
                     switch (this.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
                             return value ? Dates.startOf(value, TimeSegment.TYPE_MONTH) : null;
@@ -477,7 +478,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                             return value ? this.getMomentDateFieldInclusif(value, false) : null;
                     }
 
-                case ModuleTableField.FIELD_TYPE_tstz_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                     let res_tstz_array = [];
 
                     for (let i in value) {
@@ -501,7 +502,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     return res_tstz_array;
 
-                case ModuleTableField.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 default:
 
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
@@ -529,10 +530,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
             switch (this.field_type) {
 
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                     return value;
 
-                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
                     return value;
 
                 default:
@@ -577,7 +578,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
         let e = this.moduleTableField.field_label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
             return e;
         }
@@ -610,7 +611,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     public dataToHumanReadableField(e: IDistantVOBase): U {
         let res = this.dataToReadIHM(e[this.datatable_field_uid], e);
 
-        if ((this.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (this.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+        if ((this.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (this.field_type == ModuleTableFieldVO.FIELD_TYPE_boolean)) {
 
             // FIXME TODO si on est sur un boolean on voudrait voir idéalement OUI/NON et pas true /false mais ça dépend de la langue donc c'est pas si simple...
             return res;

@@ -1,8 +1,9 @@
 import { cloneDeep } from 'lodash';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
 import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTable from '../../ModuleTable';
-import ModuleTableField from '../../ModuleTableField';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ModuleDAO from '../ModuleDAO';
@@ -33,7 +34,7 @@ export default class CRUD<T extends IDistantVOBase> {
     }
 
     public static getDefaultCRUDDatatable<V extends IVersionedVO>(api_type_id: string): CRUD<V> {
-        let moduleTable: ModuleTable<V> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let moduleTable: ModuleTableVO<V> = VOsTypesManager.moduleTables_by_voType[api_type_id];
         let crud: CRUD<V> = CRUD.getNewCRUD(moduleTable.vo_type);
 
         crud.readDatatable.removeFields(['version_num', 'trashed', 'parent_id']);
@@ -64,7 +65,7 @@ export default class CRUD<T extends IDistantVOBase> {
         let fields = moduleTable.get_fields();
 
         for (let i in fields) {
-            let field: ModuleTableField<any> = fields[i];
+            let field: ModuleTableFieldVO<any> = fields[i];
 
             // On ignore les 2 fields de service
             if (field.field_id == "id") {
@@ -109,7 +110,7 @@ export default class CRUD<T extends IDistantVOBase> {
         return crud;
     }
 
-    public static get_dt_field(field: ModuleTableField<any>): DatatableField<any, any> {
+    public static get_dt_field(field: ModuleTableFieldVO<any>): DatatableField<any, any> {
         let dt_field: DatatableField<any, any> = null;
 
         if (field.manyToOne_target_moduletable) {
@@ -127,7 +128,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 ];
             }
 
-            if (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+            if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                 dt_field = RefRangesReferenceDatatableFieldVO.createNew(
                     field.field_id,
                     VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
@@ -172,7 +173,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 ;
 
             switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                     if (!field.manyToOne_target_moduletable) {
                         return dt_field;
                     }
@@ -202,13 +203,13 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public static addManyToManyFields<T extends IDistantVOBase>(
         crud: CRUD<T>,
-        moduleTable: ModuleTable<any>,
+        moduleTable: ModuleTableVO<any>,
         except_table_names: string[] = null) {
 
         //  On fait le tour des tables manyToMany pour identifier les fields qui font référence à cette table
-        let manyToManyModuleTables: Array<ModuleTable<any>> = VOsTypesManager.get_manyToManyModuleTables();
+        let manyToManyModuleTables: Array<ModuleTableVO<any>> = VOsTypesManager.get_manyToManyModuleTables();
         for (let i in manyToManyModuleTables) {
-            let otherModuleTable: ModuleTable<any> = manyToManyModuleTables[i];
+            let otherModuleTable: ModuleTableVO<any> = manyToManyModuleTables[i];
 
             if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
                 continue;
@@ -223,7 +224,7 @@ export default class CRUD<T extends IDistantVOBase> {
             }
 
             for (let j in otherModuleTable.get_fields()) {
-                let field: ModuleTableField<any> = otherModuleTable.get_fields()[j];
+                let field: ModuleTableFieldVO<any> = otherModuleTable.get_fields()[j];
 
                 if (!field.is_visible_datatable) {
                     continue;
@@ -249,7 +250,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let otherField: ModuleTableField<any> = VOsTypesManager.getManyToManyOtherField(field.module_table, field);
+                let otherField: ModuleTableFieldVO<any> = VOsTypesManager.getManyToManyOtherField(field.module_table, field);
 
                 if ((!otherField) || (!otherField.manyToOne_target_moduletable)) {
                     continue;
@@ -286,12 +287,12 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public static addOneToManyFields<T extends IDistantVOBase>(
         crud: CRUD<T>,
-        moduleTable: ModuleTable<any>,
+        moduleTable: ModuleTableVO<any>,
         except_table_names: string[] = null) {
 
         //  On fait le tour des autres tables existantes pour identifier les manyToOne qui font référence à cette table (hors manytomany)
         for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let otherModuleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[i];
+            let otherModuleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[i];
 
             if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
                 continue;
@@ -310,7 +311,7 @@ export default class CRUD<T extends IDistantVOBase> {
             }
 
             for (let j in otherModuleTable.get_fields()) {
-                let field: ModuleTableField<any> = otherModuleTable.get_fields()[j];
+                let field: ModuleTableFieldVO<any> = otherModuleTable.get_fields()[j];
 
                 if (!field.is_visible_datatable) {
                     continue;

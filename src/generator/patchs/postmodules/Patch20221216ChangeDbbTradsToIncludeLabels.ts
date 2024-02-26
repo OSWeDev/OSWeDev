@@ -6,7 +6,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DashboardBuilderController from '../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';

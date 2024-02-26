@@ -19,8 +19,9 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
@@ -1097,7 +1098,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+            let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
             if (
                 base_table &&
@@ -1351,7 +1352,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return VOFieldRefVOHandler.is_type_ref_field(this.vo_field_ref);
     }
 
-    get field(): ModuleTableField<any> {
+    get field(): ModuleTableFieldVO<any> {
         if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
             return null;
         }

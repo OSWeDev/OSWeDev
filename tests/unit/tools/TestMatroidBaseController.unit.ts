@@ -1,8 +1,9 @@
 import { test, expect } from "playwright-test-coverage";
 
 import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
-import ModuleTable from '../../../src/shared/modules/ModuleTable';
-import ModuleTableField from '../../../src/shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../src/shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../src/shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../src/shared/modules/VOsTypesManager';
 import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
@@ -22,10 +23,10 @@ let moins_deux = Dates.add(zero, -2, TimeSegment.TYPE_DAY);
 
 let matroid_type = 'matroid_type';
 
-let employee_id_ranges = new ModuleTableField('employee_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Employees').set_segmentation_type(NumSegment.TYPE_INT);
-let ts_ranges = new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY);
+let employee_id_ranges = ModuleTableFieldController.create_new('employee_id_ranges', ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Employees').set_segmentation_type(NumSegment.TYPE_INT);
+let ts_ranges = ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY);
 
-VOsTypesManager.registerModuleTable(new ModuleTable(
+VOsTypesManager.registerModuleTable(new ModuleTableVO(
     null,
     matroid_type,
     () => ({} as any),

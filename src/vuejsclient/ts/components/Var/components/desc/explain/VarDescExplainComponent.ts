@@ -17,7 +17,8 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import VueComponentBase from '../../../../VueComponentBase';
 import VarsClientController from '../../../VarsClientController';
 import './VarDescExplainComponent.scss';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -461,7 +462,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             let field = var_data_fields[i];
 
             prompt += " - Le champs '" + this.label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[this.var_param._type].name + '.' + field.field_id) + "' qui filtre sur un ou plusieurs intervales de " +
-                ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
+                ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
             let ranges = this.var_param[field.field_id] as IRange[];
             for (let j in ranges) {
                 let range = ranges[j];
@@ -469,11 +470,11 @@ export default class VarDescExplainComponent extends VueComponentBase {
                 let segmented_max = RangeHandler.getSegmentedMax(range);
 
                 switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         prompt += "[" + Dates.format_segment(segmented_min, range.segment_type) + ", " + Dates.format_segment(segmented_max, range.segment_type) + "] - segmenté par " +
                             TimeSegment.TYPE_NAMES[range.segment_type] + " -,\n";
                         break;
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
 
                         let segmented_min_str = null;
                         let segmented_max_str = null;

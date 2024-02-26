@@ -1,8 +1,9 @@
 import cloneDeep from 'lodash/cloneDeep';
 import RangeHandler from '../../tools/RangeHandler';
 import IRange from '../DataRender/interfaces/IRange';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IMatroid from './interfaces/IMatroid';
 import MatroidBaseController from './MatroidBaseController';
@@ -63,7 +64,7 @@ export default class MatroidController {
 
         let res: string = matroid._type;
 
-        let fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
+        let fields: Array<ModuleTableFieldVO<any>> = this.getMatroidFields(matroid._type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -151,25 +152,25 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public static getMatroidFields(api_type_id: string): Array<ModuleTableField<any>> {
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+    public static getMatroidFields(api_type_id: string): Array<ModuleTableFieldVO<any>> {
+        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!moduleTable) {
             return null;
         }
 
-        let matroid_fields: Array<ModuleTableField<any>> = [];
+        let matroid_fields: Array<ModuleTableFieldVO<any>> = [];
         let mt_fields = moduleTable.get_fields();
         for (let i in mt_fields) {
             let field = mt_fields[i];
 
             switch (field.field_type) {
-                // case ModuleTableField.FIELD_TYPE_daterange_array:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                // case ModuleTableFieldVO.FIELD_TYPE_daterange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     break;
 
                 default:
@@ -192,7 +193,7 @@ export default class MatroidController {
             return null;
         }
 
-        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
+        let matroid_fields: Array<ModuleTableFieldVO<any>> = this.getMatroidFields(matroid._type);
         let matroid_bases: MatroidBase[] = [];
 
         if ((!matroid_fields) || (!matroid_fields.length)) {
@@ -315,12 +316,12 @@ export default class MatroidController {
 
             let intersects: boolean = false;
             switch (matroid_field.field_type) {
-                // case ModuleTableField.FIELD_TYPE_daterange_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                // case ModuleTableFieldVO.FIELD_TYPE_daterange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                     for (let j in a_ranges) {
 
                         if (RangeHandler.range_intersects_any_range(a_ranges[j], b_ranges)) {
@@ -602,16 +603,16 @@ export default class MatroidController {
                 res[to_field.field_id] = clone_fields ? RangeHandler.cloneArrayFrom(from[from_field_id]) : from[from_field_id];
             } else {
                 switch (to_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                         res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
                         break;
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_hourrange:
-                    case ModuleTableField.FIELD_TYPE_daterange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_daterange:
                         res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
                         break;
                     default:

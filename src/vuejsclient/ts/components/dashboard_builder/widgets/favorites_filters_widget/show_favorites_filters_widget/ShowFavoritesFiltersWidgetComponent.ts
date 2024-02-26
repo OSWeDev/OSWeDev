@@ -13,7 +13,8 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -643,7 +644,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return false;
         }
 
-        return field.field_type == ModuleTableField.FIELD_TYPE_translatable_text;
+        return field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text;
     }
 
     /**

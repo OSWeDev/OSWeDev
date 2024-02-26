@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 import TablesGraphItemFieldComponent from './field/TablesGraphItemFieldComponent';
@@ -26,7 +27,7 @@ export default class TablesGraphItemComponent extends VueComponentBase {
         return this.t(VOsTypesManager.moduleTables_by_voType[this.vo_type].label.code_text);
     }
 
-    get fields(): Array<ModuleTableField<any>> {
+    get fields(): Array<ModuleTableFieldVO<any>> {
 
         return VOsTypesManager.moduleTables_by_voType[this.vo_type].get_fields();
     }

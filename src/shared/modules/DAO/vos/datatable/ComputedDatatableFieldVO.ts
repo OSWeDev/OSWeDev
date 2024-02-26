@@ -1,6 +1,6 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 
 export default class ComputedDatatableFieldVO<T, U, V extends IDistantVOBase> extends DatatableField<T, U> {
 
@@ -42,7 +42,7 @@ export default class ComputedDatatableFieldVO<T, U, V extends IDistantVOBase> ex
             return null;
         }
 
-        return "fields.labels." + this.vo_type_full_name + ".__computed__" + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return "fields.labels." + this.vo_type_full_name + ".__computed__" + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public dataToHumanReadableField(e: V): U {

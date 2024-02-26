@@ -10,7 +10,7 @@ import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler'
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
 
 const session = expressSession as any;
 const Store = session.Store || session.session.Store;
@@ -119,7 +119,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
                 res.expire = expireTime;
                 await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>(
-                    ModuleTable.default_get_api_version(res, false)
+                    ModuleTableVO.default_get_api_version(res, false)
                 );
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
             }
@@ -236,7 +236,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'update');
                 res.expire = expireTime;
                 await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>(
-                    ModuleTable.default_get_api_version(res, false)
+                    ModuleTableVO.default_get_api_version(res, false)
                 );
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'update_out', Dates.now_ms() - db_session_time_in);
             }

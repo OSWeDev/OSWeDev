@@ -12,8 +12,9 @@ import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImpor
 import XmlNode from '../../../../shared/modules/DataImport/vos/XmlNode';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
@@ -195,7 +196,7 @@ export default class ImportTypeXMLHandler {
         let datas: IImportedData[] = [];
         let row_index: number = 1;
 
-        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         if (!xml_datas || !xml_datas.children || !xml_datas.children.length) {
             return null;
@@ -233,7 +234,7 @@ export default class ImportTypeXMLHandler {
         return datas;
     }
 
-    private populate_row_data(raw_row_data: { [name: string]: string }, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTable<any>): boolean {
+    private populate_row_data(raw_row_data: { [name: string]: string }, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTableVO<any>): boolean {
 
         let last_row_has_data = false;
 
@@ -263,7 +264,7 @@ export default class ImportTypeXMLHandler {
                         case DataImportColumnVO.TYPE_DATE:
 
                             switch (moduletable_field.field_type) {
-                                case ModuleTableField.FIELD_TYPE_tstz:
+                                case ModuleTableFieldVO.FIELD_TYPE_tstz:
                                     rowData[dataImportColumn.vo_field_name] = ImportTypeXMLHandler.getInstance().parseExcelDate(column_data_string);
                                     break;
                                 default:

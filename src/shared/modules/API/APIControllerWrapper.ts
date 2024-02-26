@@ -4,7 +4,7 @@ import ConsoleHandler from '../../tools/ConsoleHandler';
 import TypesHandler from '../../tools/TypesHandler';
 import IRange from '../DataRender/interfaces/IRange';
 import IDistantVOBase from '../IDistantVOBase';
-import ModuleTable from '../ModuleTable';
+import ModuleTableVO from '../ModuleTableVO';
 import IAPIController from './interfaces/IAPIController';
 import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
 import IDateAPI from './interfaces/IDateAPI';
@@ -192,7 +192,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        return ModuleTable.default_from_api_version(elt);
+        return ModuleTableVO.default_from_api_version(elt);
     }
 
     public static try_translate_vo_to_api(e: any, nb_calls: number = 0): any {
@@ -249,7 +249,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        return ModuleTable.default_get_api_version(elt);
+        return ModuleTableVO.default_get_api_version(elt);
     }
 
     public static try_translate_vos_from_api(e: any): any {

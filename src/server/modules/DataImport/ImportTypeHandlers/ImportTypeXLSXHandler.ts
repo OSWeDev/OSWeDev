@@ -10,8 +10,9 @@ import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataIm
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
@@ -369,7 +370,7 @@ export default class ImportTypeXLSXHandler {
         let last_row_has_data: boolean = true;
         let datas: IImportedData[] = [];
 
-        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         while (last_row_has_data) {
             last_row_has_data = false;
@@ -412,7 +413,7 @@ export default class ImportTypeXLSXHandler {
                             case DataImportColumnVO.TYPE_DATE:
 
                                 switch (moduletable_field.field_type) {
-                                    case ModuleTableField.FIELD_TYPE_tstz:
+                                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                                         rowData[dataImportColumn.vo_field_name] = this.parseExcelDate(column_data_string.v, (workbook.Workbook || {}).WBProps);
                                         break;
                                     default:

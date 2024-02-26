@@ -11,8 +11,9 @@ import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/Data
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
@@ -294,7 +295,7 @@ export default class ImportTypeCSVHandler {
                         }
                     } else if (raw_row_index > dataImportFormat.column_labels_row_index) {
 
-                        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+                        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
                         let rowData: IImportedData = {
                             _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
@@ -537,7 +538,7 @@ export default class ImportTypeCSVHandler {
         let last_row_has_data: boolean = true;
         let datas: IImportedData[] = [];
 
-        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         while (last_row_has_data) {
 
@@ -565,7 +566,7 @@ export default class ImportTypeCSVHandler {
         return datas;
     }
 
-    private populate_row_data(raw_row_data: any, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTable<any>): boolean {
+    private populate_row_data(raw_row_data: any, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTableVO<any>): boolean {
 
         let last_row_has_data = false;
 
@@ -595,7 +596,7 @@ export default class ImportTypeCSVHandler {
                         case DataImportColumnVO.TYPE_DATE:
 
                             switch (moduletable_field.field_type) {
-                                case ModuleTableField.FIELD_TYPE_tstz:
+                                case ModuleTableFieldVO.FIELD_TYPE_tstz:
                                     rowData[dataImportColumn.vo_field_name] = ImportTypeCSVHandler.getInstance().parseExcelDate(column_data_string);
                                     break;
                                 default:

@@ -5,7 +5,8 @@ import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
-import ModuleTableField from '../../ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
@@ -71,13 +72,13 @@ export default class VarDataBaseVO implements IMatroid {
             if ((!fields_ordered_as_in_moduletable_definition[param_i]) || (fields_ordered_as_in_moduletable_definition[param_i].indexOf(null) >= 0)) {
                 // ConsoleHandler.warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
                 switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                         res[field.field_id] = [RangeHandler.getMaxNumRange()];
                         break;
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                         res[field.field_id] = [RangeHandler.getMaxHourRange()];
                         break;
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         res[field.field_id] = [RangeHandler.getMaxTSRange()];
                         break;
                     default:

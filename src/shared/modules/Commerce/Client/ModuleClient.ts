@@ -6,8 +6,9 @@ import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
-import ModuleTable from '../../ModuleTable';
-import ModuleTableField from '../../ModuleTableField';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ClientVO from './vos/ClientVO';
 import InformationsVO from './vos/InformationsVO';
@@ -55,31 +56,31 @@ export default class ModuleClient extends Module {
 
     public initializeInformations(): void {
         // Création de la table Informations
-        let default_label_field: ModuleTableField<string> = new ModuleTableField(field_names<InformationsVO>().email, ModuleTableField.FIELD_TYPE_email, 'Email');
+        let default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().email, ModuleTableFieldVO.FIELD_TYPE_email, 'Email');
         let datatable_fields = [
-            new ModuleTableField(field_names<InformationsVO>().nom, ModuleTableField.FIELD_TYPE_string, 'Nom'),
-            new ModuleTableField(field_names<InformationsVO>().prenom, ModuleTableField.FIELD_TYPE_string, 'Prenom'),
-            new ModuleTableField(field_names<InformationsVO>().telephone, ModuleTableField.FIELD_TYPE_string, 'Telephone'),
-            new ModuleTableField(field_names<InformationsVO>().adresse, ModuleTableField.FIELD_TYPE_string, 'Adresse'),
-            new ModuleTableField(field_names<InformationsVO>().code_postal, ModuleTableField.FIELD_TYPE_string, 'Code Postal'),
-            new ModuleTableField(field_names<InformationsVO>().ville, ModuleTableField.FIELD_TYPE_string, 'Ville'),
-            new ModuleTableField(field_names<InformationsVO>().societe, ModuleTableField.FIELD_TYPE_string, 'Societe'),
-            new ModuleTableField(field_names<InformationsVO>().siret, ModuleTableField.FIELD_TYPE_string, 'Siret'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().prenom, ModuleTableFieldVO.FIELD_TYPE_string, 'Prenom'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().telephone, ModuleTableFieldVO.FIELD_TYPE_string, 'Telephone'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().adresse, ModuleTableFieldVO.FIELD_TYPE_string, 'Adresse'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().code_postal, ModuleTableFieldVO.FIELD_TYPE_string, 'Code Postal'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().ville, ModuleTableFieldVO.FIELD_TYPE_string, 'Ville'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().societe, ModuleTableFieldVO.FIELD_TYPE_string, 'Societe'),
+            ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().siret, ModuleTableFieldVO.FIELD_TYPE_string, 'Siret'),
             default_label_field,
         ];
-        this.datatables.push(new ModuleTable<InformationsVO>(this, InformationsVO.API_TYPE_ID, () => new InformationsVO(), datatable_fields, default_label_field, 'Informations'));
+        this.datatables.push(new ModuleTableVO<InformationsVO>(this, InformationsVO.API_TYPE_ID, () => new InformationsVO(), datatable_fields, default_label_field, 'Informations'));
     }
 
     public initializeClient(): void {
         // Création de la table Client
-        let field_informations_id: ModuleTableField<number> = new ModuleTableField(field_names<ClientVO>().informations_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Informations', true);
-        let field_user_id: ModuleTableField<number> = new ModuleTableField(field_names<ClientVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'User', true);
+        let field_informations_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
+        let field_user_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
 
         let datatable_fields = [
             field_user_id,
             field_informations_id
         ];
-        let dt = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
+        let dt = new ModuleTableVO<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
         field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         field_informations_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[InformationsVO.API_TYPE_ID]);
         this.datatables.push(dt);

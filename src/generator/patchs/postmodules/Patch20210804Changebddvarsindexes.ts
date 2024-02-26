@@ -2,7 +2,8 @@
 
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsInitController from '../../../shared/modules/Var/VarsInitController';
 import IGeneratorWorker from '../../IGeneratorWorker';
@@ -52,7 +53,7 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
             for (let i in fields) {
                 let field = fields[i];
 
-                if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
                     nb_runs++;
                 }
             }

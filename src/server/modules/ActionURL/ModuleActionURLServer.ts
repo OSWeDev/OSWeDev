@@ -9,10 +9,10 @@ import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -43,19 +43,19 @@ export default class ModuleActionURLServer extends ModuleServerBase {
     public async configure() {
         ModuleDAOServer.getInstance().registerContextAccessHook(ActionURLVO.API_TYPE_ID, this, this.filterActionURLVOContextAccessHook);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Cette action n'existe pas ou vous n'y avez pas accès."
         }, 'action_url.not_found.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "En cours..."
         }, 'OseliaThreadMessageActionURLComponent.execute_action_url.encours.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Echec de l'action"
         }, 'OseliaThreadMessageActionURLComponent.execute_action_url.failed.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Action effectuée avec succès"
         }, 'OseliaThreadMessageActionURLComponent.execute_action_url.ok.___LABEL___'));
     }
@@ -65,7 +65,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleActionURL.APINAME_action_url, this.action_url.bind(this));
     }
 
-    private async filterActionURLVOContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterActionURLVOContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         let res: ContextQueryVO = query(ActionURLVO.API_TYPE_ID);
 

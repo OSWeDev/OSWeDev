@@ -2,7 +2,7 @@ import { Cell, Editor, Graph } from "@maxgraph/core";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
-import ModuleTable from "../../../../../../shared/modules/ModuleTable";
+import ModuleTableVO from "../../../../../../shared/modules/ModuleTableVO";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import VueAppBase from "../../../../../VueAppBase";
@@ -31,7 +31,7 @@ export default class MaxGraphMapper {
          * On ajoute d'abord les cellules / vo_type
          */
         let api_type_ids: string[] = [];
-        let tables: Array<ModuleTable<any>> = [];
+        let tables: Array<ModuleTableVO<any>> = [];
         for (let i in vos_refs) {
             const graphvoref: DashboardGraphVORefVO = vos_refs[i];
 
@@ -95,7 +95,7 @@ export default class MaxGraphMapper {
          * Puis les edges entre ces types
          */
         for (let i in tables) {
-            const table: ModuleTable<any> = tables[i];
+            const table: ModuleTableVO<any> = tables[i];
 
             let fields = table.get_fields();
             for (let j in fields) {

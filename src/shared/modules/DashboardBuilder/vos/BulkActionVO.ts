@@ -1,4 +1,4 @@
-import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 
 export default class BulkActionVO {
 
@@ -26,6 +26,6 @@ export default class BulkActionVO {
             return null;
         }
 
-        return "fields.labels.bulk_action." + this.vo_type_id + "." + this.label + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return "fields.labels.bulk_action." + this.vo_type_id + "." + this.label + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 }

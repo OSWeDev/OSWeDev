@@ -8,8 +8,9 @@ import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
@@ -69,7 +70,7 @@ export default class ContextFilterServerController {
          * Cas spécifique de l'id qu'on doit gérer comme un field de type int
          *  et des or / xor / ... qui n'ont pas de filed_id et pas de vo_type
          */
-        let field_type = field_name ? (field ? field.field_type : ModuleTableField.FIELD_TYPE_int) : null;
+        let field_type = field_name ? (field ? field.field_type : ModuleTableFieldVO.FIELD_TYPE_int) : null;
 
         // On tente de déanonymiser avant de construire la requête
         let uid = await StackContext.get('UID');
@@ -103,13 +104,13 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_CONTAINS_ALL_EXACT:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
 
                     /**
                      * C'est pas ça, pour plein de raisons : il faut pouvoir conserver les filtres dans la sub query ,mais pas tous sinon cyclique
@@ -152,32 +153,32 @@ export default class ContextFilterServerController {
                     // break;
 
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
                     default:
                         throw new Error('Not Implemented');
                 }
@@ -186,18 +187,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ANY:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         let text_TYPE_TEXT_INCLUDES_ANY = null;
                         if (context_filter.param_numeric != null) {
                             text_TYPE_TEXT_INCLUDES_ANY = context_filter.param_numeric.toString();
@@ -215,30 +216,30 @@ export default class ContextFilterServerController {
 
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
 
@@ -276,8 +277,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
 
@@ -340,18 +341,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_DATE_EQUALS:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             /**
@@ -415,19 +416,19 @@ export default class ContextFilterServerController {
 
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
 
@@ -452,18 +453,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_EQUALS_ALL:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             where_conditions.push(field_name + " = " + context_filter.param_alias);
@@ -485,22 +486,22 @@ export default class ContextFilterServerController {
 
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         if (context_filter.param_alias != null) {
                             where_conditions.push(
                                 field_name +
@@ -534,12 +535,12 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_alias != null) {
                             where_conditions.push(
                                 (context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') +
@@ -573,8 +574,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         /**
                          * TODO FIXME le ignore_case est pas pris en compte sur les tableaux par ce que c'est le merdier à faire :
@@ -618,18 +619,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_EQUALS_ANY:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             where_conditions.push(field_name + " = " + context_filter.param_alias);
@@ -651,22 +652,22 @@ export default class ContextFilterServerController {
 
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         if (context_filter.param_alias != null) {
                             where_conditions.push(
                                 field_name +
@@ -706,12 +707,12 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_alias != null) {
                             where_conditions.push(
                                 (context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') +
@@ -751,8 +752,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         /**
                          * TODO FIXME le ignore_case est pas pris en compte sur les tableaux par ce que c'est le merdier à faire :
                          *  https://stackoverflow.com/questions/65488634/error-function-lowertext-does-not-exist
@@ -793,18 +794,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
                             let text = context_filter.param_numeric.toString();
 
@@ -826,30 +827,30 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_alias != null) {
 
                             if (context_filter.text_ignore_case) {
@@ -897,8 +898,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
 
@@ -942,18 +943,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ANY:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
                             let text = context_filter.param_numeric.toString();
 
@@ -975,30 +976,30 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_alias != null) {
 
                             if (context_filter.text_ignore_case) {
@@ -1047,8 +1048,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
 
@@ -1091,18 +1092,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_EQUALS_NONE:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             where_conditions.push(field_name + " != " + context_filter.param_alias);
@@ -1124,22 +1125,22 @@ export default class ContextFilterServerController {
 
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
 
                         if (context_filter.param_text != null) {
                             let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
@@ -1168,12 +1169,12 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
 
                         if (context_filter.param_text != null) {
                             let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
@@ -1202,8 +1203,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         /**
                          * TODO FIXME le ignore_case est pas pris en compte sur les tableaux par ce que c'est le merdier à faire :
@@ -1242,18 +1243,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             where_conditions.push(field_name + " != " + context_filter.param_alias);
@@ -1275,33 +1276,33 @@ export default class ContextFilterServerController {
 
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
                             let text = context_filter.param_numeric.toString();
 
@@ -1323,30 +1324,30 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
                             if (context_filter.text_ignore_case) {
@@ -1378,8 +1379,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
 
@@ -1419,18 +1420,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
                             let text = context_filter.param_numeric.toString();
 
@@ -1452,30 +1453,30 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_text != null) {
                             let text = context_filter.param_text;
 
@@ -1508,8 +1509,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
 
@@ -1553,18 +1554,18 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_NONE:
                 switch (field_type) {
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_numeric != null) {
 
@@ -1590,30 +1591,30 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
 
                         if (context_filter.param_text != null) {
 
@@ -1650,8 +1651,8 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
 
                         if (context_filter.param_text != null) {
 
@@ -1693,18 +1694,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_INFEQ_ALL:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1733,19 +1734,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -1755,18 +1756,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_INFEQ_ANY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1795,19 +1796,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -1817,18 +1818,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_INF_ALL:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1857,19 +1858,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -1879,18 +1880,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_INF_ANY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1919,19 +1920,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -1941,18 +1942,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_SUP_ALL:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1981,19 +1982,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -2003,18 +2004,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_SUP_ANY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -2043,19 +2044,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -2065,18 +2066,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_SUPEQ_ALL:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -2105,19 +2106,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -2127,18 +2128,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_SUPEQ_ANY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -2167,19 +2168,19 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -2189,18 +2190,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             where_conditions.push(field_name + " != " + context_filter.param_alias);
@@ -2251,19 +2252,19 @@ export default class ContextFilterServerController {
                         }
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
 
                     default:
@@ -2273,18 +2274,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             // WARNING le TYPE_NUMERIC_EQUALS_ANY considère qu'on doit donc avoir un alias qui fait référence à un tableau,
@@ -2334,10 +2335,10 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
                         // if (context_filter.param_alias != null) {
                         // TODO FIXME il y a une ambiguité sur le tpye array ou pas du field alias... il faut séparer les cas, ou préciser par ailleurs, ....
@@ -2362,7 +2363,7 @@ export default class ContextFilterServerController {
 
                             let force_cast: string = '';
 
-                            if ((field_type == ModuleTableField.FIELD_TYPE_int_array) || (field_type == ModuleTableField.FIELD_TYPE_tstz_array)) {
+                            if ((field_type == ModuleTableFieldVO.FIELD_TYPE_int_array) || (field_type == ModuleTableFieldVO.FIELD_TYPE_tstz_array)) {
                                 force_cast = '::bigint[]';
                             }
                             for (let i in context_filter.param_numeric_array) {
@@ -2380,13 +2381,13 @@ export default class ContextFilterServerController {
                         }
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
@@ -2406,18 +2407,18 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                         if (context_filter.param_alias != null) {
                             // WARNING le TYPE_NUMERIC_EQUALS_ANY considère qu'on doit donc avoir un alias qui fait référence à un tableau,
@@ -2467,19 +2468,19 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
@@ -2511,30 +2512,30 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_INTERSECTS:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
 
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
                         let where_clause: string = '';
 
@@ -2559,27 +2560,27 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NULL_ALL:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                     default:
                         where_conditions.push(field_name + " is NULL");
                 }
@@ -2614,32 +2615,32 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NULL_ANY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     default:
                         where_conditions.push(field_name + " is NULL");
                         break;
 
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         where_conditions.push("ANY(" + field_name + ") is NULL");
                         break;
                 }
@@ -2647,32 +2648,32 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NULL_NONE:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     default:
                         where_conditions.push(field_name + " is NOT NULL");
                         break;
 
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         where_conditions.push("ALL(" + field_name + ") is NOT NULL");
                         break;
                 }
@@ -2680,13 +2681,13 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_DATE_DOW:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         let where_clause: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
@@ -2711,7 +2712,7 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_DATE_YEAR:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
 
                         let where_clause_tstzrange_array: string = '';
 
@@ -2740,7 +2741,7 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         let where_clause_tsrange: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
@@ -2768,7 +2769,7 @@ export default class ContextFilterServerController {
                         }
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         let where_clause: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
@@ -2794,13 +2795,13 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_DATE_MONTH:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         throw new Error('Not Implemented');
 
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         let where_clause: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
@@ -2843,19 +2844,19 @@ export default class ContextFilterServerController {
                     ContextQueryInjectionCheckHandler.assert_integer(tsrange.max);
 
                     switch (field_type) {
-                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                             where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field_name + "::numrange[]))";
                             break;
 
-                        case ModuleTableField.FIELD_TYPE_tsrange:
+                        case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                             where_clause_date_intersects += '(' + field_name + " && '[" + tsrange.min + "," + tsrange.max + ")'::numrange)";
                             break;
 
-                        case ModuleTableField.FIELD_TYPE_tstz_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                             where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field_name + "::numeric[]))";
                             break;
 
-                        case ModuleTableField.FIELD_TYPE_tstz:
+                        case ModuleTableFieldVO.FIELD_TYPE_tstz:
                             where_clause_date_intersects += '((' + field_name + " >= " + tsrange.min + ") and (" + field_name + " < " + tsrange.max + '))';
                             break;
 
@@ -2896,40 +2897,40 @@ export default class ContextFilterServerController {
                  * Cas particulier pour les champs de type range_array qu'on veut déployer avant de tester le IN
                  */
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                     default:
                         break;
 
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
                 }
 
@@ -3018,41 +3019,41 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_EMPTY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                     default:
                         where_conditions.push(field_name + " = ''");
                         break;
 
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         where_conditions.push("array_length(" + field_name + ", 1) = 0");
                         break;
                 }
@@ -3060,45 +3061,45 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NULL_OR_EMPTY:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
-                    case ModuleTableField.FIELD_TYPE_boolean:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_boolean:
                         where_conditions.push(field_name + " is null");
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_string:
-                    case ModuleTableField.FIELD_TYPE_html:
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_textarea:
-                    case ModuleTableField.FIELD_TYPE_translatable_text:
-                    case ModuleTableField.FIELD_TYPE_email:
-                    case ModuleTableField.FIELD_TYPE_password:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
                     default:
                         where_conditions.push("(" + field_name + " <> '') is not TRUE");
                         break;
 
 
-                    case ModuleTableField.FIELD_TYPE_string_array:
-                    case ModuleTableField.FIELD_TYPE_html_array:
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         where_conditions.push("((" + field_name + " is NULL) OR (array_length(" + field_name + ", 1) = 0))");
                         break;
                 }
@@ -3106,9 +3107,9 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
@@ -3162,26 +3163,26 @@ export default class ContextFilterServerController {
                             break;
                         }
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     default:
                         throw new Error('Not Implemented');
                 }
@@ -3189,9 +3190,9 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_CONTAINS:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
@@ -3249,26 +3250,26 @@ export default class ContextFilterServerController {
                             break;
                         }
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     default:
                         throw new Error('Not Implemented');
                 }
@@ -3276,9 +3277,9 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
                 switch (field_type) {
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
@@ -3332,26 +3333,26 @@ export default class ContextFilterServerController {
                             break;
                         }
 
-                    case ModuleTableField.FIELD_TYPE_amount:
-                    case ModuleTableField.FIELD_TYPE_enum:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_float:
-                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
-                    case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                    case ModuleTableField.FIELD_TYPE_float_array:
-                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     default:
                         throw new Error('Not Implemented');
                 }
@@ -3409,7 +3410,7 @@ export default class ContextFilterServerController {
         query_tables_prefix: string,
         jointures: string[],
         filters: ContextFilterVO[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
         path: FieldPathWrapper[],
         aliases_n: number
@@ -3493,9 +3494,9 @@ export default class ContextFilterServerController {
                     }
 
                     switch (path_i.field.field_type) {
-                        case ModuleTableField.FIELD_TYPE_foreign_key:
-                        case ModuleTableField.FIELD_TYPE_file_ref:
-                        case ModuleTableField.FIELD_TYPE_image_ref:
+                        case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                        case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                        case ModuleTableFieldVO.FIELD_TYPE_image_ref:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
@@ -3503,8 +3504,8 @@ export default class ContextFilterServerController {
                                 tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id
                             );
                             break;
-                        case ModuleTableField.FIELD_TYPE_refrange_array:
-                        case ModuleTableField.FIELD_TYPE_numrange_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
@@ -3583,9 +3584,9 @@ export default class ContextFilterServerController {
                     }
 
                     switch (path_i.field.field_type) {
-                        case ModuleTableField.FIELD_TYPE_foreign_key:
-                        case ModuleTableField.FIELD_TYPE_file_ref:
-                        case ModuleTableField.FIELD_TYPE_image_ref:
+                        case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                        case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                        case ModuleTableFieldVO.FIELD_TYPE_image_ref:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
@@ -3593,8 +3594,8 @@ export default class ContextFilterServerController {
                                 tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id'
                             );
                             break;
-                        case ModuleTableField.FIELD_TYPE_refrange_array:
-                        case ModuleTableField.FIELD_TYPE_numrange_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                        case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
@@ -3618,7 +3619,7 @@ export default class ContextFilterServerController {
         api_type_id: string,
         cross_jointures: string[],
         filters: ContextFilterVO[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
         aliases_n: number
     ): Promise<number> {
@@ -3707,7 +3708,7 @@ export default class ContextFilterServerController {
      */
     public static async get_table_full_name(
         context_query: ContextQueryVO,
-        moduletable: ModuleTable<any>,
+        moduletable: ModuleTableVO<any>,
         filters: ContextFilterVO[]): Promise<string> {
 
         let full_name = moduletable.full_name;

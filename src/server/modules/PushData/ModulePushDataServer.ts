@@ -5,7 +5,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
@@ -74,41 +74,41 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this, this.handleNotificationUpdate);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Valider'
         }, 'snotify.prompt.submit.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Annuler'
         }, 'snotify.prompt.cancel.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre session a été invalidée, la page va être rechargée automatiquement...'
         }, PushDataServerController.NOTIFY_SESSION_INVALIDATED));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connexion en cours. La page va être rechargée automatiquement...'
         }, PushDataServerController.NOTIFY_USER_LOGGED));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'La page va être rechargée automatiquement...'
         }, PushDataServerController.NOTIFY_RELOAD));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Aucune notification en attente'
         }, 'UserNotifsViewerComponent.placeholder.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Notifications'
         }, 'UserNotifsViewerComponent.title.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer'
         }, 'UserNotifComponent.mark_as_read.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Télécharger'
         }, 'notification.simple_downloadable_link.download.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Tout supprimer'
         }, 'UserNotifsViewerComponent.footer_delete_all.___LABEL___'));
 

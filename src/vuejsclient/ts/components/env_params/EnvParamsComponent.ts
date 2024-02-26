@@ -4,7 +4,8 @@ import EnvParamsVO from '../../../../shared/modules/EnvParam/vos/EnvParamsVO';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './EnvParamsComponent.scss';
-import ModuleTableField from '../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
@@ -28,7 +29,7 @@ export default class EnvParamsComponent extends VueComponentBase {
         return VOsTypesManager.moduleTables_by_voType[EnvParamsVO.API_TYPE_ID];
     }
 
-    get env_params_fields(): Array<ModuleTableField<any>> {
+    get env_params_fields(): Array<ModuleTableFieldVO<any>> {
         return this.module_table.get_fields();
     }
 
@@ -57,14 +58,14 @@ export default class EnvParamsComponent extends VueComponentBase {
             try {
 
                 switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_boolean:
+                    case ModuleTableFieldVO.FIELD_TYPE_boolean:
                         await ModuleEnvParam.getInstance().set_env_param_boolean(field.module_table_field_id, data);
                         break;
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
                         await ModuleEnvParam.getInstance().set_env_param_number(field.module_table_field_id, data);
                         break;
-                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
                         await ModuleEnvParam.getInstance().set_env_param_string(field.module_table_field_id, data);
                         break;
                     default:

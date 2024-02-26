@@ -23,13 +23,14 @@ import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTC
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -223,10 +224,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         VarsServerCallBackSubsController.init();
         ModuleBGThreadServer.getInstance().registerBGThread(VarsdatasComputerBGThread.getInstance());
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Valeur' }, 'var.desc_mode.var_data.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Valeur' }, 'var.desc_mode.var_data.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
 
         let postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         let postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
@@ -238,235 +239,235 @@ export default class ModuleVarServer extends ModuleServerBase {
         postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onUVarConf);
         postDTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onPostDVarConf);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Calculée'
         }, 'var_data.value_type.computed'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Importée'
         }, 'var_data.value_type.import'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'TOUT supprimer ? Même les imports ?'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ATTENTION'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Suppression en cours...'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Suppression terminée'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.ok.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'A tester'
         }, 'slow_var.type.needs_test'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Refusée'
         }, 'slow_var.type.denied'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'En cours de test'
         }, 'slow_var.type.tesing'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Datasources'
         }, 'var.desc_mode.var_datasources.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vider l\'arbre'
         }, 'var_desc.clearDag.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Actualiser la HeatMap des deps'
         }, 'var_desc.refreshDependenciesHeatmap.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': '<b>Variable</b><hr><ul>'
         }, 'VarDataRefComponent.var_data_value_tooltip_prefix.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': '<li>Dernière mise à jour le <b>{formatted_date}</b><br><i>{value}</i></li>'
         }, 'VarDataRefComponent.var_data_value_tooltip.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': '<li>Import ou saisie le <b>{formatted_date}</b><br><i>{value}</i></li>'
         }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Index + Entrée'
         }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer la valeur importée'
         }, 'VarDataRefComponent.contextmenu.clearimport.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Index + Entrée - Validez à vide pour réinitialiser.'
         }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Index de la variable sélectionnée'
         }, 'vars_datas_explorer_visualization.chosen_index.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': '</ul>'
         }, 'VarDataRefComponent.var_data_value_tooltip_suffix.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'SlowVars'
         }, 'menu.menuelements.admin.SlowVarVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'En cours de test'
         }, 'slow_var.type.testing'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Matroids calculés'
         }, 'var.desc_mode.computed_datas_matroids.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Matroids chargés'
         }, 'var.desc_mode.loaded_datas_matroids.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Valeur totale des matroids chargés'
         }, 'var.desc_mode.loaded_datas_matroids_sum_value.___LABEL___'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Tout en cache/pas de chunks'
         }, 'var_cache_conf.cache_strategy.cache_all_never_load_chunks'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Rien en cache'
         }, 'var_cache_conf.cache_strategy.cache_none'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Pixel'
         }, 'var_cache_conf.cache_strategy.pixel'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Variable invalidée, calcul en cours...'
         }, 'var.desc_mode.update_var_data.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Invalidation impossible sur un import'
         }, 'var.desc_mode.update_var_data.not_allowed_on_imports.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Indicateurs - Objectif'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_objectif_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Indicateurs - Réalisé'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_realise_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Performance'
         }, 'fields.labels.ref.module_var_var_perf.___LABEL____var_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Variable lente'
         }, 'fields.labels.ref.module_var_slow_var.___LABEL____var_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Nombre de deps'
         }, 'var.desc_mode.dependencies_number.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Deps en % de l\'arbre'
         }, 'var.desc_mode.dependencies_tree_prct.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': '% de vars enregistrées'
         }, 'var_desc_registrations.vardag_registered_prct.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': '% de vars enregistrées / var_id'
         }, 'var_desc_registrations.vardag_registered_prct_by_var_id.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Taille de l\'arbre'
         }, 'var_desc_registrations.vardag_size.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Données importées/aggrégées'
         }, 'var_desc.aggregated_var_datas.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cache des modifications de VO vidé. Prêt pour le redémarrage'
         }, 'force_empty_vars_datas_vo_update_cache.done'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Import ?'
         }, 'var_desc.var_data_is_import.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Date màj : {last_update}'
         }, 'var_desc.var_data_last_update.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Explication du calcul'
         }, 'var_desc.explaination.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Markers'
         }, 'var.desc_mode.var_markers.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Actualiser le graph'
         }, 'var_desc.create_graph.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'StepByStep'
         }, 'var_desc.pause.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Limité à 10 deps affichées. Cliquer pour les voir toutes...'
         }, 'var_desc_explain_dep.limit_10.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Variable'
         }, 'var_desc.var_controller_label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Valeur non formatée'
         }, 'var_desc.var_data_label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Source de données'
         }, 'var_desc.var_ds_label.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer le cache par intersection'
         }, 'vars_datas_explorer_actions.delete_cache_intersection.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher les données exactes'
         }, 'vars_datas_explorer_actions.get_exact.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Calculer ce paramètre'
         }, 'vars_datas_explorer_actions.show_exact.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher les données incluses'
         }, 'vars_datas_explorer_actions.get_included.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher les données intersectées'
         }, 'vars_datas_explorer_actions.get_intersection.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Invalider le cache par intersection'
         }, 'vars_datas_explorer_actions.invalidate_cache_intersection.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Invalider l\'arbre en cache par intersection'
         }, 'vars_datas_explorer_actions.invalidate_cache_intersection_and_depstree.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer le cache et les imports par intersection'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Variables'
         }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Expliquer cette valeur / ce calcul'
         }, 'VarDataRefComponent.contextmenu.explain_var.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copier la valeur brute'
         }, 'VarDataRefComponent.contextmenu.copy_raw_value.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copier la valeur formatée'
         }, 'VarDataRefComponent.contextmenu.copy_formatted_value.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copier l\'index de la variable'
         }, 'VarDataRefComponent.contextmenu.copy_var_param_index.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Valeur importée supprimée'
         }, 'VarDataRefComponent.contextmenu.importcleared.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher'
         }, 'var_desc_explain.show_help_tooltip.visible.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Masquer'
         }, 'var_desc_explain.show_help_tooltip.hidden.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Explication synthétique publique'
         }, 'var_desc.public.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': '[BETA] Get ChatGPT prompt to explain value in console.log'
         }, 'var_desc.get_chatgpt_prompt.___LABEL___'));
 
@@ -811,7 +812,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVar.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Variables'
         }));
 
@@ -822,7 +823,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             POLICY_FO_ACCESS.group_id = group.id;
             POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             POLICY_FO_ACCESS.translatable_name = ModuleVar.POLICY_FO_ACCESS;
-            POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
+            POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, DefaultTranslationVO.create_new({
                 'fr-fr': 'Accès aux Variables sur le front'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -832,7 +833,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             POLICY_FO_VAR_EXPLAIN_ACCESS.group_id = group.id;
             POLICY_FO_VAR_EXPLAIN_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             POLICY_FO_VAR_EXPLAIN_ACCESS.translatable_name = ModuleVar.POLICY_FO_VAR_EXPLAIN_ACCESS;
-            POLICY_FO_VAR_EXPLAIN_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_VAR_EXPLAIN_ACCESS, new DefaultTranslation({
+            POLICY_FO_VAR_EXPLAIN_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_VAR_EXPLAIN_ACCESS, DefaultTranslationVO.create_new({
                 'fr-fr': 'Explication des vars - GPT'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -842,7 +843,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             desc_mode_access.group_id = group.id;
             desc_mode_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             desc_mode_access.translatable_name = ModuleVar.POLICY_DESC_MODE_ACCESS;
-            desc_mode_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(desc_mode_access, new DefaultTranslation({
+            desc_mode_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(desc_mode_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Accès au "Mode description"'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -852,7 +853,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             bo_access.group_id = group.id;
             bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             bo_access.translatable_name = ModuleVar.POLICY_BO_ACCESS;
-            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Administration des vars'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -862,7 +863,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             bo_imported_access.group_id = group.id;
             bo_imported_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             bo_imported_access.translatable_name = ModuleVar.POLICY_BO_IMPORTED_ACCESS;
-            bo_imported_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_imported_access, new DefaultTranslation({
+            bo_imported_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_imported_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Configuration des données importées'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -872,7 +873,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             bo_varconf_access.group_id = group.id;
             bo_varconf_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             bo_varconf_access.translatable_name = ModuleVar.POLICY_BO_VARCONF_ACCESS;
-            bo_varconf_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_varconf_access, new DefaultTranslation({
+            bo_varconf_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_varconf_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Configuration des types de vars'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -1435,8 +1436,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             field_promises.push((async (matroid_field) => {
                 // TODO FIXME les tsranges pour le moment on max_range il faut réfléchir à la meilleure solution pour gérer ces filtrages de dates
                 switch (matroid_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         if (matroid_field.has_relation) {
 
                             let alias = matroid_field.manyToOne_target_moduletable.vo_type + '__id';
@@ -1511,7 +1512,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
                         }
                         break;
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                         if (!accept_max_ranges) {
 
                             if (!refuse_param) {
@@ -1522,7 +1523,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             var_param[matroid_field.field_name] = [RangeHandler.getMaxHourRange()];
                         }
                         break;
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         if (!!custom_filters[matroid_field.field_name]) {
                             // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
                             // on compte en nombre de range et non en cardinal
@@ -1666,7 +1667,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let field = var_data_fields[i];
 
             prompt += " - Le champs '" + await ModuleTranslation.getInstance().label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[var_data._type].name + '.' + field.field_name, lang_id) + "' qui filtre sur un ou plusieurs intervales de " +
-                ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
+                ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
             let ranges = var_data[field.field_name] as IRange[];
             for (let j in ranges) {
                 let range = ranges[j];
@@ -1674,11 +1675,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                 let segmented_max = RangeHandler.getSegmentedMax(range);
 
                 switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         prompt += "[" + Dates.format_segment(segmented_min, range.segment_type) + ", " + Dates.format_segment(segmented_max, range.segment_type) + "] - segmenté par " +
                             TimeSegment.TYPE_NAMES[range.segment_type] + " -,\n";
                         break;
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
 
                         let segmented_min_str = null;
                         let segmented_max_str = null;

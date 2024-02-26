@@ -1,6 +1,7 @@
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConversionHandler from '../../../shared/tools/ConversionHandler';
 import moment from 'moment';
@@ -20,7 +21,7 @@ export default class ContextQueryFieldServerController {
         }
 
         let field = VOsTypesManager.moduleTables_by_voType[query_field.api_type_id].get_field_by_id(query_field.field_name);
-        let field_type = field ? field.field_type : ((query_field.field_name == 'id') ? ModuleTableField.FIELD_TYPE_int : null);
+        let field_type = field ? field.field_type : ((query_field.field_name == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int : null);
         let res: DataFilterOption[] = [];
 
         let use_default_res = true;
@@ -30,56 +31,56 @@ export default class ContextQueryFieldServerController {
             null
         );
         switch (field_type) {
-            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
                 default_res.numeric_value = ConversionHandler.forceNumber(db_res);
                 default_res.string_value = (default_res.numeric_value == null) ? null : field.enum_values[default_res.numeric_value];
                 default_res.label = default_res.string_value;
                 break;
 
-            case ModuleTableField.FIELD_TYPE_file_ref:
-            case ModuleTableField.FIELD_TYPE_image_field:
-            case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            case ModuleTableField.FIELD_TYPE_hour:
+            case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_image_field:
+            case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableFieldVO.FIELD_TYPE_hour:
                 default_res.numeric_value = ConversionHandler.forceNumber(db_res);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
                 default_res.tstz_value = parseInt(db_res.toString());
                 break;
 
 
-            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
                 if (db_res && db_res.trim) {
                     default_res.string_value = db_res.trim();
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 default_res.string_value = db_res;
                 break;
 
 
-            case ModuleTableField.FIELD_TYPE_boolean:
+            case ModuleTableFieldVO.FIELD_TYPE_boolean:
                 default_res.boolean_value = db_res;
                 break;
 
-            case ModuleTableField.FIELD_TYPE_html_array:
-            case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableFieldVO.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_string_array:
                 use_default_res = false;
                 for (let i in db_res) {
                     let db_i_res = db_res[i];
@@ -94,27 +95,27 @@ export default class ContextQueryFieldServerController {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
-            case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_hourrange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
-            case ModuleTableField.FIELD_TYPE_int_array:
-            case ModuleTableField.FIELD_TYPE_float_array:
-            case ModuleTableField.FIELD_TYPE_tstz_array:
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_daterange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_int_array:
+            case ModuleTableFieldVO.FIELD_TYPE_float_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                 throw new Error('Not Implemented');
 
-            case ModuleTableField.FIELD_TYPE_date:
-            case ModuleTableField.FIELD_TYPE_day:
-            case ModuleTableField.FIELD_TYPE_month:
+            case ModuleTableFieldVO.FIELD_TYPE_date:
+            case ModuleTableFieldVO.FIELD_TYPE_day:
+            case ModuleTableFieldVO.FIELD_TYPE_month:
                 default_res.tstz_value = moment(db_res).utc(true).unix();
                 break;
 
-            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+            case ModuleTableFieldVO.FIELD_TYPE_timewithouttimezone:
                 throw new Error('Not Implemented');
         }
 

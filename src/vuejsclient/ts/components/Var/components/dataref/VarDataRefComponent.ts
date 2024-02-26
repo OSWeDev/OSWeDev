@@ -7,7 +7,8 @@ import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
@@ -486,13 +487,13 @@ export default class VarDataRefComponent extends VueComponentBase {
                     throw new Error('Not implemented');
 
                 case FilterObj.FILTER_TYPE_hour:
-                    res.field_type = ModuleTableField.FIELD_TYPE_hour;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_hour;
                     break;
                 case FilterObj.FILTER_TYPE_amount:
-                    res.field_type = ModuleTableField.FIELD_TYPE_amount;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_amount;
                     break;
                 case FilterObj.FILTER_TYPE_percent:
-                    res.field_type = ModuleTableField.FIELD_TYPE_prct;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_prct;
                     break;
                 case FilterObj.FILTER_TYPE_toFixedCeil:
                 case FilterObj.FILTER_TYPE_toFixedFloor:
@@ -500,16 +501,16 @@ export default class VarDataRefComponent extends VueComponentBase {
                 case FilterObj.FILTER_TYPE_padHour:
                 case FilterObj.FILTER_TYPE_positiveNumber:
                 case FilterObj.FILTER_TYPE_hideZero:
-                    res.field_type = ModuleTableField.FIELD_TYPE_float;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_float;
                     break;
                 case FilterObj.FILTER_TYPE_bignum:
-                    res.field_type = ModuleTableField.FIELD_TYPE_int;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_int;
                     break;
                 case FilterObj.FILTER_TYPE_boolean:
-                    res.field_type = ModuleTableField.FIELD_TYPE_boolean;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_boolean;
                     break;
                 case FilterObj.FILTER_TYPE_truncate:
-                    res.field_type = ModuleTableField.FIELD_TYPE_string;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_string;
                     break;
             }
         }
