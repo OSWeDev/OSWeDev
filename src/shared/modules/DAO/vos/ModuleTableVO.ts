@@ -158,6 +158,12 @@ export default class ModuleTableVO implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * @deprecated use ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type][field_name] instead
+     */
+    public getFieldFromId(field_name: string): ModuleTableFieldController {
+        return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type][field_name];
+    }
 
     public get_segmented_full_name(segmented_value: number): string {
 

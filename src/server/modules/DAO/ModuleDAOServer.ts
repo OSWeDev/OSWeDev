@@ -77,6 +77,7 @@ import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import Module from '../../../shared/modules/Module';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -822,7 +823,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if ((!ranges) || (!ranges.length)) {
-                ConsoleHandler.error('getWhereClauseForFilterByMatroidIntersection :: Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                ConsoleHandler.error('getWhereClauseForFilterByMatroidIntersection :: Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_name + ':');
                 return null;
             }
 
@@ -848,8 +849,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public getWhereClauseForRangeArray(
         api_type_id: string,
-        field: ModuleTableFieldVO<any,
-            ranges: IRange[],
+        field: ModuleTableFieldVO,
+        ranges: IRange[],
     ): string {
         if (!field) {
             return null;
@@ -1059,10 +1060,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let tablename in vos_by_vo_tablename_and_ids) {
             let tableFields: string[] = [];
 
-            let moduleTable: = vos_by_vo_tablename_and_ids[tablename].moduletable;
+            let moduleTable = vos_by_vo_tablename_and_ids[tablename].moduletable;
+            let fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
-            for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableFieldVO = moduleTable.get_fields()[f];
+            for (const f in fields) {
+                let field: ModuleTableFieldVO = fields[f];
 
                 tableFields.push(field.field_name);
 
