@@ -28,6 +28,7 @@ import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/Toggl
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
+import UserAPIVO from './vos/UserAPIVO';
 import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserSessionVO from './vos/UserSessionVO';
@@ -105,6 +106,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_RECOVERY_HOURS = 'recovery_hours';
     public static PARAM_NAME_CAN_RECOVER_PWD_BY_SMS = 'ModuleAccessPolicy.CAN_RECOVER_PWD_BY_SMS';
     public static PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID = 'ModuleAccessPolicy.SESSION_SHARE_SEND_IN_BLUE_MAIL_ID';
+    public static PARAM_NAME_ACTIVATED_USER_API_KEY = 'ModuleAccessPolicy.ACTIVATED_USER_API_KEY';
 
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
@@ -430,6 +432,22 @@ export default class ModuleAccessPolicy extends Module {
         this.initializeModulePolicyDependency();
         this.initializeRolesPolicies();
         this.initializeUserLogVO();
+        this.initializeUserAPIVO();
+    }
+
+    private initializeUserAPIVO() {
+        let field_api_key = new ModuleTableField('api_key', ModuleTableField.FIELD_TYPE_foreign_key, 'API Key', true).unique();
+        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID User', true).unique();
+        let datatable_fields = [
+            field_api_key,
+            field_user_id,
+        ];
+
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserAPIVO.API_TYPE_ID, () => new UserAPIVO(), datatable_fields, field_api_key, new DefaultTranslation({ 'fr-fr': "Clefs d'API des utilisateurs" }));
+
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
+        this.datatables.push(datatable);
     }
 
     private initializeUser() {
