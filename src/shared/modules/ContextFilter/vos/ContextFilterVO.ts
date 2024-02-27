@@ -798,12 +798,32 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     /**
+     * Filtre par un nombre simple field > alias
+     * @param alias alias du champs à comparer
+     */
+    public by_num_sup_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_SUP_ALL;
+        this.param_alias = alias;
+        return this;
+    }
+
+    /**
      * Filtre par un nombre simple field >= nombre
      * @param num le nombre à utiliser dans le filtre
      */
     public by_num_sup_eq(num: number): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NUMERIC_SUPEQ_ALL;
         this.param_numeric = num;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple field >= alias
+     * @param alias alias du champs à comparer
+     */
+    public by_num_sup_eq_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_SUPEQ_ALL;
+        this.param_alias = alias;
         return this;
     }
 
@@ -818,12 +838,32 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     /**
+     * Filtre par un nombre simple field < alias
+     * @param alias alias du champs à comparer
+     */
+    public by_num_inf_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ALL;
+        this.param_alias = alias;
+        return this;
+    }
+
+    /**
      * Filtre par un nombre simple field <= nombre
      * @param num le nombre à utiliser dans le filtre
      */
     public by_num_inf_eq(num: number): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NUMERIC_INFEQ_ALL;
         this.param_numeric = num;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple field <= alias
+     * @param alias alias du champs à comparer
+     */
+    public by_num_inf_eq_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_INFEQ_ALL;
+        this.param_alias = alias;
         return this;
     }
 

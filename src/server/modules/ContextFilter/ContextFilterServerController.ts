@@ -1705,6 +1705,11 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_id + " <= " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1829,6 +1834,11 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_id + " < " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1953,6 +1963,11 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_id + " > " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -2077,6 +2092,11 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_id + " >= " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
